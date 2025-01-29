@@ -16,7 +16,12 @@ public class UserService {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper = new ModelMapper();
 
-    public Page<UserDTO> findAll(Pageable pageable ) {
+    public Page<UserDTO> findAll( Pageable pageable ) {
         return userRepository.findAll( pageable ).map( user -> modelMapper.map( user, UserDTO.class ) );
     }
+
+    public UserDTO findById( Long id ) {
+        return userRepository.findById( id ).map(user -> modelMapper.map(user, UserDTO.class)).orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+    }
+    
 }
