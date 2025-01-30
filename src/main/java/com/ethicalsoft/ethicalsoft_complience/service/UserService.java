@@ -1,6 +1,8 @@
 package com.ethicalsoft.ethicalsoft_complience.service;
 
+import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
 import com.ethicalsoft.ethicalsoft_complience.model.dto.UserDTO;
+import com.ethicalsoft.ethicalsoft_complience.model.enums.ErrorTypeEnum;
 import com.ethicalsoft.ethicalsoft_complience.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -21,7 +23,7 @@ public class UserService {
     }
 
     public UserDTO findById( Long id ) {
-        return userRepository.findById( id ).map(user -> modelMapper.map(user, UserDTO.class)).orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+        return userRepository.findById( id ).map(user -> modelMapper.map(user, UserDTO.class)).orElseThrow(() -> new BusinessException(ErrorTypeEnum.INFO, "User not found with id: " + id));
     }
     
 }

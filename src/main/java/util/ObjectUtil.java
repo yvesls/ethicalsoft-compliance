@@ -30,4 +30,12 @@ public class ObjectUtil {
 
         return !object.toString().isBlank();
     }
+
+    public static String getOrNull( String value ) {
+        if( isNullOrEmpty( value ) ) {
+            return null;
+        } else {
+            return value;
+        }
+    }
 }

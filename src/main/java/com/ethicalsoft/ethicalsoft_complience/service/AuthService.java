@@ -1,8 +1,10 @@
 package com.ethicalsoft.ethicalsoft_complience.service;
 
+import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
 import com.ethicalsoft.ethicalsoft_complience.model.User;
 import com.ethicalsoft.ethicalsoft_complience.model.dto.AuthDTO;
 import com.ethicalsoft.ethicalsoft_complience.model.dto.RegisterUserDTO;
+import com.ethicalsoft.ethicalsoft_complience.model.enums.ErrorTypeEnum;
 import com.ethicalsoft.ethicalsoft_complience.model.enums.UserRoleEnum;
 import com.ethicalsoft.ethicalsoft_complience.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +14,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
 
 @RequiredArgsConstructor
 @Service
@@ -29,11 +30,11 @@ public class AuthService {
 
     public void register(RegisterUserDTO registerUserDTO) {
         if(!registerUserDTO.isAcceptedTerms()) {
-            throw new RuntimeException("The terms were not accepted");
+            throw new BusinessException(ErrorTypeEnum.INFO, "The terms were not accepted");
         }
 
-        if(!ObjectUtils.isEmpty(userRepository.findByEmail(registerUserDTO.getEmail()))) {
-            new RuntimeException("Email already exists");
+        if(userRepository.findByEmail(registerUserDTO.getEmail()).isEmpty()) {
+            throw new BusinessException(ErrorTypeEnum.INFO, "Email already exists");
         }
         var encryptedPassword = new BCryptPasswordEncoder().encode(registerUserDTO.getPassword());
         registerUserDTO.setPassword(encryptedPassword);

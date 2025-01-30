@@ -12,7 +12,7 @@ import java.lang.annotation.*;
 @Target( { ElementType.METHOD, ElementType.FIELD, ElementType.PARAMETER } )
 @Retention( RetentionPolicy.RUNTIME )
 public @interface RequiredField {
-    String message() default "'{label}' ${NullOrEmptyMessage}";
+    String message() default "'{label}' {NullOrEmptyMessage} Value: ";
 
     @NotBlank
     String label();
