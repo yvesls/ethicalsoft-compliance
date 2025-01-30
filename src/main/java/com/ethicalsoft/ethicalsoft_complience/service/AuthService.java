@@ -28,6 +28,10 @@ public class AuthService {
     }
 
     public void register(RegisterUserDTO registerUserDTO) {
+        if(!registerUserDTO.isAcceptedTerms()) {
+            throw new RuntimeException("The terms were not accepted");
+        }
+
         if(!ObjectUtils.isEmpty(userRepository.findByEmail(registerUserDTO.getEmail()))) {
             new RuntimeException("Email already exists");
         }

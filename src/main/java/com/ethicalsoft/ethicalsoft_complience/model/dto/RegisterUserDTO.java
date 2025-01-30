@@ -1,12 +1,12 @@
 package com.ethicalsoft.ethicalsoft_complience.model.dto;
 
 import com.ethicalsoft.ethicalsoft_complience.model.enums.UserRoleEnum;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import util.validators.annotations.Email;
+import util.validators.annotations.RequiredField;
 
 @Getter
 @Setter
@@ -14,24 +14,20 @@ import lombok.Setter;
 @NoArgsConstructor
 public class RegisterUserDTO {
 
-    @NotNull
-    @NotEmpty
+    @RequiredField( label = "First name" )
     private String firstName;
 
-    @NotNull
-    @NotEmpty
+    @RequiredField( label = "Last name" )
     private String lastName;
 
-    @NotNull
-    @NotEmpty
+    @Email
     private String email;
 
-    @NotNull
-    @NotEmpty
+    @RequiredField( label = "Password" )
     private String password;
 
-    @NotNull
     private boolean acceptedTerms;
 
+    @RequiredField( label = "role" )
     private UserRoleEnum role;
 }

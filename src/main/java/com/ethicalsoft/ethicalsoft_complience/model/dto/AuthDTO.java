@@ -1,11 +1,13 @@
 package com.ethicalsoft.ethicalsoft_complience.model.dto;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import util.validators.annotations.RequiredField;
 
 @Getter
 @Setter
@@ -13,12 +15,11 @@ import lombok.Setter;
 @NoArgsConstructor
 public class AuthDTO {
 
-    @NotNull
-    @NotEmpty
+    @RequiredField( label = "username" )
+    @Email
     private String username;
 
-    @NotNull
-    @NotEmpty
+    @RequiredField( label = "password" )
     private String password;
 
 }
