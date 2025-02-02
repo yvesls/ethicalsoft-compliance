@@ -54,7 +54,7 @@ class AuthControllerRegisterTest {
         doThrow(new BusinessException(ErrorTypeEnum.INFO, "Password cannot be empty"))
                 .when(authService).register(any(RegisterUserDTO.class));
 
-        BusinessException exception = assertThrows(BusinessException.class,
+        assertThrows(BusinessException.class,
                 () -> authController.register(registerUserDTO));
 
         verify(authService, times(1)).register(any());
@@ -71,7 +71,7 @@ class AuthControllerRegisterTest {
         doThrow(new BusinessException(ErrorTypeEnum.INFO, "Email is required"))
                 .when(authService).register(any(RegisterUserDTO.class));
 
-        BusinessException exception = assertThrows(BusinessException.class,
+        assertThrows(BusinessException.class,
                 () -> authController.register(registerUserDTO));
 
         verify(authService, times(1)).register(any());
@@ -88,7 +88,7 @@ class AuthControllerRegisterTest {
         doThrow(new BusinessException(ErrorTypeEnum.INFO, "Password is required"))
                 .when(authService).register(any(RegisterUserDTO.class));
 
-        BusinessException exception = assertThrows(BusinessException.class,
+        assertThrows(BusinessException.class,
                 () -> authController.register(registerUserDTO));
 
         verify(authService, times(1)).register(any());
@@ -122,7 +122,7 @@ class AuthControllerRegisterTest {
         doThrow(new BusinessException(ErrorTypeEnum.INFO, "The terms were not accepted"))
                 .when(authService).register(any(RegisterUserDTO.class));
 
-        BusinessException exception = assertThrows(BusinessException.class,
+        assertThrows(BusinessException.class,
                 () -> authController.register(registerUserDTO));
 
         verify(authService, times(1)).register(any());

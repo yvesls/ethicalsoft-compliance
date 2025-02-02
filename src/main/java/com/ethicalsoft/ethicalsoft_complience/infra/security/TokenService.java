@@ -4,6 +4,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
 import com.ethicalsoft.ethicalsoft_complience.model.User;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -21,14 +22,13 @@ public class TokenService {
     public String generateToken(User user) {
         try {
             var algorithm = Algorithm.HMAC256(secret);
-            var token = JWT.create()
-                    .withIssuer("auth-api")
-                    .withSubject(user.getUsername())
-                    .withExpiresAt(this.getExpirationDate())
-                    .sign(algorithm);
-            return token;
+            return JWT.create()
+                .withIssuer("auth-api")
+                .withSubject(user.getUsername())
+                .withExpiresAt(this.getExpirationDate())
+                .sign(algorithm);
         }catch (JWTCreationException e) {
-            throw new RuntimeException("Error while generating token", e);
+            throw new BusinessException("Error while generating token", e);
         }
     }
 

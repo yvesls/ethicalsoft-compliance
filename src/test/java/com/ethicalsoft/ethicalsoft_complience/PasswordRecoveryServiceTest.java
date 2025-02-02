@@ -5,7 +5,6 @@ import com.ethicalsoft.ethicalsoft_complience.repository.RecoveryCodeRepository;
 import com.ethicalsoft.ethicalsoft_complience.repository.UserRepository;
 import com.ethicalsoft.ethicalsoft_complience.service.EmailService;
 import com.ethicalsoft.ethicalsoft_complience.service.PasswordRecoveryService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -21,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class PasswordRecoveryServiceTest {
+ class PasswordRecoveryServiceTest {
 
     @Mock
     private UserRepository userRepository;
