@@ -37,7 +37,6 @@ public class EmailService {
 
             mailSender.send(message);
         } catch (MessagingException | IOException | TemplateException e) {
-            e.printStackTrace();
             throw new EmailSendingException("Failed to send recovery email to " + to, e);
         }
     }
