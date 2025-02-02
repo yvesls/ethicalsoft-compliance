@@ -40,11 +40,14 @@ public class User implements UserDetails {
     @Column(name = "accepted_terms")
     private boolean acceptedTerms;
 
+    @Column(name = "first_access")
+    private boolean firstAccess;
+
     @Enumerated(EnumType.STRING)
     private UserRoleEnum role;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Representative> representatives;
+    private static List<Representative> representatives;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

@@ -28,6 +28,8 @@ public class RegisterUserDTO {
 
     private boolean acceptedTerms;
 
+    private boolean firstAccess;
+
     @RequiredField( label = "role" )
     private UserRoleEnum role;
 }

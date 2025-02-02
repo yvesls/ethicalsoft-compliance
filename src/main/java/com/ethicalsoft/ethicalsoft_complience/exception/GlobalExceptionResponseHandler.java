@@ -40,6 +40,18 @@ public class GlobalExceptionResponseHandler {
 
     private final MessageSource messageSource;
 
+    @ExceptionHandler(EmailSendingException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ExceptionResponseDTO handleEmailError(EmailSendingException exception, HttpServletRequest request) {
+        return makeDefaultResponse(
+                ErrorTypeEnum.ERROR,
+                exception,
+                exception.getMessage(),
+                request,
+                HttpStatus.INTERNAL_SERVER_ERROR
+        );
+    }
+
     @ExceptionHandler( ResponseStatusException.class )
     public ExceptionResponseDTO handleResponseStatus( ResponseStatusException exception, HttpServletRequest request, HttpServletResponse response ) {
         var httpStatusCode = exception.getStatusCode();

@@ -23,9 +23,12 @@ public class AuthService {
 
     private final ModelMapper modelMapper = new ModelMapper();
 
-    public Authentication login(AuthDTO authDTO, AuthenticationManager authenticationManager) {
-        var usernamePassword = new UsernamePasswordAuthenticationToken(authDTO.getUsername(), authDTO.getPassword());
-        return authenticationManager.authenticate(usernamePassword);
+    private final AuthenticationManager authenticationManager;
+
+    public Authentication login(AuthDTO authDTO) {
+        UsernamePasswordAuthenticationToken token =
+                new UsernamePasswordAuthenticationToken(authDTO.getUsername(), authDTO.getPassword());
+        return authenticationManager.authenticate(token);
     }
 
     public void register(RegisterUserDTO registerUserDTO) {
@@ -33,7 +36,9 @@ public class AuthService {
             throw new BusinessException(ErrorTypeEnum.INFO, "The terms were not accepted");
         }
 
-        if(userRepository.findByEmail(registerUserDTO.getEmail()).isEmpty()) {
+        var dataUser = userRepository.findByEmail(registerUserDTO.getEmail());
+
+        if(dataUser.isPresent()) {
             throw new BusinessException(ErrorTypeEnum.INFO, "Email already exists");
         }
         var encryptedPassword = new BCryptPasswordEncoder().encode(registerUserDTO.getPassword());
@@ -41,7 +46,9 @@ public class AuthService {
 
         var newUser = modelMapper.map( registerUserDTO, User.class );
         newUser.setRole(UserRoleEnum.ADMIN);
+        newUser.setFirstAccess(false);
 
         this.userRepository.save(newUser);
     }
+
 }

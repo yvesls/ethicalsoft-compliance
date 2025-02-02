@@ -10,10 +10,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+@CrossOrigin
 @RequiredArgsConstructor
 @RestController
+@Validated
 @RequestMapping( "user" )
 public class UserController extends BaseController {
     private final UserService userService;
