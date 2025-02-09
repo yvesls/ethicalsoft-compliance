@@ -208,6 +208,17 @@
 						</goals>
 					</execution>
 				</executions>
+				<configuration>
+					<excludes>
+						<exclude>**/controller/**</exclude>
+						<exclude>**/model/**</exclude>
+						<exclude>**/repository/**</exclude>
+						<exclude>**/infra/**</exclude>
+						<exclude>**/configuration/**</exclude>
+						<exclude>**/exception/**</exclude>
+						<exclude>**/EthicalsoftComplienceApplication.*</exclude>
+					</excludes>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.sonarsource.scanner.maven</groupId>

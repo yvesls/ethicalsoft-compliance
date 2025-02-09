@@ -6,14 +6,13 @@ import com.ethicalsoft.ethicalsoft_complience.model.User;
 import com.ethicalsoft.ethicalsoft_complience.model.dto.*;
 import com.ethicalsoft.ethicalsoft_complience.service.AuthService;
 import com.ethicalsoft.ethicalsoft_complience.service.PasswordRecoveryService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-@CrossOrigin
 @RequiredArgsConstructor
 @RestController
 @Validated
@@ -26,14 +25,11 @@ public class AuthController extends BaseController {
 
     private final PasswordRecoveryService recoveryService;
 
-    @PostMapping( "/login" )
-    public ResponseEntity<String> login(@Valid @RequestBody AuthDTO authDTO ) {
+    @PostMapping("/login")
+    public void login(@Valid @RequestBody AuthDTO authDTO, HttpServletResponse response) {
         var auth = authService.login(authDTO);
-        var token = this.tokenService.generateToken( (User) auth.getPrincipal());
-        return ResponseEntity
-                .ok()
-                .header("Authorization", "Bearer " + token)
-                .build();
+        var token = this.tokenService.generateToken((User) auth.getPrincipal());
+        response.addHeader("Authorization", "Bearer " + token);
     }
 
     @PostMapping("/register")
@@ -43,23 +39,20 @@ public class AuthController extends BaseController {
 
     @PostMapping("/recover")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<String> requestRecovery(@Valid @RequestBody PasswordRecoveryDTO request) {
+    public void requestRecovery(@Valid @RequestBody PasswordRecoveryDTO request) {
         recoveryService.requestRecovery(request.getEmail());
-        return ResponseEntity.ok("Recovery code sent.");
     }
 
     @PostMapping("/validate")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<String> validateCode(@Valid @RequestBody CodeValidationDTO request) {
-        boolean isValid = recoveryService.validateCode(request.getEmail(), request.getCode());
-        return ResponseEntity.ok(isValid ? "Code is valid." : "Incorrect code.");
+    public void validateCode(@Valid @RequestBody CodeValidationDTO request) {
+        recoveryService.validateCode(request.getEmail(), request.getCode());
     }
 
     @PostMapping("/reset")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<String> resetPassword(@Valid @RequestBody PasswordResetDTO request) {
+    public void resetPassword(@Valid @RequestBody PasswordResetDTO request) {
         recoveryService.resetPassword(request.getEmail(), request.getCode(), request.getNewPassword());
-        return ResponseEntity.ok("Password updated successfully.");
     }
 
 }

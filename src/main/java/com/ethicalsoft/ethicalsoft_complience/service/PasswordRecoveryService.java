@@ -33,15 +33,16 @@ public class PasswordRecoveryService {
         emailService.sendRecoveryEmail(email, code);
     }
 
-    public boolean validateCode(String email, String code) {
-        return recoveryCodeRepository.findByEmailAndCodeAndExpirationAfter(email, code, LocalDateTime.now()).isPresent();
+    public void validateCode(String email, String code) {
+        var isValid = recoveryCodeRepository.findByEmailAndCodeAndExpirationAfter(email, code, LocalDateTime.now()).isPresent();
+        if (!isValid) {
+            throw new IllegalArgumentException("Invalid or expired code.");
+        }
     }
 
     @Transactional(rollbackOn = Exception.class)
     public void resetPassword(String email, String code, String newPassword) {
-        if (!validateCode(email, code)) {
-            throw new IllegalArgumentException("Invalid or expired code");
-        }
+        validateCode(email, code);
 
         var user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));

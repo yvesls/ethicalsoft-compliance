@@ -55,12 +55,14 @@ import static org.mockito.Mockito.*;
 
     @Test
     void validateCode_success() {
-        LocalDateTime expirationTime = LocalDateTime.now().plusMinutes(10); // Create expirationTime ONCE
+        LocalDateTime expirationTime = LocalDateTime.now().plusMinutes(10);
         RecoveryCode code = new RecoveryCode("test@example.com", "123456", expirationTime);
-        when(recoveryCodeRepository.findByEmailAndCodeAndExpirationAfter(
-                eq("test@example.com"), eq("123456"), any(LocalDateTime.class))).thenReturn(Optional.of(code)); //Use any() matcher for LocalDateTime
 
-        assertTrue(passwordRecoveryService.validateCode("test@example.com", "123456"));
+        when(recoveryCodeRepository.findByEmailAndCodeAndExpirationAfter(
+                eq("test@example.com"), eq("123456"), any(LocalDateTime.class)))
+                .thenReturn(Optional.of(code));
+
+        assertDoesNotThrow(() -> passwordRecoveryService.validateCode("test@example.com", "123456"));
     }
 
     @Test
@@ -69,7 +71,7 @@ import static org.mockito.Mockito.*;
                 eq("test@example.com"), eq("invalid"), any(LocalDateTime.class)))
                 .thenReturn(Optional.empty());
 
-        assertFalse(passwordRecoveryService.validateCode("test@example.com", "invalid"));
+        assertThrows(IllegalArgumentException.class, () -> passwordRecoveryService.validateCode("test@example.com", "invalid"));
     }
 
     @Test
@@ -78,7 +80,7 @@ import static org.mockito.Mockito.*;
                 eq("test@example.com"), eq("123456"), any(LocalDateTime.class)))
                 .thenReturn(Optional.empty());
 
-        assertFalse(passwordRecoveryService.validateCode("test@example.com", "123456"));
+        assertThrows(IllegalArgumentException.class, () -> passwordRecoveryService.validateCode("test@example.com", "123456"));
     }
 
     @Test
@@ -87,7 +89,7 @@ import static org.mockito.Mockito.*;
                 eq("nonexistent@example.com"), eq("123456"), any(LocalDateTime.class)))
                 .thenReturn(Optional.empty());
 
-        assertFalse(passwordRecoveryService.validateCode("nonexistent@example.com", "123456"));
+        assertThrows(IllegalArgumentException.class, () -> passwordRecoveryService.validateCode("nonexistent@example.com", "123456"));
     }
 
     @Test

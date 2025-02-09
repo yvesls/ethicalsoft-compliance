@@ -92,7 +92,7 @@ public class GlobalExceptionResponseHandler {
     @ExceptionHandler( { IllegalArgumentException.class, IllegalStateException.class } )
     @ResponseStatus( HttpStatus.BAD_REQUEST )
     public ExceptionResponseDTO handleIllegalArgument( RuntimeException exception, HttpServletRequest request ) {
-        return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, null, request, HttpStatus.BAD_REQUEST );
+        return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, exception.getMessage(), request, HttpStatus.BAD_REQUEST );
     }
 
     @ExceptionHandler( { HttpRequestMethodNotSupportedException.class } )
