@@ -207,6 +207,7 @@
 						<exclude>**/infra/**</exclude>
 						<exclude>**/configuration/**</exclude>
 						<exclude>**/exception/**</exclude>
+						<exclude>**/util/**</exclude>
 						<exclude>**/EthicalsoftComplienceApplication.*</exclude>
 					</excludes>
 				</configuration>
