@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="9707c739-66fc-41ad-aa08-23856e7d9a2c" name="Changes" comment="chore: reorganizando pastas para incluir frontend" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="package-info" />
+        <option value="Enum" />
+        <option value="Interface" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="PUSH_TAGS">
+      <GitPushTagMode>
+        <option name="argument" value="--follow-tags" />
+        <option name="title" value="Current Branch" />
+      </GitPushTagMode>
+    </option>
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="feat/configuracoes-iniciais" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 0
+}</component>
+  <component name="ProjectId" id="2s2G9YbIRI6btNG2aDrmgE0qmNg" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "JUnit.AuthControllerTest.testRequestRecovery_Success.executor": "Debug",
+    "Notification.DisplayName-DoNotAsk-Database detector": "Database detector",
+    "Notification.DoNotAsk-Database detector": "true",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "SONARLINT_PRECOMMIT_ANALYSIS": "true",
+    "Spring Boot.EthicalsoftComplienceApplication.executor": "Debug",
+    "git-widget-placeholder": "main",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "/home/yves/Documentos/github/ethicalsoft-compliance/backend",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Global Libraries",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "preferences.pluginManager",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="com.ethicalsoft.ethicalsoft_complience.infra" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Spring Boot.EthicalsoftComplienceApplication">
+    <configuration name="AuthControllerTest.testRequestRecovery_Success" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="ethicalsoft-complience" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.ethicalsoft.ethicalsoft_complience.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.ethicalsoft.ethicalsoft_complience" />
+      <option name="MAIN_CLASS_NAME" value="com.ethicalsoft.ethicalsoft_complience.AuthControllerTest" />
+      <option name="METHOD_NAME" value="testRequestRecovery_Success" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="JetRunConfigurationType">
+      <module name="ethicalsoft-compliance" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+      <module name="ethicalsoft-compliance" />
+      <option name="filePath" />
+      <method v="2" />
+    </configuration>
+    <configuration name="EthicalsoftComplienceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UpdateClassesAndResources" />
+      <module name="ethicalsoft-complience" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.ethicalsoft.ethicalsoft_complience.EthicalsoftComplienceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="JUnit.AuthControllerTest.testRequestRecovery_Success" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-125ca727e0f0-intellij.indexing.shared.core-IU-243.23654.189" />
+        <option value="bundled-js-predefined-d6986cc7102b-822845ee3bb5-JavaScript-IU-243.23654.189" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="9707c739-66fc-41ad-aa08-23856e7d9a2c" name="Changes" comment="" />
+      <created>1737646104523</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1737646104523</updated>
+      <workItem from="1737646105574" duration="2637000" />
+      <workItem from="1737648815737" duration="4048000" />
+      <workItem from="1737724330998" duration="1761000" />
+      <workItem from="1737726100867" duration="6872000" />
+      <workItem from="1737988145681" duration="12305000" />
+      <workItem from="1738009050967" duration="13960000" />
+      <workItem from="1738156742790" duration="27000" />
+      <workItem from="1738156781721" duration="10185000" />
+      <workItem from="1738181830200" duration="38000" />
+      <workItem from="1738181874796" duration="14903000" />
+      <workItem from="1738243114934" duration="8033000" />
+      <workItem from="1738417538299" duration="16663000" />
+      <workItem from="1738451227883" duration="129000" />
+      <workItem from="1738509303867" duration="44000" />
+      <workItem from="1738509356367" duration="7443000" />
+      <workItem from="1738624277418" duration="5935000" />
+      <workItem from="1739126005764" duration="5434000" />
+      <workItem from="1739132760180" duration="2299000" />
+      <workItem from="1739135192042" duration="115000" />
+      <workItem from="1739228020156" duration="1815000" />
+      <workItem from="1739229841058" duration="211000" />
+    </task>
+    <task id="LOCAL-00001" summary="chore: retirando annotations que não são necessárias e refatorando retornos dos endpoints seguindo RestFull padrão. Modificando classes de teste e alterando packages que o jcoco mapeia.">
+      <option name="closed" value="true" />
+      <created>1739134855605</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1739134855605</updated>
+    </task>
+    <task id="LOCAL-00002" summary="chore: removendo redundâncias do SecurityConfigurations e vunerabilidades do pom.">
+      <option name="closed" value="true" />
+      <created>1739135000777</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1739135000777</updated>
+    </task>
+    <task id="LOCAL-00003" summary="chore: incluindo package util no excludes do jcoco">
+      <option name="closed" value="true" />
+      <created>1739135286964</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1739135286964</updated>
+    </task>
+    <task id="LOCAL-00004" summary="chore: reorganizando pastas para incluir frontend">
+      <option name="closed" value="true" />
+      <created>1739228734418</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1739228734418</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="chore: retirando annotations que não são necessárias e refatorando retornos dos endpoints seguindo RestFull padrão. Modificando classes de teste e alterando packages que o jcoco mapeia." />
+    <MESSAGE value="chore: removendo redundâncias do SecurityConfigurations e vunerabilidades do pom." />
+    <MESSAGE value="chore: incluindo package util no excludes do jcoco" />
+    <MESSAGE value="chore: reorganizando pastas para incluir frontend" />
+    <option name="LAST_COMMIT_MESSAGE" value="chore: reorganizando pastas para incluir frontend" />
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
+  </component>
+</project>
