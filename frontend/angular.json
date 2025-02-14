@@ -31,10 +31,12 @@
                 "input": "public"
               }
             ],
-            "styles": [
-              "src/styles.scss"
+           "styles": [
+              "src/assets/scss/styles.scss"
             ],
-            "scripts": [],
+            "scripts": [
+              "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"
+            ],
             "server": "src/main.server.ts",
             "outputMode": "server",
             "ssr": {
@@ -105,6 +107,6 @@
     }
   },
   "cli": {
-    "analytics": "311b914c-0a43-4cc1-9e65-4e0d22498467"
+    "analytics": "7d5e58b9-7f9e-4d91-a3d7-f5c02fe8d35f"
   }
 }

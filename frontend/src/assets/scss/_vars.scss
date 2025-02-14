@@ -1,0 +1,37 @@
+@font-face {
+  font-family: 'Rubik';
+  src: url('../fonts/Rubik-VariableFont_wght.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+$font-family: 'Rubik', sans-serif;
+
+$font-size: 16;
+
+$heading1: 700 40px $font-family;
+$heading2: 700 38px $font-family;
+$heading3: 600 32px $font-family;
+$heading4: 600 24px $font-family;
+
+$text: 500 16px $font-family;
+$text-sm: 500 14px $font-family;
+$text-xsm: 500 12px $font-family;
+
+$transition-default: all 0.2s ease-out;
+
+$white: #FFF;
+
+$blue-primary: #051937;
+$blue-secundary: #051937c4;
+
+$red: #DE3D0A;
+
+$gray-primary: #CACACA;
+$gray-secundary: #515151;
+$gray-tertiary: #f0f0f0;
+
+$box-shadow-primary: 1px 1px 3px rgba(0, 0, 0, 0.25);
+$box-shadow-secundary: 4px 4px 10px rgba(0, 0, 0, 0.25);
+
+$radius-default: 10px;

@@ -1,0 +1,83 @@
+@use './vars' as *;
+@use './components/input';
+@use './components/buttons';
+@use './components/checkbox';
+@use "bootstrap/scss/bootstrap";
+
+* {
+  font-family: $font-family;
+
+  box-sizing: border-box;
+
+  /* Scrollbar configuration */
+  /* Firefox */
+  & {
+    scrollbar-width: auto;
+    scrollbar-color: $blue-primary $white;
+  }
+
+  /* Chrome, Edge, and Safari */
+  &::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: $blue-primary;
+    border-radius: 10px;
+    border: 3px solid $white;
+  }
+
+  .row {
+    --bs-gutter-x: 1.5rem;
+    --bs-gutter-y: 0;
+    margin-top: calc(-1 * var(--bs-gutter-y));
+    margin-right: calc(-0.5 * var(--bs-gutter-x));
+    margin-left: calc(-0.5 * var(--bs-gutter-x));
+  }
+}
+
+:root {
+  --body: $white;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+
+  background-color: var(--body);
+  font-size: $font-size * 1px;
+}
+
+h1 {
+  color: $blue-primary;
+  font-size: 2rem;
+}
+
+p {
+  color: $gray-secundary;
+  font-size: 0.9rem;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+
+.text-blue {
+  color: $blue-primary;
+}
+
+.text-red {
+  color: $red;
+}
+
+a {
+  color: $blue-secundary;
+}

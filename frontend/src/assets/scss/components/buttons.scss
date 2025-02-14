@@ -1,0 +1,30 @@
+@use '../vars' as *;
+
+.btn.btn {
+  height: 3rem;
+  border: none;
+  border-radius: $radius-default;
+
+  &:hover, &:active, &:focus {
+    background-color: $blue-secundary;
+    border-color: $blue-primary;
+  }
+  --bs-btn-hover-border-color: $blue-primary;
+}
+
+.btn-primary.btn-primary {
+  background-color: $blue-primary;
+  color: $white;
+  border-color: $blue-primary;
+
+  &:hover, &:active, &:focus {
+    background-color: $blue-secundary;
+    border-color: $blue-primary;
+  }
+
+  --bs-btn-active-bg: $blue-primary;
+  --bs-btn-active-border-color: $blue-primary;
+
+  --bs-btn-disabled-bg: $gray-primary;
+  --bs-btn-disabled-border-color: $gray-primary;
+}
