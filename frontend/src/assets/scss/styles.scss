@@ -1,4 +1,4 @@
-@use './vars' as *;
+@use './base/vars' as *;
 @use './components/input';
 @use './components/buttons';
 @use './components/checkbox';
@@ -51,7 +51,7 @@ body {
   padding: 0;
 
   background-color: var(--body);
-  font-size: $font-size * 1px;
+  font-size: $font-size;
 }
 
 h1 {

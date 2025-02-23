@@ -4,7 +4,42 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="9707c739-66fc-41ad-aa08-23856e7d9a2c" name="Changes" comment="chore: reorganizando pastas para incluir frontend" />
+    <list default="true" id="9707c739-66fc-41ad-aa08-23856e7d9a2c" name="Changes" comment="chore: reorganizando pastas para incluir frontend">
+      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ethicalsoft/ethicalsoft_complience/controller/FallbackController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ethicalsoft/ethicalsoft_complience/exception/ResourceNotFoundException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ethicalsoft/ethicalsoft_complience/model/RefreshToken.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ethicalsoft/ethicalsoft_complience/model/dto/request/RefreshTokenRequestDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ethicalsoft/ethicalsoft_complience/model/dto/response/AuthResponseDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ethicalsoft/ethicalsoft_complience/repository/RefreshTokenRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ethicalsoft/ethicalsoft_complience/service/RefreshTokenService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ethicalsoft/ethicalsoft_complience/service/facade/AuthenticationFacadeService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/src/main/resources/db/migration/V7__criacao_tabela_refresh_token.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/ethicalsoft/ethicalsoft_complience/controller/AuthController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/ethicalsoft/ethicalsoft_complience/controller/AuthController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/ethicalsoft/ethicalsoft_complience/exception/GlobalExceptionResponseHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/ethicalsoft/ethicalsoft_complience/exception/GlobalExceptionResponseHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/ethicalsoft/ethicalsoft_complience/infra/security/SecurityConfigurations.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/ethicalsoft/ethicalsoft_complience/infra/security/SecurityConfigurations.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/ethicalsoft/ethicalsoft_complience/service/AuthService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/ethicalsoft/ethicalsoft_complience/service/AuthService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/test/java/com/ethicalsoft/ethicalsoft_complience/AuthServiceTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/test/java/com/ethicalsoft/ethicalsoft_complience/AuthServiceTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/app/app.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/app.config.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/app/app.routes.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/app.routes.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/app/modules/auth/auth.guard.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/app/modules/auth/auth.store.spec.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/app/modules/auth/auth.store.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/app/modules/auth/views/login/login.component.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/app/modules/auth/views/login/login.component.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/app/modules/auth/views/login/login.component.spec.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/app/modules/auth/views/login/login.component.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/app/views/home/home.component.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/app/views/home/home.component.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/app/views/home/home.component.spec.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/app/views/home/home.component.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/assets/scss/_vars.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/assets/scss/components/buttons.scss" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/assets/scss/components/buttons.scss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/assets/scss/components/checkbox.scss" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/assets/scss/components/checkbox.scss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/assets/scss/components/input.scss" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/assets/scss/components/input.scss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/assets/scss/styles.scss" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/assets/scss/styles.scss" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -62,7 +97,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "SONARLINT_PRECOMMIT_ANALYSIS": "true",
     "Spring Boot.EthicalsoftComplienceApplication.executor": "Debug",
-    "git-widget-placeholder": "main",
+    "git-widget-placeholder": "feat/auth-user-module-web",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "/home/yves/Documentos/github/ethicalsoft-compliance/backend",
     "node.js.detected.package.eslint": "true",
@@ -127,8 +162,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-9823dce3aa75-125ca727e0f0-intellij.indexing.shared.core-IU-243.23654.189" />
-        <option value="bundled-js-predefined-d6986cc7102b-822845ee3bb5-JavaScript-IU-243.23654.189" />
+        <option value="bundled-jdk-9823dce3aa75-125ca727e0f0-intellij.indexing.shared.core-IU-243.24978.46" />
+        <option value="bundled-js-predefined-d6986cc7102b-76f8388c3a79-JavaScript-IU-243.24978.46" />
       </set>
     </attachedChunks>
   </component>
@@ -161,6 +196,7 @@
       <workItem from="1739135192042" duration="115000" />
       <workItem from="1739228020156" duration="1815000" />
       <workItem from="1739229841058" duration="211000" />
+      <workItem from="1740331048876" duration="46000" />
     </task>
     <task id="LOCAL-00001" summary="chore: retirando annotations que não são necessárias e refatorando retornos dos endpoints seguindo RestFull padrão. Modificando classes de teste e alterando packages que o jcoco mapeia.">
       <option name="closed" value="true" />
