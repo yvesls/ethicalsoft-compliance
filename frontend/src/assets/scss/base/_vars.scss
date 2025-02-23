@@ -20,6 +20,8 @@ $text-xsm: 500 12px $font-family;
 
 $transition-default: all 0.2s ease-out;
 
+/* ----- Colors ----- */
+
 $white: #FFF;
 
 $blue-primary: #051937;
@@ -30,6 +32,16 @@ $red: #DE3D0A;
 $gray-primary: #CACACA;
 $gray-secundary: #515151;
 $gray-tertiary: #f0f0f0;
+
+$success-color: #4caf50;
+$warning-color: #0f2342;
+$error-color: #d32f2f;
+$background-color: #eaeaea;
+$text-color: #000;
+$button-bg: #808080;
+$button-text-color: #fff;
+
+/* ---------------- */
 
 $box-shadow-primary: 1px 1px 3px rgba(0, 0, 0, 0.25);
 $box-shadow-secundary: 4px 4px 10px rgba(0, 0, 0, 0.25);
