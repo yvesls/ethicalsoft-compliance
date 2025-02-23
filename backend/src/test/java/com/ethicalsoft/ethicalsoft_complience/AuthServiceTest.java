@@ -56,7 +56,7 @@ class AuthServiceTest {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenReturn(expectedAuth);
 
-        Authentication result = authService.login(validAuthDTO);
+        Authentication result = authService.token(validAuthDTO);
 
         assertEquals(expectedAuth, result);
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
@@ -67,7 +67,7 @@ class AuthServiceTest {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenThrow(new BadCredentialsException("Invalid credentials"));
 
-        assertThrows(BadCredentialsException.class, () -> authService.login(validAuthDTO));
+        assertThrows(BadCredentialsException.class, () -> authService.token(validAuthDTO));
     }
 
     @Test
@@ -75,7 +75,7 @@ class AuthServiceTest {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenThrow(new BadCredentialsException("User not found"));
 
-        assertThrows(BadCredentialsException.class, () -> authService.login(validAuthDTO));
+        assertThrows(BadCredentialsException.class, () -> authService.token(validAuthDTO));
     }
 
     @Test
