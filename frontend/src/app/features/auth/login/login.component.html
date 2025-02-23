@@ -1,0 +1,56 @@
+<div class="login-container">
+  <div class="login-card">
+    <h1>EthicalSoft Compliance</h1>
+    <p>Por favor, entre com seu email e senha</p>
+
+    <form class="row g-3 needs-validation" (ngSubmit)="login()" [formGroup]="form">
+      <app-input
+        formControlName="username"
+        label="E-mail"
+        type="email"
+        id="email"
+        placeholder="Informe seu e-mail"
+        [required]="true"
+        inputClasses="form-control"
+        labelClasses="form-label"
+        [validationMessages]="{
+          required: 'E-mail é obrigatório',
+          email: 'Formato de e-mail inválido'
+        }"
+        [control]="form.get('username')"
+      >
+      </app-input>
+
+      <app-input
+        formControlName="password"
+        label="Senha"
+        type="password"
+        id="password"
+        placeholder="Informe sua senha"
+        [required]="true"
+        inputClasses="form-control"
+        labelClasses="form-label"
+        [validationMessages]="{
+          required: 'Senha é obrigatório'
+        }"
+        [control]="form.get('password')"
+      >
+      </app-input>
+
+      <div class="col-12 options">
+        <div class="text-blue font-weight-bold">
+          <span class="d-flex justify-content-center">
+            <input type="checkbox" formControlName="keepSession" /> Manter sessão
+          </span>
+        </div>
+        <a href="#">Esqueci minha senha</a>
+      </div>
+
+      <div class="col-12">
+        <button class="btn btn-primary col-12" type="submit">Entrar</button>
+      </div>
+
+    </form>
+    <p class="register">É um analista e deseja utilizar o software no seu projeto? <a href="#">Registre-se!</a></p>
+  </div>
+</div>
