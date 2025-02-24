@@ -18,8 +18,4 @@ export const routes: Routes = [
     component: HomeComponent,
     canActivate: [AuthGuard]
   },
-  {
-    path: '**',
-    redirectTo: 'home'
-  }
 ];

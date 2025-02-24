@@ -24,20 +24,20 @@ export class AuthenticationService {
     private authStore: AuthStore,
     private router: Router,
     private notificationService: NotificationService,
-    @Inject(PLATFORM_ID) private platformId: Object // 🔹 Identifica se está rodando no navegador ou no servidor (SSR)
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.loadStoredToken();
   }
 
   getToken(): string | null {
-    if (isPlatformBrowser(this.platformId)) { // 🔹 Garante que sessionStorage só será acessado no navegador
+    if (isPlatformBrowser(this.platformId)) {
       return this._authToken?.accessToken || sessionStorage.getItem('accessToken');
     }
     return null;
   }
 
   private loadStoredToken(): void {
-    if (isPlatformBrowser(this.platformId)) { // 🔹 Evita erro no SSR ao acessar sessionStorage
+    if (isPlatformBrowser(this.platformId)) {
       const token = sessionStorage.getItem('accessToken');
       if (token) {
         this._authToken = { accessToken: token, refreshToken: '' };
@@ -53,18 +53,17 @@ export class AuthenticationService {
     this.authStore.token(credentials).subscribe({
       next: (tokenData: AuthTokenInterface) => {
         this.setAuthToken(tokenData);
-        this.notificationService.showSuccess('Logado com sucesso.');
         this.router.navigate(['/home']);
       },
       error: (error: any) => {
-        this.notificationService.showError('Erro no login. Verifique suas credenciais.');
+        this.notificationService.showError(error);
         console.error('Login error', error);
       }
     });
   }
 
   refreshToken(): Observable<boolean> {
-    if (!this._authToken || !this._authToken.refreshToken) { // 🔹 Evita erro caso o refreshToken não esteja disponível
+    if (!this._authToken || !this._authToken.refreshToken) {
       return of(false);
     }
 
@@ -84,7 +83,6 @@ export class AuthenticationService {
   logout(): void {
     this.clearAuthToken();
     this.router.navigate(['/login']);
-    this.notificationService.showWarning('Sessão encerrada.');
   }
 
   private setAuthToken(tokenData: AuthTokenInterface | null): void {

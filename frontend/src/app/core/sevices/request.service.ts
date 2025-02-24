@@ -1,9 +1,10 @@
 import { HttpClient, HttpContext, HttpContextToken, HttpHeaders, HttpParams, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { Observable, catchError, map, throwError } from 'rxjs';
 import { UrlParameterInterface } from '../interfaces/url-parameter.interface';
 import { dateParser, dateParserSend } from '../utils/common-utils';
 import { RequestInputOptions } from '../interfaces/request-input-options.interface';
+import { getErrorMessage } from '../../shared/enums/error-messages.enum';
 
 export const USE_AUTH_CONTEXT = new HttpContextToken<boolean>(() => false);
 export const USE_CACHE_CONTEXT = new HttpContextToken<boolean>(() => false);
@@ -134,9 +135,28 @@ export class RequestService {
           }
         }
         return null;
+      }),
+      catchError(error => {
+        let formattedError: any = { status: 0, errorType: 'ERROR', message: getErrorMessage(error.status ?? 0) };
+
+        if (error?.error) {
+          try {
+            const parsedError = JSON.parse(error.error);
+            formattedError = {
+              status: parsedError.status ?? error.status ?? 0,
+              errorType: parsedError.errorType ?? 'ERROR',
+              message: parsedError.message ?? getErrorMessage(parsedError.status ?? 0)
+            };
+          } catch (e) {
+            formattedError.message = error.message || getErrorMessage(error.status ?? 0);
+          }
+        }
+
+        return throwError(() => formattedError);
       })
     );
   }
+
 }
 
 interface RequestCommonHttpOptions {

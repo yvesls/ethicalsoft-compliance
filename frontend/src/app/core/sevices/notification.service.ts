@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { getErrorMessage } from '../../shared/enums/error-messages.enum';
 
 @Injectable({
   providedIn: 'root'
@@ -7,13 +8,29 @@ export class NotificationService {
 
   constructor() {}
 
-  private showModal(type: 'success' | 'warning' | 'error' | 'confirm', title: string, message: string, callbackConfirm?: () => void, callbackCancel?: () => void) {
+  showWarning(error: any) {
+    this.showModal('warning', 'Atenção', this.formatErrorMessage(error));
+  }
 
+  showError(error: any) {
+    this.showModal('error', 'Erro', this.formatErrorMessage(error));
+  }
+
+  showConfirm(message: string, callbackConfirm: () => void, callbackCancel?: () => void) {
+    this.showModal('confirm', 'Atenção', message, callbackConfirm, callbackCancel);
+  }
+
+  private formatErrorMessage(error: any): string {
+    const errorMessage = error.message?.trim();
+    return `**Erro ${error.status}** - ${error.errorType}: ${errorMessage || getErrorMessage(error.status)}`;
+  }
+
+  private showModal(type: 'success' | 'warning' | 'error' | 'confirm', title: string, message: string, callbackConfirm?: () => void, callbackCancel?: () => void) {
     this.closeModal();
 
     const modal = document.createElement('div');
     modal.classList.add('modal', type);
-    const iconPath = new URL(`../../../assets/icons/${type}.svg`, import.meta.url).href;
+    const iconPath = `assets/icons/${type}.svg`;
 
     modal.innerHTML = `
       <div class="modal-content">
@@ -32,17 +49,16 @@ export class NotificationService {
     document.body.appendChild(modal);
 
     modal.querySelector('.close')?.addEventListener('click', () => this.closeModal());
-    const iconPath2 = `/assets/icons/${type}.svg`;
-    console.log('URL da Imagem:', iconPath2);
+
     if (type === 'confirm') {
       modal.querySelector('.btn-cancel')?.addEventListener('click', () => {
         this.closeModal();
-        if (callbackCancel) callbackCancel();
+        callbackCancel?.();
       });
 
       modal.querySelector('.btn-confirm')?.addEventListener('click', () => {
         this.closeModal();
-        if (callbackConfirm) callbackConfirm();
+        callbackConfirm?.();
       });
     }
 
@@ -55,21 +71,5 @@ export class NotificationService {
 
   private closeModal() {
     document.querySelectorAll('.modal').forEach(modal => modal.remove());
-  }
-
-  showSuccess(message: string) {
-    this.showModal('success', 'Sucesso', message);
-  }
-
-  showWarning(message: string) {
-    this.showModal('warning', 'Atenção', message);
-  }
-
-  showError(message: string) {
-    this.showModal('error', 'Erro', message);
-  }
-
-  showConfirm(message: string, callbackConfirm: () => void, callbackCancel?: () => void) {
-    this.showModal('confirm', 'Atenção', message, callbackConfirm, callbackCancel);
   }
 }
