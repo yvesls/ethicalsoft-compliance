@@ -25,17 +25,21 @@ export class NotificationService {
     return `**Erro ${error.status}** - ${error.errorType}: ${errorMessage || getErrorMessage(error.status)}`;
   }
 
-  private showModal(type: 'success' | 'warning' | 'error' | 'confirm', title: string, message: string, callbackConfirm?: () => void, callbackCancel?: () => void) {
+  private showModal(
+    type: 'success' | 'warning' | 'error' | 'confirm',
+    title: string,
+    message: string,
+    callbackConfirm?: () => void,
+    callbackCancel?: () => void
+  ) {
     this.closeModal();
 
     const modal = document.createElement('div');
     modal.classList.add('modal', type);
-    const iconPath = `assets/icons/${type}.svg`;
-
     modal.innerHTML = `
-      <div class="modal-content">
+      <div class="modal-content" @modalAnimation>
         <div class="close text-end">x</div>
-        <img class="modal-icon" src="${iconPath}" alt="Ícone ${title}">
+        <img class="modal-icon" src="assets/icons/${type}.svg" alt="Ícone ${title}">
         <h2 class="modal-title">${title}</h2>
         <p class="modal-message">${message}</p>
         ${type === 'confirm' ? `
@@ -70,6 +74,9 @@ export class NotificationService {
   }
 
   private closeModal() {
-    document.querySelectorAll('.modal').forEach(modal => modal.remove());
+    document.querySelectorAll('.modal').forEach(modal => {
+      modal.classList.add('closing');
+      setTimeout(() => modal.remove(), 300);
+    });
   }
 }

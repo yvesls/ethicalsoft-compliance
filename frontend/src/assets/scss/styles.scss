@@ -7,15 +7,11 @@
 
 * {
   font-family: $font-family;
-
   box-sizing: border-box;
 
   /* Scrollbar configuration */
-  /* Firefox */
-  & {
-    scrollbar-width: auto;
-    scrollbar-color: $blue-primary $white;
-  }
+  scrollbar-width: auto; /* Firefox */
+  scrollbar-color: $blue-primary $white; /* Firefox */
 
   /* Chrome, Edge, and Safari */
   &::-webkit-scrollbar {
@@ -32,15 +28,16 @@
     border-radius: 10px;
     border: 3px solid $white;
   }
-
-  .row {
-    --bs-gutter-x: 1.5rem;
-    --bs-gutter-y: 0;
-    margin-top: calc(-1 * var(--bs-gutter-y));
-    margin-right: calc(-0.5 * var(--bs-gutter-x));
-    margin-left: calc(-0.5 * var(--bs-gutter-x));
-  }
 }
+
+.row {
+  --bs-gutter-x: 1.5rem;
+  --bs-gutter-y: 0;
+  margin-top: calc(-1 * var(--bs-gutter-y));
+  margin-right: calc(-0.5 * var(--bs-gutter-x));
+  margin-left: calc(-0.5 * var(--bs-gutter-x));
+}
+
 
 :root {
   --body: $white;
@@ -102,94 +99,89 @@ a {
     text-align: center;
     box-shadow: $box-shadow-primary;
     position: relative;
+    opacity: 0;
+    transform: scale(0.9);
+    animation: fadeInScale 0.3s ease-out forwards;
 
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    &.closing {
+      animation: fadeOutScale 0.3s ease-in forwards;
     }
+  }
 
-    .close {
-      position: absolute;
-      top: 10px;
-      right: 15px;
-      background: none;
+  .close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    outline: none;
+    transition: 0.2s;
+  }
+
+  .modal-icon {
+    margin: 10px auto;
+    width: 70px;
+    height: 70px;
+  }
+
+  .modal-title {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+
+  .modal-message {
+    font-size: 14px;
+    color: $text-color;
+    margin-bottom: 15px;
+  }
+
+  .modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+
+    button {
       border: none;
-      font-size: 18px;
-      font-weight: bold;
+      padding: 8px 12px;
+      border-radius: 5px;
       cursor: pointer;
-      outline: none;
-      transition: 0.2s;
-
-      &:hover {
-        color: #000;
-      }
-    }
-
-    .modal-icon {
-      margin: 10px auto;
-      width: 70px;
-      height: 70px;
-    }
-
-    .modal-title {
-      font-size: 20px;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-
-    .modal-message {
       font-size: 14px;
-      color: $text-color;
-      margin-bottom: 15px;
     }
 
-    .modal-buttons {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
+    .btn-cancel {
+      background: $button-bg;
+      color: $button-text-color;
+    }
 
-      button {
-        border: none;
-        padding: 8px 12px;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 14px;
-      }
-
-      .btn-cancel {
-        background: $button-bg;
-        color: $button-text-color;
-      }
-
-      .btn-confirm {
-        background: $success-color;
-        color: white;
-      }
+    .btn-confirm {
+      background: $success-color;
+      color: white;
     }
   }
+}
 
-  &.success {
-    .modal-title {
-      color: $success-color;
-    }
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
   }
-
-  &.warning {
-    .modal-title {
-      color: $warning-color;
-    }
-
-    .modal-buttons {
-      .btn-confirm {
-        background: $warning-color;
-      }
-    }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
+}
 
-  &.error {
-    .modal-title {
-      color: $error-color;
-    }
+@keyframes fadeOutScale {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.9);
   }
 }
