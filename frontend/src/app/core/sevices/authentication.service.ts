@@ -1,7 +1,7 @@
 import { AuthRefreshTokenInterface } from './../../shared/interfaces/auth-refresh-token.interface';
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { BehaviorSubject, catchError, map, Observable, of, tap, timer } from 'rxjs';
+import { BehaviorSubject, catchError, map, Observable, of, tap } from 'rxjs';
 import { Router } from '@angular/router';
 import { jwtDecode } from 'jwt-decode';
 import { AuthStore } from '../../shared/stores/auth.store';
@@ -27,6 +27,13 @@ export class AuthenticationService {
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.loadStoredToken();
+  }
+
+  isAuthenticated(): boolean {
+    if (isPlatformBrowser(this.platformId)) {
+      return !!sessionStorage.getItem('accessToken');
+    }
+    return false;
   }
 
   getToken(): string | null {
