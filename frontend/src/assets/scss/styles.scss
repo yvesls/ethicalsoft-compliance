@@ -92,7 +92,7 @@ a {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: #00000080;
 
   .modal-content {
     background: $background-color;
@@ -191,33 +191,5 @@ a {
     .modal-title {
       color: $error-color;
     }
-  }
-}
-
-.custom-spinner {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 1050;
-
-  .spinner-message {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: white;
-    font-size: 18px;
-    font-weight: bold;
-    text-align: center;
-  }
-
-  .ngx-spinner-overlay {
-    background: transparent !important;
   }
 }
