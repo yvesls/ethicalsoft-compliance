@@ -1,19 +1,18 @@
-<ngx-spinner
-  bdColor="#00000080"
-  size="large"
-  color="#fff"
-  type="ball-scale-multiple"
->
+<ngx-spinner bdColor="#00000080" size="large" color="#fff" type="ball-scale-multiple">
   <p style="font-size: 20px; color: white">Loading...</p>
 </ngx-spinner>
 
-<div *ngIf="showLayout">
-  <app-header></app-header>
+<div *ngIf="showLayout" class="app-layout">
   <app-navbar></app-navbar>
+  <div class="app-main">
+    <app-header></app-header>
+    <div class="app-content">
+      <router-outlet></router-outlet>
+    </div>
+    <app-footer></app-footer>
+  </div>
 </div>
 
-<router-outlet></router-outlet>
-
-<div *ngIf="showLayout">
-  <app-footer></app-footer>
+<div *ngIf="!showLayout" class="auth-container">
+  <router-outlet></router-outlet>
 </div>

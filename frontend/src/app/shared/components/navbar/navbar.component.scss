@@ -1,0 +1,93 @@
+.navbar-container {
+  display: flex;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 250px;
+  height: 100vh;
+  background-color: #0c1e35;
+  transition: all 0.3s ease-in-out;
+
+  &.collapsed {
+    width: 60px;
+  }
+}
+
+.sidebar {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #0c1e35;
+  color: white;
+  transition: all 0.3s ease-in-out;
+
+  &.collapsed {
+    width: 60px;
+    .menu-title, .menu-suffix {
+      display: none;
+    }
+  }
+}
+
+.sidebar-header {
+  padding: 15px;
+  text-align: center;
+}
+
+.menu {
+  width: 100%;
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    .menu-item {
+      a {
+        display: flex;
+        align-items: center;
+        padding: 12px 20px;
+        text-decoration: none;
+        color: white;
+        transition: background 0.3s;
+        &:hover {
+          background: rgba(255, 255, 255, 0.1);
+        }
+      }
+
+      &.sub-menu {
+        > a::after {
+          content: '▼';
+          margin-left: auto;
+        }
+
+        .sub-menu-list {
+          display: none;
+          padding-left: 20px;
+          &.open {
+            display: block;
+          }
+        }
+      }
+    }
+  }
+}
+
+.app-main {
+  margin-left: 250px;
+  width: calc(100% - 250px);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+
+  &.collapsed {
+    margin-left: 60px;
+    width: calc(100% - 60px);
+  }
+}
+
+.app-content {
+  flex-grow: 1;
+  padding: 20px;
+}

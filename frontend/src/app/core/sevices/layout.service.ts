@@ -14,7 +14,8 @@ export class LayoutService {
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
       .subscribe((event: any) => {
-        const hideLayout = ROUTES_WITHOUT_LAYOUT.includes(event.url);
+        const cleanUrl = event.url.split('?')[0];
+        const hideLayout = ROUTES_WITHOUT_LAYOUT.includes(cleanUrl);
         this.layoutVisibleSubject.next(!hideLayout);
       });
   }

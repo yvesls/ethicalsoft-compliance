@@ -80,6 +80,37 @@ a {
   color: $blue-secundary;
 }
 
+.app-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  grid-template-rows: auto 1fr auto;
+  min-height: 100vh;
+
+  .app-main {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .app-content {
+    flex-grow: 1;
+    padding: 20px;
+    background: #f5f5f5;
+  }
+}
+
+app-navbar {
+  height: 100vh;
+  background: #0c1e35;
+}
+
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
 .modal {
   display: flex;
   align-items: center;
