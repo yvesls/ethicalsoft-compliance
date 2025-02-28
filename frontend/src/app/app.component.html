@@ -2,7 +2,7 @@
   <p style="font-size: 20px; color: white">Loading...</p>
 </ngx-spinner>
 
-<div *ngIf="showLayout" class="app-layout">
+<div *ngIf="showLayout; else authContent" class="app-layout">
   <app-navbar></app-navbar>
   <div class="app-main">
     <app-header></app-header>
@@ -13,6 +13,6 @@
   </div>
 </div>
 
-<div *ngIf="!showLayout" class="auth-container">
+<ng-template #authContent>
   <router-outlet></router-outlet>
-</div>
+</ng-template>

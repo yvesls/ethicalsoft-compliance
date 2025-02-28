@@ -76,7 +76,7 @@ export class NotificationService {
   private closeModal() {
     document.querySelectorAll('.modal').forEach(modal => {
       modal.classList.add('closing');
-      setTimeout(() => modal.remove(), 300);
+      setTimeout(() => modal.remove(), 50);
     });
   }
 }

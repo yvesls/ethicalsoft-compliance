@@ -133,10 +133,6 @@ app-navbar {
     opacity: 0;
     transform: scale(0.9);
     animation: fadeInScale 0.3s ease-out forwards;
-
-    &.closing {
-      animation: fadeOutScale 0.3s ease-in forwards;
-    }
   }
 
   .close {
@@ -149,7 +145,6 @@ app-navbar {
     font-weight: bold;
     cursor: pointer;
     outline: none;
-    transition: 0.2s;
   }
 
   .modal-icon {
