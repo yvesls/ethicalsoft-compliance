@@ -111,8 +111,8 @@ export function hasProperties(...objs: Object[]): boolean {
 }
 
 export function hasSameProperties(a: Object, b: Object): boolean {
-  var aKeys = Object.keys(a).sort();
-  var bKeys = Object.keys(b).sort();
+  let aKeys = Object.keys(a).sort((a, b) => a.localeCompare(b));
+  let bKeys = Object.keys(b).sort((a, b) => a.localeCompare(b));
   return JSON.stringify(aKeys) === JSON.stringify(bKeys);
 }
 
@@ -150,5 +150,5 @@ export function equalsArray<T>(a: Array<T>, b: Array<T>): boolean {
 }
 
 export function copy(o: any) {
-  return Object.assign({}, o);
+  return { ...o};
 }

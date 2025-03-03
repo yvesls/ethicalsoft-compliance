@@ -1,27 +1,27 @@
 import { Injectable } from '@angular/core';
-import { NavigationEnd, NavigationStart, Router } from '@angular/router';
-import { ReplaySubject } from 'rxjs';
-import { filter, take } from 'rxjs/operators';
+import { NavigationEnd, Router } from '@angular/router';
+import { BehaviorSubject } from 'rxjs';
+import { filter } from 'rxjs/operators';
 import { ROUTES_WITHOUT_LAYOUT } from '../config/layout.config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class LayoutService {
-  private layoutVisibleSubject = new ReplaySubject<boolean>(1);
+  private layoutVisibleSubject = new BehaviorSubject<boolean>(true);
   layoutVisible$ = this.layoutVisibleSubject.asObservable();
 
   constructor(private router: Router) {
-    this.router.events.pipe(filter(event => event instanceof NavigationStart)).subscribe(() => {
-      this.layoutVisibleSubject.next(undefined as unknown as boolean);
-    });
+    this.updateLayoutState(this.router.url);
 
-    this.router.events
-      .pipe(filter(event => event instanceof NavigationEnd), take(1))
-      .subscribe((event: any) => {
-        const cleanUrl = event.url.split('?')[0];
-        const hideLayout = ROUTES_WITHOUT_LAYOUT.includes(cleanUrl);
-        this.layoutVisibleSubject.next(!hideLayout);
-      });
+    this.router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe((event: any) => {
+      this.updateLayoutState(event.url);
+    });
+  }
+
+  private updateLayoutState(url: string): void {
+    const cleanUrl = url.split('?')[0];
+    const hideLayout = ROUTES_WITHOUT_LAYOUT.includes(cleanUrl);
+    this.layoutVisibleSubject.next(!hideLayout);
   }
 }

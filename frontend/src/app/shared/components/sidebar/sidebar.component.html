@@ -1,0 +1,45 @@
+<aside [class.collapsed]="isCollapsed" [class.toggled]="isCollapsed" class="sidebar">
+  <a class="sidebar-toggler" (click)="toggleSidebar()">
+    <img src="../../../../assets/icons/{{arrow}}.svg" alt="Descrição do ícone" height="15px">
+  </a>
+
+  <div class="sidebar-layout">
+    <div class="sidebar-header">
+      <div class="logo">
+        <img src="../../../../assets/images/logo.png" alt="logo">
+      </div>
+      <h5 class="m-0 p-0">Ethicalsoft Complience</h5>
+    </div>
+
+    <div class="sidebar-content">
+      <nav class="menu open-current-submenu">
+        <ul>
+          <li class="menu-item" routerLink="home">
+            <span class="menu-icon">
+              <img src="../../../../assets/icons/home.svg" alt="Descrição do ícone">
+            </span>
+            <span class="menu-title">Home</span>
+          </li>
+          <li class="menu-item">
+            <span class="menu-icon">
+              <img src="../../../../assets/icons/projects.svg" alt="Descrição do ícone">
+            </span>
+            <span class="menu-title">Projects</span>
+          </li>
+          <li class="menu-item">
+            <span class="menu-icon">
+              <img src="../../../../assets/icons/dashboards.svg" alt="Descrição do ícone">
+            </span>
+            <span class="menu-title">Dashboards</span>
+          </li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="footer-box">
+        <span>Version 1.0</span>
+      </div>
+    </div>
+  </div>
+</aside>

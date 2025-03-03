@@ -2,19 +2,19 @@ import { AuthRefreshTokenInterface } from './../../shared/interfaces/auth-refres
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { BehaviorSubject, catchError, map, Observable, of, tap } from 'rxjs';
-import { Router } from '@angular/router';
 import { jwtDecode } from 'jwt-decode';
 import { AuthStore } from '../../shared/stores/auth.store';
 import { AuthTokenInterface } from '../../shared/interfaces/auth-token.interface';
 import { AuthInterface } from '../../shared/interfaces/auth.interface';
 import { NotificationService } from './notification.service';
+import { RouterService } from './router.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthenticationService {
   private _authToken: AuthTokenInterface | null = null;
-  private _user: UserModel | null = null;
+  private _user: UserInterface | null = null;
   private refreshTimer: any;
 
   userRoles$ = new BehaviorSubject<string[]>([]);
@@ -22,11 +22,15 @@ export class AuthenticationService {
 
   constructor(
     private authStore: AuthStore,
-    private router: Router,
+    private routerService: RouterService,
     private notificationService: NotificationService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.loadStoredToken();
+  }
+
+  isAuthenticated$(): Observable<boolean> {
+    return of(this.isAuthenticated());
   }
 
   isAuthenticated(): boolean {
@@ -60,7 +64,7 @@ export class AuthenticationService {
     this.authStore.token(credentials).subscribe({
       next: (tokenData: AuthTokenInterface) => {
         this.setAuthToken(tokenData);
-        this.router.navigate(['/home']);
+        this.routerService.navigateTo('/home');
       },
       error: (error: any) => {
         this.notificationService.showError(error);
@@ -89,7 +93,7 @@ export class AuthenticationService {
 
   logout(): void {
     this.clearAuthToken();
-    this.router.navigate(['/login']);
+    this.routerService.navigateTo('/login');
   }
 
   private setAuthToken(tokenData: AuthTokenInterface | null): void {
@@ -124,8 +128,8 @@ export class AuthenticationService {
     }
   }
 
-  private decodeUser(token: string): UserModel {
-    return jwtDecode<UserModel>(token);
+  private decodeUser(token: string): UserInterface {
+    return jwtDecode<UserInterface>(token);
   }
 
   private startSessionMonitor(): void {
@@ -141,7 +145,8 @@ export class AuthenticationService {
   }
 }
 
-export interface UserModel {
+
+export interface UserInterface {
   sub: string;
   exp: number;
   roles: string[];

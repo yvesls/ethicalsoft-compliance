@@ -1,9 +1,12 @@
+<!-- app.component.html (com integração correta) -->
 <ngx-spinner bdColor="#00000080" size="large" color="#fff" type="ball-scale-multiple">
   <p style="font-size: 20px; color: white">Loading...</p>
 </ngx-spinner>
 
-<div *ngIf="showLayout; else authContent" class="app-layout">
-  <app-navbar></app-navbar>
+<div *ngIf="showLayout !== null">
+  <app-sidebar>
+  </app-sidebar>
+
   <div class="app-main">
     <app-header></app-header>
     <div class="app-content">
@@ -14,5 +17,7 @@
 </div>
 
 <ng-template #authContent>
-  <router-outlet></router-outlet>
+  <div class="auth-container">
+    <router-outlet></router-outlet>
+  </div>
 </ng-template>

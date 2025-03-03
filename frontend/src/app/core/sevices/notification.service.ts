@@ -9,7 +9,11 @@ export class NotificationService {
   constructor() {}
 
   showWarning(error: any) {
-    this.showModal('warning', 'Atenção', this.formatErrorMessage(error));
+    if(typeof error === 'string') {
+      this.showModal('warning', 'Atenção', error);
+    } else {
+      this.showModal('warning', 'Atenção', this.formatErrorMessage(error));
+    }
   }
 
   showError(error: any) {
