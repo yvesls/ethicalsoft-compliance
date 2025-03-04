@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
@@ -10,13 +10,14 @@ import { RouterModule } from '@angular/router';
   styleUrls: ['./sidebar.component.scss']
 })
 export class SidebarComponent {
-  @Output() toggle = new EventEmitter<void>();
   isCollapsed = false;
-  arrow = 'left';
 
   toggleSidebar() {
     this.isCollapsed = !this.isCollapsed;
-    this.arrow = this.isCollapsed ? 'right' : 'left';
-    this.toggle.emit();
+
+    const hostElement = document.querySelector('app-root');
+    if (hostElement) {
+      hostElement.classList.toggle('sidebar-collapsed', this.isCollapsed);
+    }
   }
 }

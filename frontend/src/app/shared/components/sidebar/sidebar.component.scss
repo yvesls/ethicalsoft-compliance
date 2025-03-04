@@ -1,26 +1,22 @@
 @use '../../../../assets/scss/base/vars' as *;
 
-$sidebar-width: 260px;
-$collapsed-width: 100px;
-
 .sidebar {
-  width: $sidebar-width;
+  width: var(--sidebar-width);
   height: 100vh;
   background-color: $blue-primary;
   color: $white;
-  transition: width 0.3s ease;
+  transition: width 0.3s ease-in-out;
   position: fixed;
   top: 0;
   left: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
 
   .sidebar-layout {
     display: flex;
     flex-direction: column;
     height: 100%;
-  }
-
-  .sidebar-content {
-    flex-grow: 1;
   }
 
   .sidebar-header {
@@ -114,7 +110,7 @@ $collapsed-width: 100px;
   }
 
   &.collapsed {
-    width: $collapsed-width;
+     width: var(--sidebar-collapsed-width);
 
     .sidebar-header {
       justify-content: center;
@@ -147,7 +143,7 @@ $collapsed-width: 100px;
 
 @media (max-width: 768px) {
   .sidebar {
-    left: -$sidebar-width;
+    left: -var(--sidebar-width);
 
     &.toggled {
       left: 0;

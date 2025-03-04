@@ -38,7 +38,6 @@
   margin-left: calc(-0.5 * var(--bs-gutter-x));
 }
 
-
 :root {
   --body: $white;
 }
@@ -80,63 +79,75 @@ a {
   color: $blue-secundary;
 }
 
+/* Layout */
+
 :host {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: var(--sidebar-width) 1fr;
   grid-template-rows: auto 1fr auto;
   height: 100vh;
   width: 100%;
+  transition: grid-template-columns 0.3s ease-in-out;
+}
+
+:root {
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 100px;
 }
 
 app-sidebar {
   grid-column: 1;
   grid-row: 1 / span 3;
-  width: 260px; /* Default expanded width */
+  width: var(--sidebar-width);
+  transition: width 0.3s ease-in-out;
 }
 
-.app-main {
+.app-container {
   grid-column: 2;
   grid-row: 1 / span 3;
   display: grid;
   grid-template-rows: auto 1fr auto;
+  height: 100vh;
   overflow: hidden;
 }
 
 app-header {
   grid-row: 1;
+  height: 6vh;
+  background: $white;
+  display: flex;
+  align-items: center;
+  padding: 0 2rem;
 }
 
 .app-content {
   grid-row: 2;
+  flex-grow: 1;
   overflow-y: auto;
-  padding: 20px;
+  background: $gray-tertiary;
+  padding: 2rem;
 }
 
 app-footer {
   grid-row: 3;
+  height: 4vh;
+  background: $gray-tertiary;
 }
 
-/* For collapsed sidebar */
-:host.sidebar-collapsed app-sidebar {
-  width: 65px;
+:host.sidebar-collapsed {
+  grid-template-columns: var(--sidebar-collapsed-width) 1fr;
 }
 
-/* Media queries for responsive design */
 @media (max-width: 768px) {
   :host {
-    grid-template-columns: 0 1fr;
+    grid-template-columns: var(--sidebar-collapsed-width) 1fr;
   }
 
   :host.sidebar-toggled {
-    grid-template-columns: 260px 1fr;
-  }
-
-  :host.sidebar-collapsed.sidebar-toggled {
-    grid-template-columns: 65px 1fr;
+    grid-template-columns: var(--sidebar-width) 1fr;
   }
 }
 
-/* Auth container (when not showing main layout) */
 .auth-container {
   height: 100vh;
   width: 100vw;
@@ -145,13 +156,7 @@ app-footer {
   align-items: center;
 }
 
-.auth-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
-
+/* Modal */
 .modal {
   display: flex;
   align-items: center;

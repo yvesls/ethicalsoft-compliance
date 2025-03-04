@@ -1,13 +1,21 @@
+@use '../../../../assets/scss/base/vars' as *;
+
 .social-links {
   a {
-    margin: 0 10px;
-    color: #3f4750;
+    margin: 0 1rem;
+    color: $gray-primary;
   }
 }
 
 .footer {
-  text-align: center;
-  margin-top: auto;
-  margin-bottom: 20px;
-  padding: 20px;
+  display: flex;
+  align-items: start;
+  align-content: start;
+  justify-content: center;
+  flex-grow: 1;
+}
+
+.highlightedName {
+  color: $green-primary;
+  text-decoration: none;
 }
