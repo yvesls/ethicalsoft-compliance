@@ -9,6 +9,7 @@ export class StorageService {
   private authTokenKey = 'auth_token';
   private historyKey = 'navigation_history';
   private currentPageKey = 'current_page';
+  private sidebarStateKey = 'sidebar_collapsed';
 
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
 
@@ -75,6 +76,19 @@ export class StorageService {
       return data ? JSON.parse(data) : null;
     }
     return {} as RouteStorageParams;
+  }
+
+  setSidebarState(collapsed: boolean): void {
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem(this.sidebarStateKey, JSON.stringify(collapsed));
+    }
+  }
+
+  getSidebarState(): boolean {
+    if (isPlatformBrowser(this.platformId)) {
+      return JSON.parse(localStorage.getItem(this.sidebarStateKey) || 'false');
+    }
+    return false;
   }
 
   remove(vid: string): void {
