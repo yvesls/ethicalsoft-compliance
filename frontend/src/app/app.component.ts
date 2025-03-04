@@ -6,6 +6,7 @@ import { HeaderComponent } from './shared/components/header/header.component';
 import { FooterComponent } from './shared/components/footer/footer.component';
 import { LayoutService } from './core/sevices/layout.service';
 import { SidebarComponent } from './shared/components/sidebar/sidebar.component';
+import { LayoutStateService } from './core/sevices/layout-state.service';
 
 @Component({
   selector: 'app-root',
@@ -22,15 +23,20 @@ import { SidebarComponent } from './shared/components/sidebar/sidebar.component'
 })
 export class AppComponent implements OnInit {
   title = 'frontend';
+  isSidebarCollapsed = false;
   showLayout: boolean | null = null;
 
   constructor(
-    private readonly layoutService: LayoutService
+    private layoutService: LayoutService,
+    private layoutStateService: LayoutStateService
   ) {}
 
   ngOnInit(): void {
     this.layoutService.layoutVisible$.subscribe(visible => {
       this.showLayout = visible;
+    });
+    this.layoutStateService.isSidebarCollapsed$.subscribe(state => {
+      this.isSidebarCollapsed = state;
     });
   }
 }

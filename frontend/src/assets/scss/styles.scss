@@ -109,6 +109,7 @@ app-sidebar {
   grid-template-rows: auto 1fr auto;
   height: 100vh;
   overflow: hidden;
+  transition: margin-left 0.3s ease-in-out;
 }
 
 app-header {
@@ -122,7 +123,6 @@ app-header {
 
 .app-content {
   grid-row: 2;
-  flex-grow: 1;
   overflow-y: auto;
   background: $gray-tertiary;
   padding: 2rem;
@@ -134,17 +134,33 @@ app-footer {
   background: $gray-tertiary;
 }
 
-:host.sidebar-collapsed {
+.layout-container {
+  grid-template-columns: var(--sidebar-width) 1fr;
+}
+
+.layout-container .app-container {
+  margin-left: var(--sidebar-width);
+}
+
+.layout-container.sidebar-collapsed {
   grid-template-columns: var(--sidebar-collapsed-width) 1fr;
 }
 
+.layout-container.sidebar-collapsed app-sidebar {
+  width: var(--sidebar-collapsed-width);
+}
+
+.layout-container.sidebar-collapsed .app-container {
+  margin-left: var(--sidebar-collapsed-width);
+}
+
 @media (max-width: 768px) {
-  :host {
-    grid-template-columns: var(--sidebar-collapsed-width) 1fr;
+  .layout-container {
+    grid-template-columns: var(--sidebar-width) 1fr;
   }
 
-  :host.sidebar-toggled {
-    grid-template-columns: var(--sidebar-width) 1fr;
+  .layout-container.sidebar-collapsed {
+    grid-template-columns: var(--sidebar-collapsed-width) 1fr;
   }
 }
 
