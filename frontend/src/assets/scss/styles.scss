@@ -54,11 +54,19 @@ body {
 h1 {
   color: $blue-primary;
   font-size: 2rem;
+  padding: 0;
+  margin: 0;
 }
 
 p {
   color: $gray-secundary;
   font-size: 0.9rem;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 form {

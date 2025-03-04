@@ -1,0 +1,25 @@
+@use '../../../../assets/scss/base/vars' as *;
+
+header {
+  display: flex;
+  align-items: center;
+  align-content: center;
+  justify-content: space-between;
+  width: 100%;
+
+  .notification-section {
+    width: 7rem;
+    ul {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    li a[routerLink="home"] {
+      cursor: pointer;
+      img {
+        filter: brigh tness(0);
+      }
+    }
+  }
+}
