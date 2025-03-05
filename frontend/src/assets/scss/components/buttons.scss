@@ -28,3 +28,20 @@
   --bs-btn-disabled-bg: $gray-primary;
   --bs-btn-disabled-border-color: $gray-primary;
 }
+
+.btn-secundary.btn-secundary {
+  background-color: $green-primary;
+  color: $white;
+  border-color: $green-primary;
+
+  &:hover, &:active, &:focus {
+    background-color: $green-secundary;
+    border-color: $green-primary;
+  }
+
+  --bs-btn-active-bg: $green-primary;
+  --bs-btn-active-border-color: $green-primary;
+
+  --bs-btn-disabled-bg: $gray-primary;
+  --bs-btn-disabled-border-color: $gray-primary;
+}

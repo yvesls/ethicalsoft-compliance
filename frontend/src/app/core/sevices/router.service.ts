@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
-import { ActivatedRoute, Params, Router } from '@angular/router';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { ActivatedRoute, NavigationEnd, Params, Router } from '@angular/router';
+import { BehaviorSubject, filter, Observable } from 'rxjs';
 import { Md5 } from 'ts-md5';
 import { deepCopy } from '../utils/common-utils';
 import { NotificationService } from './notification.service';
 import { StorageService } from './storage.service';
 import { FormStateService } from './form-state.service';
 import { addDays } from '../utils/date-utils';
+import { LayoutStateService } from './layout-state.service';
 
 @Injectable({
   providedIn: 'root'
@@ -22,12 +23,28 @@ export class RouterService {
     private router: Router,
     private storageService: StorageService,
     private notificationService: NotificationService,
-    private formStateService: FormStateService
+    private formStateService: FormStateService,
+    private layoutStateService: LayoutStateService
   ) {
     this.clearOldViewPageData();
     this.currentRouteSubject.next(this.router.url);
+    this.monitorRouteChanges();
   }
 
+  private monitorRouteChanges(): void {
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe(() => {
+      let currentRoute = this.activatedRoute;
+      while (currentRoute.firstChild) {
+        currentRoute = currentRoute.firstChild;
+      }
+
+      const showLayout = currentRoute.snapshot.data?.['showLayout'] !== false;
+
+      this.layoutStateService.setShowLayout(showLayout);
+    });
+  }
   async navigateTo<T>(url: string, navigateParams?: NavigateParams<T>): Promise<boolean> {
     const { params = {}, queryParams = {} } = navigateParams || {};
     this._createPageData<T>(url, params, queryParams);

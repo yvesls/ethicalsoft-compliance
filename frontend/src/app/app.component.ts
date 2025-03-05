@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { NgxSpinnerModule } from 'ngx-spinner';
 import { HeaderComponent } from './shared/components/header/header.component';
 import { FooterComponent } from './shared/components/footer/footer.component';
-import { LayoutService } from './core/sevices/layout.service';
 import { SidebarComponent } from './shared/components/sidebar/sidebar.component';
 import { LayoutStateService } from './core/sevices/layout-state.service';
+import { filter } from 'rxjs';
+import { RouterService } from './core/sevices/router.service';
 
 @Component({
   selector: 'app-root',
@@ -23,20 +24,22 @@ import { LayoutStateService } from './core/sevices/layout-state.service';
 })
 export class AppComponent implements OnInit {
   title = 'frontend';
-  isSidebarCollapsed = false;
-  showLayout: boolean | null = null;
+  showLayout!: boolean;
+  isSidebarCollapsed!: boolean;
 
-  constructor(
-    private layoutService: LayoutService,
-    private layoutStateService: LayoutStateService
-  ) {}
+  constructor(private layoutStateService: LayoutStateService) {}
 
   ngOnInit(): void {
-    this.layoutService.layoutVisible$.subscribe(visible => {
-      this.showLayout = visible;
+    this.layoutStateService.showLayout$.subscribe(state => {
+      this.showLayout = state;
     });
+
     this.layoutStateService.isSidebarCollapsed$.subscribe(state => {
       this.isSidebarCollapsed = state;
     });
+  }
+
+  toggleSidebar(): void {
+    this.layoutStateService.toggleSidebar();
   }
 }

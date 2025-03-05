@@ -1,19 +1,12 @@
 <header>
-<h2>Home</h2>
-<div class="notification-section">
-  <ul>
-    <li class="home-icon">
-      <a routerLink="home">
-        <img src="../../../../assets/icons/home.svg" alt="home" height="16px">
-      </a>
-    </li>
-    |
-    <li>
-      <img src="../../../../assets/icons/message.svg" alt="messages" height="20px">
-    </li>
-    <li>
-      <img src="../../../../assets/icons/notification.svg" alt="notifications" height="20px">
-    </li>
-  </ul>
-</div>
+  <h2>Home</h2>
+  <div class="notification-section">
+    <ul>
+      <li>
+        <button (click)="openNotifications()" aria-label="Abrir notificações" class="unstyled-btn">
+          <img src="../../../../assets/icons/notification.svg" alt="Notificações" height="20px">
+        </button>
+      </li>
+    </ul>
+  </div>
 </header>

@@ -10,6 +10,7 @@ export class StorageService {
   private historyKey = 'navigation_history';
   private currentPageKey = 'current_page';
   private sidebarStateKey = 'sidebar_collapsed';
+  private showLayoutKey = 'show_layout';
 
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
 
@@ -89,6 +90,19 @@ export class StorageService {
       return JSON.parse(localStorage.getItem(this.sidebarStateKey) || 'false');
     }
     return false;
+  }
+
+  setShowLayout(show: boolean): void {
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem(this.showLayoutKey, JSON.stringify(show));
+    }
+  }
+
+  getShowLayout(): boolean {
+    if (isPlatformBrowser(this.platformId)) {
+      return JSON.parse(localStorage.getItem(this.showLayoutKey) || 'true');
+    }
+    return true;
   }
 
   remove(vid: string): void {

@@ -8,17 +8,14 @@ header {
   width: 100%;
 
   .notification-section {
-    width: 7rem;
+    width: 1rem;
     ul {
       display: flex;
       justify-content: space-between;
       align-items: center;
-    }
 
-    li a[routerLink="home"] {
-      cursor: pointer;
-      img {
-        filter: brightness(0);
+      li {
+        cursor: pointer;
       }
     }
   }

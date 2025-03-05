@@ -1,3 +1,4 @@
+import { NotificationService } from './../../../core/sevices/notification.service';
 import { Component } from '@angular/core';
 
 @Component({
@@ -8,4 +9,10 @@ import { Component } from '@angular/core';
 })
 export class HeaderComponent {
 
+  constructor(private notificationService: NotificationService)
+  {}
+
+  openNotifications() {
+    this.notificationService.showWarning('Funcionalidade não implementada ainda.');
+  }
 }

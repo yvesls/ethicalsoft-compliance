@@ -6,14 +6,20 @@ import { StorageService } from './storage.service';
   providedIn: 'root'
 })
 export class LayoutStateService {
-  private isSidebarCollapsedSubject: BehaviorSubject<boolean>;
+  private showLayoutSubject = new BehaviorSubject<boolean>(true);
+  showLayout$ = this.showLayoutSubject.asObservable();
 
-  isSidebarCollapsed$;
+  private isSidebarCollapsedSubject = new BehaviorSubject<boolean>(false);
+  isSidebarCollapsed$ = this.isSidebarCollapsedSubject.asObservable();
 
   constructor(private storageService: StorageService) {
-    const savedState = this.storageService.getSidebarState();
-    this.isSidebarCollapsedSubject = new BehaviorSubject<boolean>(savedState);
-    this.isSidebarCollapsed$ = this.isSidebarCollapsedSubject.asObservable();
+    this.showLayoutSubject.next(this.storageService.getShowLayout());
+    this.isSidebarCollapsedSubject.next(this.storageService.getSidebarState());
+  }
+
+  setShowLayout(show: boolean): void {
+    this.showLayoutSubject.next(show);
+    this.storageService.setShowLayout(show);
   }
 
   toggleSidebar(): void {
