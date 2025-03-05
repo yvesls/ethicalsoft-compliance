@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { RouterService } from '../../../core/sevices/router.service';
+import { RouterService } from '../../../core/services/router.service';
 
 @Component({
   selector: 'app-not-found',

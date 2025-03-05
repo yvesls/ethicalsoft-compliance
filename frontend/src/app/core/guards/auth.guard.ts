@@ -12,8 +12,8 @@ import {
 } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { catchError, switchMap } from 'rxjs/operators';
-import { AuthenticationService } from '../sevices/authentication.service';
-import { NotificationService } from '../sevices/notification.service';
+import { AuthenticationService } from '../services/authentication.service';
+import { NotificationService } from '../services/notification.service';
 
 @Injectable({
   providedIn: 'root'

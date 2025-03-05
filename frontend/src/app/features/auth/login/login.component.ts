@@ -1,5 +1,5 @@
 import { AuthInterface } from './../../../shared/interfaces/auth.interface';
-import { AuthenticationService } from './../../../core/sevices/authentication.service';
+import { AuthenticationService } from '../../../core/services/authentication.service';
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';

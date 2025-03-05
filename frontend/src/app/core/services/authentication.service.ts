@@ -1,4 +1,3 @@
-import { AuthRefreshTokenInterface } from './../../shared/interfaces/auth-refresh-token.interface';
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { BehaviorSubject, catchError, map, Observable, of, tap } from 'rxjs';
@@ -68,7 +67,6 @@ export class AuthenticationService {
       },
       error: (error: any) => {
         this.notificationService.showError(error);
-        console.error('Login error', error);
       }
     });
   }
@@ -78,8 +76,7 @@ export class AuthenticationService {
       return of(false);
     }
 
-    const authRefresh: AuthRefreshTokenInterface = { refreshToken: this._authToken.refreshToken };
-    return this.authStore.refreshToken(authRefresh).pipe(
+    return this.authStore.refreshToken({ refreshToken: this._authToken.refreshToken }).pipe(
       tap((tokenData: AuthTokenInterface) => {
         this.setAuthToken(tokenData);
       }),
@@ -129,7 +126,16 @@ export class AuthenticationService {
   }
 
   private decodeUser(token: string): UserInterface {
-    return jwtDecode<UserInterface>(token);
+    const decoded: any = jwtDecode(token);
+
+    return {
+      sub: decoded.sub,
+      exp: decoded.exp,
+      roles: decoded.roles || [],
+      name: decoded.name || "",
+      email: decoded.email || "",
+      avatarUrl: decoded.avatarUrl || "",
+    };
   }
 
   private startSessionMonitor(): void {
@@ -143,8 +149,11 @@ export class AuthenticationService {
       }, timeUntilExpiration - 60000);
     }
   }
-}
 
+  getUserRoles(): string[] {
+    return this._user?.roles || [];
+  }
+}
 
 export interface UserInterface {
   sub: string;

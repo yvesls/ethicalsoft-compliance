@@ -5,9 +5,9 @@ import { NgxSpinnerModule } from 'ngx-spinner';
 import { HeaderComponent } from './shared/components/header/header.component';
 import { FooterComponent } from './shared/components/footer/footer.component';
 import { SidebarComponent } from './shared/components/sidebar/sidebar.component';
-import { LayoutStateService } from './core/sevices/layout-state.service';
+import { LayoutStateService } from './core/services/layout-state.service';
 import { filter } from 'rxjs';
-import { RouterService } from './core/sevices/router.service';
+import { RouterService } from './core/services/router.service';
 
 @Component({
   selector: 'app-root',

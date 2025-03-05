@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.stream.Collectors;
 
 @Service
 public class TokenService {
@@ -25,7 +26,9 @@ public class TokenService {
             return JWT.create()
                 .withIssuer("auth-api")
                 .withSubject(user.getUsername())
-                .withExpiresAt(this.getExpirationDate())
+                .withClaim("roles", user.getAuthorities().stream()
+                        .map(role -> role.getAuthority())
+                        .collect(Collectors.toList()))
                 .sign(algorithm);
         }catch (JWTCreationException e) {
             throw new BusinessException("Error while generating token", e);

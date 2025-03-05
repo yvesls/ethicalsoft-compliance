@@ -8,29 +8,17 @@
       <div class="logo">
         <img src="../../../../assets/images/logo.png" alt="logo">
       </div>
-      <h5 class="m-0 p-0">Ethicalsoft Complience</h5>
+      <h5 class="m-0 p-0">Ethicalsoft Compliance</h5>
     </div>
 
     <div class="sidebar-content">
       <nav class="menu open-current-submenu">
         <ul>
-          <li class="menu-item" routerLink="home">
+          <li *ngFor="let item of menuItems$ | async" class="menu-item" [routerLink]="item.route">
             <span class="menu-icon">
-              <img src="../../../../assets/icons/home.svg" alt="home">
+              <img *ngIf="item.icon" src="../../../../assets/icons/{{ item.icon }}.svg" alt="{{ item.label }}">
             </span>
-            <span class="menu-title">Home</span>
-          </li>
-          <li class="menu-item">
-            <span class="menu-icon">
-              <img src="../../../../assets/icons/projects.svg" alt="projects">
-            </span>
-            <span class="menu-title">Projects</span>
-          </li>
-          <li class="menu-item">
-            <span class="menu-icon">
-              <img src="../../../../assets/icons/dashboards.svg" alt="dashboard">
-            </span>
-            <span class="menu-title">Dashboards</span>
+            <span class="menu-title">{{ item.label }}</span>
           </li>
         </ul>
       </nav>

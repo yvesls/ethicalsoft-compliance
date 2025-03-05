@@ -1,34 +1,34 @@
-export interface SidebarItem {
+export interface MenuItem {
   label: string;
   icon?: string;
   route?: string;
-  children?: SidebarItem[];
+  roles?: string[];
+  children?: MenuItem[];
 }
 
-export const SIDEBAR_MENU: SidebarItem[] = [
+export const MENU_CONFIG: MenuItem[] = [
   {
-    label: 'Dashboard',
-    icon: 'dashboard',
-    route: '/dashboard',
+    label: 'Home',
+    icon: 'home',
+    route: '/home',
+    roles: ['ROLE_USER'],
   },
   {
-    label: 'General',
-    icon: 'category',
-    children: [
-      { label: 'Components', route: '/components' },
-      { label: 'Charts', route: '/charts' },
-      { label: 'E-commerce', route: '/ecommerce' },
-      { label: 'Maps', route: '/maps' },
-      { label: 'Theme', route: '/theme' },
-    ],
+    label: 'Projects',
+    icon: 'projects',
+    route: '/projects',
+    roles: ['ROLE_ADMIN', 'ROLE_USER'],
   },
   {
-    label: 'Extra',
-    icon: 'extension',
-    children: [
-      { label: 'Documentation', route: '/documentation' },
-      { label: 'Calendar', route: '/calendar' },
-      { label: 'Examples', route: '/examples' },
-    ],
+    label: 'Dashboards',
+    icon: 'dashboards',
+    route: '/dashboards',
+    roles: ['ROLE_ADMIN'],
+  },
+  {
+    label: 'Settings',
+    icon: 'settings',
+    route: '/settings',
+    roles: ['ROLE_ADMIN'],
   },
 ];
