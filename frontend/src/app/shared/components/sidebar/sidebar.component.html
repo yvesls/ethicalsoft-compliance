@@ -12,7 +12,7 @@
     </div>
 
     <div class="sidebar-content">
-      <nav class="menu open-current-submenu">
+      <nav class="menu">
         <ul>
           <li *ngFor="let item of menuItems$ | async" class="menu-item" [routerLink]="item.route">
             <span class="menu-icon">
@@ -25,6 +25,11 @@
     </div>
 
     <div class="sidebar-footer">
+      <div class="exit">
+        <button (click)="exit()" aria-label="Abrir notificações" class="unstyled-btn">
+          <img src="../../../../assets/icons/exit.svg" alt="exit">
+        </button>
+      </div>
       <div class="footer-box">
         <span>Version 1.0</span>
       </div>

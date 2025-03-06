@@ -30,5 +30,5 @@ export const MENU_CONFIG: MenuItem[] = [
     icon: 'settings',
     route: '/settings',
     roles: ['ROLE_ADMIN'],
-  },
+  }
 ];

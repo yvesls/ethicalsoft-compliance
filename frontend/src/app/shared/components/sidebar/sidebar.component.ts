@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { MenuService } from '../../../core/services/menu.service';
 import { Observable } from 'rxjs';
 import { LayoutStateService } from '../../../core/services/layout-state.service';
+import { AuthenticationService } from '../../../core/services/authentication.service';
 import { MenuItem } from '../../../core/config/menu.config';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -19,7 +20,8 @@ export class SidebarComponent {
 
   constructor(
     private layoutStateService: LayoutStateService,
-    private menuService: MenuService
+    private menuService: MenuService,
+    private authService: AuthenticationService
   ) {
     this.menuItems$ = this.menuService.menuItems$;
     this.layoutStateService.isSidebarCollapsed$.subscribe(state => {
@@ -29,5 +31,9 @@ export class SidebarComponent {
 
   toggleSidebar() {
     this.layoutStateService.toggleSidebar();
+  }
+
+  exit() {
+    this.authService.logout();
   }
 }

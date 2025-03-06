@@ -89,7 +89,21 @@ export class AuthenticationService {
   }
 
   logout(): void {
-    this.clearAuthToken();
+    if (isPlatformBrowser(this.platformId)) {
+      sessionStorage.clear();
+      localStorage.clear();
+    }
+
+    this._authToken = null;
+    this._user = null;
+
+    this.userRoles$.next([]);
+    this.isLoggedIn$.next(false);
+
+    if (this.refreshTimer) {
+      clearTimeout(this.refreshTimer);
+    }
+
     this.routerService.navigateTo('/login');
   }
 
@@ -105,6 +119,7 @@ export class AuthenticationService {
     }
 
     this._user = this.decodeUser(tokenData.accessToken);
+
     this.userRoles$.next(this._user?.roles || []);
     this.isLoggedIn$.next(!!this._user);
     this.startSessionMonitor();

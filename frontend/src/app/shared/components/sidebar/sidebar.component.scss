@@ -99,6 +99,9 @@
 
   .sidebar-footer {
     padding: 20px;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
     text-align: center;
     font-size: 0.8rem;
     margin-top: auto;
@@ -131,8 +134,20 @@
     }
   }
 
-  &.toggled {
-    left: 0;
+  .exit {
+    margin: auto;
+
+    img {
+      height: 30px;
+      margin-bottom: 10px;
+      transform: rotate(180deg);
+
+      &:hover {
+        transition: filter 0.3s;
+        filter: brightness(0) saturate(100%) invert(48%) sepia(40%)
+        saturate(1009%) hue-rotate(52deg) brightness(94%) contrast(89%);
+      }
+    }
   }
 }
 
