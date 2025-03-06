@@ -3,9 +3,13 @@
 header {
   display: flex;
   align-items: center;
-  align-content: center;
   justify-content: space-between;
   width: 100%;
+
+  h2 {
+    padding: 0;
+    margin: 0;
+  }
 
   .notification-section {
     width: 1rem;

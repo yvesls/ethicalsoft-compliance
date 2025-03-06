@@ -100,6 +100,22 @@ export class RouterService {
     return this.router.url;
   }
 
+  getFormattedRoute(): string {
+    const url = this.router.url.split('?')[0];
+    const segments = url.split('/').filter(segment => segment);
+
+    if (!segments.length) return 'Home';
+
+    return segments.map(segment => this.capitalizeWords(segment)).join(' > ');
+  }
+
+  private capitalizeWords(str: string): string {
+    return str
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join('-');
+  }
+
   backToPrevious(inverseIndex: number = 1, removeVID: boolean = true): void {
     const currentViewPage = this.getStoredCurrentPage();
     if (!this._isStoredViewPage(currentViewPage.vid)) inverseIndex = 0;
