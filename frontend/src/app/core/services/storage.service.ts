@@ -6,40 +6,40 @@ import { NavigateInfo, RouteStorageParams } from './router.service';
   providedIn: 'root'
 })
 export class StorageService {
-  private authTokenKey = 'auth_token';
-  private historyKey = 'navigation_history';
-  private currentPageKey = 'current_page';
-  private sidebarStateKey = 'sidebar_collapsed';
-  private showLayoutKey = 'show_layout';
+  private readonly AUTH_TOKEN_KEY = 'auth_token';
+  private readonly NAVIGATION_HISTORY_KEY = 'navigation_history';
+  private readonly CURRENT_PAGE_KEY = 'current_page';
+  private readonly SIDEBAR_STATE_KEY = 'sidebar_collapsed';
+  private readonly SHOW_LAYOUT_KEY = 'show_layout';
 
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
 
   setAuthToken(token: string | null): void {
     if (isPlatformBrowser(this.platformId)) {
       if (token) {
-        localStorage.setItem(this.authTokenKey, token);
+        localStorage.setItem(this.AUTH_TOKEN_KEY, token);
       } else {
-        localStorage.removeItem(this.authTokenKey);
+        localStorage.removeItem(this.AUTH_TOKEN_KEY);
       }
     }
   }
 
   getAuthToken(): string | null {
     if (isPlatformBrowser(this.platformId)) {
-      return localStorage.getItem(this.authTokenKey);
+      return localStorage.getItem(this.AUTH_TOKEN_KEY);
     }
     return null;
   }
 
   clearAuthToken(): void {
     if (isPlatformBrowser(this.platformId)) {
-      localStorage.removeItem(this.authTokenKey);
+      localStorage.removeItem(this.AUTH_TOKEN_KEY);
     }
   }
 
   getHistVID(): string[] {
     if (isPlatformBrowser(this.platformId)) {
-      const history = localStorage.getItem(this.historyKey);
+      const history = localStorage.getItem(this.NAVIGATION_HISTORY_KEY);
       return history ? JSON.parse(history) : [];
     }
     return [];
@@ -48,19 +48,19 @@ export class StorageService {
   remHistVID(...vids: string[]): void {
     if (isPlatformBrowser(this.platformId)) {
       let history = this.getHistVID().filter((vid) => !vids.includes(vid));
-      localStorage.setItem(this.historyKey, JSON.stringify(history));
+      localStorage.setItem(this.NAVIGATION_HISTORY_KEY, JSON.stringify(history));
     }
   }
 
   setCurrentPage<T>(currentData: NavigateInfo<T>): void {
     if (isPlatformBrowser(this.platformId)) {
-      localStorage.setItem(this.currentPageKey, JSON.stringify(currentData));
+      localStorage.setItem(this.CURRENT_PAGE_KEY, JSON.stringify(currentData));
     }
   }
 
   getCurrentPage<T>(): NavigateInfo<T> {
     if (isPlatformBrowser(this.platformId)) {
-      const data = localStorage.getItem(this.currentPageKey);
+      const data = localStorage.getItem(this.CURRENT_PAGE_KEY);
       return data ? JSON.parse(data) : { vid: '', route: '' };
     }
     return { vid: '', route: '' };
@@ -74,7 +74,7 @@ export class StorageService {
       const history = this.getHistVID();
       if (!history.includes(vid)) {
         history.push(vid);
-        localStorage.setItem(this.historyKey, JSON.stringify(history));
+        localStorage.setItem(this.NAVIGATION_HISTORY_KEY, JSON.stringify(history));
       }
     }
   }
@@ -99,26 +99,26 @@ export class StorageService {
 
   setSidebarState(collapsed: boolean): void {
     if (isPlatformBrowser(this.platformId)) {
-      localStorage.setItem(this.sidebarStateKey, JSON.stringify(collapsed));
+      localStorage.setItem(this.SIDEBAR_STATE_KEY, JSON.stringify(collapsed));
     }
   }
 
   getSidebarState(): boolean {
     if (isPlatformBrowser(this.platformId)) {
-      return JSON.parse(localStorage.getItem(this.sidebarStateKey) || 'false');
+      return JSON.parse(localStorage.getItem(this.SIDEBAR_STATE_KEY) || 'false');
     }
     return false;
   }
 
   setShowLayout(show: boolean): void {
     if (isPlatformBrowser(this.platformId)) {
-      localStorage.setItem(this.showLayoutKey, JSON.stringify(show));
+      localStorage.setItem(this.SHOW_LAYOUT_KEY, JSON.stringify(show));
     }
   }
 
   getShowLayout(): boolean {
     if (isPlatformBrowser(this.platformId)) {
-      return JSON.parse(localStorage.getItem(this.showLayoutKey) || 'true');
+      return JSON.parse(localStorage.getItem(this.SHOW_LAYOUT_KEY) || 'true');
     }
     return true;
   }
@@ -132,8 +132,8 @@ export class StorageService {
 
   clear(): void {
     if (isPlatformBrowser(this.platformId)) {
-      localStorage.removeItem(this.historyKey);
-      localStorage.removeItem(this.currentPageKey);
+      localStorage.removeItem(this.NAVIGATION_HISTORY_KEY);
+      localStorage.removeItem(this.CURRENT_PAGE_KEY);
       Object.keys(localStorage).forEach((key) => {
         if (key.startsWith('view_page_')) {
           localStorage.removeItem(key);

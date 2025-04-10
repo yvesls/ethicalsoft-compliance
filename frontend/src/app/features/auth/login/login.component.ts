@@ -62,7 +62,7 @@ export class LoginComponent extends BasePageComponent {
       var form = this.form.getRawValue();
       this.authInterface.username = form.username;
       this.authInterface.password = form.password;
-      this.authService.login(this.authInterface);
+      this.authService.login(this.authInterface, form.keepSession);
     }
   }
 
