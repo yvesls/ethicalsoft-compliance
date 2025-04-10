@@ -1,9 +1,11 @@
-import { AuthInterface } from './../../../shared/interfaces/auth.interface';
+import { RouterService } from './../../../core/services/router.service';
+import { AuthInterface } from '../../../shared/interfaces/auth/auth.interface';
 import { AuthenticationService } from '../../../core/services/authentication.service';
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { InputComponent } from '../../../shared/components/input/input.component';
+import { BasePageComponent, RestoreParams } from '../../../core/abstractions/base-page.component';
 
 @Component({
   selector: 'app-login',
@@ -12,7 +14,7 @@ import { InputComponent } from '../../../shared/components/input/input.component
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent extends BasePageComponent {
 
   form!: FormGroup;
   authInterface = {} as AuthInterface
@@ -20,10 +22,31 @@ export class LoginComponent implements OnInit {
   constructor(
     private formBuilder: FormBuilder,
     private authService: AuthenticationService
-  ) { }
+  ) {
+    super()
+  }
 
-  ngOnInit() {
+  protected override onInit(): void {
     this._initForm();
+  }
+
+  protected override save() {
+    return {
+      formValue: this.form.getRawValue(),
+    }
+  }
+
+  protected override restore(restoreParameter: RestoreParams<any>): void {
+    if (!restoreParameter.hasParams) {
+      return;
+    }
+
+    if (restoreParameter['formValue']) {
+      this.form.patchValue(restoreParameter['formValue'])
+    }
+  }
+
+  protected override loadParams(params: any, queryParams?: any): void {
   }
 
   private _initForm() {
@@ -41,6 +64,10 @@ export class LoginComponent implements OnInit {
       this.authInterface.password = form.password;
       this.authService.login(this.authInterface);
     }
+  }
+
+  goToRecover() {
+    this.routerService.navigateTo('recover');
   }
 
 }

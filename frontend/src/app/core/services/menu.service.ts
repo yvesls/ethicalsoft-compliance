@@ -29,4 +29,5 @@ export class MenuService {
         children: item.children ? this.filterMenu(item.children, userRoles) : undefined,
       }));
   }
+
 }

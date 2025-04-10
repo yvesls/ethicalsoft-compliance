@@ -95,20 +95,15 @@ import static org.mockito.Mockito.*;
     @Test
     void resetPassword_success() {
         String email = "test@example.com";
-        String code = "123456";
         String newPassword = "newPassword123";
         User user = new User();
         user.setEmail(email);
-
-        when(recoveryCodeRepository.findByEmailAndCodeAndExpirationAfter(
-                eq(email), eq(code), any(LocalDateTime.class)))
-                .thenReturn(Optional.of(new RecoveryCode(email, code, LocalDateTime.now().plusMinutes(10))));
 
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
 
         when(passwordEncoder.encode(newPassword)).thenReturn("encodedPassword");
 
-        passwordRecoveryService.resetPassword(email, code, newPassword);
+        passwordRecoveryService.resetPassword(email, newPassword);
 
         verify(userRepository).save(user);
         verify(recoveryCodeRepository).deleteByEmail(email);
@@ -118,15 +113,10 @@ import static org.mockito.Mockito.*;
     @Test
     void resetPassword_invalidCode() {
         String email = "test@example.com";
-        String code = "invalid";
         String newPassword = "newPassword123";
 
-        when(recoveryCodeRepository.findByEmailAndCodeAndExpirationAfter(
-                eq(email), eq(code), any(LocalDateTime.class)))
-                .thenReturn(Optional.empty());
-
         assertThrows(IllegalArgumentException.class,
-                () -> passwordRecoveryService.resetPassword(email, code, newPassword));
+                () -> passwordRecoveryService.resetPassword(email, newPassword));
 
         verify(userRepository, never()).save(any());
         verify(recoveryCodeRepository, never()).deleteByEmail(any());
@@ -135,16 +125,11 @@ import static org.mockito.Mockito.*;
     @Test
     void resetPassword_userNotFound() {
         String email = "nonexistent@example.com";
-        String code = "123456";
         String newPassword = "newPassword123";
-
-        when(recoveryCodeRepository.findByEmailAndCodeAndExpirationAfter(
-                eq(email), eq(code), any(LocalDateTime.class)))
-                .thenReturn(Optional.of(new RecoveryCode(email, code, LocalDateTime.now().plusMinutes(10))));
 
         when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
 
         assertThrows(UsernameNotFoundException.class,
-                () -> passwordRecoveryService.resetPassword(email, code, newPassword));
+                () -> passwordRecoveryService.resetPassword(email, newPassword));
     }
 }

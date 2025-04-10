@@ -1,19 +1,20 @@
+import { ResetPasswordComponent } from './../../features/auth/reset-password/reset-password.component';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { BaseStore } from './base/base.store';
-import { AuthInterface } from '../interfaces/auth.interface';
-import { AuthTokenInterface } from '../interfaces/auth-token.interface';
-import { AuthRefreshTokenInterface } from '../interfaces/auth-refresh-token.interface';
-
-const AUTH_API = 'auth'
-const CHECK_TOKEN = 'check-token'
+import { AuthInterface } from '../interfaces/auth/auth.interface';
+import { AuthTokenInterface } from '../interfaces/auth/auth-token.interface';
+import { AuthRefreshTokenInterface } from '../interfaces/auth/auth-refresh-token.interface';
+import { ValidateCodeInterface } from '../interfaces/auth/validate-code.interface';
+import { PasswordRecoveryInterface } from '../interfaces/auth/password-recovery.interface';
+import { ResetPasswordInterface } from '../interfaces/auth/reset-password.interface';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthStore extends BaseStore {
   constructor() {
-    super(AUTH_API);
+    super('auth');
   }
 
   token(inputLogin: AuthInterface): Observable<AuthTokenInterface> {
@@ -25,7 +26,19 @@ export class AuthStore extends BaseStore {
   }
 
   checkToken(): Observable<string> {
-    return this.requestService.makeGet(this.getUrl(CHECK_TOKEN), { useAuth: false });
+    return this.requestService.makeGet(this.getUrl('check-token'), { useAuth: false });
+  }
+
+  recover(passwordRecovery: PasswordRecoveryInterface): Observable<void> {
+    return this.requestService.makePost(this.getUrl('recover'), { data: passwordRecovery });
+  }
+
+  validateCode(validateCode: ValidateCodeInterface): Observable<void> {
+    return this.requestService.makePost(this.getUrl('validate-code'), { data: validateCode });
+  }
+
+  resetPassword(resetPassword: ResetPasswordInterface): Observable<void> {
+    return this.requestService.makePost(this.getUrl('reset-password'), { data: resetPassword });
   }
 
 }

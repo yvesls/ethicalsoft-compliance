@@ -7,6 +7,7 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
 import com.ethicalsoft.ethicalsoft_complience.model.User;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -27,8 +28,8 @@ public class TokenService {
                 .withIssuer("auth-api")
                 .withSubject(user.getUsername())
                 .withClaim("roles", user.getAuthorities().stream()
-                        .map(role -> role.getAuthority())
-                        .collect(Collectors.toList()))
+                        .map(GrantedAuthority::getAuthority)
+                        .toList())
                 .sign(algorithm);
         }catch (JWTCreationException e) {
             throw new BusinessException("Error while generating token", e);

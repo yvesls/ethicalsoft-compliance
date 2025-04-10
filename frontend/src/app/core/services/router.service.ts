@@ -8,14 +8,12 @@ import { StorageService } from './storage.service';
 import { FormStateService } from './form-state.service';
 import { addDays } from '../utils/date-utils';
 import { LayoutStateService } from './layout-state.service';
+import { NavigationSourceService } from './navigation-source.service';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class RouterService {
   private params: any;
   private currentRouteSubject = new BehaviorSubject<string>('');
-
   currentRoute$ = this.currentRouteSubject.asObservable();
 
   constructor(
@@ -24,7 +22,8 @@ export class RouterService {
     private storageService: StorageService,
     private notificationService: NotificationService,
     private formStateService: FormStateService,
-    private layoutStateService: LayoutStateService
+    private layoutStateService: LayoutStateService,
+    private navigationSourceService: NavigationSourceService
   ) {
     this.clearOldViewPageData();
     this.currentRouteSubject.next(this.router.url);
@@ -39,16 +38,15 @@ export class RouterService {
       while (currentRoute.firstChild) {
         currentRoute = currentRoute.firstChild;
       }
-
       const showLayout = currentRoute.snapshot.data?.['showLayout'] !== false;
-
       this.layoutStateService.setShowLayout(showLayout);
     });
   }
+
   async navigateTo<T>(url: string, navigateParams?: NavigateParams<T>): Promise<boolean> {
     const { params = {}, queryParams = {} } = navigateParams || {};
     this._createPageData<T>(url, params, queryParams);
-
+    this.navigationSourceService.setInternalNavigation(true);
     if (this.formStateService.getFormDirty()) {
       return new Promise((resolve) => {
         this.notificationService.showConfirm(
@@ -61,13 +59,13 @@ export class RouterService {
         );
       });
     }
-
     return this._redirectTo(url, queryParams);
   }
 
   navigateToNewTab<T>(url: string, navigateParams?: NavigateParams<T>): void {
     const { queryParams = {} } = navigateParams || {};
     this._generateVID(queryParams);
+    this.navigationSourceService.setInternalNavigation(true);
     window.open(`${url}?vid=${queryParams['vid']}`, '_blank');
   }
 
@@ -103,9 +101,7 @@ export class RouterService {
   getFormattedRoute(): string {
     const url = this.router.url.split('?')[0];
     const segments = url.split('/').filter(segment => segment);
-
     if (!segments.length) return 'Home';
-
     return segments.map(segment => this.capitalizeWords(segment)).join(' > ');
   }
 
@@ -123,7 +119,6 @@ export class RouterService {
       this.storageService.remHistVID(currentViewPage.vid);
       this.storageService.remove(currentViewPage.vid);
     }
-
     const previousViewPage = this.getStoredViewPageByHistory(inverseIndex);
     if (previousViewPage?.obj?.route) {
       this.navigateTo(previousViewPage?.obj?.route, previousViewPage.obj);
@@ -154,19 +149,8 @@ export class RouterService {
     this.params = params;
     this._generateVID(queryParams);
     const vid = queryParams['vid'];
-    this.setStoredCurrentPage<T>({
-      vid: vid,
-      route: url
-    });
-    this.setStoredPageViewParams(vid, {
-      d: new Date(),
-      obj: {
-        vid: vid,
-        route: url,
-        params: { ...this.params },
-        queryParams: queryParams
-      }
-    });
+    this.setStoredCurrentPage<T>({ vid: vid, route: url });
+    this.setStoredPageViewParams(vid, { d: new Date(), obj: { vid: vid, route: url, params: { ...this.params }, queryParams: queryParams } });
   }
 
   private _isStoredViewPage(vid: string): boolean {
@@ -187,15 +171,15 @@ export class RouterService {
     return this.storageService.getCurrentPage<T>();
   }
 
-  private setStoredCurrentPage<T>(currentData: NavigateInfo<T>): void {
+  setStoredCurrentPage<T>(currentData: NavigateInfo<T>): void {
     this.storageService.setCurrentPage(currentData);
   }
 
-  private getStoredPageViewParams(vid: string): RouteStorageParams {
+  getStoredPageViewParams(vid: string): RouteStorageParams | null {
     return this.storageService.getViewPageData(vid);
   }
 
-  private setStoredPageViewParams(vid: string, storageData: RouteStorageParams): void {
+  setStoredPageViewParams(vid: string, storageData: RouteStorageParams): void {
     this.storageService.setViewPageData(vid, storageData);
   }
 

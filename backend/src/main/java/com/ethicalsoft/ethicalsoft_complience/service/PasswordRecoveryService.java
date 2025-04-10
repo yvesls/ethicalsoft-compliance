@@ -41,8 +41,7 @@ public class PasswordRecoveryService {
     }
 
     @Transactional(rollbackOn = Exception.class)
-    public void resetPassword(String email, String code, String newPassword) {
-        validateCode(email, code);
+    public void resetPassword(String email, String newPassword) {
 
         var user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));

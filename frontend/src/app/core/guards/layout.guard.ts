@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
 import {
   CanActivate,
-  ActivatedRouteSnapshot,
-  RouterStateSnapshot
+  ActivatedRouteSnapshot
 } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { StorageService } from '../services/storage.service';
@@ -13,7 +12,7 @@ import { StorageService } from '../services/storage.service';
 export class LayoutGuard implements CanActivate {
   constructor(private storageService: StorageService) {}
 
-  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
+  canActivate(route: ActivatedRouteSnapshot): Observable<boolean> {
     const showLayout = route.data?.['showLayout'] ?? true;
     this.storageService.setShowLayout(showLayout);
     return of(true);

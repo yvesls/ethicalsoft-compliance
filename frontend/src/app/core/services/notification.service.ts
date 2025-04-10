@@ -20,6 +20,10 @@ export class NotificationService {
     this.showModal('error', 'Erro', this.formatErrorMessage(error));
   }
 
+  showSuccess(message: string) {
+    this.showModal('success', 'Sucesso', message);
+  }
+
   showConfirm(message: string, callbackConfirm: () => void, callbackCancel?: () => void) {
     this.showModal('confirm', 'Atenção', message, callbackConfirm, callbackCancel);
   }

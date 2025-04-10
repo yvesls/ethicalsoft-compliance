@@ -49,21 +49,18 @@ public class AuthController extends BaseController {
     }
 
     @PostMapping("/recover")
-    @PreAuthorize("hasRole('USER')")
     public void requestRecovery(@Valid @RequestBody PasswordRecoveryDTO request) {
         recoveryService.requestRecovery(request.getEmail());
     }
 
-    @PostMapping("/validate")
-    @PreAuthorize("hasRole('USER')")
+    @PostMapping("/validate-code")
     public void validateCode(@Valid @RequestBody CodeValidationDTO request) {
         recoveryService.validateCode(request.getEmail(), request.getCode());
     }
 
-    @PostMapping("/reset")
-    @PreAuthorize("hasRole('USER')")
+    @PostMapping("/reset-password")
     public void resetPassword(@Valid @RequestBody PasswordResetDTO request) {
-        recoveryService.resetPassword(request.getEmail(), request.getCode(), request.getNewPassword());
+        recoveryService.resetPassword(request.getEmail(), request.getNewPassword());
     }
 
 }

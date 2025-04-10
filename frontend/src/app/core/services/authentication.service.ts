@@ -3,8 +3,8 @@ import { isPlatformBrowser } from '@angular/common';
 import { BehaviorSubject, catchError, map, Observable, of, tap } from 'rxjs';
 import { jwtDecode } from 'jwt-decode';
 import { AuthStore } from '../../shared/stores/auth.store';
-import { AuthTokenInterface } from '../../shared/interfaces/auth-token.interface';
-import { AuthInterface } from '../../shared/interfaces/auth.interface';
+import { AuthTokenInterface } from '../../shared/interfaces/auth/auth-token.interface';
+import { AuthInterface } from '../../shared/interfaces/auth/auth.interface';
 import { NotificationService } from './notification.service';
 import { RouterService } from './router.service';
 

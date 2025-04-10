@@ -63,6 +63,10 @@ p {
   font-size: 0.9rem;
 }
 
+small {
+  font-size: 0.7rem;
+}
+
 ul {
   list-style: none;
   padding: 0;
@@ -83,8 +87,14 @@ form {
   color: $red;
 }
 
-a {
+.link {
   color: $blue-secundary;
+  text-decoration: underline;
+
+  &:hover {
+    cursor: pointer;
+    color: $gray-secundary;
+  }
 }
 
 .unstyled-btn {
@@ -289,4 +299,31 @@ app-footer {
     opacity: 0;
     transform: scale(0.9);
   }
+}
+
+/* cards */
+
+.card {
+  background-color: $gray-tertiary;
+  border: none;
+  padding: 2.5rem;
+  border-radius: $radius-default;
+  box-shadow: $box-shadow-secundary;
+  text-align: center;
+}
+
+.very-small {
+  width: 3%;
+}
+
+.small-card {
+  width: 42vw;
+}
+
+.medium-card {
+  width: 62vw;
+}
+
+.large-card {
+  width: 82vw;
 }

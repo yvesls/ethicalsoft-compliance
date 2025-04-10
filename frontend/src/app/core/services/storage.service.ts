@@ -39,7 +39,8 @@ export class StorageService {
 
   getHistVID(): string[] {
     if (isPlatformBrowser(this.platformId)) {
-      return JSON.parse(localStorage.getItem(this.historyKey) || '[]');
+      const history = localStorage.getItem(this.historyKey);
+      return history ? JSON.parse(history) : [];
     }
     return [];
   }
@@ -66,17 +67,34 @@ export class StorageService {
   }
 
   setViewPageData(vid: string, storageData: RouteStorageParams): void {
-    if (isPlatformBrowser(this.platformId)) {
-      localStorage.setItem(`view_page_${vid}`, JSON.stringify(storageData));
+    if (isPlatformBrowser(this.platformId) && vid) {
+      const key = `view_page_${vid}`;
+      localStorage.setItem(key, JSON.stringify(storageData));
+
+      const history = this.getHistVID();
+      if (!history.includes(vid)) {
+        history.push(vid);
+        localStorage.setItem(this.historyKey, JSON.stringify(history));
+      }
     }
   }
 
-  getViewPageData(vid: string): RouteStorageParams {
-    if (isPlatformBrowser(this.platformId)) {
-      const data = localStorage.getItem(`view_page_${vid}`);
-      return data ? JSON.parse(data) : null;
+  getViewPageData(vid: string): RouteStorageParams | null {
+    if (isPlatformBrowser(this.platformId) && vid) {
+      const key = `view_page_${vid}`;
+      const data = localStorage.getItem(key);
+
+      if (!data) {
+        return null;
+      }
+
+      try {
+        return JSON.parse(data);
+      } catch (error) {
+        return null;
+      }
     }
-    return {} as RouteStorageParams;
+    return null;
   }
 
   setSidebarState(collapsed: boolean): void {
@@ -106,8 +124,9 @@ export class StorageService {
   }
 
   remove(vid: string): void {
-    if (isPlatformBrowser(this.platformId)) {
-      localStorage.removeItem(`view_page_${vid}`);
+    if (isPlatformBrowser(this.platformId) && vid) {
+      const key = `view_page_${vid}`;
+      localStorage.removeItem(key);
     }
   }
 

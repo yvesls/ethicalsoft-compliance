@@ -16,9 +16,6 @@ public class PasswordResetDTO {
     @Email
     private String email;
 
-    @RequiredField(label = "code")
-    private String code;
-
     @RequiredField(label = "newPassword")
     private String newPassword;
 }

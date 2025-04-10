@@ -4,6 +4,10 @@ import { HomeComponent } from './features/home/home.component';
 import { NotFoundComponent } from './shared/components/not-found/not-found.component';
 import { AuthGuard } from './core/guards/auth.guard';
 import { LayoutGuard } from './core/guards/layout.guard';
+import { RecoverComponent } from './features/auth/recover/recover.component';
+import { CodeVerificationComponent } from './features/auth/code-verification/code-verification.component';
+import { ResetPasswordComponent } from './features/auth/reset-password/reset-password.component';
+import { NavigationSourceGuard } from './core/guards/navigation-source.guard';
 
 export const routes: Routes = [
   {
@@ -20,8 +24,25 @@ export const routes: Routes = [
   {
     path: 'home',
     component: HomeComponent,
-    canActivate: [LayoutGuard, AuthGuard],
-    data: { showLayout: true }
+    canActivate: [LayoutGuard, AuthGuard]
+  },
+  {
+    path: 'recover',
+    component: RecoverComponent,
+    canActivate: [LayoutGuard],
+    data: { showLayout: false }
+  },
+  {
+    path: 'code-verification',
+    component: CodeVerificationComponent,
+    canActivate: [LayoutGuard, NavigationSourceGuard],
+    data: { showLayout: false }
+  },
+  {
+    path: 'reset-password',
+    component: ResetPasswordComponent,
+    canActivate: [LayoutGuard, NavigationSourceGuard],
+    data: { showLayout: false }
   },
   {
     path: '**',

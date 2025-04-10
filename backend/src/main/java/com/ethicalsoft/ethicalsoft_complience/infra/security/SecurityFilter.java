@@ -30,9 +30,18 @@ public class SecurityFilter extends OncePerRequestFilter {
     private final UserRepository userRepository;
     private final RepresentativeRepository representativeRepository;
 
+    private static final List<String> PUBLIC_URLS = List.of(
+            "/auth/token",
+            "/auth/register",
+            "/auth/refresh",
+            "/auth/recover",
+            "/auth/validate",
+            "/auth/reset"
+    );
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException, JWTVerificationException {
+            throws ServletException, IOException {
 
         var token = extractToken(request);
         if (Objects.nonNull(token)) {
@@ -59,13 +68,12 @@ public class SecurityFilter extends OncePerRequestFilter {
         }
 
         if (Objects.nonNull(projectId)) {
-            var representative = representativeRepository.findByUserEmailAndProjectId(user.getEmail(), projectId);
-            representative.ifPresent(rep ->
-                    authorities.addAll(
-                    rep.getRoles().stream()
-                            .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getName().toUpperCase()))
-                            .toList())
-            );
+            representativeRepository.findByUserEmailAndProjectId(user.getEmail(), projectId)
+                    .ifPresent(rep -> authorities.addAll(
+                            rep.getRoles().stream()
+                                    .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getName().toUpperCase()))
+                                    .toList()
+                    ));
         }
 
         return authorities;
@@ -73,7 +81,9 @@ public class SecurityFilter extends OncePerRequestFilter {
 
     private String extractToken(HttpServletRequest request) {
         var authHeader = request.getHeader("Authorization");
-        return (Objects.nonNull(authHeader) && authHeader.startsWith("Bearer ")) ? authHeader.replace("Bearer ", "") : null;
+        return (Objects.nonNull(authHeader) && authHeader.startsWith("Bearer "))
+                ? authHeader.substring("Bearer ".length())
+                : null;
     }
 
     private Long extractProjectId(HttpServletRequest request) {
