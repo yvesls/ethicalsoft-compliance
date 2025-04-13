@@ -3,8 +3,8 @@ import lombok.Getter;
 
 @Getter
 public enum UserRoleEnum {
-    ADMIN("Administrator"),
-    USER("User");
+    ADMIN("ROLE_ADMIN"),
+    USER("USER_ADMIN");
 
     UserRoleEnum(String value) {
         this.value = value;

@@ -9,7 +9,6 @@
       type="email"
       id="email"
       placeholder="Informe seu e-mail"
-      [required]="true"
       inputClasses="form-control"
       labelClasses="form-label"
       [validationMessages]="{
@@ -26,7 +25,6 @@
       type="password"
       id="password"
       placeholder="Informe sua senha"
-      [required]="true"
       inputClasses="form-control"
       labelClasses="form-label"
       [validationMessages]="{
@@ -50,5 +48,5 @@
     </div>
 
   </form>
-  <p class="register">É um analista e deseja utilizar o software no seu projeto? <a href="#">Registre-se!</a></p>
+  <p class="register">É um analista e deseja utilizar o software no seu projeto? <span (click)="goToRegister()">Registre-se!</span></p>
 </div>

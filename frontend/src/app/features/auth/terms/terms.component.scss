@@ -1,0 +1,16 @@
+@use '../../../../assets/scss/base/vars' as *;
+
+.terms-content {
+  background-color: $white;
+  max-height: 60vh;
+  overflow-y: auto;
+  text-align: left;
+  border: 2px solid $gray-primary;
+  padding: 10px;
+  border-radius: 10px;
+  box-sizing: border-box;
+
+  scrollbar-width: thin;
+  scrollbar-color: rgba($gray-secundary, 0.6) transparent;
+
+}

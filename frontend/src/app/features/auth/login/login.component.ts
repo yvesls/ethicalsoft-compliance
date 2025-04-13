@@ -70,4 +70,8 @@ export class LoginComponent extends BasePageComponent {
     this.routerService.navigateTo('recover');
   }
 
+  goToRegister() {
+    this.routerService.navigateTo('register');
+  }
+
 }

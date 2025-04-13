@@ -43,9 +43,10 @@ export class NotificationService {
     this.closeModal();
 
     const modal = document.createElement('div');
-    modal.classList.add('modal', type);
+    modal.classList.add('modal', 'notification-modal', type);
+
     modal.innerHTML = `
-      <div class="modal-content" @modalAnimation>
+      <div class="very-small-card modal-content" @modalAnimation>
         <div class="close text-end">x</div>
         <img class="modal-icon" src="assets/icons/${type}.svg" alt="Ícone ${title}">
         <h2 class="modal-title">${title}</h2>
@@ -81,10 +82,11 @@ export class NotificationService {
     });
   }
 
-  private closeModal() {
-    document.querySelectorAll('.modal').forEach(modal => {
-      modal.classList.add('closing');
-      setTimeout(() => modal.remove(), 50);
-    });
-  }
+
+private closeModal() {
+  document.querySelectorAll('.notification-modal').forEach(modal => {
+    modal.classList.add('closing');
+    setTimeout(() => modal.remove(), 50);
+  });
+}
 }

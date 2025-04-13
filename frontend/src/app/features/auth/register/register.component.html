@@ -1,0 +1,95 @@
+<div class="card very-small-card">
+  <h1>Crie sua conta</h1>
+  <p>Em poucos passos</p>
+
+  <form class="row" (ngSubmit)="register()" [formGroup]="form">
+    <app-input
+      formControlName="firstName"
+      label="Primeiro nome"
+      type="text"
+      id="firstName"
+      placeholder="Insira seu primeiro nome"
+      inputClasses="form-control"
+      labelClasses="form-label"
+      [validationMessages]="{
+        required: 'Primeiro nome é obrigatório'
+      }"
+      [control]="form.get('firstName')"
+    >
+    </app-input>
+
+    <app-input
+      formControlName="lastName"
+      label="Sobrenome"
+      type="text"
+      id="lastName"
+      placeholder="Insira seu sobrenome"
+      inputClasses="form-control"
+      labelClasses="form-label"
+      [validationMessages]="{
+        required: 'Sobrenome é obrigatório'
+      }"
+      [control]="form.get('lastName')"
+    >
+    </app-input>
+
+    <app-input
+      formControlName="email"
+      label="Email"
+      type="email"
+      id="email"
+      placeholder="Insira seu email"
+      inputClasses="form-control"
+      labelClasses="form-label"
+      [validationMessages]="{
+        required: 'Email é obrigatório',
+        email: 'Formato de email inválido'
+      }"
+      [control]="form.get('email')"
+    >
+    </app-input>
+
+    <app-input
+      formControlName="password"
+      label="Senha"
+      type="password"
+      id="password"
+      placeholder="Insira sua senha"
+      inputClasses="form-control"
+      labelClasses="form-label"
+      [validationMessages]="{
+        required: 'Senha é obrigatória'
+      }"
+      [control]="form.get('password')"
+    >
+    </app-input>
+
+    <app-input
+      formControlName="confirmPassword"
+      label="Confirmar senha"
+      type="password"
+      id="confirmPassword"
+      placeholder="Confirme sua senha"
+      inputClasses="form-control"
+      labelClasses="form-label"
+      [validationMessages]="{
+        required: 'Confirmação de senha é obrigatória'
+      }"
+      [control]="form.get('confirmPassword')"
+    >
+    </app-input>
+
+    <div class="col-12 options">
+      <label class="terms-label">
+        <input type="checkbox" formControlName="acceptedTerms" />
+        Concordo com os <span class="link" (click)="openTermsAndPolicies($event)">termos e com a política</span> do Ethical Software Compliance
+      </label>
+    </div>
+
+    <div class="col-12">
+      <button class="btn btn-primary col-12" type="submit" [disabled]="form.invalid">Cadastrar</button>
+    </div>
+  </form>
+
+  <p class="login">Já tem uma conta? <span (click)="goToLogin()">Entrar agora</span></p>
+</div>

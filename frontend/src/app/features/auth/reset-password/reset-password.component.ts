@@ -86,10 +86,9 @@ export class ResetPasswordComponent extends BasePageComponent {
         next: () => {
           this.notificationService.showSuccess('Senha redefinida com sucesso!');
           this.routerService.navigateTo('login');
-        },
-        error: (err) => {
-          this.notificationService.showError(err);
-        },
+        }, error: error => {
+          this.notificationService.showError(error);
+        }
       });
     }
   }

@@ -1,7 +1,7 @@
 import { HttpClient, HttpContext, HttpContextToken, HttpHeaders, HttpParams, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, catchError, map, throwError } from 'rxjs';
-import { UrlParameterInterface } from '../interfaces/url-parameter.interface';
+import { UrlParameter } from '../interfaces/url-parameter.interface';
 import { dateParser, dateParserSend } from '../utils/common-utils';
 import { RequestInputOptions } from '../interfaces/request-input-options.interface';
 import { getErrorMessage } from '../../shared/enums/error-messages.enum';
@@ -33,27 +33,27 @@ export class RequestService {
     this._apiUrl = value;
   }
 
-  makeDelete<T>(url: string, options: RequestInputOptions, ...params: UrlParameterInterface[]): Observable<T> {
+  makeDelete<T>(url: string, options: RequestInputOptions, ...params: UrlParameter[]): Observable<T> {
     return this._makeRequest(DELETE, this._getUrl(url, options.isBase, params), options);
   }
 
-  makeFilePost<T>(url: string, options: RequestInputOptions, ...params: UrlParameterInterface[]): Observable<T> {
+  makeFilePost<T>(url: string, options: RequestInputOptions, ...params: UrlParameter[]): Observable<T> {
     return this._makeFileUploadRequest<T>(this._getUrl(url, options.isBase, params), options);
   }
 
-  makeGet<T>(url: string, options: RequestInputOptions, ...params: UrlParameterInterface[]): Observable<T> {
+  makeGet<T>(url: string, options: RequestInputOptions, ...params: UrlParameter[]): Observable<T> {
     return this._makeRequest<T>(GET, this._getUrl(url, options.isBase, params), options);
   }
 
-  makePatch<T>(url: string, options: RequestInputOptions, ...params: UrlParameterInterface[]): Observable<T> {
+  makePatch<T>(url: string, options: RequestInputOptions, ...params: UrlParameter[]): Observable<T> {
     return this._makeRequest<T>(PATCH, this._getUrl(url, options.isBase, params), options);
   }
 
-  makePost<T>(url: string, options: RequestInputOptions, ...params: UrlParameterInterface[]): Observable<T> {
+  makePost<T>(url: string, options: RequestInputOptions, ...params: UrlParameter[]): Observable<T> {
     return this._makeRequest<T>(POST, this._getUrl(url, options.isBase, params), options);
   }
 
-  makePut<T>(url: string, options: RequestInputOptions, ...params: UrlParameterInterface[]): Observable<T> {
+  makePut<T>(url: string, options: RequestInputOptions, ...params: UrlParameter[]): Observable<T> {
     return this._makeRequest<T>(PUT, this._getUrl(url, options.isBase, params), options);
   }
 
@@ -97,7 +97,7 @@ export class RequestService {
     }
   }
 
-  private _getUrl(action: string, isBase: boolean = false, params?: UrlParameterInterface[]): string {
+  private _getUrl(action: string, isBase: boolean = false, params?: UrlParameter[]): string {
     const baseUrl = isBase ? '' : this._apiUrl ?? '';
     const query = params?.length ? '?' + params.map(p => `${p.key}=${p.value}`).join('&') : '';
     return `${baseUrl}${action}${query}`;

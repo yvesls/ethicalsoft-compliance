@@ -1,21 +1,30 @@
 @use '../../../../assets//scss//base/vars' as *;
 
 .options {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin: 1rem 0 0.6rem 0;
 }
 
-.register {
+.login {
   font-size: 0.8rem;
   margin-top: 0.6rem;
 }
 
-.register span {
+.login span {
   color: $blue-primary;
   text-decoration: none;
   font-weight: bold;
   cursor: pointer;
 }
 
+.terms-label {
+  input {
+    margin-bottom: -0.1rem;
+  }
+
+  span {
+    color: $green-primary;
+    text-decoration: none;
+    font-weight: bold;
+    cursor: pointer;
+  }
+}

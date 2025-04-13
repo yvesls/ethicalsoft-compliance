@@ -8,6 +8,7 @@ import { RecoverComponent } from './features/auth/recover/recover.component';
 import { CodeVerificationComponent } from './features/auth/code-verification/code-verification.component';
 import { ResetPasswordComponent } from './features/auth/reset-password/reset-password.component';
 import { NavigationSourceGuard } from './core/guards/navigation-source.guard';
+import { RegisterComponent } from './features/auth/register/register.component';
 
 export const routes: Routes = [
   {
@@ -42,6 +43,12 @@ export const routes: Routes = [
     path: 'reset-password',
     component: ResetPasswordComponent,
     canActivate: [LayoutGuard, NavigationSourceGuard],
+    data: { showLayout: false }
+  },
+  {
+    path: 'register',
+    component: RegisterComponent,
+    canActivate: [LayoutGuard],
     data: { showLayout: false }
   },
   {

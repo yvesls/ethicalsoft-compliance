@@ -102,8 +102,7 @@ export class CodeVerificationComponent extends BasePageComponent {
               email: this.validateCode.email,
             }
           })
-        },
-        error: (error: any) => {
+        }, error: error => {
           this.notificationService.showError(error);
         }
       });

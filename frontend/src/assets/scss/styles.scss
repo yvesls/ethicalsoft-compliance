@@ -214,7 +214,6 @@ app-footer {
   .modal-content {
     background: $background-color;
     border-radius: $radius-default;
-    width: 400px;
     padding: 40px;
     text-align: center;
     box-shadow: $box-shadow-primary;
@@ -222,6 +221,22 @@ app-footer {
     opacity: 0;
     transform: scale(0.9);
     animation: fadeInScale 0.3s ease-out forwards;
+  }
+
+  &.very-small-card .modal-content {
+    width: 32vw;
+  }
+
+  &.small-card .modal-content {
+    width: 42vw;
+  }
+
+  &.medium-card .modal-content {
+    width: 62vw;
+  }
+
+  &.large-card .modal-content {
+    width: 82vw;
   }
 
   .close {
@@ -273,7 +288,7 @@ app-footer {
     }
 
     .btn-confirm {
-      background: $success-color;
+      background: $red;
       color: white;
     }
   }
@@ -312,8 +327,8 @@ app-footer {
   text-align: center;
 }
 
-.very-small {
-  width: 3%;
+.very-small-card {
+  width: 32vw;
 }
 
 .small-card {

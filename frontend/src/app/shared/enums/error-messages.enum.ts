@@ -1,4 +1,4 @@
-export enum ErrorMessages {
+export enum ErrorMessageEnum {
   UNAUTHORIZED = 'Credenciais inválidas. Verifique seu usuário e senha.',
   FORBIDDEN = 'Você não tem permissão para acessar este recurso.',
   NOT_FOUND = 'O recurso solicitado não foi encontrado.',
@@ -13,15 +13,15 @@ export enum ErrorMessages {
 
 export function getErrorMessage(status: number): string {
   switch (status) {
-    case 400: return ErrorMessages.BAD_REQUEST;
-    case 401: return ErrorMessages.UNAUTHORIZED;
-    case 403: return ErrorMessages.FORBIDDEN;
-    case 404: return ErrorMessages.NOT_FOUND;
-    case 409: return ErrorMessages.CONFLICT;
-    case 422: return ErrorMessages.UNPROCESSABLE_ENTITY;
-    case 429: return ErrorMessages.TOO_MANY_REQUESTS;
-    case 500: return ErrorMessages.INTERNAL_SERVER_ERROR;
-    case 503: return ErrorMessages.SERVICE_UNAVAILABLE;
-    default: return ErrorMessages.UNKNOWN_ERROR;
+    case 400: return ErrorMessageEnum.BAD_REQUEST;
+    case 401: return ErrorMessageEnum.UNAUTHORIZED;
+    case 403: return ErrorMessageEnum.FORBIDDEN;
+    case 404: return ErrorMessageEnum.NOT_FOUND;
+    case 409: return ErrorMessageEnum.CONFLICT;
+    case 422: return ErrorMessageEnum.UNPROCESSABLE_ENTITY;
+    case 429: return ErrorMessageEnum.TOO_MANY_REQUESTS;
+    case 500: return ErrorMessageEnum.INTERNAL_SERVER_ERROR;
+    case 503: return ErrorMessageEnum.SERVICE_UNAVAILABLE;
+    default: return ErrorMessageEnum.UNKNOWN_ERROR;
   }
 }

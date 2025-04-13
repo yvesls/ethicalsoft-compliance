@@ -66,8 +66,7 @@ export class RecoverComponent extends BasePageComponent {
               email: email,
             }
           })
-        },
-        error: (error: any) => {
+        }, error: error => {
           this.notificationService.showError(error);
         }
       });
