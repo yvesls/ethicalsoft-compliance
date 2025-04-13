@@ -40,6 +40,7 @@ public class PasswordRecoveryService {
 		if ( !isValid ) {
 			throw new IllegalArgumentException( "Invalid or expired code." );
 		}
+		recoveryCodeRepository.deleteByEmail( codeValidationDTO.getEmail() );
 	}
 
 	@Transactional( rollbackOn = Exception.class )

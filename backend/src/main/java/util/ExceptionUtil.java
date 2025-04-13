@@ -9,7 +9,7 @@ import java.util.stream.Stream;
 @UtilityClass
 public class ExceptionUtil {
 
-	public static final List<String> getErrorStackTrace( Throwable exception, boolean showStackTrace ) {
+	public static List<String> getErrorStackTrace( Throwable exception, boolean showStackTrace ) {
 		List<String> stackTrace = new ArrayList<>();
 		if ( showStackTrace ) {
 			addTrace( exception, stackTrace );
@@ -17,11 +17,11 @@ public class ExceptionUtil {
 		return stackTrace;
 	}
 
-	public static final void addTrace( Throwable exception, List<String> stackTrace ) {
+	public static void addTrace( Throwable exception, List<String> stackTrace ) {
 		if ( exception == null ) {
 			return;
 		}
-		stackTrace.add( new StringBuilder( exception.getClass().getName() ).append( ": " ).append( exception.getLocalizedMessage() ).toString() );
+		stackTrace.add( exception.getClass().getName() + ": " + exception.getLocalizedMessage() );
 		String atStackString = "  at ";
 		if ( exception.getStackTrace() != null ) {
 			stackTrace.addAll( Stream.of( exception.getStackTrace() ).map( StackTraceElement::toString ).map( atStackString::concat ).toList() );

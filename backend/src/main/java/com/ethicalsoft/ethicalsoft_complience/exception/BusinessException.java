@@ -3,20 +3,21 @@ package com.ethicalsoft.ethicalsoft_complience.exception;
 import com.ethicalsoft.ethicalsoft_complience.model.enums.ErrorTypeEnum;
 import lombok.Getter;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+@Getter
 public class BusinessException extends RuntimeException {
 
+	@Serial
 	private static final long serialVersionUID = 1L;
 
-	@Getter
 	private final ErrorTypeEnum typeError;
 
 
-	@Getter
 	private final List<String> errors = new ArrayList<>();
 
 	public BusinessException( List<String> errors ) {

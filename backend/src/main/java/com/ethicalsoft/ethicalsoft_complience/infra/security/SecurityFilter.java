@@ -25,14 +25,6 @@ import java.util.Objects;
 @Component
 public class SecurityFilter extends OncePerRequestFilter {
 
-	private static final List<String> PUBLIC_URLS = List.of(
-			"/auth/token",
-			"/auth/register",
-			"/auth/refresh",
-			"/auth/recover",
-			"/auth/validate",
-			"/auth/reset"
-	);
 	private final TokenService tokenService;
 	private final UserRepository userRepository;
 	private final RepresentativeRepository representativeRepository;
