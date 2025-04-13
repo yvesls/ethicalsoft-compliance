@@ -3,6 +3,7 @@ package com.ethicalsoft.ethicalsoft_complience.service;
 import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
 import com.ethicalsoft.ethicalsoft_complience.model.RefreshToken;
 import com.ethicalsoft.ethicalsoft_complience.model.User;
+import com.ethicalsoft.ethicalsoft_complience.model.dto.request.RefreshTokenRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.repository.RefreshTokenRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -50,7 +51,7 @@ public class RefreshTokenService {
     }
 
     @Transactional
-    public void deleteRefreshToken(String token) {
-        refreshTokenRepository.deleteByToken(token);
+    public void deleteRefreshToken(RefreshTokenRequestDTO refreshTokenRequestDTO) {
+        refreshTokenRepository.deleteByToken(refreshTokenRequestDTO.getRefreshToken());
     }
 }

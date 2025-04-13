@@ -1,6 +1,9 @@
 package com.ethicalsoft.ethicalsoft_complience.service;
 
 import com.ethicalsoft.ethicalsoft_complience.model.RecoveryCode;
+import com.ethicalsoft.ethicalsoft_complience.model.dto.CodeValidationDTO;
+import com.ethicalsoft.ethicalsoft_complience.model.dto.PasswordRecoveryDTO;
+import com.ethicalsoft.ethicalsoft_complience.model.dto.PasswordResetDTO;
 import com.ethicalsoft.ethicalsoft_complience.repository.RecoveryCodeRepository;
 import com.ethicalsoft.ethicalsoft_complience.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -22,32 +25,31 @@ public class PasswordRecoveryService {
     private final EmailService emailService;
 
     @Transactional(rollbackOn = Exception.class)
-    public void requestRecovery(String email) {
-        userRepository.findByEmail(email)
+    public void requestRecovery(PasswordRecoveryDTO passwordRecoveryDTO) {
+        userRepository.findByEmail(passwordRecoveryDTO.getEmail())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         String code = UUID.randomUUID().toString().substring(0, 6);
-        RecoveryCode recoveryCode = new RecoveryCode(email, code, LocalDateTime.now().plusMinutes(10));
+        RecoveryCode recoveryCode = new RecoveryCode(passwordRecoveryDTO.getEmail(), code, LocalDateTime.now().plusMinutes(10));
 
         recoveryCodeRepository.save(recoveryCode);
-        emailService.sendRecoveryEmail(email, code);
+        emailService.sendRecoveryEmail(passwordRecoveryDTO.getEmail(), code);
     }
 
-    public void validateCode(String email, String code) {
-        var isValid = recoveryCodeRepository.findByEmailAndCodeAndExpirationAfter(email, code, LocalDateTime.now()).isPresent();
+    public void validateCode(CodeValidationDTO codeValidationDTO) {
+        var isValid = recoveryCodeRepository.findByEmailAndCodeAndExpirationAfter(codeValidationDTO.getEmail(), codeValidationDTO.getCode(), LocalDateTime.now()).isPresent();
         if (!isValid) {
             throw new IllegalArgumentException("Invalid or expired code.");
         }
     }
 
     @Transactional(rollbackOn = Exception.class)
-    public void resetPassword(String email, String newPassword) {
+    public void resetPassword(PasswordResetDTO passwordResetDTO) {
 
-        var user = userRepository.findByEmail(email)
+        var user = userRepository.findByEmail(passwordResetDTO.getEmail())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setPassword(passwordEncoder.encode(passwordResetDTO.getNewPassword()));
         userRepository.save(user);
-        recoveryCodeRepository.deleteByEmail(email);
     }
 }

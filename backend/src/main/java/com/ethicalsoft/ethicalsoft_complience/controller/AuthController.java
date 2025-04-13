@@ -10,7 +10,6 @@ import com.ethicalsoft.ethicalsoft_complience.service.RefreshTokenService;
 import com.ethicalsoft.ethicalsoft_complience.service.facade.AuthenticationFacadeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,33 +33,33 @@ public class AuthController extends BaseController {
     }
 
     @PostMapping("/refresh")
-    public AuthResponseDTO refresh(@Valid @RequestBody RefreshTokenRequestDTO request) {
-        return authenticationFacadeService.refresh(request);
+    public AuthResponseDTO refresh(@Valid @RequestBody RefreshTokenRequestDTO refreshTokenRequestDTO) {
+        return authenticationFacadeService.refresh(refreshTokenRequestDTO);
     }
 
     @PostMapping("/logout")
-    public void logout(@Valid @RequestBody RefreshTokenRequestDTO request) {
-        refreshTokenService.deleteRefreshToken(request.getRefreshToken());
+    public void logout(@Valid @RequestBody RefreshTokenRequestDTO refreshTokenRequestDTO) {
+        refreshTokenService.deleteRefreshToken(refreshTokenRequestDTO);
     }
 
     @PostMapping("/register")
     public void register(@Valid @RequestBody RegisterUserDTO registerUserDTO ) {
-        authService.register( registerUserDTO );
+        authService.register(registerUserDTO);
     }
 
     @PostMapping("/recover")
-    public void requestRecovery(@Valid @RequestBody PasswordRecoveryDTO request) {
-        recoveryService.requestRecovery(request.getEmail());
+    public void requestRecovery(@Valid @RequestBody PasswordRecoveryDTO passwordRecoveryDTO) {
+        recoveryService.requestRecovery(passwordRecoveryDTO);
     }
 
     @PostMapping("/validate-code")
-    public void validateCode(@Valid @RequestBody CodeValidationDTO request) {
-        recoveryService.validateCode(request.getEmail(), request.getCode());
+    public void validateCode(@Valid @RequestBody CodeValidationDTO codeValidationDTO) {
+        recoveryService.validateCode(codeValidationDTO);
     }
 
     @PostMapping("/reset-password")
-    public void resetPassword(@Valid @RequestBody PasswordResetDTO request) {
-        recoveryService.resetPassword(request.getEmail(), request.getNewPassword());
+    public void resetPassword(@Valid @RequestBody PasswordResetDTO passwordResetDTO) {
+        recoveryService.resetPassword(passwordResetDTO);
     }
 
 }

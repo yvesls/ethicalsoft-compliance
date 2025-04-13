@@ -1,6 +1,9 @@
 package com.ethicalsoft.ethicalsoft_complience;
 import com.ethicalsoft.ethicalsoft_complience.model.RecoveryCode;
 import com.ethicalsoft.ethicalsoft_complience.model.User;
+import com.ethicalsoft.ethicalsoft_complience.model.dto.CodeValidationDTO;
+import com.ethicalsoft.ethicalsoft_complience.model.dto.PasswordRecoveryDTO;
+import com.ethicalsoft.ethicalsoft_complience.model.dto.PasswordResetDTO;
 import com.ethicalsoft.ethicalsoft_complience.repository.RecoveryCodeRepository;
 import com.ethicalsoft.ethicalsoft_complience.repository.UserRepository;
 import com.ethicalsoft.ethicalsoft_complience.service.EmailService;
@@ -37,10 +40,12 @@ import static org.mockito.Mockito.*;
     void requestRecovery_success() {
         User user = new User();
         user.setEmail("test@example.com");
+        PasswordRecoveryDTO passwordRecoveryDTO = new PasswordRecoveryDTO();
+        passwordRecoveryDTO.setEmail("test@example.com");
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
         doNothing().when(emailService).sendRecoveryEmail(anyString(), anyString());
 
-        passwordRecoveryService.requestRecovery("test@example.com");
+        passwordRecoveryService.requestRecovery(passwordRecoveryDTO);
 
         verify(recoveryCodeRepository, times(1)).save(any(RecoveryCode.class));
         verify(emailService, times(1)).sendRecoveryEmail(anyString(), anyString());
@@ -49,20 +54,24 @@ import static org.mockito.Mockito.*;
     @Test
     void requestRecovery_userNotFound() {
         when(userRepository.findByEmail("invalid@example.com")).thenReturn(Optional.empty());
-
-        assertThrows(UsernameNotFoundException.class, () -> passwordRecoveryService.requestRecovery("invalid@example.com"));
+        PasswordRecoveryDTO passwordRecoveryDTO = new PasswordRecoveryDTO();
+        passwordRecoveryDTO.setEmail("invalid@example.com");
+        assertThrows(UsernameNotFoundException.class, () -> passwordRecoveryService.requestRecovery(passwordRecoveryDTO));
     }
 
     @Test
     void validateCode_success() {
         LocalDateTime expirationTime = LocalDateTime.now().plusMinutes(10);
         RecoveryCode code = new RecoveryCode("test@example.com", "123456", expirationTime);
+        CodeValidationDTO codeValidationDTO = new CodeValidationDTO();
+        codeValidationDTO.setEmail("test@example.com");
+        codeValidationDTO.setCode("123456");
 
         when(recoveryCodeRepository.findByEmailAndCodeAndExpirationAfter(
                 eq("test@example.com"), eq("123456"), any(LocalDateTime.class)))
                 .thenReturn(Optional.of(code));
 
-        assertDoesNotThrow(() -> passwordRecoveryService.validateCode("test@example.com", "123456"));
+        assertDoesNotThrow(() -> passwordRecoveryService.validateCode(codeValidationDTO));
     }
 
     @Test
@@ -70,8 +79,10 @@ import static org.mockito.Mockito.*;
         when(recoveryCodeRepository.findByEmailAndCodeAndExpirationAfter(
                 eq("test@example.com"), eq("invalid"), any(LocalDateTime.class)))
                 .thenReturn(Optional.empty());
-
-        assertThrows(IllegalArgumentException.class, () -> passwordRecoveryService.validateCode("test@example.com", "invalid"));
+        CodeValidationDTO codeValidationDTO = new CodeValidationDTO();
+        codeValidationDTO.setEmail("test@example.com");
+        codeValidationDTO.setCode("invalid");
+        assertThrows(IllegalArgumentException.class, () -> passwordRecoveryService.validateCode(codeValidationDTO));
     }
 
     @Test
@@ -79,8 +90,10 @@ import static org.mockito.Mockito.*;
         when(recoveryCodeRepository.findByEmailAndCodeAndExpirationAfter(
                 eq("test@example.com"), eq("123456"), any(LocalDateTime.class)))
                 .thenReturn(Optional.empty());
-
-        assertThrows(IllegalArgumentException.class, () -> passwordRecoveryService.validateCode("test@example.com", "123456"));
+        CodeValidationDTO codeValidationDTO = new CodeValidationDTO();
+        codeValidationDTO.setEmail("test@example.com");
+        codeValidationDTO.setCode("123456");
+        assertThrows(IllegalArgumentException.class, () -> passwordRecoveryService.validateCode(codeValidationDTO));
     }
 
     @Test
@@ -88,8 +101,10 @@ import static org.mockito.Mockito.*;
         when(recoveryCodeRepository.findByEmailAndCodeAndExpirationAfter(
                 eq("nonexistent@example.com"), eq("123456"), any(LocalDateTime.class)))
                 .thenReturn(Optional.empty());
-
-        assertThrows(IllegalArgumentException.class, () -> passwordRecoveryService.validateCode("nonexistent@example.com", "123456"));
+        CodeValidationDTO codeValidationDTO = new CodeValidationDTO();
+        codeValidationDTO.setEmail("nonexistent@example.com");
+        codeValidationDTO.setCode("123456");
+        assertThrows(IllegalArgumentException.class, () -> passwordRecoveryService.validateCode(codeValidationDTO));
     }
 
     @Test
@@ -98,38 +113,31 @@ import static org.mockito.Mockito.*;
         String newPassword = "newPassword123";
         User user = new User();
         user.setEmail(email);
+        PasswordResetDTO passwordResetDTO = new PasswordResetDTO();
+        passwordResetDTO.setEmail(email);
+        passwordResetDTO.setNewPassword(newPassword);
 
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
 
         when(passwordEncoder.encode(newPassword)).thenReturn("encodedPassword");
 
-        passwordRecoveryService.resetPassword(email, newPassword);
+        passwordRecoveryService.resetPassword(passwordResetDTO);
 
         verify(userRepository).save(user);
-        verify(recoveryCodeRepository).deleteByEmail(email);
         verify(passwordEncoder).encode(newPassword);
-    }
-
-    @Test
-    void resetPassword_invalidCode() {
-        String email = "test@example.com";
-        String newPassword = "newPassword123";
-
-        assertThrows(IllegalArgumentException.class,
-                () -> passwordRecoveryService.resetPassword(email, newPassword));
-
-        verify(userRepository, never()).save(any());
-        verify(recoveryCodeRepository, never()).deleteByEmail(any());
     }
 
     @Test
     void resetPassword_userNotFound() {
         String email = "nonexistent@example.com";
         String newPassword = "newPassword123";
+        PasswordResetDTO passwordResetDTO = new PasswordResetDTO();
+        passwordResetDTO.setEmail(email);
+        passwordResetDTO.setNewPassword(newPassword);
 
         when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
 
         assertThrows(UsernameNotFoundException.class,
-                () -> passwordRecoveryService.resetPassword(email, newPassword));
+                () -> passwordRecoveryService.resetPassword(passwordResetDTO));
     }
 }

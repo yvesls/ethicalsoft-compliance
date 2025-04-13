@@ -42,7 +42,7 @@ public class AuthenticationFacadeService {
         var user = refreshTokenService.getUserFromRefreshToken(request.getRefreshToken());
         var accessToken = tokenService.generateToken(user);
         var newRefreshToken = refreshTokenService.createRefreshToken(user);
-        refreshTokenService.deleteRefreshToken(request.getRefreshToken());
+        refreshTokenService.deleteRefreshToken(request);
         return new AuthResponseDTO( accessToken, newRefreshToken);
     }
 }
