@@ -4,14 +4,14 @@ import lombok.Getter;
 
 @Getter
 public enum ProjectStatusEnum {
-    ABERTO("Aberto"),
-    CONCLUIDO("Concluído"),
-    RASCUNHO("Rascunho"),
-    ARQUIVADO("Arquivado");
+	ABERTO( "Aberto" ),
+	CONCLUIDO( "Concluído" ),
+	RASCUNHO( "Rascunho" ),
+	ARQUIVADO( "Arquivado" );
 
-    ProjectStatusEnum(String value) {
-        this.value = value;
-    }
+	private final String value;
 
-    private String value;
+	ProjectStatusEnum( String value ) {
+		this.value = value;
+	}
 }

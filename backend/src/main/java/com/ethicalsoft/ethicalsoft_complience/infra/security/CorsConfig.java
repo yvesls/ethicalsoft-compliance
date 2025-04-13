@@ -14,32 +14,28 @@ import java.util.List;
 @Configuration
 public class CorsConfig {
 
-    @Value("${cors.allowed-origins}")
-    private String allowedOrigins;
+	@Value( "${cors.allowed-origins}" )
+	private String allowedOrigins;
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-        List<String> origins = Arrays.asList(allowedOrigins.split(","));
-        config.setAllowedOrigins(origins);
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(Arrays.asList(
-                "Authorization",
-                "Content-Type",
-                "X-Project-Id",
-                "Access-Control-Allow-Origin",
-                "Access-Control-Allow-Credentials"
-        ));
-        config.setExposedHeaders(Arrays.asList(
-                "Authorization",
-                "Content-Type",
-                "X-Project-Id"
-        ));
-        config.setAllowCredentials(true);
-        config.setMaxAge(3600L);
+	@Bean
+	public CorsConfigurationSource corsConfigurationSource() {
+		CorsConfiguration config = new CorsConfiguration();
+		List<String> origins = Arrays.asList( allowedOrigins.split( "," ) );
+		config.setAllowedOrigins( origins );
+		config.setAllowedMethods( Arrays.asList( "GET", "POST", "PUT", "DELETE", "OPTIONS" ) );
+		config.setAllowedHeaders( Arrays.asList(
+				"Authorization",
+				"Content-Type",
+				"X-Project-Id",
+				"Access-Control-Allow-Origin",
+				"Access-Control-Allow-Credentials"
+		) );
+		config.setExposedHeaders( Arrays.asList( "Authorization", "Content-Type", "X-Project-Id" ) );
+		config.setAllowCredentials( true );
+		config.setMaxAge( 3600L );
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-        return source;
-    }
+		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+		source.registerCorsConfiguration( "/**", config );
+		return source;
+	}
 }

@@ -17,41 +17,38 @@ import java.util.UUID;
 @Service
 public class RefreshTokenService {
 
-    @Value("${api.security.token.refresh.expiration}")
-    private Long refreshTokenDuration;
+	private final RefreshTokenRepository refreshTokenRepository;
+	@Value( "${api.security.token.refresh.expiration}" )
+	private Long refreshTokenDuration;
 
-    private final RefreshTokenRepository refreshTokenRepository;
+	public String createRefreshToken( User user ) {
+		String token = UUID.randomUUID().toString();
+		Instant expiryDate = Instant.now().plusMillis( refreshTokenDuration );
+		RefreshToken refreshToken = new RefreshToken( token, user, expiryDate );
+		refreshTokenRepository.deleteByUser( user );
+		refreshTokenRepository.save( refreshToken );
+		return token;
+	}
 
-    public String createRefreshToken(User user) {
-        String token = UUID.randomUUID().toString();
-        Instant expiryDate = Instant.now().plusMillis(refreshTokenDuration);
-        RefreshToken refreshToken = new RefreshToken(token, user, expiryDate);
-        refreshTokenRepository.deleteByUser(user);
-        refreshTokenRepository.save(refreshToken);
-        return token;
-    }
+	public String validateRefreshToken( String token ) {
+		var refreshTokenOpt = refreshTokenRepository.findByToken( token );
+		if ( refreshTokenOpt.isEmpty() ) {
+			return null;
+		}
+		RefreshToken refreshToken = refreshTokenOpt.get();
+		if ( refreshToken.getExpiryDate().isBefore( Instant.now() ) ) {
+			refreshTokenRepository.delete( refreshToken );
+			throw new BusinessException( "Refresh token expired" );
+		}
+		return refreshToken.getUser().getEmail();
+	}
 
-    public String validateRefreshToken(String token) {
-        var refreshTokenOpt = refreshTokenRepository.findByToken(token);
-        if (refreshTokenOpt.isEmpty()) {
-            return null;
-        }
-        RefreshToken refreshToken = refreshTokenOpt.get();
-        if (refreshToken.getExpiryDate().isBefore(Instant.now())) {
-            refreshTokenRepository.delete(refreshToken);
-            throw new BusinessException("Refresh token expired");
-        }
-        return refreshToken.getUser().getEmail();
-    }
+	public User getUserFromRefreshToken( String token ) {
+		return refreshTokenRepository.findByToken( token ).map( RefreshToken::getUser ).orElseThrow( () -> new BusinessException( "Invalid refresh token" ) );
+	}
 
-    public User getUserFromRefreshToken(String token) {
-        return refreshTokenRepository.findByToken(token)
-                .map(RefreshToken::getUser)
-                .orElseThrow(() -> new BusinessException("Invalid refresh token"));
-    }
-
-    @Transactional
-    public void deleteRefreshToken(RefreshTokenRequestDTO refreshTokenRequestDTO) {
-        refreshTokenRepository.deleteByToken(refreshTokenRequestDTO.getRefreshToken());
-    }
+	@Transactional
+	public void deleteRefreshToken( RefreshTokenRequestDTO refreshTokenRequestDTO ) {
+		refreshTokenRepository.deleteByToken( refreshTokenRequestDTO.getRefreshToken() );
+	}
 }

@@ -7,11 +7,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@Order(Ordered.LOWEST_PRECEDENCE)
+@Order( Ordered.LOWEST_PRECEDENCE )
 public class FallbackController {
 
-    @RequestMapping("/**")
-    public void handleFallback() {
-        throw new ResourceNotFoundException();
-    }
+	@RequestMapping( "/**" )
+	public void handleFallback() {
+		throw new ResourceNotFoundException();
+	}
 }

@@ -15,24 +15,24 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class RecoveryCode {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Long id;
+	@Id
+	@GeneratedValue( strategy = GenerationType.IDENTITY )
+	@Column( name = "id" )
+	private Long id;
 
-    @Column(name = "email")
-    private String email;
+	@Column( name = "email" )
+	private String email;
 
-    @Column(name = "code")
-    private String code;
+	@Column( name = "code" )
+	private String code;
 
-    @Column(name = "expiration")
-    private LocalDateTime expiration;
+	@Column( name = "expiration" )
+	private LocalDateTime expiration;
 
-    public RecoveryCode(String email, String code, LocalDateTime expiration) {
-        this.email = email;
-        this.code = code;
-        this.expiration = expiration;
-    }
+	public RecoveryCode( String email, String code, LocalDateTime expiration ) {
+		this.email = email;
+		this.code = code;
+		this.expiration = expiration;
+	}
 
 }

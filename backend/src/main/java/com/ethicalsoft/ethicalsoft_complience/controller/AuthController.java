@@ -11,7 +11,10 @@ import com.ethicalsoft.ethicalsoft_complience.service.facade.AuthenticationFacad
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RequiredArgsConstructor
 @RestController
@@ -19,47 +22,47 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping( "auth" )
 public class AuthController extends BaseController {
 
-    private final AuthService authService;
+	private final AuthService authService;
 
-    private final RefreshTokenService refreshTokenService;
+	private final RefreshTokenService refreshTokenService;
 
-    private final PasswordRecoveryService recoveryService;
+	private final PasswordRecoveryService recoveryService;
 
-    private final AuthenticationFacadeService authenticationFacadeService;
+	private final AuthenticationFacadeService authenticationFacadeService;
 
-    @PostMapping("/token")
-    public AuthResponseDTO token(@Valid @RequestBody AuthDTO authDTO) {
-        return authenticationFacadeService.token(authDTO);
-    }
+	@PostMapping( "/token" )
+	public AuthResponseDTO token( @Valid @RequestBody AuthDTO authDTO ) {
+		return authenticationFacadeService.token( authDTO );
+	}
 
-    @PostMapping("/refresh")
-    public AuthResponseDTO refresh(@Valid @RequestBody RefreshTokenRequestDTO refreshTokenRequestDTO) {
-        return authenticationFacadeService.refresh(refreshTokenRequestDTO);
-    }
+	@PostMapping( "/refresh" )
+	public AuthResponseDTO refresh( @Valid @RequestBody RefreshTokenRequestDTO refreshTokenRequestDTO ) {
+		return authenticationFacadeService.refresh( refreshTokenRequestDTO );
+	}
 
-    @PostMapping("/logout")
-    public void logout(@Valid @RequestBody RefreshTokenRequestDTO refreshTokenRequestDTO) {
-        refreshTokenService.deleteRefreshToken(refreshTokenRequestDTO);
-    }
+	@PostMapping( "/logout" )
+	public void logout( @Valid @RequestBody RefreshTokenRequestDTO refreshTokenRequestDTO ) {
+		refreshTokenService.deleteRefreshToken( refreshTokenRequestDTO );
+	}
 
-    @PostMapping("/register")
-    public void register(@Valid @RequestBody RegisterUserDTO registerUserDTO ) {
-        authService.register(registerUserDTO);
-    }
+	@PostMapping( "/register" )
+	public void register( @Valid @RequestBody RegisterUserDTO registerUserDTO ) {
+		authService.register( registerUserDTO );
+	}
 
-    @PostMapping("/recover")
-    public void requestRecovery(@Valid @RequestBody PasswordRecoveryDTO passwordRecoveryDTO) {
-        recoveryService.requestRecovery(passwordRecoveryDTO);
-    }
+	@PostMapping( "/recover" )
+	public void requestRecovery( @Valid @RequestBody PasswordRecoveryDTO passwordRecoveryDTO ) {
+		recoveryService.requestRecovery( passwordRecoveryDTO );
+	}
 
-    @PostMapping("/validate-code")
-    public void validateCode(@Valid @RequestBody CodeValidationDTO codeValidationDTO) {
-        recoveryService.validateCode(codeValidationDTO);
-    }
+	@PostMapping( "/validate-code" )
+	public void validateCode( @Valid @RequestBody CodeValidationDTO codeValidationDTO ) {
+		recoveryService.validateCode( codeValidationDTO );
+	}
 
-    @PostMapping("/reset-password")
-    public void resetPassword(@Valid @RequestBody PasswordResetDTO passwordResetDTO) {
-        recoveryService.resetPassword(passwordResetDTO);
-    }
+	@PostMapping( "/reset-password" )
+	public void resetPassword( @Valid @RequestBody PasswordResetDTO passwordResetDTO ) {
+		recoveryService.resetPassword( passwordResetDTO );
+	}
 
 }

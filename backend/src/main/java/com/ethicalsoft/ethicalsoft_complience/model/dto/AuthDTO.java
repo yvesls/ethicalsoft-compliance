@@ -13,11 +13,11 @@ import util.validators.annotations.RequiredField;
 @NoArgsConstructor
 public class AuthDTO {
 
-    @RequiredField( label = "username" )
-    @Email
-    private String username;
+	@RequiredField( label = "username" )
+	@Email
+	private String username;
 
-    @RequiredField( label = "password" )
-    private String password;
+	@RequiredField( label = "password" )
+	private String password;
 
 }

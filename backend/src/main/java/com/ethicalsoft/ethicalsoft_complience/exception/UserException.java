@@ -1,15 +1,18 @@
 package com.ethicalsoft.ethicalsoft_complience.exception;
 
-public class UserException  extends RuntimeException {
+import java.io.Serial;
 
-    private static final long serialVersionUID = 1L;
+public class UserException extends RuntimeException {
 
-    public UserException(String message) {
-        super(message);
-    }
+	@Serial
+	private static final long serialVersionUID = 1L;
 
-    public UserException(String message, Throwable cause) {
-        super(message, cause);
-    }
+	public UserException( String message ) {
+		super( message );
+	}
+
+	public UserException( String message, Throwable cause ) {
+		super( message, cause );
+	}
 
 }

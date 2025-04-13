@@ -10,7 +10,7 @@ import java.util.Optional;
 @Repository
 public interface RecoveryCodeRepository extends JpaRepository<RecoveryCode, Long> {
 
-    Optional<RecoveryCode> findByEmailAndCodeAndExpirationAfter(String email, String code, LocalDateTime now);
+	Optional<RecoveryCode> findByEmailAndCodeAndExpirationAfter( String email, String code, LocalDateTime now );
 
-    void deleteByEmail(String email);
+	void deleteByEmail( String email );
 }

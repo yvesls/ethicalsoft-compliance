@@ -13,6 +13,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class PasswordRecoveryDTO {
 
-    @Email
-    private String email;
+	@Email
+	private String email;
 }

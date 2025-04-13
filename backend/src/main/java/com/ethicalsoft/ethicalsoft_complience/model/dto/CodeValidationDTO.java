@@ -13,9 +13,9 @@ import util.validators.annotations.RequiredField;
 @NoArgsConstructor
 public class CodeValidationDTO {
 
-    @Email
-    private String email;
+	@Email
+	private String email;
 
-    @RequiredField(label = "code")
-    private String code;
+	@RequiredField( label = "code" )
+	private String code;
 }

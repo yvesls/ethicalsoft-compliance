@@ -19,37 +19,35 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class PasswordRecoveryService {
 
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final RecoveryCodeRepository recoveryCodeRepository;
-    private final EmailService emailService;
+	private final UserRepository userRepository;
+	private final PasswordEncoder passwordEncoder;
+	private final RecoveryCodeRepository recoveryCodeRepository;
+	private final EmailService emailService;
 
-    @Transactional(rollbackOn = Exception.class)
-    public void requestRecovery(PasswordRecoveryDTO passwordRecoveryDTO) {
-        userRepository.findByEmail(passwordRecoveryDTO.getEmail())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+	@Transactional( rollbackOn = Exception.class )
+	public void requestRecovery( PasswordRecoveryDTO passwordRecoveryDTO ) {
+		userRepository.findByEmail( passwordRecoveryDTO.getEmail() ).orElseThrow( () -> new UsernameNotFoundException( "User not found" ) );
 
-        String code = UUID.randomUUID().toString().substring(0, 6);
-        RecoveryCode recoveryCode = new RecoveryCode(passwordRecoveryDTO.getEmail(), code, LocalDateTime.now().plusMinutes(10));
+		String code = UUID.randomUUID().toString().substring( 0, 6 );
+		RecoveryCode recoveryCode = new RecoveryCode( passwordRecoveryDTO.getEmail(), code, LocalDateTime.now().plusMinutes( 10 ) );
 
-        recoveryCodeRepository.save(recoveryCode);
-        emailService.sendRecoveryEmail(passwordRecoveryDTO.getEmail(), code);
-    }
+		recoveryCodeRepository.save( recoveryCode );
+		emailService.sendRecoveryEmail( passwordRecoveryDTO.getEmail(), code );
+	}
 
-    public void validateCode(CodeValidationDTO codeValidationDTO) {
-        var isValid = recoveryCodeRepository.findByEmailAndCodeAndExpirationAfter(codeValidationDTO.getEmail(), codeValidationDTO.getCode(), LocalDateTime.now()).isPresent();
-        if (!isValid) {
-            throw new IllegalArgumentException("Invalid or expired code.");
-        }
-    }
+	public void validateCode( CodeValidationDTO codeValidationDTO ) {
+		var isValid = recoveryCodeRepository.findByEmailAndCodeAndExpirationAfter( codeValidationDTO.getEmail(), codeValidationDTO.getCode(), LocalDateTime.now() ).isPresent();
+		if ( !isValid ) {
+			throw new IllegalArgumentException( "Invalid or expired code." );
+		}
+	}
 
-    @Transactional(rollbackOn = Exception.class)
-    public void resetPassword(PasswordResetDTO passwordResetDTO) {
+	@Transactional( rollbackOn = Exception.class )
+	public void resetPassword( PasswordResetDTO passwordResetDTO ) {
 
-        var user = userRepository.findByEmail(passwordResetDTO.getEmail())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+		var user = userRepository.findByEmail( passwordResetDTO.getEmail() ).orElseThrow( () -> new UsernameNotFoundException( "User not found" ) );
 
-        user.setPassword(passwordEncoder.encode(passwordResetDTO.getNewPassword()));
-        userRepository.save(user);
-    }
+		user.setPassword( passwordEncoder.encode( passwordResetDTO.getNewPassword() ) );
+		userRepository.save( user );
+	}
 }

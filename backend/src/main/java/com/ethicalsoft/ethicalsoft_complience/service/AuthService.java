@@ -19,36 +19,35 @@ import org.springframework.stereotype.Service;
 @Service
 public class AuthService {
 
-    private final UserRepository userRepository;
+	private final UserRepository userRepository;
 
-    private final ModelMapper modelMapper = new ModelMapper();
+	private final ModelMapper modelMapper = new ModelMapper();
 
-    private final AuthenticationManager authenticationManager;
+	private final AuthenticationManager authenticationManager;
 
-    public Authentication token(AuthDTO authDTO) {
-        UsernamePasswordAuthenticationToken token =
-                new UsernamePasswordAuthenticationToken(authDTO.getUsername(), authDTO.getPassword());
-        return authenticationManager.authenticate(token);
-    }
+	public Authentication token( AuthDTO authDTO ) {
+		UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken( authDTO.getUsername(), authDTO.getPassword() );
+		return authenticationManager.authenticate( token );
+	}
 
-    public void register(RegisterUserDTO registerUserDTO) {
-        if(!registerUserDTO.isAcceptedTerms()) {
-            throw new BusinessException(ErrorTypeEnum.INFO, "The terms were not accepted");
-        }
+	public void register( RegisterUserDTO registerUserDTO ) {
+		if ( !registerUserDTO.isAcceptedTerms() ) {
+			throw new BusinessException( ErrorTypeEnum.INFO, "The terms were not accepted" );
+		}
 
-        var dataUser = userRepository.findByEmail(registerUserDTO.getEmail());
+		var dataUser = userRepository.findByEmail( registerUserDTO.getEmail() );
 
-        if(dataUser.isPresent()) {
-            throw new BusinessException(ErrorTypeEnum.INFO, "Email already exists");
-        }
-        var encryptedPassword = new BCryptPasswordEncoder().encode(registerUserDTO.getPassword());
-        registerUserDTO.setPassword(encryptedPassword);
+		if ( dataUser.isPresent() ) {
+			throw new BusinessException( ErrorTypeEnum.INFO, "Email already exists" );
+		}
+		var encryptedPassword = new BCryptPasswordEncoder().encode( registerUserDTO.getPassword() );
+		registerUserDTO.setPassword( encryptedPassword );
 
-        var newUser = modelMapper.map( registerUserDTO, User.class );
-        newUser.setRole(UserRoleEnum.ADMIN);
-        newUser.setFirstAccess(false);
+		var newUser = modelMapper.map( registerUserDTO, User.class );
+		newUser.setRole( UserRoleEnum.ADMIN );
+		newUser.setFirstAccess( false );
 
-        this.userRepository.save(newUser);
-    }
+		this.userRepository.save( newUser );
+	}
 
 }

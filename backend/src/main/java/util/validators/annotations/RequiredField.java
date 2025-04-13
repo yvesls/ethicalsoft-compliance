@@ -12,12 +12,11 @@ import java.lang.annotation.*;
 @Target( { ElementType.METHOD, ElementType.FIELD, ElementType.PARAMETER } )
 @Retention( RetentionPolicy.RUNTIME )
 public @interface RequiredField {
-    String message() default "'{label}' {NullOrEmptyMessage} Value: ";
+	String message() default "'{label}' {NullOrEmptyMessage} Value: ";
 
-    @NotBlank
-    String label();
+	@NotBlank String label();
 
-    Class<?>[] groups() default {};
+	Class<?>[] groups() default {};
 
-    Class<? extends Payload>[] payload() default {};
+	Class<? extends Payload>[] payload() default {};
 }

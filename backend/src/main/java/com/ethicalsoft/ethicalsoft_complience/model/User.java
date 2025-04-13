@@ -10,79 +10,53 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "user_account")
+@Table( name = "user_account" )
 public class User implements UserDetails {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_id")
-    private Long id;
+	@OneToMany( mappedBy = "user", cascade = CascadeType.ALL )
+	private static List<Representative> representatives;
+	@Id
+	@GeneratedValue( strategy = GenerationType.IDENTITY )
+	@Column( name = "user_id" )
+	private Long id;
+	@Column( name = "first_name", nullable = false )
+	private String firstName;
+	@Column( name = "email", unique = true, nullable = false )
+	private String email;
+	@Column( name = "last_name", nullable = false )
+	private String lastName;
+	@Column( name = "password", nullable = false )
+	private String password;
+	@Column( name = "accepted_terms" )
+	private boolean acceptedTerms;
+	@Column( name = "first_access" )
+	private boolean firstAccess;
+	@Enumerated( EnumType.STRING )
+	private UserRoleEnum role;
 
-    @Column(name = "first_name", nullable = false)
-    private String firstName;
+	@Override
+	public Collection<? extends GrantedAuthority> getAuthorities() {
+		if ( this.role == UserRoleEnum.ADMIN ) return List.of( new SimpleGrantedAuthority( "ROLE_ADMIN" ), new SimpleGrantedAuthority( "ROLE_USER" ) );
+		else return List.of( new SimpleGrantedAuthority( "ROLE_USER" ) );
+	}
 
-    @Column(name = "email", unique = true, nullable = false)
-    private String email;
+	@Override
+	public String getPassword() {
+		return password;
+	}
 
-    @Column(name = "last_name", nullable = false)
-    private String lastName;
+	@Override
+	public String getUsername() {
+		return email;
+	}
 
-    @Column(name = "password", nullable = false)
-    private String password;
-
-    @Column(name = "accepted_terms")
-    private boolean acceptedTerms;
-
-    @Column(name = "first_access")
-    private boolean firstAccess;
-
-    @Enumerated(EnumType.STRING)
-    private UserRoleEnum role;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private static List<Representative> representatives;
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        if(this.role == UserRoleEnum.ADMIN) return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"), new SimpleGrantedAuthority("ROLE_USER"));
-        else return List.of(new SimpleGrantedAuthority("ROLE_USER"));
-    }
-
-    @Override
-    public String getPassword() {
-        return password;
-    }
-
-    @Override
-    public String getUsername() {
-        return email;
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
 }
 

@@ -14,22 +14,22 @@ import util.validators.annotations.RequiredField;
 @NoArgsConstructor
 public class RegisterUserDTO {
 
-    @RequiredField( label = "First name" )
-    private String firstName;
+	@RequiredField( label = "First name" )
+	private String firstName;
 
-    @RequiredField( label = "Last name" )
-    private String lastName;
+	@RequiredField( label = "Last name" )
+	private String lastName;
 
-    @Email
-    private String email;
+	@Email
+	private String email;
 
-    @RequiredField( label = "Password" )
-    private String password;
+	@RequiredField( label = "Password" )
+	private String password;
 
-    private boolean acceptedTerms;
+	private boolean acceptedTerms;
 
-    private boolean firstAccess;
+	private boolean firstAccess;
 
-    @RequiredField( label = "role" )
-    private UserRoleEnum role;
+	@RequiredField( label = "role" )
+	private UserRoleEnum role;
 }

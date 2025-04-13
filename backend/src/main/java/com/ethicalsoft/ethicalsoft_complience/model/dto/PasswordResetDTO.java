@@ -13,9 +13,9 @@ import util.validators.annotations.RequiredField;
 @NoArgsConstructor
 public class PasswordResetDTO {
 
-    @Email
-    private String email;
+	@Email
+	private String email;
 
-    @RequiredField(label = "newPassword")
-    private String newPassword;
+	@RequiredField( label = "newPassword" )
+	private String newPassword;
 }

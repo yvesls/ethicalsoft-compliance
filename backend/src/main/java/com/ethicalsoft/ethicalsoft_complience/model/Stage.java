@@ -13,25 +13,25 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "stage")
+@Table( name = "stage" )
 public class Stage {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "stage_id")
-    private Integer id;
+	@Id
+	@GeneratedValue( strategy = GenerationType.IDENTITY )
+	@Column( name = "stage_id" )
+	private Integer id;
 
-    @Column(name = "name", nullable = false, length = 100)
-    private String name;
+	@Column( name = "name", nullable = false, length = 100 )
+	private String name;
 
-    @Column(name = "weight", nullable = false)
-    private Integer weight;
+	@Column( name = "weight", nullable = false )
+	private Integer weight;
 
-    @ManyToOne
-    @JoinColumn(name = "project_id")
-    private Project project;
+	@ManyToOne
+	@JoinColumn( name = "project_id" )
+	private Project project;
 
-    @ManyToMany(mappedBy = "stages")
-    private Set<Questionnaire> questionnaires;
+	@ManyToMany( mappedBy = "stages" )
+	private Set<Questionnaire> questionnaires;
 
 }

@@ -14,35 +14,35 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class AuthenticationFacadeService {
 
-    private final AuthService authService;
-    private final TokenService tokenService;
-    private final RefreshTokenService refreshTokenService;
+	private final AuthService authService;
+	private final TokenService tokenService;
+	private final RefreshTokenService refreshTokenService;
 
-    public AuthenticationFacadeService(AuthService authService, TokenService tokenService, RefreshTokenService refreshTokenService) {
-        this.authService = authService;
-        this.tokenService = tokenService;
-        this.refreshTokenService = refreshTokenService;
-    }
+	public AuthenticationFacadeService( AuthService authService, TokenService tokenService, RefreshTokenService refreshTokenService ) {
+		this.authService = authService;
+		this.tokenService = tokenService;
+		this.refreshTokenService = refreshTokenService;
+	}
 
-    @Transactional(rollbackFor = Exception.class)
-    public AuthResponseDTO token(AuthDTO authDTO) {
-        var auth = authService.token(authDTO);
-        var user = (User) auth.getPrincipal();
-        var accessToken = tokenService.generateToken(user);
-        var refreshToken = refreshTokenService.createRefreshToken(user);
-        return new AuthResponseDTO(accessToken, refreshToken);
-    }
+	@Transactional( rollbackFor = Exception.class )
+	public AuthResponseDTO token( AuthDTO authDTO ) {
+		var auth = authService.token( authDTO );
+		var user = ( User ) auth.getPrincipal();
+		var accessToken = tokenService.generateToken( user );
+		var refreshToken = refreshTokenService.createRefreshToken( user );
+		return new AuthResponseDTO( accessToken, refreshToken );
+	}
 
-    @Transactional(rollbackFor = Exception.class)
-    public AuthResponseDTO refresh(RefreshTokenRequestDTO request) {
-        var userEmail = refreshTokenService.validateRefreshToken(request.getRefreshToken());
-        if(userEmail == null) {
-            throw new BusinessException("Invalid refresh token");
-        }
-        var user = refreshTokenService.getUserFromRefreshToken(request.getRefreshToken());
-        var accessToken = tokenService.generateToken(user);
-        var newRefreshToken = refreshTokenService.createRefreshToken(user);
-        refreshTokenService.deleteRefreshToken(request);
-        return new AuthResponseDTO( accessToken, newRefreshToken);
-    }
+	@Transactional( rollbackFor = Exception.class )
+	public AuthResponseDTO refresh( RefreshTokenRequestDTO request ) {
+		var userEmail = refreshTokenService.validateRefreshToken( request.getRefreshToken() );
+		if ( userEmail == null ) {
+			throw new BusinessException( "Invalid refresh token" );
+		}
+		var user = refreshTokenService.getUserFromRefreshToken( request.getRefreshToken() );
+		var accessToken = tokenService.generateToken( user );
+		var newRefreshToken = refreshTokenService.createRefreshToken( user );
+		refreshTokenService.deleteRefreshToken( request );
+		return new AuthResponseDTO( accessToken, newRefreshToken );
+	}
 }
