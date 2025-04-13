@@ -1,8 +1,8 @@
 @font-face {
-  font-family: 'Rubik';
-  src: url('../../fonts/Rubik-VariableFont_wght.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
+	font-family: 'Rubik';
+	src: url('../../fonts/Rubik-VariableFont_wght.ttf') format('truetype');
+	font-weight: normal;
+	font-style: normal;
 }
 
 $font-family: 'Rubik', sans-serif;
@@ -22,19 +22,19 @@ $transition-default: all 0.2s ease-out;
 
 /* ----- Colors ----- */
 
-$white: #FFF;
-$white-secundary: #EEEEEE;
+$white: #fff;
+$white-secundary: #eeeeee;
 $white-tertiary: #e2e2e2;
 
 $blue-primary: #051937;
 $blue-secundary: #051937c4;
 
-$red: #DE3D0A;
+$red: #de3d0a;
 
 $green-primary: #709026;
 $green-secundary: #59721d;
 
-$gray-primary: #CACACA;
+$gray-primary: #cacaca;
 $gray-secundary: #515151;
 $gray-tertiary: #f0f0f0;
 
@@ -43,7 +43,7 @@ $warning-color: #0f2342;
 $error-color: #d32f2f;
 $background-color: #eaeaea;
 $text-color: #000;
-$button-bg: #929AA5;
+$button-bg: #929aa5;
 $button-text-color: #fff;
 
 /* ---------------- */

@@ -1,23 +1,22 @@
-import { inject, Injectable } from '@angular/core';
-import { environment } from '../../../enviroments/environments';
-import { RequestService } from '../../../core/services/request.service';
+import { inject, Injectable } from '@angular/core'
+import { environment } from '../../../enviroments/environments'
+import { RequestService } from '../../../core/services/request.service'
 
 @Injectable({
-  providedIn: 'root'
+	providedIn: 'root',
 })
 export abstract class BaseStore {
-  protected baseController: string = ''
-  protected requestService: RequestService
+	protected baseController: string = ''
+	protected requestService: RequestService
 
-  constructor(baseControllerName: string) {
-     this.requestService = inject(RequestService)
-     this.requestService.apiUrl = environment.apiBaseUrl
+	constructor(baseControllerName: string) {
+		this.requestService = inject(RequestService)
+		this.requestService.apiUrl = environment.apiBaseUrl
 
-     this.baseController = baseControllerName
-  }
+		this.baseController = baseControllerName
+	}
 
-  getUrl(action: string) {
-     return `/${this.baseController}/${action}`
-  }
+	getUrl(action: string) {
+		return `/${this.baseController}/${action}`
+	}
 }
-

@@ -1,30 +1,30 @@
 <div class="card very-small-card">
-  <h1>Esqueceu a senha?</h1>
-  <p>Informe o email</p>
+	<h1>Esqueceu a senha?</h1>
+	<p>Informe o email</p>
 
-  <form class="row" (ngSubmit)="sendRecoveryEmail()" [formGroup]="form">
-    <app-input
-      formControlName="email"
-      label="E-mail"
-      type="email"
-      id="email"
-      placeholder="Informe seu e-mail"
-      [required]="true"
-      inputClasses="form-control"
-      labelClasses="form-label"
-      [validationMessages]="{
-        required: 'E-mail é obrigatório',
-        email: 'Formato de e-mail inválido'
-      }"
-      [control]="form.get('email')"
-    >
-    </app-input>
+	<form class="row" (ngSubmit)="sendRecoveryEmail()" [formGroup]="form">
+		<app-input
+			formControlName="email"
+			label="E-mail"
+			type="email"
+			id="email"
+			placeholder="Informe seu e-mail"
+			[required]="true"
+			inputClasses="form-control"
+			labelClasses="form-label"
+			[validationMessages]="{
+				required: 'E-mail é obrigatório',
+				email: 'Formato de e-mail inválido',
+			}"
+			[control]="form.get('email')"
+		>
+		</app-input>
 
-    <div class="col-12">
-      <button class="btn btn-primary col-12 mt-4" type="submit" [disabled]="form.invalid">
-        Enviar email de recuperação de conta
-      </button>
-      <p class="text-start mt-2">O código de verificação será válido por até 10 minutos</p>
-    </div>
-  </form>
+		<div class="col-12">
+			<button class="btn btn-primary col-12 mt-4" type="submit" [disabled]="form.invalid">
+				Enviar email de recuperação de conta
+			</button>
+			<p class="text-start mt-2">O código de verificação será válido por até 10 minutos</p>
+		</div>
+	</form>
 </div>

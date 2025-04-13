@@ -1,53 +1,59 @@
 @use '../base/vars' as *;
 
 .btn.btn {
-  height: 3rem;
-  border: none;
-  border-radius: $radius-default;
+	height: 3rem;
+	border: none;
+	border-radius: $radius-default;
 
-  &:hover, &:active, &:focus {
-    background-color: $blue-secundary;
-    border-color: $blue-primary;
-  }
+	&:hover,
+	&:active,
+	&:focus {
+		background-color: $blue-secundary;
+		border-color: $blue-primary;
+	}
 
-  &:disabled {
-    background-color: $button-bg;
-    border-color: $button-bg;
-  }
+	&:disabled {
+		background-color: $button-bg;
+		border-color: $button-bg;
+	}
 
-  --bs-btn-hover-border-color: $blue-primary;
+	--bs-btn-hover-border-color: $blue-primary;
 }
 
 .btn-primary.btn-primary {
-  background-color: $blue-primary;
-  color: $white;
-  border-color: $blue-primary;
+	background-color: $blue-primary;
+	color: $white;
+	border-color: $blue-primary;
 
-  &:hover, &:active, &:focus {
-    background-color: $blue-secundary;
-    border-color: $blue-primary;
-  }
+	&:hover,
+	&:active,
+	&:focus {
+		background-color: $blue-secundary;
+		border-color: $blue-primary;
+	}
 
-  --bs-btn-active-bg: $blue-primary;
-  --bs-btn-active-border-color: $blue-primary;
+	--bs-btn-active-bg: $blue-primary;
+	--bs-btn-active-border-color: $blue-primary;
 
-  --bs-btn-disabled-bg: $gray-secundary;
-  --bs-btn-disabled-border-color: $gray-secundary;
+	--bs-btn-disabled-bg: $gray-secundary;
+	--bs-btn-disabled-border-color: $gray-secundary;
 }
 
 .btn-secundary.btn-secundary {
-  background-color: $green-primary;
-  color: $white;
-  border-color: $green-primary;
+	background-color: $green-primary;
+	color: $white;
+	border-color: $green-primary;
 
-  &:hover, &:active, &:focus {
-    background-color: $green-secundary;
-    border-color: $green-primary;
-  }
+	&:hover,
+	&:active,
+	&:focus {
+		background-color: $green-secundary;
+		border-color: $green-primary;
+	}
 
-  --bs-btn-active-bg: $green-primary;
-  --bs-btn-active-border-color: $green-primary;
+	--bs-btn-active-bg: $green-primary;
+	--bs-btn-active-border-color: $green-primary;
 
-  --bs-btn-disabled-bg: $gray-primary;
-  --bs-btn-disabled-border-color: $gray-primary;
+	--bs-btn-disabled-bg: $gray-primary;
+	--bs-btn-disabled-border-color: $gray-primary;
 }

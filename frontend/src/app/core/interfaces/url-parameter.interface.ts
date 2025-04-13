@@ -1,4 +1,4 @@
 export interface UrlParameter {
-  key: string,
-  value: Object,
+	key: string
+	value: Object
 }

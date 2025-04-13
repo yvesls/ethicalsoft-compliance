@@ -1,4 +1,4 @@
 export const environment = {
-  domain: '',
-  apiBaseUrl: '',
-};
+	domain: '',
+	apiBaseUrl: '',
+}

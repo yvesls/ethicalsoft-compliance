@@ -1,18 +1,18 @@
-import { Injectable } from '@angular/core';
+import { Injectable } from '@angular/core'
 
 @Injectable({
-  providedIn: 'root'
+	providedIn: 'root',
 })
 export class NavigationSourceService {
-  private _isInternalNavigation = false;
+	private _isInternalNavigation = false
 
-  setInternalNavigation(isInternal: boolean): void {
-    this._isInternalNavigation = isInternal;
-  }
+	setInternalNavigation(isInternal: boolean): void {
+		this._isInternalNavigation = isInternal
+	}
 
-  isInternalNavigation(): boolean {
-    const result = this._isInternalNavigation;
-    this._isInternalNavigation = false;
-    return result;
-  }
+	isInternalNavigation(): boolean {
+		const result = this._isInternalNavigation
+		this._isInternalNavigation = false
+		return result
+	}
 }

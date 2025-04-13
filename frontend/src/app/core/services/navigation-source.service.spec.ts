@@ -1,16 +1,16 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing'
 
-import { NavigationSourceService } from './navigation-source.service';
+import { NavigationSourceService } from './navigation-source.service'
 
 describe('NavigationSourceService', () => {
-  let service: NavigationSourceService;
+	let service: NavigationSourceService
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({});
-    service = TestBed.inject(NavigationSourceService);
-  });
+	beforeEach(() => {
+		TestBed.configureTestingModule({})
+		service = TestBed.inject(NavigationSourceService)
+	})
 
-  it('should be created', () => {
-    expect(service).toBeTruthy();
-  });
-});
+	it('should be created', () => {
+		expect(service).toBeTruthy()
+	})
+})

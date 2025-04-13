@@ -2,343 +2,342 @@
 @use './components/input';
 @use './components/buttons';
 @use './components/checkbox';
-@use "bootstrap/scss/bootstrap";
+@use 'bootstrap/scss/bootstrap';
 @use 'ngx-spinner/animations/ball-scale-multiple.css';
 
 * {
-  font-family: $font-family;
-  box-sizing: border-box;
+	font-family: $font-family;
+	box-sizing: border-box;
 
-  /* Scrollbar configuration */
-  scrollbar-width: auto; /* Firefox */
-  scrollbar-color: $blue-primary $white; /* Firefox */
+	/* Scrollbar configuration */
+	scrollbar-width: auto; /* Firefox */
+	scrollbar-color: $blue-primary $white; /* Firefox */
 
-  /* Chrome, Edge, and Safari */
-  &::-webkit-scrollbar {
-    width: 12px;
-    height: 12px;
-  }
+	/* Chrome, Edge, and Safari */
+	&::-webkit-scrollbar {
+		width: 12px;
+		height: 12px;
+	}
 
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
+	&::-webkit-scrollbar-track {
+		background: transparent;
+	}
 
-  &::-webkit-scrollbar-thumb {
-    background-color: $blue-primary;
-    border-radius: 10px;
-    border: 3px solid $white;
-  }
+	&::-webkit-scrollbar-thumb {
+		background-color: $blue-primary;
+		border-radius: 10px;
+		border: 3px solid $white;
+	}
 }
 
 .row {
-  --bs-gutter-x: 1.5rem;
-  --bs-gutter-y: 0;
-  margin-top: calc(-1 * var(--bs-gutter-y));
-  margin-right: calc(-0.5 * var(--bs-gutter-x));
-  margin-left: calc(-0.5 * var(--bs-gutter-x));
+	--bs-gutter-x: 1.5rem;
+	--bs-gutter-y: 0;
+	margin-top: calc(-1 * var(--bs-gutter-y));
+	margin-right: calc(-0.5 * var(--bs-gutter-x));
+	margin-left: calc(-0.5 * var(--bs-gutter-x));
 }
 
 :root {
-  --body: $white;
+	--body: $white;
 }
 
 html,
 body {
-  margin: 0;
-  padding: 0;
+	margin: 0;
+	padding: 0;
 
-  background-color: var(--body);
-  font-size: $font-size;
+	background-color: var(--body);
+	font-size: $font-size;
 }
 
 h1 {
-  color: $blue-primary;
-  font-size: 2rem;
-  padding: 0;
-  margin: 0;
+	color: $blue-primary;
+	font-size: 2rem;
+	padding: 0;
+	margin: 0;
 }
 
 p {
-  color: $gray-secundary;
-  font-size: 0.9rem;
+	color: $gray-secundary;
+	font-size: 0.9rem;
 }
 
 small {
-  font-size: 0.7rem;
+	font-size: 0.7rem;
 }
 
 ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+	list-style: none;
+	padding: 0;
+	margin: 0;
 }
 
 form {
-  display: flex;
-  flex-direction: column;
+	display: flex;
+	flex-direction: column;
 }
 
-
 .text-blue {
-  color: $blue-primary;
+	color: $blue-primary;
 }
 
 .text-red {
-  color: $red;
+	color: $red;
 }
 
 .link {
-  color: $blue-secundary;
-  text-decoration: underline;
+	color: $blue-secundary;
+	text-decoration: underline;
 
-  &:hover {
-    cursor: pointer;
-    color: $gray-secundary;
-  }
+	&:hover {
+		cursor: pointer;
+		color: $gray-secundary;
+	}
 }
 
 .unstyled-btn {
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
+	background: none;
+	border: none;
+	padding: 0;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
 }
 
 /* Layout */
 
 :host {
-  display: grid;
-  grid-template-columns: var(--sidebar-width) 1fr;
-  grid-template-rows: auto 1fr auto;
-  height: 100vh;
-  width: 100%;
-  transition: grid-template-columns 0.3s ease-in-out;
+	display: grid;
+	grid-template-columns: var(--sidebar-width) 1fr;
+	grid-template-rows: auto 1fr auto;
+	height: 100vh;
+	width: 100%;
+	transition: grid-template-columns 0.3s ease-in-out;
 }
 
 :root {
-  --sidebar-width: 260px;
-  --sidebar-collapsed-width: 100px;
+	--sidebar-width: 260px;
+	--sidebar-collapsed-width: 100px;
 }
 
 app-sidebar {
-  grid-column: 1;
-  grid-row: 1 / span 3;
-  width: var(--sidebar-width);
-  transition: width 0.3s ease-in-out;
+	grid-column: 1;
+	grid-row: 1 / span 3;
+	width: var(--sidebar-width);
+	transition: width 0.3s ease-in-out;
 }
 
 .app-container {
-  grid-column: 2;
-  grid-row: 1 / span 3;
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  height: 100vh;
-  overflow: hidden;
-  transition: margin-left 0.3s ease-in-out;
+	grid-column: 2;
+	grid-row: 1 / span 3;
+	display: grid;
+	grid-template-rows: auto 1fr auto;
+	height: 100vh;
+	overflow: hidden;
+	transition: margin-left 0.3s ease-in-out;
 }
 
 app-header {
-  grid-row: 1;
-  height: 6vh;
-  background: $white;
-  display: flex;
-  align-items: center;
-  padding: 0 2rem;
+	grid-row: 1;
+	height: 6vh;
+	background: $white;
+	display: flex;
+	align-items: center;
+	padding: 0 2rem;
 }
 
 .app-content {
-  grid-row: 2;
-  overflow-y: auto;
-  background: $gray-tertiary;
-  padding: 2rem;
+	grid-row: 2;
+	overflow-y: auto;
+	background: $gray-tertiary;
+	padding: 2rem;
 }
 
 app-footer {
-  grid-row: 3;
-  height: 4vh;
-  background: $gray-tertiary;
+	grid-row: 3;
+	height: 4vh;
+	background: $gray-tertiary;
 }
 
 .layout-container {
-  grid-template-columns: var(--sidebar-width) 1fr;
+	grid-template-columns: var(--sidebar-width) 1fr;
 }
 
 .layout-container .app-container {
-  margin-left: var(--sidebar-width);
+	margin-left: var(--sidebar-width);
 }
 
 .layout-container.sidebar-collapsed {
-  grid-template-columns: var(--sidebar-collapsed-width) 1fr;
+	grid-template-columns: var(--sidebar-collapsed-width) 1fr;
 }
 
 .layout-container.sidebar-collapsed app-sidebar {
-  width: var(--sidebar-collapsed-width);
+	width: var(--sidebar-collapsed-width);
 }
 
 .layout-container.sidebar-collapsed .app-container {
-  margin-left: var(--sidebar-collapsed-width);
+	margin-left: var(--sidebar-collapsed-width);
 }
 
 @media (max-width: 768px) {
-  .layout-container {
-    grid-template-columns: var(--sidebar-width) 1fr;
-  }
+	.layout-container {
+		grid-template-columns: var(--sidebar-width) 1fr;
+	}
 
-  .layout-container.sidebar-collapsed {
-    grid-template-columns: var(--sidebar-collapsed-width) 1fr;
-  }
+	.layout-container.sidebar-collapsed {
+		grid-template-columns: var(--sidebar-collapsed-width) 1fr;
+	}
 }
 
 .auth-container {
-  height: 100vh;
-  width: 100vw;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+	height: 100vh;
+	width: 100vw;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 }
 
 /* Modal */
 .modal {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: #00000080;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: #00000080;
 
-  .modal-content {
-    background: $background-color;
-    border-radius: $radius-default;
-    padding: 40px;
-    text-align: center;
-    box-shadow: $box-shadow-primary;
-    position: relative;
-    opacity: 0;
-    transform: scale(0.9);
-    animation: fadeInScale 0.3s ease-out forwards;
-  }
+	.modal-content {
+		background: $background-color;
+		border-radius: $radius-default;
+		padding: 40px;
+		text-align: center;
+		box-shadow: $box-shadow-primary;
+		position: relative;
+		opacity: 0;
+		transform: scale(0.9);
+		animation: fadeInScale 0.3s ease-out forwards;
+	}
 
-  &.very-small-card .modal-content {
-    width: 32vw;
-  }
+	&.very-small-card .modal-content {
+		width: 32vw;
+	}
 
-  &.small-card .modal-content {
-    width: 42vw;
-  }
+	&.small-card .modal-content {
+		width: 42vw;
+	}
 
-  &.medium-card .modal-content {
-    width: 62vw;
-  }
+	&.medium-card .modal-content {
+		width: 62vw;
+	}
 
-  &.large-card .modal-content {
-    width: 82vw;
-  }
+	&.large-card .modal-content {
+		width: 82vw;
+	}
 
-  .close {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    background: none;
-    border: none;
-    font-size: 18px;
-    font-weight: bold;
-    cursor: pointer;
-    outline: none;
-  }
+	.close {
+		position: absolute;
+		top: 10px;
+		right: 15px;
+		background: none;
+		border: none;
+		font-size: 18px;
+		font-weight: bold;
+		cursor: pointer;
+		outline: none;
+	}
 
-  .modal-icon {
-    margin: 10px auto;
-    width: 70px;
-    height: 70px;
-  }
+	.modal-icon {
+		margin: 10px auto;
+		width: 70px;
+		height: 70px;
+	}
 
-  .modal-title {
-    font-size: 20px;
-    font-weight: bold;
-    margin-bottom: 10px;
-  }
+	.modal-title {
+		font-size: 20px;
+		font-weight: bold;
+		margin-bottom: 10px;
+	}
 
-  .modal-message {
-    font-size: 14px;
-    color: $text-color;
-    margin-bottom: 15px;
-  }
+	.modal-message {
+		font-size: 14px;
+		color: $text-color;
+		margin-bottom: 15px;
+	}
 
-  .modal-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
+	.modal-buttons {
+		display: flex;
+		justify-content: center;
+		gap: 10px;
 
-    button {
-      border: none;
-      padding: 8px 12px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 14px;
-    }
+		button {
+			border: none;
+			padding: 8px 12px;
+			border-radius: 5px;
+			cursor: pointer;
+			font-size: 14px;
+		}
 
-    .btn-cancel {
-      background: $button-bg;
-      color: $button-text-color;
-    }
+		.btn-cancel {
+			background: $button-bg;
+			color: $button-text-color;
+		}
 
-    .btn-confirm {
-      background: $red;
-      color: white;
-    }
-  }
+		.btn-confirm {
+			background: $red;
+			color: white;
+		}
+	}
 }
 
 @keyframes fadeInScale {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+	from {
+		opacity: 0;
+		transform: scale(0.9);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
 }
 
 @keyframes fadeOutScale {
-  from {
-    opacity: 1;
-    transform: scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: scale(0.9);
-  }
+	from {
+		opacity: 1;
+		transform: scale(1);
+	}
+	to {
+		opacity: 0;
+		transform: scale(0.9);
+	}
 }
 
 /* cards */
 
 .card {
-  background-color: $gray-tertiary;
-  border: none;
-  padding: 2.5rem;
-  border-radius: $radius-default;
-  box-shadow: $box-shadow-secundary;
-  text-align: center;
+	background-color: $gray-tertiary;
+	border: none;
+	padding: 2.5rem;
+	border-radius: $radius-default;
+	box-shadow: $box-shadow-secundary;
+	text-align: center;
 }
 
 .very-small-card {
-  width: 32vw;
+	width: 32vw;
 }
 
 .small-card {
-  width: 42vw;
+	width: 42vw;
 }
 
 .medium-card {
-  width: 62vw;
+	width: 62vw;
 }
 
 .large-card {
-  width: 82vw;
+	width: 82vw;
 }

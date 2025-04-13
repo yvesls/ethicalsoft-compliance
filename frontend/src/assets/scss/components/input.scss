@@ -1,61 +1,57 @@
 @use '../base/vars' as *;
-@use "sass:color";
+@use 'sass:color';
 
 .form-group {
-  display: flex;
-  flex-direction: column;
+	display: flex;
+	flex-direction: column;
 
-  label {
-    color: $gray-secundary;
-    text-align: left;
-    margin-top: 1rem;
-  }
+	label {
+		color: $gray-secundary;
+		text-align: left;
+		margin-top: 1rem;
+	}
 
-  input[type='text'],
-  input[type='password'],
-  input[type='email'],
-  input[type='number'],
-  input[type='date'] {
+	input[type='text'],
+	input[type='password'],
+	input[type='email'],
+	input[type='number'],
+	input[type='date'] {
+		padding: 0.5rem;
+		margin-top: 0.2rem;
+		border: 1px solid $gray-primary;
+		border-radius: 10px;
+		height: 3rem;
 
-    padding: 0.5rem;
-    margin-top: 0.2rem;
-    border: 1px solid $gray-primary;
-    border-radius: 10px;
-    height: 3rem;
+		&:focus {
+			box-shadow: $box-shadow-primary;
+			outline: none;
+			transition: $transition-default;
+		}
 
-    &:focus {
-      box-shadow: $box-shadow-primary;
-      outline: none;
-      transition: $transition-default;
-    }
+		&:hover {
+			background-color: transparent;
+			transition: $transition-default;
+		}
+	}
 
-    &:hover {
-      background-color: transparent;
-      transition: $transition-default;
-    }
+	input.is-invalid-border {
+		border-color: $red;
+	}
 
-  }
+	input:-webkit-autofill,
+	input:-webkit-autofill:hover,
+	input:-webkit-autofill:focus,
+	input:-webkit-autofill:active {
+		background-color: $gray-primary;
+		transition: background-color 0.2s ease-out;
+		-webkit-box-shadow: 0 0 0px 1000px color.adjust($gray-primary, $lightness: 40%) inset;
+		color: $gray-secundary;
+	}
 
-  input.is-invalid-border {
-    border-color: $red;
-  }
-
-  input:-webkit-autofill,
-  input:-webkit-autofill:hover,
-  input:-webkit-autofill:focus,
-  input:-webkit-autofill:active {
-    background-color: $gray-primary;
-    transition: background-color 0.2s ease-out;
-    -webkit-box-shadow: 0 0 0px 1000px color.adjust($gray-primary, $lightness: 40%) inset;
-    color: $gray-secundary;
-  }
-
-
-  .is-invalid {
-    font-size: 14px;
-    color: $red;
-    text-align: start;
-    padding: 1px;
-  }
+	.is-invalid {
+		font-size: 14px;
+		color: $red;
+		text-align: start;
+		padding: 1px;
+	}
 }
-

@@ -1,3 +1,3 @@
 export interface AuthRefreshTokenInterface {
-  refreshToken: string,
+	refreshToken: string
 }

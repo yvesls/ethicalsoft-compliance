@@ -1,9 +1,7 @@
 export interface PasswordRecoveryInterface {
-  email: string,
+	email: string
 }
 
-export const createPasswordRecovery = (): PasswordRecoveryInterface => (
-  {
-    email: ''
-  }
-);
+export const createPasswordRecovery = (): PasswordRecoveryInterface => ({
+	email: '',
+})
