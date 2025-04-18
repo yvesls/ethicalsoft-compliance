@@ -1,11 +1,28 @@
-import { Injectable } from '@angular/core'
+import { Injectable, OnDestroy } from '@angular/core'
+import { Router, NavigationStart, Event as RouterEvent } from '@angular/router'
+import { Subscription } from 'rxjs'
+import { filter } from 'rxjs/operators'
 import { getErrorMessage } from '../../shared/enums/error-messages.enum'
 
 @Injectable({
 	providedIn: 'root',
 })
-export class NotificationService {
-	constructor() {}
+export class NotificationService implements OnDestroy {
+	private routerSubscription: Subscription
+
+	constructor(private router: Router) {
+		this.routerSubscription = this.router.events
+			.pipe(filter((event): event is NavigationStart => event instanceof NavigationStart))
+			.subscribe(() => {
+				this.closeModal()
+			})
+	}
+
+	ngOnDestroy() {
+		if (this.routerSubscription) {
+			this.routerSubscription.unsubscribe()
+		}
+	}
 
 	showWarning(error: any) {
 		if (typeof error === 'string') {
@@ -78,14 +95,15 @@ export class NotificationService {
 			})
 		}
 
-		modal.addEventListener('click', (event) => {
-			if (event.target === modal) {
+		modal.addEventListener('click', (evt: MouseEvent) => {
+			const target = evt.target as HTMLElement
+			if (target === modal) {
 				this.closeModal()
 			}
 		})
 	}
 
-	private closeModal() {
+	closeModal() {
 		document.querySelectorAll('.notification-modal').forEach((modal) => {
 			modal.classList.add('closing')
 			setTimeout(() => modal.remove(), 50)
