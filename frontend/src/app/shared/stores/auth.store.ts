@@ -36,7 +36,7 @@ export class AuthStore extends BaseStore {
 	}
 
 	recover(passwordRecovery: PasswordRecoveryInterface): Observable<void> {
-		return this.requestService.makePost(this.getUrl('recover'), { data: passwordRecovery })
+		return this.requestService.makePost(this.getUrl('recover-account'), { data: passwordRecovery })
 	}
 
 	validateCode(validateCode: ValidateCodeInterface): Observable<void> {

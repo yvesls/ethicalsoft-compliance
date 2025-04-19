@@ -1,9 +1,10 @@
 package com.ethicalsoft.ethicalsoft_complience.service;
 
+import com.ethicalsoft.ethicalsoft_complience.exception.UserNotFoundException;
 import com.ethicalsoft.ethicalsoft_complience.model.RecoveryCode;
-import com.ethicalsoft.ethicalsoft_complience.model.dto.CodeValidationDTO;
-import com.ethicalsoft.ethicalsoft_complience.model.dto.PasswordRecoveryDTO;
-import com.ethicalsoft.ethicalsoft_complience.model.dto.PasswordResetDTO;
+import com.ethicalsoft.ethicalsoft_complience.model.dto.auth.CodeValidationDTO;
+import com.ethicalsoft.ethicalsoft_complience.model.dto.auth.PasswordRecoveryDTO;
+import com.ethicalsoft.ethicalsoft_complience.model.dto.auth.PasswordResetDTO;
 import com.ethicalsoft.ethicalsoft_complience.repository.RecoveryCodeRepository;
 import com.ethicalsoft.ethicalsoft_complience.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -35,18 +36,22 @@ public class PasswordRecoveryService {
 		emailService.sendRecoveryEmail( passwordRecoveryDTO.getEmail(), code );
 	}
 
+	@Transactional( rollbackOn = Exception.class )
 	public void validateCode( CodeValidationDTO codeValidationDTO ) {
-		var isValid = recoveryCodeRepository.findByEmailAndCodeAndExpirationAfter( codeValidationDTO.getEmail(), codeValidationDTO.getCode(), LocalDateTime.now() ).isPresent();
-		if ( !isValid ) {
-			throw new IllegalArgumentException( "Invalid or expired code." );
-		}
-		recoveryCodeRepository.deleteByEmail( codeValidationDTO.getEmail() );
+		recoveryCodeRepository.findByEmailAndCodeAndExpirationAfter( codeValidationDTO.getEmail(), codeValidationDTO.getCode(), LocalDateTime.now() ).orElseThrow( () -> new IllegalArgumentException( "Invalid or expired code." ) );
+
+		recoveryCodeRepository.deleteAllByEmail( codeValidationDTO.getEmail() );
 	}
 
 	@Transactional( rollbackOn = Exception.class )
 	public void resetPassword( PasswordResetDTO passwordResetDTO ) {
+		var user = userRepository.findByEmail( passwordResetDTO.getEmail() ).orElseThrow(
+				() -> new UserNotFoundException( "User not found" )
+		);
 
-		var user = userRepository.findByEmail( passwordResetDTO.getEmail() ).orElseThrow( () -> new UsernameNotFoundException( "User not found" ) );
+		if ( passwordEncoder.matches( passwordResetDTO.getNewPassword(), user.getPassword() ) ) {
+			throw new IllegalArgumentException( "New password cannot be the same as the old password." );
+		}
 
 		user.setPassword( passwordEncoder.encode( passwordResetDTO.getNewPassword() ) );
 		userRepository.save( user );

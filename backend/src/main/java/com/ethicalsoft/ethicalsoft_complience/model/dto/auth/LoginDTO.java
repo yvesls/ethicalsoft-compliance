@@ -1,4 +1,4 @@
-package com.ethicalsoft.ethicalsoft_complience.model.dto;
+package com.ethicalsoft.ethicalsoft_complience.model.dto.auth;
 
 import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
@@ -11,7 +11,7 @@ import util.validators.annotations.RequiredField;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class AuthDTO {
+public class LoginDTO {
 
 	@RequiredField( label = "username" )
 	@Email

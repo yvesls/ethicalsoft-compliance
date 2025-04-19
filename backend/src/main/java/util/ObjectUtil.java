@@ -17,7 +17,7 @@ public class ObjectUtil {
 		}
 
 		if ( object instanceof String string ) {
-			return !string.isBlank() && !"0".equals( string.trim() ) && !"0.0".equals( string.trim() );
+			return !string.isBlank() && !"0".equals( string.trim() ) && !"0.0".equals( string.trim() ) && !"false".equalsIgnoreCase( string.trim() );
 		}
 
 		if ( object instanceof Collection<?> collection ) {
@@ -32,10 +32,7 @@ public class ObjectUtil {
 	}
 
 	public static String getOrNull( String value ) {
-		if ( isNullOrEmpty( value ) ) {
-			return null;
-		} else {
-			return value;
-		}
+		return isNullOrEmpty( value ) ? null : value;
 	}
+
 }

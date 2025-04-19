@@ -12,5 +12,5 @@ public interface RecoveryCodeRepository extends JpaRepository<RecoveryCode, Long
 
 	Optional<RecoveryCode> findByEmailAndCodeAndExpirationAfter( String email, String code, LocalDateTime now );
 
-	void deleteByEmail( String email );
+	void deleteAllByEmail( String email );
 }

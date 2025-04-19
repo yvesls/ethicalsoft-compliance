@@ -17,6 +17,7 @@ backend/.project
 backend/.classpath
 
 backend/.idea
+backend/*.iml
 
 backend/src/main/resources/application.properties
 

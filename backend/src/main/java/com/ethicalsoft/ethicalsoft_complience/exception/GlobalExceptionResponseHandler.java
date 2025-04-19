@@ -52,7 +52,7 @@ public class GlobalExceptionResponseHandler {
 	@ExceptionHandler( ResourceNotFoundException.class )
 	@ResponseStatus( HttpStatus.NOT_FOUND )
 	public ExceptionResponseDTO handleResourceNotFound( ResourceNotFoundException exception, HttpServletRequest request ) {
-		return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, exception.getMessage(), request, HttpStatus.NOT_FOUND );
+		return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, "Resource not found.", request, HttpStatus.NOT_FOUND );
 	}
 
 	@ExceptionHandler( ResponseStatusException.class )
@@ -80,9 +80,9 @@ public class GlobalExceptionResponseHandler {
 		return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, "You don't have permission to access this resource.", request, HttpStatus.UNAUTHORIZED );
 	}
 
-	@ExceptionHandler( UserException.class )
+	@ExceptionHandler( UserNotFoundException.class )
 	@ResponseStatus( HttpStatus.BAD_REQUEST )
-	public ExceptionResponseDTO handleUser( UserException exception, HttpServletRequest request ) {
+	public ExceptionResponseDTO handleUser( UserNotFoundException exception, HttpServletRequest request ) {
 		return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, null, request, HttpStatus.BAD_REQUEST );
 	}
 
@@ -167,7 +167,9 @@ public class GlobalExceptionResponseHandler {
 	@ExceptionHandler( Exception.class )
 	@ResponseStatus( HttpStatus.INTERNAL_SERVER_ERROR )
 	public ExceptionResponseDTO handleServerError( Exception exception, HttpServletRequest request ) {
-		var msg = "Unexpected error. Contact the system administrator with the error code. " + UUID.randomUUID();
+		var errorCode = UUID.randomUUID();
+		var msg = "Unexpected error. Contact the system administrator with the error code. " + errorCode;
+		log.error("Unexpected error: [{}] - {}", errorCode, exception.getMessage(), exception);
 		return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, msg, request, HttpStatus.INTERNAL_SERVER_ERROR );
 	}
 

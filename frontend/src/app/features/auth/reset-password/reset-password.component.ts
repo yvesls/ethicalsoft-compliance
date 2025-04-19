@@ -59,7 +59,6 @@ export class ResetPasswordComponent extends BasePageComponent {
 		if (!!params.email) {
 			this.resetPassword.email = params.email
 		}
-		console.log(this.resetPassword, params)
 	}
 
 	private _initForm() {

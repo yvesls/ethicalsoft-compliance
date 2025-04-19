@@ -2,8 +2,8 @@ package com.ethicalsoft.ethicalsoft_complience;
 
 import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
 import com.ethicalsoft.ethicalsoft_complience.model.User;
-import com.ethicalsoft.ethicalsoft_complience.model.dto.AuthDTO;
-import com.ethicalsoft.ethicalsoft_complience.model.dto.RegisterUserDTO;
+import com.ethicalsoft.ethicalsoft_complience.model.dto.auth.LoginDTO;
+import com.ethicalsoft.ethicalsoft_complience.model.dto.auth.RegisterUserDTO;
 import com.ethicalsoft.ethicalsoft_complience.repository.UserRepository;
 import com.ethicalsoft.ethicalsoft_complience.service.AuthService;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,7 +36,7 @@ class AuthServiceTest {
     private AuthService authService;
 
     private RegisterUserDTO validRegisterDTO;
-    private AuthDTO validAuthDTO;
+    private LoginDTO validLoginDTO;
 
     @BeforeEach
     void setUp() {
@@ -45,9 +45,9 @@ class AuthServiceTest {
         validRegisterDTO.setPassword("password123");
         validRegisterDTO.setAcceptedTerms(true);
 
-        validAuthDTO = new AuthDTO();
-        validAuthDTO.setUsername("test@example.com");
-        validAuthDTO.setPassword("password123");
+        validLoginDTO = new LoginDTO();
+        validLoginDTO.setUsername("test@example.com");
+        validLoginDTO.setPassword("password123");
     }
 
     @Test
@@ -56,7 +56,7 @@ class AuthServiceTest {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenReturn(expectedAuth);
 
-        Authentication result = authService.token(validAuthDTO);
+        Authentication result = authService.token( validLoginDTO );
 
         assertEquals(expectedAuth, result);
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
@@ -67,7 +67,7 @@ class AuthServiceTest {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenThrow(new BadCredentialsException("Invalid credentials"));
 
-        assertThrows(BadCredentialsException.class, () -> authService.token(validAuthDTO));
+        assertThrows(BadCredentialsException.class, () -> authService.token( validLoginDTO ));
     }
 
     @Test
@@ -75,7 +75,7 @@ class AuthServiceTest {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenThrow(new BadCredentialsException("User not found"));
 
-        assertThrows(BadCredentialsException.class, () -> authService.token(validAuthDTO));
+        assertThrows(BadCredentialsException.class, () -> authService.token( validLoginDTO ));
     }
 
     @Test

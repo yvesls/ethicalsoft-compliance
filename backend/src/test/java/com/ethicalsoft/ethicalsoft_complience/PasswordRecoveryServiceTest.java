@@ -1,9 +1,10 @@
 package com.ethicalsoft.ethicalsoft_complience;
+
 import com.ethicalsoft.ethicalsoft_complience.model.RecoveryCode;
 import com.ethicalsoft.ethicalsoft_complience.model.User;
-import com.ethicalsoft.ethicalsoft_complience.model.dto.CodeValidationDTO;
-import com.ethicalsoft.ethicalsoft_complience.model.dto.PasswordRecoveryDTO;
-import com.ethicalsoft.ethicalsoft_complience.model.dto.PasswordResetDTO;
+import com.ethicalsoft.ethicalsoft_complience.model.dto.auth.CodeValidationDTO;
+import com.ethicalsoft.ethicalsoft_complience.model.dto.auth.PasswordRecoveryDTO;
+import com.ethicalsoft.ethicalsoft_complience.model.dto.auth.PasswordResetDTO;
 import com.ethicalsoft.ethicalsoft_complience.repository.RecoveryCodeRepository;
 import com.ethicalsoft.ethicalsoft_complience.repository.UserRepository;
 import com.ethicalsoft.ethicalsoft_complience.service.EmailService;
@@ -19,7 +20,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)

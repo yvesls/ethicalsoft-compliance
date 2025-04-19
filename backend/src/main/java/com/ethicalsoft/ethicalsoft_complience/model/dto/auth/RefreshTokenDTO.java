@@ -1,4 +1,4 @@
-package com.ethicalsoft.ethicalsoft_complience.model.dto.request;
+package com.ethicalsoft.ethicalsoft_complience.model.dto.auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class RefreshTokenRequestDTO {
+public class RefreshTokenDTO {
 
 	private String refreshToken;
 

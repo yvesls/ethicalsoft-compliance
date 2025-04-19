@@ -3,10 +3,11 @@ package com.ethicalsoft.ethicalsoft_complience.service;
 import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
 import com.ethicalsoft.ethicalsoft_complience.model.RefreshToken;
 import com.ethicalsoft.ethicalsoft_complience.model.User;
-import com.ethicalsoft.ethicalsoft_complience.model.dto.request.RefreshTokenRequestDTO;
+import com.ethicalsoft.ethicalsoft_complience.model.dto.auth.RefreshTokenDTO;
 import com.ethicalsoft.ethicalsoft_complience.repository.RefreshTokenRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -24,31 +25,34 @@ public class RefreshTokenService {
 	public String createRefreshToken( User user ) {
 		String token = UUID.randomUUID().toString();
 		Instant expiryDate = Instant.now().plusMillis( refreshTokenDuration );
-		RefreshToken refreshToken = new RefreshToken( token, user, expiryDate );
+		String hashedToken = DigestUtils.sha256Hex(token);
+
 		refreshTokenRepository.deleteByUser( user );
-		refreshTokenRepository.save( refreshToken );
-		return token;
+
+		refreshTokenRepository.save(new RefreshToken(hashedToken, user, expiryDate));
+		return hashedToken;
 	}
 
 	public String validateRefreshToken( String token ) {
-		var refreshTokenOpt = refreshTokenRepository.findByToken( token );
+		String hashedToken = DigestUtils.sha256Hex(token);
+		var refreshTokenOpt = refreshTokenRepository.findByTokenHash(hashedToken);
 		if ( refreshTokenOpt.isEmpty() ) {
-			return null;
+			throw new BusinessException( "Refresh token not found or invalid." );
 		}
 		RefreshToken refreshToken = refreshTokenOpt.get();
 		if ( refreshToken.getExpiryDate().isBefore( Instant.now() ) ) {
 			refreshTokenRepository.delete( refreshToken );
-			throw new BusinessException( "Refresh token expired" );
+			throw new BusinessException( "Refresh token expired." );
 		}
 		return refreshToken.getUser().getEmail();
 	}
 
 	public User getUserFromRefreshToken( String token ) {
-		return refreshTokenRepository.findByToken( token ).map( RefreshToken::getUser ).orElseThrow( () -> new BusinessException( "Invalid refresh token" ) );
+		return refreshTokenRepository.findByTokenHash( token ).map( RefreshToken::getUser ).orElseThrow( () -> new BusinessException( "Invalid refresh token" ) );
 	}
 
 	@Transactional
-	public void deleteRefreshToken( RefreshTokenRequestDTO refreshTokenRequestDTO ) {
-		refreshTokenRepository.deleteByToken( refreshTokenRequestDTO.getRefreshToken() );
+	public void deleteRefreshToken( RefreshTokenDTO refreshTokenDTO ) {
+		refreshTokenRepository.deleteByTokenHash( refreshTokenDTO.getRefreshToken() );
 	}
 }

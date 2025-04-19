@@ -1,9 +1,7 @@
 package com.ethicalsoft.ethicalsoft_complience.controller;
 
 import com.ethicalsoft.ethicalsoft_complience.controller.base.BaseController;
-import com.ethicalsoft.ethicalsoft_complience.model.dto.*;
-import com.ethicalsoft.ethicalsoft_complience.model.dto.request.RefreshTokenRequestDTO;
-import com.ethicalsoft.ethicalsoft_complience.model.dto.response.AuthResponseDTO;
+import com.ethicalsoft.ethicalsoft_complience.model.dto.auth.*;
 import com.ethicalsoft.ethicalsoft_complience.service.AuthService;
 import com.ethicalsoft.ethicalsoft_complience.service.PasswordRecoveryService;
 import com.ethicalsoft.ethicalsoft_complience.service.RefreshTokenService;
@@ -31,18 +29,18 @@ public class AuthController extends BaseController {
 	private final AuthenticationFacadeService authenticationFacadeService;
 
 	@PostMapping( "/token" )
-	public AuthResponseDTO token( @Valid @RequestBody AuthDTO authDTO ) {
-		return authenticationFacadeService.token( authDTO );
+	public AuthDTO token( @Valid @RequestBody LoginDTO loginDTO ) {
+		return authenticationFacadeService.token( loginDTO );
 	}
 
 	@PostMapping( "/refresh" )
-	public AuthResponseDTO refresh( @Valid @RequestBody RefreshTokenRequestDTO refreshTokenRequestDTO ) {
-		return authenticationFacadeService.refresh( refreshTokenRequestDTO );
+	public AuthDTO refresh( @Valid @RequestBody RefreshTokenDTO refreshTokenDTO ) {
+		return authenticationFacadeService.refresh( refreshTokenDTO );
 	}
 
 	@PostMapping( "/logout" )
-	public void logout( @Valid @RequestBody RefreshTokenRequestDTO refreshTokenRequestDTO ) {
-		refreshTokenService.deleteRefreshToken( refreshTokenRequestDTO );
+	public void logout( @Valid @RequestBody RefreshTokenDTO refreshTokenDTO ) {
+		refreshTokenService.deleteRefreshToken( refreshTokenDTO );
 	}
 
 	@PostMapping( "/register" )
@@ -50,7 +48,7 @@ public class AuthController extends BaseController {
 		authService.register( registerUserDTO );
 	}
 
-	@PostMapping( "/recover" )
+	@PostMapping( "/recover-account" )
 	public void requestRecovery( @Valid @RequestBody PasswordRecoveryDTO passwordRecoveryDTO ) {
 		recoveryService.requestRecovery( passwordRecoveryDTO );
 	}

@@ -20,7 +20,10 @@ public class CorsConfig {
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration config = new CorsConfiguration();
-		List<String> origins = Arrays.asList( allowedOrigins.split( "," ) );
+		List<String> origins = Arrays.stream( allowedOrigins.split( "," ) )
+				.map( String::trim )
+				.filter( s -> !s.isEmpty() )
+				.toList();
 		config.setAllowedOrigins( origins );
 		config.setAllowedMethods( Arrays.asList( "GET", "POST", "PUT", "DELETE", "OPTIONS" ) );
 		config.setAllowedHeaders( Arrays.asList(
@@ -30,7 +33,11 @@ public class CorsConfig {
 				"Access-Control-Allow-Origin",
 				"Access-Control-Allow-Credentials"
 		) );
-		config.setExposedHeaders( Arrays.asList( "Authorization", "Content-Type", "X-Project-Id" ) );
+		config.setAllowedHeaders( Arrays.asList(
+				"Authorization",
+				"Content-Type",
+				"X-Project-Id"
+		));
 		config.setAllowCredentials( true );
 		config.setMaxAge( 3600L );
 

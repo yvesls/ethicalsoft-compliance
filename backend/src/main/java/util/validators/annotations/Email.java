@@ -12,7 +12,7 @@ import java.lang.annotation.*;
 @Retention( RetentionPolicy.RUNTIME )
 public @interface Email {
 
-	String message() default "{EmailInvalidMessage}. Value: ";
+	String message() default "{EmailInvalidMessage}. Please enter a valid email address. Value: ";
 
 	Class<?>[] groups() default {};
 

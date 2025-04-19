@@ -1,4 +1,4 @@
-package com.ethicalsoft.ethicalsoft_complience.model.dto;
+package com.ethicalsoft.ethicalsoft_complience.model.dto.auth;
 
 
 import jakarta.validation.constraints.Email;

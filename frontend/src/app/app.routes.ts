@@ -28,7 +28,7 @@ export const routes: Routes = [
 		canActivate: [LayoutGuard, AuthGuard],
 	},
 	{
-		path: 'recover',
+		path: 'recover-account',
 		component: RecoverComponent,
 		canActivate: [LayoutGuard],
 		data: { showLayout: false },

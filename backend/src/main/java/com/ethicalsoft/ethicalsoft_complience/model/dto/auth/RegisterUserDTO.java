@@ -1,4 +1,4 @@
-package com.ethicalsoft.ethicalsoft_complience.model.dto;
+package com.ethicalsoft.ethicalsoft_complience.model.dto.auth;
 
 import com.ethicalsoft.ethicalsoft_complience.model.enums.UserRoleEnum;
 import lombok.AllArgsConstructor;

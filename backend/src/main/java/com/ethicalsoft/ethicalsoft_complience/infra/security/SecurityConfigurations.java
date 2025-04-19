@@ -44,7 +44,10 @@ public class SecurityConfigurations {
 						exception.authenticationEntryPoint(
 								( request, response, authException ) ->
 										response.sendError( HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized" ) ) )
-				.addFilterBefore( securityFilter, UsernamePasswordAuthenticationFilter.class ).build();
+				.addFilterBefore( securityFilter, UsernamePasswordAuthenticationFilter.class )
+				.headers(headers -> headers
+						.contentSecurityPolicy( csp -> csp.policyDirectives( "default-src 'self'" ) )
+				).build();
 	}
 
 	@Bean

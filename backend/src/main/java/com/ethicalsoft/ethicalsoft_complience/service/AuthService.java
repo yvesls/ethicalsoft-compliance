@@ -2,8 +2,8 @@ package com.ethicalsoft.ethicalsoft_complience.service;
 
 import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
 import com.ethicalsoft.ethicalsoft_complience.model.User;
-import com.ethicalsoft.ethicalsoft_complience.model.dto.AuthDTO;
-import com.ethicalsoft.ethicalsoft_complience.model.dto.RegisterUserDTO;
+import com.ethicalsoft.ethicalsoft_complience.model.dto.auth.LoginDTO;
+import com.ethicalsoft.ethicalsoft_complience.model.dto.auth.RegisterUserDTO;
 import com.ethicalsoft.ethicalsoft_complience.model.enums.ErrorTypeEnum;
 import com.ethicalsoft.ethicalsoft_complience.model.enums.UserRoleEnum;
 import com.ethicalsoft.ethicalsoft_complience.repository.UserRepository;
@@ -25,8 +25,8 @@ public class AuthService {
 
 	private final AuthenticationManager authenticationManager;
 
-	public Authentication token( AuthDTO authDTO ) {
-		UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken( authDTO.getUsername(), authDTO.getPassword() );
+	public Authentication token( LoginDTO loginDTO ) {
+		UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken( loginDTO.getUsername(), loginDTO.getPassword() );
 		return authenticationManager.authenticate( token );
 	}
 

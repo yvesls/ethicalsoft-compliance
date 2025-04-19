@@ -2,7 +2,6 @@ package util.validators.annotations;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
-import jakarta.validation.constraints.NotBlank;
 import util.validators.RequiredFieldValidator;
 
 import java.lang.annotation.*;
@@ -12,11 +11,12 @@ import java.lang.annotation.*;
 @Target( { ElementType.METHOD, ElementType.FIELD, ElementType.PARAMETER } )
 @Retention( RetentionPolicy.RUNTIME )
 public @interface RequiredField {
-	String message() default "'{label}' {NullOrEmptyMessage} Value: ";
+	String message() default "'{label}' {NullOrEmptyMessage} Please provide a valid value. Value: ";
 
-	@NotBlank String label();
+	String label();
 
 	Class<?>[] groups() default {};
 
 	Class<? extends Payload>[] payload() default {};
 }
+

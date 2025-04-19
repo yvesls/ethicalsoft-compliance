@@ -14,6 +14,9 @@ public class MessageSourceValidationConfig {
 
 		messageSource.setBasename( "classpath:messages" );
 		messageSource.setDefaultEncoding( "UTF-8" );
+		messageSource.setUseCodeAsDefaultMessage(false);
+		messageSource.setCacheSeconds(3600);
+
 		return messageSource;
 	}
 

@@ -19,16 +19,19 @@ public class RefreshToken {
 	@Id
 	@GeneratedValue( strategy = GenerationType.IDENTITY )
 	private Long id;
-	@Column( nullable = false, unique = true )
-	private String token;
+
+	@Column( name = "token", nullable = false, unique = true )
+	private String tokenHash;
+
 	@OneToOne
 	@JoinColumn( name = "user_id", nullable = false )
 	private User user;
+
 	@Column( nullable = false )
 	private Instant expiryDate;
 
-	public RefreshToken( String token, User user, Instant expiryDate ) {
-		this.token = token;
+	public RefreshToken( String tokenHash, User user, Instant expiryDate ) {
+		this.tokenHash = tokenHash;
 		this.user = user;
 		this.expiryDate = expiryDate;
 	}

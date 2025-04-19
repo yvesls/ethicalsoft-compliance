@@ -24,12 +24,11 @@ public class EmailService {
 	public void sendRecoveryEmail( String to, String code ) {
 		try {
 			var message = mailSender.createMimeMessage();
-			var helper = new MimeMessageHelper( message, true );
+			var helper = new MimeMessageHelper(message, true);
 
-			var template = freemarkerConfig.getConfiguration().getTemplate( "recover/recovery-email.ftl" );
 			Map<String, Object> model = new HashMap<>();
-			model.put( "code", code );
-			var html = FreeMarkerTemplateUtils.processTemplateIntoString( template, model );
+			model.put("code", code);
+			String html = generateEmailBody( model );
 
 			helper.setTo( to );
 			helper.setSubject( "Password Recovery Code" );
@@ -39,5 +38,10 @@ public class EmailService {
 		} catch ( MessagingException | IOException | TemplateException e ) {
 			throw new EmailSendingException( "Failed to send recovery email to " + to, e );
 		}
+	}
+
+	private String generateEmailBody( Map<String, Object> model ) throws IOException, TemplateException {
+		var template = freemarkerConfig.getConfiguration().getTemplate( "recover/recovery-email.ftl" );
+		return FreeMarkerTemplateUtils.processTemplateIntoString( template, model );
 	}
 }

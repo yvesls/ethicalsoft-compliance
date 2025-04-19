@@ -26,13 +26,13 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 		String username = authentication.getName();
 		String password = authentication.getCredentials().toString();
 
-		var user = userRepository.findByEmail( username ).orElseThrow( () -> new UsernameNotFoundException( "User not found" ) );
+		var user = userRepository.findByEmail( username ).orElseThrow( () -> new UsernameNotFoundException( "Username not found." ) );
 
 		if ( passwordEncoder.matches( password, user.getPassword() ) ) {
 			return new UsernamePasswordAuthenticationToken( user, null, user.getAuthorities() );
 		}
 
-		throw new BadCredentialsException( "Invalid credentials" );
+		throw new BadCredentialsException( "The password provided does not match the username provided." );
 	}
 
 	@Override

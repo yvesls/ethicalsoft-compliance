@@ -1,3 +1,5 @@
+import { RoleEnum } from "../../shared/enums/role.enum"
+
 export interface MenuItem {
 	label: string
 	icon?: string
@@ -11,24 +13,24 @@ export const MENU_CONFIG: MenuItem[] = [
 		label: 'Home',
 		icon: 'home',
 		route: '/home',
-		roles: ['ROLE_USER'],
+		roles: [RoleEnum.USER],
 	},
 	{
 		label: 'Projects',
 		icon: 'projects',
 		route: '/projects',
-		roles: ['ROLE_ADMIN', 'ROLE_USER'],
+		roles: [RoleEnum.ADMIN, RoleEnum.USER],
 	},
 	{
 		label: 'Dashboards',
 		icon: 'dashboards',
 		route: '/dashboards',
-		roles: ['ROLE_ADMIN'],
+		roles: [RoleEnum.ADMIN],
 	},
 	{
 		label: 'Settings',
 		icon: 'settings',
 		route: '/settings',
-		roles: ['ROLE_ADMIN'],
+		roles: [RoleEnum.ADMIN],
 	},
 ]

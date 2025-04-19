@@ -209,6 +209,7 @@ export class AuthenticationService {
 			sub: decoded.sub,
 			exp: decoded.exp,
 			roles: decoded.roles || [],
+      isFirstAccess: decoded.isFirstAccess || false,
 			name: decoded.name || '',
 			email: decoded.email || '',
 			avatarUrl: decoded.avatarUrl || '',
@@ -238,5 +239,6 @@ export interface UserInterface {
 	roles: string[]
 	name: string
 	email: string
+  isFirstAccess: boolean
 	avatarUrl?: string
 }

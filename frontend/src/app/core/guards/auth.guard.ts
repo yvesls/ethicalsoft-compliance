@@ -51,7 +51,7 @@ export class AuthGuard implements CanActivate, CanActivateChild, CanMatch {
 					switchMap((refreshSuccess) => {
 						if (refreshSuccess) return of(true)
 						this.notificationService.showWarning(
-							'Usuário não autenticado! Faça o login para acessar esse recurso.'
+              "You don't have permission to access this resource."
 						)
 						return of(this.router.createUrlTree(['/login']))
 					}),

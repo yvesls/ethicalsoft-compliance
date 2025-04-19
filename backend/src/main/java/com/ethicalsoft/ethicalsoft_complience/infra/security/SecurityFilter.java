@@ -31,11 +31,16 @@ public class SecurityFilter extends OncePerRequestFilter {
 
 	@Override
 	protected void doFilterInternal( HttpServletRequest request, HttpServletResponse response, FilterChain filterChain ) throws ServletException, IOException {
-
-		var token = extractToken( request );
-		if ( Objects.nonNull( token ) ) {
-			var username = tokenService.validateToken( token );
-			userRepository.findByEmail( username ).ifPresent( user -> authenticateUser( request, user ) );
+		try {
+			var token = extractToken( request );
+			if ( Objects.nonNull( token ) ) {
+				var username = tokenService.validateToken( token );
+				userRepository.findByEmail( username ).ifPresent( user -> authenticateUser( request, user ) );
+			}
+		} catch ( Exception ex ) {
+			logger.warn( "JWT inválido ou expirado", ex );
+			response.sendError( HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized" );
+			return;
 		}
 		filterChain.doFilter( request, response );
 	}
@@ -50,10 +55,10 @@ public class SecurityFilter extends OncePerRequestFilter {
 
 	private List<SimpleGrantedAuthority> getAuthorities( User user, Long projectId ) {
 		List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-		authorities.add( new SimpleGrantedAuthority( "ROLE_USER" ) );
+		authorities.add( new SimpleGrantedAuthority( UserRoleEnum.USER.name() ) );
 
 		if ( UserRoleEnum.ADMIN.equals( user.getRole() ) ) {
-			authorities.add( new SimpleGrantedAuthority( "ROLE_ADMIN" ) );
+			authorities.add( new SimpleGrantedAuthority( UserRoleEnum.ADMIN.name() ) );
 		}
 
 		if ( Objects.nonNull( projectId ) ) {
