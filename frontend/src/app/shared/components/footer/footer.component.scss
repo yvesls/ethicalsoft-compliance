@@ -1,0 +1,20 @@
+@use '../../../../assets/scss/base/vars' as *;
+
+.social-links {
+	a {
+		color: $gray-primary;
+	}
+}
+
+.footer {
+	display: flex;
+	align-items: start;
+	align-content: start;
+	justify-content: center;
+	flex-grow: 1;
+}
+
+.highlightedName {
+	color: $green-primary;
+	text-decoration: none;
+}

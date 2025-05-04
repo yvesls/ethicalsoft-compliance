@@ -1,39 +1,39 @@
-@use '../vars' as *;
+@use '../base/vars' as *;
 
-input[type="checkbox"] {
-  appearance: none;
-  width: 18px;
-  height: 18px;
-  border: 1.5px solid $blue-primary;
-  border-radius: 5px;
-  background-color: $white;
-  margin-right: 0.5rem;
-  margin-top: 0.18rem;
-  transition: all 0.3s ease-in-out;
-  cursor: pointer;
+input[type='checkbox'] {
+	appearance: none;
+	width: 18px;
+	height: 18px;
+	border: 1.5px solid $blue-primary;
+	border-radius: 5px;
+	background-color: $white;
+	margin-right: 0.5rem;
+	margin-top: 0.18rem;
+	transition: all 0.3s ease-in-out;
+	cursor: pointer;
 
-  &:hover {
-    background-color: $gray-tertiary;
-  }
+	&:hover {
+		background-color: $gray-tertiary;
+	}
 
-  &:checked {
-    background-color: $blue-primary;
-    border-color: $blue-primary;
-    position: relative;
+	&:checked {
+		background-color: $blue-primary;
+		border-color: $blue-primary;
+		position: relative;
 
-    &::after {
-      content: "";
-      display: block;
-      width: 16px;
-      height: 16px;
-      padding: 4px;
-      -webkit-mask-image: url('../../icons/check.svg');
-      mask-image: url('../../icons/check.svg');
-      -webkit-mask-repeat: no-repeat;
-      mask-repeat: no-repeat;
-      -webkit-mask-position: center;
-      mask-position: center;
-      background-color: white;
-    }
-  }
+		&::after {
+			content: '';
+			display: block;
+			width: 16px;
+			height: 16px;
+			padding: 4px;
+			-webkit-mask-image: url('../../icons/check.svg');
+			mask-image: url('../../icons/check.svg');
+			-webkit-mask-repeat: no-repeat;
+			mask-repeat: no-repeat;
+			-webkit-mask-position: center;
+			mask-position: center;
+			background-color: white;
+		}
+	}
 }

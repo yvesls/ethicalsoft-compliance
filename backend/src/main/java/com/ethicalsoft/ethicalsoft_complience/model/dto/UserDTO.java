@@ -13,17 +13,17 @@ import util.validators.annotations.RequiredField;
 @NoArgsConstructor
 public class UserDTO {
 
-    private Long id;
+	private Long id;
 
-    @RequiredField( label = "First name" )
-    private String firstName;
+	@RequiredField( label = "First name" )
+	private String firstName;
 
-    @RequiredField( label = "Last name" )
-    private String lastName;
+	@RequiredField( label = "Last name" )
+	private String lastName;
 
-    @Email
-    private String email;
+	@Email
+	private String email;
 
-    private boolean acceptedTerms;
+	private boolean acceptedTerms;
 
 }

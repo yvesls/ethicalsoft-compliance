@@ -1,0 +1,113 @@
+@use '../../../../assets/scss/base/vars' as *;
+@use '../../../../assets/scss/base/_media-queries' as *;
+
+header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	width: 100%;
+	padding: 0 1rem;
+	height: 100%;
+	position: relative;
+
+	@include for-tablet-landscape-up {
+		padding: 0 2rem;
+	}
+
+	@include for-tablet-down {
+		padding: 0 1rem;
+	}
+
+	@include for-phone-only {
+		padding: 0 0.75rem;
+		height: auto;
+		min-height: 50px;
+	}
+
+	h2 {
+		padding: 0;
+		margin: 0;
+		font-size: 1.5rem;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		overflow: hidden;
+		max-width: 70%;
+
+		@include for-desktop-up {
+			font-size: 1.75rem;
+		}
+
+		@include for-tablet-down {
+			font-size: 1.25rem;
+		}
+
+		@include for-phone-only {
+			font-size: 1rem;
+			max-width: 60%;
+		}
+	}
+
+	.notification-section {
+		width: auto;
+		padding-left: 1rem;
+
+		ul {
+			display: flex;
+			justify-content: flex-end;
+			align-items: center;
+			gap: 15px;
+			margin: 0;
+			padding: 0;
+
+			@include for-phone-only {
+				gap: 10px;
+			}
+
+			li {
+				cursor: pointer;
+				list-style: none;
+
+				button {
+					padding: 8px;
+
+					@include for-phone-only {
+						padding: 5px;
+					}
+
+					img {
+						height: 20px;
+
+						@include for-tablet-down {
+							height: 18px;
+						}
+
+						@include for-phone-only {
+							height: 16px;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	.hamburger-menu {
+		display: none;
+
+		@include for-tablet-landscape-down {
+			display: block;
+			margin-right: 15px;
+
+			button {
+				padding: 5px;
+
+				img {
+					height: 20px;
+
+					@include for-phone-only {
+						height: 18px;
+					}
+				}
+			}
+		}
+	}
+}

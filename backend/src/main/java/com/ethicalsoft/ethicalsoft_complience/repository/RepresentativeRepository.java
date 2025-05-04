@@ -7,6 +7,6 @@ import java.util.Optional;
 
 public interface RepresentativeRepository extends JpaRepository<Representative, Long> {
 
-    Optional<Representative> findByUserEmailAndProjectId(String email, Long projectId);
-    
+	Optional<Representative> findByUserEmailAndProjectId( String email, Long projectId );
+
 }

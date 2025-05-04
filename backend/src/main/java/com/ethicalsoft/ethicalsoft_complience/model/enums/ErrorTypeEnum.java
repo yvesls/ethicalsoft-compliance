@@ -7,8 +7,8 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum ErrorTypeEnum {
 
-    ERROR( "error" ),
-    INFO( "info" );
+	ERROR( "error" ),
+	INFO( "info" );
 
-    private String label;
+	private final String label;
 }

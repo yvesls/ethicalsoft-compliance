@@ -1,0 +1,17 @@
+<div class="form-group">
+	<label [attr.for]="id" [class]="labelClasses"> {{ label }} <span *ngIf="required" class="text-red">*</span> </label>
+	<input
+		[attr.id]="id"
+		[attr.type]="type"
+		[placeholder]="placeholder"
+		[ngClass]="[inputClasses, control?.touched && control?.invalid ? 'is-invalid-border' : '']"
+		[value]="value"
+		(input)="onInput($event)"
+		(blur)="onBlur()"
+	/>
+	<div class="d-flex justify-content-start" *ngIf="control && control.errors && (control.dirty || control.touched)">
+		<div *ngFor="let error of getErrorMessages()">
+			<span class="is-invalid">{{ error }}</span>
+		</div>
+	</div>
+</div>

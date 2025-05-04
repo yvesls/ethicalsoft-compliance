@@ -9,9 +9,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.ToString;
-import util.ObjectUtil;
-
 import org.springframework.http.HttpStatus;
+import util.ObjectUtil;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,43 +20,40 @@ import java.util.List;
 @AllArgsConstructor
 public class ExceptionResponseDTO {
 
-    private LocalDateTime timestamp;
-    private Integer status;
-    private String error;
-    private String message;
-    private String path;
-    private ErrorTypeEnum errorType;
-    
-        @ToString.Exclude
-        private List<String> stackTrace;
-    
-        public ExceptionResponseDTO(ErrorTypeEnum errorType, @NotNull HttpStatus httpStatus, @NotNull HttpServletRequest request, @NotBlank String message, List<String> stackTrace ) {
-            this.timestamp = LocalDateTime.now();
-            this.status = httpStatus.value();
-            this.message = message;
-            this.path = request.getServletPath();
-            this.error = httpStatus.name();
-            this.stackTrace = stackTrace;
-            this.errorType = ObjectUtil.isNullOrEmpty(errorType) ? ErrorTypeEnum.ERROR : errorType;
-    }
+	private LocalDateTime timestamp;
+	private Integer status;
+	private String error;
+	private String message;
+	private String path;
+	private ErrorTypeEnum errorType;
 
-    @Override
-    public String toString() {
-        StringBuilder builder = new StringBuilder()
-                .append( "{ \"ExceptionResponseDTO\": { \"timestamp\": \"" )
-                .append( timestamp )
-                .append( "\", status\": \"" )
-                .append( status )
-                .append( "\", errorType\": \"" )
-                .append( errorType )
-                .append( "\", error\": \"" )
-                .append( error )
-                .append( "\", message\": \"" )
-                .append( message )
-                .append( "\", path\": \"" )
-                .append( path )
-                .append( "] } }" );
-        return builder.toString();
-    }
+	@ToString.Exclude
+	private List<String> stackTrace;
+
+	public ExceptionResponseDTO( ErrorTypeEnum errorType, @NotNull HttpStatus httpStatus, @NotNull HttpServletRequest request, @NotBlank String message, List<String> stackTrace ) {
+		this.timestamp = LocalDateTime.now();
+		this.status = httpStatus.value();
+		this.message = message;
+		this.path = request.getServletPath();
+		this.error = httpStatus.name();
+		this.stackTrace = stackTrace;
+		this.errorType = ObjectUtil.isNullOrEmpty( errorType ) ? ErrorTypeEnum.ERROR : errorType;
+	}
+
+	@Override
+	public String toString() {
+		return """
+				{
+				  "ExceptionResponseDTO": {
+				    "timestamp": "%s",
+				    "status": "%s",
+				    "errorType": "%s",
+				    "error": "%s",
+				    "message": "%s",
+				    "path": "%s"
+				  }
+				}
+				""".formatted( timestamp, status, errorType, error, message, path );
+	}
 
 }

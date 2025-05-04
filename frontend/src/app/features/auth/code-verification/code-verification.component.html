@@ -1,0 +1,21 @@
+<div class="card small-card">
+	<h1>Informe o código recebido por email</h1>
+
+	<form class="code-form" [formGroup]="form" (ngSubmit)="verifyCode()">
+		<div class="code-inputs" formArrayName="code">
+			<input
+				*ngFor="let control of codeControls.controls; let i = index"
+				#codeInput
+				[formControlName]="i"
+				maxlength="1"
+				class="code-input"
+				type="text"
+				autocomplete="off"
+				(input)="onInput($event, i)"
+				(paste)="onPaste($event)"
+			/>
+		</div>
+
+		<button class="btn btn-primary" type="submit" [disabled]="form.invalid">Registrar</button>
+	</form>
+</div>

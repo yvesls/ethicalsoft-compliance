@@ -16,52 +16,52 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "project")
+@Table( name = "project" )
 public class Project {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "project_id")
-    private Long id;
+	@Id
+	@GeneratedValue( strategy = GenerationType.IDENTITY )
+	@Column( name = "project_id" )
+	private Long id;
 
-    @Column(name = "name", nullable = false)
-    private String name;
+	@Column( name = "name", nullable = false )
+	private String name;
 
-    @OneToMany(mappedBy = "project")
-    private List<Representative> representatives;
+	@OneToMany( mappedBy = "project" )
+	private List<Representative> representatives;
 
-    @Column(name = "type", nullable = false, length = 50)
-    private String type;
+	@Column( name = "type", nullable = false, length = 50 )
+	private String type;
 
-    @Column(name = "start_date", nullable = false)
-    @Temporal(TemporalType.DATE)
-    private LocalDate startDate;
+	@Column( name = "start_date", nullable = false )
+	@Temporal( TemporalType.DATE )
+	private LocalDate startDate;
 
-    @Column(name = "deadline", nullable = false)
-    @Temporal(TemporalType.DATE)
-    private LocalDate deadline;
+	@Column( name = "deadline", nullable = false )
+	@Temporal( TemporalType.DATE )
+	private LocalDate deadline;
 
-    @Column(name = "status", nullable = false, length = 20)
-    @Enumerated(EnumType.STRING)
-    private ProjectStatusEnum status;
+	@Column( name = "status", nullable = false, length = 20 )
+	@Enumerated( EnumType.STRING )
+	private ProjectStatusEnum status;
 
-    @Column(name = "closing_date")
-    @Temporal(TemporalType.DATE)
-    private LocalDate closingDate;
+	@Column( name = "closing_date" )
+	@Temporal( TemporalType.DATE )
+	private LocalDate closingDate;
 
-    @Column(name = "iteration_duration")
-    private Integer iterationDuration;
+	@Column( name = "iteration_duration" )
+	private Integer iterationDuration;
 
-    @Column(name = "iteration_count")
-    private Integer iterationCount;
+	@Column( name = "iteration_count" )
+	private Integer iterationCount;
 
-    @ManyToOne
-    @JoinColumn(name = "template_id")
-    private Template template;
+	@ManyToOne
+	@JoinColumn( name = "template_id" )
+	private Template template;
 
-    @OneToMany(mappedBy = "project")
-    private Set<Questionnaire> questionnaires;
+	@OneToMany( mappedBy = "project" )
+	private Set<Questionnaire> questionnaires;
 
-    @OneToMany(mappedBy = "project")
-    private Set<Stage> stages;
+	@OneToMany( mappedBy = "project" )
+	private Set<Stage> stages;
 }

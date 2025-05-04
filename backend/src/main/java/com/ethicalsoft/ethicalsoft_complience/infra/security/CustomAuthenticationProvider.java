@@ -13,31 +13,30 @@ import org.springframework.stereotype.Component;
 @Component
 public class CustomAuthenticationProvider implements AuthenticationProvider {
 
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+	private final UserRepository userRepository;
+	private final PasswordEncoder passwordEncoder;
 
-    public CustomAuthenticationProvider(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
+	public CustomAuthenticationProvider( UserRepository userRepository, PasswordEncoder passwordEncoder ) {
+		this.userRepository = userRepository;
+		this.passwordEncoder = passwordEncoder;
+	}
 
-    @Override
-    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        String username = authentication.getName();
-        String password = authentication.getCredentials().toString();
+	@Override
+	public Authentication authenticate( Authentication authentication ) throws AuthenticationException {
+		String username = authentication.getName();
+		String password = authentication.getCredentials().toString();
 
-        var user = userRepository.findByEmail(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+		var user = userRepository.findByEmail( username ).orElseThrow( () -> new UsernameNotFoundException( "Username not found." ) );
 
-        if (passwordEncoder.matches(password, user.getPassword())) {
-            return new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-        }
+		if ( passwordEncoder.matches( password, user.getPassword() ) ) {
+			return new UsernamePasswordAuthenticationToken( user, null, user.getAuthorities() );
+		}
 
-        throw new BadCredentialsException("Invalid credentials");
-    }
+		throw new BadCredentialsException( "The password provided does not match the username provided." );
+	}
 
-    @Override
-    public boolean supports(Class<?> authentication) {
-        return UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication);
-    }
+	@Override
+	public boolean supports( Class<?> authentication ) {
+		return UsernamePasswordAuthenticationToken.class.isAssignableFrom( authentication );
+	}
 }

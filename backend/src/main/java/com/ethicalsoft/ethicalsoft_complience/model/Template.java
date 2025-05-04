@@ -13,22 +13,22 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "template")
+@Table( name = "template" )
 public class Template {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "template_id")
-    private Integer id;
+	@Id
+	@GeneratedValue( strategy = GenerationType.IDENTITY )
+	@Column( name = "template_id" )
+	private Integer id;
 
-    @Column(name = "name", nullable = false, length = 100)
-    private String name;
+	@Column( name = "name", nullable = false, length = 100 )
+	private String name;
 
-    @Column(name = "creation_date")
-    @Temporal(TemporalType.DATE)
-    private LocalDate creationDate;
+	@Column( name = "creation_date" )
+	@Temporal( TemporalType.DATE )
+	private LocalDate creationDate;
 
-    @ManyToOne
-    @JoinColumn(name = "project_id")
-    private Project project;
+	@ManyToOne
+	@JoinColumn( name = "project_id" )
+	private Project project;
 }

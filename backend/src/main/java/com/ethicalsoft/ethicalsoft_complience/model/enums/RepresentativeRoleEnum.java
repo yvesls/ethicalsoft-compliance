@@ -4,15 +4,15 @@ import lombok.Getter;
 
 @Getter
 public enum RepresentativeRoleEnum {
-    DEVELOPER("Developer"),
-    CLIENT("client"),
-    PROJECT_MANAGER("Project Manager"),
-    QUANTITY_ANALYST("Quantity Analyst"),
-    SOFTWARE_ARCHITECT("Software Architect");
+	DEVELOPER( "Developer" ),
+	CLIENT( "client" ),
+	PROJECT_MANAGER( "Project Manager" ),
+	QUANTITY_ANALYST( "Quantity Analyst" ),
+	SOFTWARE_ARCHITECT( "Software Architect" );
 
-    RepresentativeRoleEnum(String value) {
-        this.value = value;
-    }
+	private final String value;
 
-    private String value;
+	RepresentativeRoleEnum( String value ) {
+		this.value = value;
+	}
 }

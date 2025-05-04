@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -26,159 +27,156 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.context.MessageSource;
 import util.ExceptionUtil;
 import util.ObjectUtil;
 
 import java.net.BindException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.UUID;
 
 @RestControllerAdvice
 @RequiredArgsConstructor
 @Slf4j
 public class GlobalExceptionResponseHandler {
 
-    private final MessageSource messageSource;
+	private final MessageSource messageSource;
 
-    @ExceptionHandler(EmailSendingException.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ExceptionResponseDTO handleEmailError(EmailSendingException exception, HttpServletRequest request) {
-        return makeDefaultResponse(
-                ErrorTypeEnum.ERROR,
-                exception,
-                exception.getMessage(),
-                request,
-                HttpStatus.INTERNAL_SERVER_ERROR
-        );
-    }
+	@ExceptionHandler( EmailSendingException.class )
+	@ResponseStatus( HttpStatus.INTERNAL_SERVER_ERROR )
+	public ExceptionResponseDTO handleEmailError( EmailSendingException exception, HttpServletRequest request ) {
+		return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, exception.getMessage(), request, HttpStatus.INTERNAL_SERVER_ERROR );
+	}
 
-    @ExceptionHandler( ResponseStatusException.class )
-    public ExceptionResponseDTO handleResponseStatus( ResponseStatusException exception, HttpServletRequest request, HttpServletResponse response ) {
-        var httpStatusCode = exception.getStatusCode();
-        response.setStatus( httpStatusCode.value() );
-        return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, null, request, HttpStatus.resolve( httpStatusCode.value() ) );
-    }
+	@ExceptionHandler( ResourceNotFoundException.class )
+	@ResponseStatus( HttpStatus.NOT_FOUND )
+	public ExceptionResponseDTO handleResourceNotFound( ResourceNotFoundException exception, HttpServletRequest request ) {
+		return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, "Resource not found. Please check the URL or resource availability.", request, HttpStatus.NOT_FOUND );
+	}
 
-    @ExceptionHandler( BusinessException.class )
-    @ResponseStatus( HttpStatus.BAD_REQUEST )
-    public ExceptionResponseDTO handleBusiness( BusinessException exception, HttpServletRequest request ) {
-        return makeDefaultResponse( exception.getTypeError(), exception, exception.getMessage(), request, HttpStatus.BAD_REQUEST );
-    }
+	@ExceptionHandler( ResponseStatusException.class )
+	public ExceptionResponseDTO handleResponseStatus( ResponseStatusException exception, HttpServletRequest request, HttpServletResponse response ) {
+		var httpStatusCode = exception.getStatusCode();
+		response.setStatus( httpStatusCode.value() );
+		return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, null, request, HttpStatus.resolve( httpStatusCode.value() ) );
+	}
 
-    @ExceptionHandler( AuthenticationException.class )
-    @ResponseStatus( HttpStatus.UNAUTHORIZED )
-    public ExceptionResponseDTO handleAccessDenied( AuthenticationException exception, HttpServletRequest request ) {
-        return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, null, request, HttpStatus.UNAUTHORIZED );
-    }
+	@ExceptionHandler( BusinessException.class )
+	@ResponseStatus( HttpStatus.BAD_REQUEST )
+	public ExceptionResponseDTO handleBusiness( BusinessException exception, HttpServletRequest request ) {
+		return makeDefaultResponse( exception.getTypeError(), exception, exception.getMessage(), request, HttpStatus.BAD_REQUEST );
+	}
 
-    @ExceptionHandler( AccessDeniedException.class )
-    @ResponseStatus( HttpStatus.UNAUTHORIZED )
-    public ExceptionResponseDTO handleAccessDenied( AccessDeniedException exception, HttpServletRequest request ) {
-        return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, null, request, HttpStatus.UNAUTHORIZED );
-    }
+	@ExceptionHandler( AuthenticationException.class )
+	@ResponseStatus( HttpStatus.UNAUTHORIZED )
+	public ExceptionResponseDTO handleAccessDenied( AuthenticationException exception, HttpServletRequest request ) {
+		return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, null, request, HttpStatus.UNAUTHORIZED );
+	}
 
-    @ExceptionHandler( UserException.class )
-    @ResponseStatus( HttpStatus.BAD_REQUEST )
-    public ExceptionResponseDTO handleUser( UserException exception, HttpServletRequest request ) {
-        return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, null, request, HttpStatus.BAD_REQUEST );
-    }
+	@ExceptionHandler( AccessDeniedException.class )
+	@ResponseStatus( HttpStatus.UNAUTHORIZED )
+	public ExceptionResponseDTO handleAccessDenied( AccessDeniedException exception, HttpServletRequest request ) {
+		return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, "You don't have permission to access this resource.", request, HttpStatus.UNAUTHORIZED );
+	}
 
-    @ExceptionHandler( AuthorizationDeniedException.class )
-    @ResponseStatus( HttpStatus.FORBIDDEN )
-    public ExceptionResponseDTO handleAuthorizationDenied( AuthorizationDeniedException exception, HttpServletRequest request ) {
-        return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, null, request, HttpStatus.FORBIDDEN );
-    }
+	@ExceptionHandler( UserNotFoundException.class )
+	@ResponseStatus( HttpStatus.BAD_REQUEST )
+	public ExceptionResponseDTO handleUser( UserNotFoundException exception, HttpServletRequest request ) {
+		return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, null, request, HttpStatus.BAD_REQUEST );
+	}
 
-    @ExceptionHandler( { IllegalArgumentException.class, IllegalStateException.class } )
-    @ResponseStatus( HttpStatus.BAD_REQUEST )
-    public ExceptionResponseDTO handleIllegalArgument( RuntimeException exception, HttpServletRequest request ) {
-        return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, exception.getMessage(), request, HttpStatus.BAD_REQUEST );
-    }
+	@ExceptionHandler( AuthorizationDeniedException.class )
+	@ResponseStatus( HttpStatus.FORBIDDEN )
+	public ExceptionResponseDTO handleAuthorizationDenied( AuthorizationDeniedException exception, HttpServletRequest request ) {
+		return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, null, request, HttpStatus.FORBIDDEN );
+	}
 
-    @ExceptionHandler( { HttpRequestMethodNotSupportedException.class } )
-    @ResponseStatus( HttpStatus.METHOD_NOT_ALLOWED )
-    public ExceptionResponseDTO handleMethodNotSupported( HttpRequestMethodNotSupportedException exception, HttpServletRequest request ) {
-        return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, null, request, HttpStatus.METHOD_NOT_ALLOWED );
-    }
+	@ExceptionHandler( { IllegalArgumentException.class, IllegalStateException.class } )
+	@ResponseStatus( HttpStatus.BAD_REQUEST )
+	public ExceptionResponseDTO handleIllegalArgument( RuntimeException exception, HttpServletRequest request ) {
+		return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, exception.getMessage(), request, HttpStatus.BAD_REQUEST );
+	}
 
-    @ExceptionHandler( BindException.class )
-    @ResponseStatus( HttpStatus.BAD_REQUEST )
-    public ExceptionResponseDTO handleBindValidation( BindException exception, HttpServletRequest request ) {
-        return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, null, request, HttpStatus.BAD_REQUEST );
-    }
+	@ExceptionHandler( { HttpRequestMethodNotSupportedException.class } )
+	@ResponseStatus( HttpStatus.METHOD_NOT_ALLOWED )
+	public ExceptionResponseDTO handleMethodNotSupported( HttpRequestMethodNotSupportedException exception, HttpServletRequest request ) {
+		return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, null, request, HttpStatus.METHOD_NOT_ALLOWED );
+	}
 
-    @ExceptionHandler( ConstraintViolationException.class )
-    @ResponseStatus( HttpStatus.BAD_REQUEST )
-    public ExceptionResponseDTO handleBusiness( ConstraintViolationException exception, HttpServletRequest request ) {
-        var errors = new ArrayList<>();
-        for( var constraintEx : exception.getConstraintViolations() ) {
-            errors.add( constraintEx.getPropertyPath() + ": " + constraintEx.getMessage() );
-        }
-        return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, errors.toString(), request, HttpStatus.BAD_REQUEST );
-    }
+	@ExceptionHandler( BindException.class )
+	@ResponseStatus( HttpStatus.BAD_REQUEST )
+	public ExceptionResponseDTO handleBindValidation( BindException exception, HttpServletRequest request ) {
+		return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, null, request, HttpStatus.BAD_REQUEST );
+	}
 
-    @ExceptionHandler( HttpMessageNotReadableException.class )
-    @ResponseStatus( HttpStatus.BAD_REQUEST )
-    public ExceptionResponseDTO handleHttpMessageNotReadable( HttpMessageNotReadableException exception, HttpServletRequest request ) {
-        var msg = "Error reading the request body.";
-        return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, msg, request, HttpStatus.BAD_REQUEST );
-    }
+	@ExceptionHandler( ConstraintViolationException.class )
+	@ResponseStatus( HttpStatus.BAD_REQUEST )
+	public ExceptionResponseDTO handleBusiness( ConstraintViolationException exception, HttpServletRequest request ) {
+		var errors = new ArrayList<>();
+		for ( var constraintEx : exception.getConstraintViolations() ) {
+			errors.add( constraintEx.getPropertyPath() + ": " + constraintEx.getMessage() );
+		}
+		return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, errors.toString(), request, HttpStatus.BAD_REQUEST );
+	}
 
-    @ExceptionHandler( { JsonMappingException.class, HttpMediaTypeNotSupportedException.class } )
-    @ResponseStatus( HttpStatus.BAD_REQUEST )
-    public ExceptionResponseDTO handleMappingType( Exception exception, HttpServletRequest request ) {
-        return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, null, request, HttpStatus.BAD_REQUEST );
-    }
+	@ExceptionHandler( HttpMessageNotReadableException.class )
+	@ResponseStatus( HttpStatus.BAD_REQUEST )
+	public ExceptionResponseDTO handleHttpMessageNotReadable( HttpMessageNotReadableException exception, HttpServletRequest request ) {
+		var msg = "Error reading the request body.";
+		return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, msg, request, HttpStatus.BAD_REQUEST );
+	}
 
-    @ExceptionHandler( MethodArgumentNotValidException.class )
-    @ResponseStatus( HttpStatus.UNPROCESSABLE_ENTITY )
-    public ExceptionResponseDTO handleValidationError( MethodArgumentNotValidException exception, HttpServletRequest request ) {
-        var errorMessage = new ArrayList<String>();
+	@ExceptionHandler( { JsonMappingException.class, HttpMediaTypeNotSupportedException.class } )
+	@ResponseStatus( HttpStatus.BAD_REQUEST )
+	public ExceptionResponseDTO handleMappingType( Exception exception, HttpServletRequest request ) {
+		return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, null, request, HttpStatus.BAD_REQUEST );
+	}
 
-        for( FieldError fieldError : exception.getBindingResult().getFieldErrors() ) {
-            String message = Optional.of( messageSource.getMessage( fieldError, LocaleContextHolder.getLocale() ) )
-                    .map( ObjectUtil::getOrNull )
-                    .orElse( fieldError.getDefaultMessage() );
-            errorMessage.add( message + fieldError.getRejectedValue() );
-        }
+	@ExceptionHandler( MethodArgumentNotValidException.class )
+	@ResponseStatus( HttpStatus.UNPROCESSABLE_ENTITY )
+	public ExceptionResponseDTO handleValidationError( MethodArgumentNotValidException exception, HttpServletRequest request ) {
+		var errorMessage = new ArrayList<String>();
 
-        for( ObjectError objError : exception.getBindingResult().getGlobalErrors() ) {
-            String message = Optional.of( messageSource.getMessage( objError, LocaleContextHolder.getLocale() ) )
-                    .map( ObjectUtil::getOrNull )
-                    .orElse( objError.getDefaultMessage() );
-            errorMessage.add( objError.getObjectName() + ": " + message );
-        }
+		for ( FieldError fieldError : exception.getBindingResult().getFieldErrors() ) {
+			String message = Optional.of( messageSource.getMessage( fieldError, LocaleContextHolder.getLocale() ) ).map( ObjectUtil::getOrNull ).orElse( fieldError.getDefaultMessage() );
+			errorMessage.add( message + fieldError.getRejectedValue() );
+		}
 
-        String errorMsgJoined = String.join(". ", errorMessage);
-        return makeDefaultResponse( ErrorTypeEnum.INFO, exception, errorMsgJoined, request, HttpStatus.UNPROCESSABLE_ENTITY );
-    }
+		for ( ObjectError objError : exception.getBindingResult().getGlobalErrors() ) {
+			String message = Optional.of( messageSource.getMessage( objError, LocaleContextHolder.getLocale() ) ).map( ObjectUtil::getOrNull ).orElse( objError.getDefaultMessage() );
+			errorMessage.add( objError.getObjectName() + ": " + message );
+		}
 
-    @ExceptionHandler( { NoSuchElementException.class, EntityNotFoundException.class, MissingPathVariableException.class } )
-    @ResponseStatus( HttpStatus.NOT_FOUND )
-    public ExceptionResponseDTO handleNoSuchElementFoundException( Exception exception, HttpServletRequest request ) {
-        return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, null, request, HttpStatus.NOT_FOUND );
-    }
+		String errorMsgJoined = String.join( ". ", errorMessage );
+		return makeDefaultResponse( ErrorTypeEnum.INFO, exception, errorMsgJoined, request, HttpStatus.UNPROCESSABLE_ENTITY );
+	}
 
-    @ExceptionHandler( MissingServletRequestParameterException.class )
-    @ResponseStatus( HttpStatus.BAD_REQUEST )
-    public ExceptionResponseDTO missingServletRequestParameter( MissingServletRequestParameterException exception, HttpServletRequest request ) {
-        return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, null, request, HttpStatus.BAD_REQUEST );
-    }
+	@ExceptionHandler( { NoSuchElementException.class, EntityNotFoundException.class, MissingPathVariableException.class } )
+	@ResponseStatus( HttpStatus.NOT_FOUND )
+	public ExceptionResponseDTO handleNoSuchElementFoundException( Exception exception, HttpServletRequest request ) {
+		return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, null, request, HttpStatus.NOT_FOUND );
+	}
 
-    @ExceptionHandler( Exception.class )
-    @ResponseStatus( HttpStatus.INTERNAL_SERVER_ERROR )
-    public ExceptionResponseDTO handleServerError( Exception exception, HttpServletRequest request ) {
-        var msg = "Unexpected error. Contact the system administrator with the error code. " + UUID.randomUUID();
-        return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, msg, request, HttpStatus.INTERNAL_SERVER_ERROR );
-    }
+	@ExceptionHandler( MissingServletRequestParameterException.class )
+	@ResponseStatus( HttpStatus.BAD_REQUEST )
+	public ExceptionResponseDTO missingServletRequestParameter( MissingServletRequestParameterException exception, HttpServletRequest request ) {
+		return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, null, request, HttpStatus.BAD_REQUEST );
+	}
 
-    private ExceptionResponseDTO makeDefaultResponse(ErrorTypeEnum typeException, Exception exception, String responseMessage, HttpServletRequest request, HttpStatus httpStatus) {
-        boolean showExceptionDetails = false;
+	@ExceptionHandler( Exception.class )
+	@ResponseStatus( HttpStatus.INTERNAL_SERVER_ERROR )
+	public ExceptionResponseDTO handleServerError( Exception exception, HttpServletRequest request ) {
+		var errorCode = UUID.randomUUID();
+		var msg = "Unexpected error. Contact the system administrator with the error code. " + errorCode;
+		log.error( "Unexpected error: [{}] - {}", errorCode, exception.getMessage(), exception );
+		return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, msg, request, HttpStatus.INTERNAL_SERVER_ERROR );
+	}
 
-        return new ExceptionResponseDTO(
-                typeException, httpStatus, request, responseMessage,
-                ExceptionUtil.getErrorStackTrace(exception, showExceptionDetails)
-        );
-    }
+	private ExceptionResponseDTO makeDefaultResponse( ErrorTypeEnum typeException, Exception exception, String responseMessage, HttpServletRequest request, HttpStatus httpStatus ) {
+		boolean showExceptionDetails = false;
+
+		return new ExceptionResponseDTO( typeException, httpStatus, request, responseMessage, ExceptionUtil.getErrorStackTrace( exception, showExceptionDetails ) );
+	}
 
 }

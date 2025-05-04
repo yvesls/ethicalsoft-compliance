@@ -1,0 +1,247 @@
+@use '../../../../assets/scss/base/vars' as *;
+@use '../../../../assets/scss/base/_media-queries' as *;
+
+.sidebar {
+	width: var(--sidebar-width);
+	height: 100vh;
+	background-color: $blue-primary;
+	color: $white;
+	transition:
+		width 0.3s ease-in-out,
+		left 0.3s ease-in-out;
+	position: fixed;
+	top: 0;
+	left: 0;
+	display: flex;
+	flex-direction: column;
+	z-index: 10;
+
+	@include for-tablet-landscape-down {
+		left: calc(-1 * var(--sidebar-width));
+		box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
+
+		&.opened {
+			left: 0;
+		}
+
+		.sidebar-toggler {
+			z-index: 30;
+		}
+	}
+
+	@include for-phone-only {
+		width: min(85vw, 300px);
+	}
+
+	.sidebar-layout {
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+		overflow-y: auto;
+	}
+
+	.sidebar-header {
+		margin: 20px;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+
+		.logo {
+			margin-right: 5px;
+			img {
+				width: 70px;
+
+				@include for-tablet-down {
+					width: 60px;
+				}
+
+				@include for-phone-only {
+					width: 50px;
+				}
+			}
+		}
+
+		h5 {
+			@include for-tablet-down {
+				font-size: 0.9rem;
+			}
+		}
+	}
+
+	.sidebar-toggler {
+		position: absolute;
+		top: 41px;
+		right: -15px;
+		width: 26px;
+		height: 26px;
+		background: $green-primary;
+		color: $white;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: background 0.3s;
+		z-index: 30;
+
+		@include for-tablet-down {
+			right: -15px;
+			width: 24px;
+			height: 24px;
+		}
+
+		@include for-phone-only {
+			right: -15px;
+			width: 22px;
+			height: 22px;
+		}
+
+		&:hover {
+			background: $green-secundary;
+		}
+	}
+
+	.menu {
+		@include for-tablet-landscape-down {
+			margin-top: 10px;
+		}
+
+		.menu-item {
+			display: flex;
+			justify-items: center;
+			align-items: center;
+			padding: 20px 20px 20px 30px;
+			color: $white;
+			text-decoration: none;
+			transition: color 0.3s;
+			cursor: pointer;
+
+			@include for-tablet-down {
+				padding: 15px 15px 15px 25px;
+			}
+
+			@include for-phone-only {
+				padding: 12px 10px 12px 20px;
+			}
+
+			.menu-icon {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				margin-right: 10px;
+
+				img {
+					height: 20px;
+					margin-top: -3px;
+					transition: filter 0.3s;
+
+					@include for-phone-only {
+						height: 18px;
+					}
+				}
+			}
+
+			.menu-title {
+				transition: color 0.3s;
+				padding: 0;
+				margin: 0;
+				line-height: 1;
+
+				@include for-tablet-down {
+					font-size: 0.9rem;
+				}
+
+				@include for-phone-only {
+					font-size: 0.85rem;
+				}
+			}
+
+			&:hover {
+				.menu-icon img {
+					filter: brightness(0) saturate(100%) invert(48%) sepia(40%) saturate(1009%) hue-rotate(52deg)
+						brightness(94%) contrast(89%);
+				}
+
+				.menu-title {
+					color: $green-primary;
+				}
+			}
+		}
+	}
+
+	.sidebar-footer {
+		padding: 20px;
+		display: flex;
+		justify-content: center;
+		flex-direction: column;
+		text-align: center;
+		font-size: 0.8rem;
+		margin-top: auto;
+
+		@include for-tablet-down {
+			padding: 15px;
+			font-size: 0.75rem;
+		}
+
+		@include for-phone-only {
+			padding: 12px;
+			font-size: 0.7rem;
+		}
+	}
+
+	&.collapsed {
+		width: var(--sidebar-collapsed-width);
+
+		.sidebar-header {
+			justify-content: center;
+
+			h5 {
+				display: none;
+			}
+		}
+
+		.menu {
+			.menu-item {
+				justify-content: center;
+				padding: 15px 0;
+
+				@include for-phone-only {
+					padding: 12px 0;
+				}
+
+				.menu-icon {
+					margin-right: 0;
+				}
+
+				.menu-title {
+					display: none;
+				}
+			}
+		}
+	}
+
+	.exit {
+		margin: auto;
+
+		img {
+			height: 30px;
+			margin-bottom: 10px;
+			transform: rotate(180deg);
+
+			@include for-tablet-down {
+				height: 25px;
+			}
+
+			@include for-phone-only {
+				height: 22px;
+				margin-bottom: 8px;
+			}
+
+			&:hover {
+				transition: filter 0.3s;
+				filter: brightness(0) saturate(100%) invert(48%) sepia(40%) saturate(1009%) hue-rotate(52deg)
+					brightness(94%) contrast(89%);
+			}
+		}
+	}
+}

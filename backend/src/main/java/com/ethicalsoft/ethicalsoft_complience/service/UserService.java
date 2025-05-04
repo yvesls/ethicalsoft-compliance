@@ -15,15 +15,15 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserService {
 
-    private final UserRepository userRepository;
-    private final ModelMapper modelMapper = new ModelMapper();
+	private final UserRepository userRepository;
+	private final ModelMapper modelMapper = new ModelMapper();
 
-    public Page<UserDTO> findAll( Pageable pageable ) {
-        return userRepository.findAll( pageable ).map( user -> modelMapper.map( user, UserDTO.class ) );
-    }
+	public Page<UserDTO> findAll( Pageable pageable ) {
+		return userRepository.findAll( pageable ).map( user -> modelMapper.map( user, UserDTO.class ) );
+	}
 
-    public UserDTO findById( Long id ) {
-        return userRepository.findById( id ).map(user -> modelMapper.map(user, UserDTO.class)).orElseThrow(() -> new BusinessException(ErrorTypeEnum.INFO, "User not found with id: " + id));
-    }
-    
+	public UserDTO findById( Long id ) {
+		return userRepository.findById( id ).map( user -> modelMapper.map( user, UserDTO.class ) ).orElseThrow( () -> new BusinessException( ErrorTypeEnum.INFO, "User not found with id: " + id ) );
+	}
+
 }

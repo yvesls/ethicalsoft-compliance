@@ -2,8 +2,8 @@ package com.ethicalsoft.ethicalsoft_complience.service;
 
 import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
 import com.ethicalsoft.ethicalsoft_complience.model.User;
-import com.ethicalsoft.ethicalsoft_complience.model.dto.AuthDTO;
-import com.ethicalsoft.ethicalsoft_complience.model.dto.RegisterUserDTO;
+import com.ethicalsoft.ethicalsoft_complience.model.dto.auth.LoginDTO;
+import com.ethicalsoft.ethicalsoft_complience.model.dto.auth.RegisterUserDTO;
 import com.ethicalsoft.ethicalsoft_complience.model.enums.ErrorTypeEnum;
 import com.ethicalsoft.ethicalsoft_complience.model.enums.UserRoleEnum;
 import com.ethicalsoft.ethicalsoft_complience.repository.UserRepository;
@@ -19,36 +19,35 @@ import org.springframework.stereotype.Service;
 @Service
 public class AuthService {
 
-    private final UserRepository userRepository;
+	private final UserRepository userRepository;
 
-    private final ModelMapper modelMapper = new ModelMapper();
+	private final ModelMapper modelMapper = new ModelMapper();
 
-    private final AuthenticationManager authenticationManager;
+	private final AuthenticationManager authenticationManager;
 
-    public Authentication login(AuthDTO authDTO) {
-        UsernamePasswordAuthenticationToken token =
-                new UsernamePasswordAuthenticationToken(authDTO.getUsername(), authDTO.getPassword());
-        return authenticationManager.authenticate(token);
-    }
+	public Authentication token( LoginDTO loginDTO ) {
+		UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken( loginDTO.getUsername(), loginDTO.getPassword() );
+		return authenticationManager.authenticate( token );
+	}
 
-    public void register(RegisterUserDTO registerUserDTO) {
-        if(!registerUserDTO.isAcceptedTerms()) {
-            throw new BusinessException(ErrorTypeEnum.INFO, "The terms were not accepted");
-        }
+	public void register( RegisterUserDTO registerUserDTO ) {
+		if ( !registerUserDTO.isAcceptedTerms() ) {
+			throw new BusinessException( ErrorTypeEnum.INFO, "The terms were not accepted" );
+		}
 
-        var dataUser = userRepository.findByEmail(registerUserDTO.getEmail());
+		var dataUser = userRepository.findByEmail( registerUserDTO.getEmail() );
 
-        if(dataUser.isPresent()) {
-            throw new BusinessException(ErrorTypeEnum.INFO, "Email already exists");
-        }
-        var encryptedPassword = new BCryptPasswordEncoder().encode(registerUserDTO.getPassword());
-        registerUserDTO.setPassword(encryptedPassword);
+		if ( dataUser.isPresent() ) {
+			throw new BusinessException( ErrorTypeEnum.INFO, "Email already exists" );
+		}
+		var encryptedPassword = new BCryptPasswordEncoder().encode( registerUserDTO.getPassword() );
+		registerUserDTO.setPassword( encryptedPassword );
 
-        var newUser = modelMapper.map( registerUserDTO, User.class );
-        newUser.setRole(UserRoleEnum.ADMIN);
-        newUser.setFirstAccess(false);
+		var newUser = modelMapper.map( registerUserDTO, User.class );
+		newUser.setRole( UserRoleEnum.ADMIN );
+		newUser.setFirstAccess( false );
 
-        this.userRepository.save(newUser);
-    }
+		this.userRepository.save( newUser );
+	}
 
 }

@@ -1,17 +1,18 @@
 package com.ethicalsoft.ethicalsoft_complience.controller;
 
 import com.ethicalsoft.ethicalsoft_complience.controller.base.BaseController;
-import com.ethicalsoft.ethicalsoft_complience.infra.security.TokenService;
-import com.ethicalsoft.ethicalsoft_complience.model.User;
-import com.ethicalsoft.ethicalsoft_complience.model.dto.*;
+import com.ethicalsoft.ethicalsoft_complience.model.dto.auth.*;
 import com.ethicalsoft.ethicalsoft_complience.service.AuthService;
 import com.ethicalsoft.ethicalsoft_complience.service.PasswordRecoveryService;
-import jakarta.servlet.http.HttpServletResponse;
+import com.ethicalsoft.ethicalsoft_complience.service.RefreshTokenService;
+import com.ethicalsoft.ethicalsoft_complience.service.facade.AuthenticationFacadeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RequiredArgsConstructor
 @RestController
@@ -19,40 +20,47 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping( "auth" )
 public class AuthController extends BaseController {
 
-    private final AuthService authService;
+	private final AuthService authService;
 
-    private final TokenService tokenService;
+	private final RefreshTokenService refreshTokenService;
 
-    private final PasswordRecoveryService recoveryService;
+	private final PasswordRecoveryService recoveryService;
 
-    @PostMapping("/login")
-    public void login(@Valid @RequestBody AuthDTO authDTO, HttpServletResponse response) {
-        var auth = authService.login(authDTO);
-        var token = this.tokenService.generateToken((User) auth.getPrincipal());
-        response.addHeader("Authorization", "Bearer " + token);
-    }
+	private final AuthenticationFacadeService authenticationFacadeService;
 
-    @PostMapping("/register")
-    public void register(@Valid @RequestBody RegisterUserDTO registerUserDTO ) {
-        authService.register( registerUserDTO );
-    }
+	@PostMapping( "/token" )
+	public AuthDTO token( @Valid @RequestBody LoginDTO loginDTO ) {
+		return authenticationFacadeService.token( loginDTO );
+	}
 
-    @PostMapping("/recover")
-    @PreAuthorize("hasRole('USER')")
-    public void requestRecovery(@Valid @RequestBody PasswordRecoveryDTO request) {
-        recoveryService.requestRecovery(request.getEmail());
-    }
+	@PostMapping( "/refresh" )
+	public AuthDTO refresh( @Valid @RequestBody RefreshTokenDTO refreshTokenDTO ) {
+		return authenticationFacadeService.refresh( refreshTokenDTO );
+	}
 
-    @PostMapping("/validate")
-    @PreAuthorize("hasRole('USER')")
-    public void validateCode(@Valid @RequestBody CodeValidationDTO request) {
-        recoveryService.validateCode(request.getEmail(), request.getCode());
-    }
+	@PostMapping( "/logout" )
+	public void logout( @Valid @RequestBody RefreshTokenDTO refreshTokenDTO ) {
+		refreshTokenService.deleteRefreshToken( refreshTokenDTO );
+	}
 
-    @PostMapping("/reset")
-    @PreAuthorize("hasRole('USER')")
-    public void resetPassword(@Valid @RequestBody PasswordResetDTO request) {
-        recoveryService.resetPassword(request.getEmail(), request.getCode(), request.getNewPassword());
-    }
+	@PostMapping( "/register" )
+	public void register( @Valid @RequestBody RegisterUserDTO registerUserDTO ) {
+		authService.register( registerUserDTO );
+	}
+
+	@PostMapping( "/recover-account" )
+	public void requestRecovery( @Valid @RequestBody PasswordRecoveryDTO passwordRecoveryDTO ) {
+		recoveryService.requestRecovery( passwordRecoveryDTO );
+	}
+
+	@PostMapping( "/validate-code" )
+	public void validateCode( @Valid @RequestBody CodeValidationDTO codeValidationDTO ) {
+		recoveryService.validateCode( codeValidationDTO );
+	}
+
+	@PostMapping( "/reset-password" )
+	public void resetPassword( @Valid @RequestBody PasswordResetDTO passwordResetDTO ) {
+		recoveryService.resetPassword( passwordResetDTO );
+	}
 
 }
