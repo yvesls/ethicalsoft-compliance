@@ -8,6 +8,7 @@ import { AuthInterface } from '../../shared/interfaces/auth/auth.interface'
 import { NotificationService } from './notification.service'
 import { RouterService } from './router.service'
 import { StorageService } from './storage.service'
+import { LoggerService } from './logger.service'
 
 @Injectable({
 	providedIn: 'root',
@@ -60,6 +61,7 @@ export class AuthenticationService {
 				return this.storageService.getAuthToken()
 			}
 		}
+		LoggerService.warn('AuthenticationService: No token found.')
 		return null
 	}
 
@@ -76,6 +78,7 @@ export class AuthenticationService {
 				return authData || null
 			}
 		}
+		LoggerService.warn('AuthenticationService: No refresh token found.')
 		return null
 	}
 
@@ -93,6 +96,8 @@ export class AuthenticationService {
 				this.startSessionMonitor()
 				this.isLoggedIn$.next(true)
 				this.userRoles$.next(this._user?.roles || [])
+			} else {
+				LoggerService.warn('AuthenticationService: Token not found in storage.')
 			}
 		}
 	}
@@ -104,6 +109,7 @@ export class AuthenticationService {
 				this.routerService.navigateTo('/home')
 			},
 			error: (error: any) => {
+				LoggerService.error('AuthenticationService: Error during login', error)
 				this.notificationService.showError(error)
 			},
 		})
@@ -111,17 +117,19 @@ export class AuthenticationService {
 
 	refreshToken(): Observable<boolean> {
 		if (!this._authToken || !this._authToken.refreshToken) {
+			LoggerService.warn('AuthenticationService: No refresh token available, unable to refresh.')
 			return of(false)
 		}
 
 		return this.authStore.refreshToken({ refreshToken: this._authToken.refreshToken }).pipe(
 			tap((tokenData: AuthTokenInterface) => {
-				const keepSession = localStorage.getItem(this.KEEP_SESSION_KEY) === 'true'
-				this.setAuthToken(tokenData, keepSession)
+				this.setAuthToken(tokenData, localStorage.getItem(this.KEEP_SESSION_KEY) === 'true')
 			}),
 			map(() => true),
 			catchError((error) => {
+				LoggerService.error('AuthenticationService: Error during token refresh', error)
 				this.logout()
+				this.notificationService.showError('Session expired, please log in again.')
 				return of(false)
 			})
 		)
@@ -129,18 +137,12 @@ export class AuthenticationService {
 
 	logout(): void {
 		if (isPlatformBrowser(this.platformId)) {
-			sessionStorage.removeItem('auth_token_session')
-			sessionStorage.removeItem(this.SESSION_REFRESH_TOKEN_KEY)
-
-			localStorage.removeItem(this.KEEP_SESSION_KEY)
-			localStorage.removeItem('refresh_token')
-
-			this.storageService.clearAuthToken()
+			sessionStorage.clear()
+			localStorage.clear()
 		}
 
 		this._authToken = null
 		this._user = null
-
 		this.userRoles$.next([])
 		this.isLoggedIn$.next(false)
 
@@ -153,6 +155,7 @@ export class AuthenticationService {
 
 	private setAuthToken(tokenData: AuthTokenInterface | null, keepSession: boolean = false): void {
 		if (!tokenData) {
+			LoggerService.warn('AuthenticationService: Token data is null, clearing authentication.')
 			this.clearAuthToken()
 			return
 		}
@@ -209,7 +212,7 @@ export class AuthenticationService {
 			sub: decoded.sub,
 			exp: decoded.exp,
 			roles: decoded.roles || [],
-      isFirstAccess: decoded.isFirstAccess || false,
+			isFirstAccess: decoded.isFirstAccess || false,
 			name: decoded.name || '',
 			email: decoded.email || '',
 			avatarUrl: decoded.avatarUrl || '',
@@ -239,6 +242,6 @@ export interface UserInterface {
 	roles: string[]
 	name: string
 	email: string
-  isFirstAccess: boolean
+	isFirstAccess: boolean
 	avatarUrl?: string
 }

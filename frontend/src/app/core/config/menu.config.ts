@@ -1,10 +1,10 @@
-import { RoleEnum } from "../../shared/enums/role.enum"
+import { RoleEnum } from '../../shared/enums/role.enum'
 
 export interface MenuItem {
 	label: string
 	icon?: string
-	route?: string
-	roles?: string[]
+	route: string
+	roles: RoleEnum[]
 	children?: MenuItem[]
 }
 

@@ -2,6 +2,8 @@
 @use './components/input';
 @use './components/buttons';
 @use './components/checkbox';
+@use './base/_media-queries' as *;
+@use './components/cards' as *;
 @use 'bootstrap/scss/bootstrap';
 @use 'ngx-spinner/animations/ball-scale-multiple.css';
 
@@ -114,11 +116,25 @@ form {
 	height: 100vh;
 	width: 100%;
 	transition: grid-template-columns 0.3s ease-in-out;
+
+	@include for-tablet-landscape-down {
+		grid-template-columns: 0 1fr;
+	}
 }
 
 :root {
-	--sidebar-width: 260px;
+	--sidebar-width: 230px;
 	--sidebar-collapsed-width: 100px;
+
+	@include for-tablet-down {
+		--sidebar-width: 0px;
+		--sidebar-collapsed-width: 0px;
+	}
+
+	@include for-phone-only {
+		--sidebar-width: 0px;
+		--sidebar-collapsed-width: 0px;
+	}
 }
 
 app-sidebar {
@@ -126,6 +142,13 @@ app-sidebar {
 	grid-row: 1 / span 3;
 	width: var(--sidebar-width);
 	transition: width 0.3s ease-in-out;
+
+	@include for-tablet-landscape-down {
+		&.opened {
+			display: block;
+			width: var(--sidebar-width);
+		}
+	}
 }
 
 .app-container {
@@ -136,6 +159,12 @@ app-sidebar {
 	height: 100vh;
 	overflow: hidden;
 	transition: margin-left 0.3s ease-in-out;
+
+	@include for-tablet-landscape-down {
+		margin-left: 0;
+		width: 100%;
+		grid-column: 1 / span 2;
+	}
 }
 
 app-header {
@@ -144,7 +173,11 @@ app-header {
 	background: $white;
 	display: flex;
 	align-items: center;
-	padding: 0 2rem;
+
+	@include for-phone-only {
+		height: auto;
+		min-height: 50px;
+	}
 }
 
 .app-content {
@@ -152,32 +185,50 @@ app-header {
 	overflow-y: auto;
 	background: $gray-tertiary;
 	padding: 2rem;
+
+	@include for-tablet-down {
+		padding: 1.5rem;
+	}
+
+	@include for-phone-only {
+		padding: 1rem;
+	}
 }
 
 app-footer {
 	grid-row: 3;
 	height: 4vh;
 	background: $gray-tertiary;
+	width: 100%;
+
+	@include for-phone-only {
+		height: auto;
+		min-height: 40px;
+	}
 }
 
 .layout-container {
 	grid-template-columns: var(--sidebar-width) 1fr;
+
+	@include for-tablet-landscape-down {
+		grid-template-columns: 0 1fr;
+	}
 }
 
 .layout-container .app-container {
 	margin-left: var(--sidebar-width);
-}
 
-.layout-container.sidebar-collapsed {
-	grid-template-columns: var(--sidebar-collapsed-width) 1fr;
-}
-
-.layout-container.sidebar-collapsed app-sidebar {
-	width: var(--sidebar-collapsed-width);
+	@include for-tablet-landscape-down {
+		margin-left: 0;
+	}
 }
 
 .layout-container.sidebar-collapsed .app-container {
 	margin-left: var(--sidebar-collapsed-width);
+
+	@include for-tablet-landscape-down {
+		margin-left: 0;
+	}
 }
 
 @media (max-width: 768px) {
@@ -313,31 +364,4 @@ app-footer {
 		opacity: 0;
 		transform: scale(0.9);
 	}
-}
-
-/* cards */
-
-.card {
-	background-color: $gray-tertiary;
-	border: none;
-	padding: 2.5rem;
-	border-radius: $radius-default;
-	box-shadow: $box-shadow-secundary;
-	text-align: center;
-}
-
-.very-small-card {
-	width: 32vw;
-}
-
-.small-card {
-	width: 42vw;
-}
-
-.medium-card {
-	width: 62vw;
-}
-
-.large-card {
-	width: 82vw;
 }

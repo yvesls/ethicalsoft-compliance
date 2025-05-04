@@ -1,6 +1,7 @@
 import { Inject, Injectable, PLATFORM_ID } from '@angular/core'
 import { isPlatformBrowser } from '@angular/common'
 import { NavigateInfo, RouteStorageParams } from './router.service'
+import { LoggerService } from '../services/logger.service'
 
 @Injectable({
 	providedIn: 'root',
@@ -17,9 +18,15 @@ export class StorageService {
 	setAuthToken(token: string | null): void {
 		if (isPlatformBrowser(this.platformId)) {
 			if (token) {
-				localStorage.setItem(this.AUTH_TOKEN_KEY, token)
+				try {
+					localStorage.setItem(this.AUTH_TOKEN_KEY, token)
+					LoggerService.warn('StorageService: Auth token saved successfully')
+				} catch (error) {
+					LoggerService.error('StorageService: Failed to save auth token', error)
+				}
 			} else {
 				localStorage.removeItem(this.AUTH_TOKEN_KEY)
+				LoggerService.warn('StorageService: Auth token removed successfully')
 			}
 		}
 	}
@@ -34,13 +41,22 @@ export class StorageService {
 	clearAuthToken(): void {
 		if (isPlatformBrowser(this.platformId)) {
 			localStorage.removeItem(this.AUTH_TOKEN_KEY)
+			LoggerService.warn('StorageService: Auth token cleared')
 		}
 	}
 
 	getHistVID(): string[] {
 		if (isPlatformBrowser(this.platformId)) {
 			const history = localStorage.getItem(this.NAVIGATION_HISTORY_KEY)
-			return history ? JSON.parse(history) : []
+			if (!history) {
+				LoggerService.warn('StorageService: No navigation history found')
+			}
+			try {
+				return history ? JSON.parse(history) : []
+			} catch (error) {
+				LoggerService.error('StorageService: Failed to parse navigation history', error)
+				return []
+			}
 		}
 		return []
 	}
@@ -49,19 +65,29 @@ export class StorageService {
 		if (isPlatformBrowser(this.platformId)) {
 			let history = this.getHistVID().filter((vid) => !vids.includes(vid))
 			localStorage.setItem(this.NAVIGATION_HISTORY_KEY, JSON.stringify(history))
+			LoggerService.warn(`StorageService: Removed VIDs: ${vids.join(', ')}`)
 		}
 	}
 
 	setCurrentPage<T>(currentData: NavigateInfo<T>): void {
 		if (isPlatformBrowser(this.platformId)) {
 			localStorage.setItem(this.CURRENT_PAGE_KEY, JSON.stringify(currentData))
+			LoggerService.warn('StorageService: Current page set successfully')
 		}
 	}
 
 	getCurrentPage<T>(): NavigateInfo<T> {
 		if (isPlatformBrowser(this.platformId)) {
 			const data = localStorage.getItem(this.CURRENT_PAGE_KEY)
-			return data ? JSON.parse(data) : { vid: '', route: '' }
+			if (!data) {
+				LoggerService.warn('StorageService: No current page found')
+			}
+			try {
+				return data ? JSON.parse(data) : { vid: '', route: '' }
+			} catch (error) {
+				LoggerService.error('StorageService: Failed to parse current page', error)
+				return { vid: '', route: '' }
+			}
 		}
 		return { vid: '', route: '' }
 	}
@@ -118,7 +144,13 @@ export class StorageService {
 
 	getShowLayout(): boolean {
 		if (isPlatformBrowser(this.platformId)) {
-			return JSON.parse(localStorage.getItem(this.SHOW_LAYOUT_KEY) || 'true')
+			const storedValue = localStorage.getItem(this.SHOW_LAYOUT_KEY)
+			try {
+				const parsedValue = JSON.parse(storedValue || 'true')
+				return typeof parsedValue === 'boolean' ? parsedValue : true
+			} catch (e) {
+				return true
+			}
 		}
 		return true
 	}
@@ -139,6 +171,7 @@ export class StorageService {
 					localStorage.removeItem(key)
 				}
 			})
+			LoggerService.warn('StorageService: All storage cleared')
 		}
 	}
 }

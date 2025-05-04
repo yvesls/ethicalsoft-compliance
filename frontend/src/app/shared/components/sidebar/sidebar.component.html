@@ -1,9 +1,12 @@
 <aside [class.collapsed]="isCollapsed" class="sidebar">
-	<a class="sidebar-toggler" (click)="toggleSidebar()">
-		<img src="../../../../assets/icons/{{ isCollapsed ? 'right' : 'left' }}.svg" alt="Toggle Sidebar" width="12" />
-	</a>
-
 	<div class="sidebar-layout">
+		<a class="sidebar-toggler" (click)="toggleSidebar()">
+			<img
+				src="../../../../assets/icons/{{ isCollapsed ? 'right' : 'left' }}.svg"
+				alt="Toggle Sidebar"
+				width="12"
+			/>
+		</a>
 		<div class="sidebar-header">
 			<div class="logo">
 				<img src="../../../../assets/images/logo.png" alt="logo" />

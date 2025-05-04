@@ -1,13 +1,11 @@
-import { Component, OnInit } from '@angular/core'
-import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router'
+import { Component, OnInit, Renderer2 } from '@angular/core'
 import { CommonModule } from '@angular/common'
 import { NgxSpinnerModule } from 'ngx-spinner'
 import { HeaderComponent } from './shared/components/header/header.component'
 import { FooterComponent } from './shared/components/footer/footer.component'
 import { SidebarComponent } from './shared/components/sidebar/sidebar.component'
 import { LayoutStateService } from './core/services/layout-state.service'
-import { filter } from 'rxjs'
-import { RouterService } from './core/services/router.service'
+import { RouterOutlet } from '@angular/router'
 
 @Component({
 	selector: 'app-root',
@@ -30,9 +28,5 @@ export class AppComponent implements OnInit {
 		this.layoutStateService.isSidebarCollapsed$.subscribe((state) => {
 			this.isSidebarCollapsed = state
 		})
-	}
-
-	toggleSidebar(): void {
-		this.layoutStateService.toggleSidebar()
 	}
 }

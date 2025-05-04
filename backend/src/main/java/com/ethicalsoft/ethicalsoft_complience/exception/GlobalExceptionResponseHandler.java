@@ -52,7 +52,7 @@ public class GlobalExceptionResponseHandler {
 	@ExceptionHandler( ResourceNotFoundException.class )
 	@ResponseStatus( HttpStatus.NOT_FOUND )
 	public ExceptionResponseDTO handleResourceNotFound( ResourceNotFoundException exception, HttpServletRequest request ) {
-		return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, "Resource not found.", request, HttpStatus.NOT_FOUND );
+		return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, "Resource not found. Please check the URL or resource availability.", request, HttpStatus.NOT_FOUND );
 	}
 
 	@ExceptionHandler( ResponseStatusException.class )
@@ -169,7 +169,7 @@ public class GlobalExceptionResponseHandler {
 	public ExceptionResponseDTO handleServerError( Exception exception, HttpServletRequest request ) {
 		var errorCode = UUID.randomUUID();
 		var msg = "Unexpected error. Contact the system administrator with the error code. " + errorCode;
-		log.error("Unexpected error: [{}] - {}", errorCode, exception.getMessage(), exception);
+		log.error( "Unexpected error: [{}] - {}", errorCode, exception.getMessage(), exception );
 		return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, msg, request, HttpStatus.INTERNAL_SERVER_ERROR );
 	}
 

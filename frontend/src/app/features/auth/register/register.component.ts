@@ -9,6 +9,7 @@ import { createRegister } from '../../../shared/interfaces/auth/register.interfa
 import { NotificationService } from '../../../core/services/notification.service'
 import { ModalService } from '../../../core/services/modal.service'
 import { TermsComponent } from '../terms/terms.component'
+import { NavigateParams } from '../../../core/services/router.service'
 
 @Component({
 	selector: 'app-register',
@@ -95,7 +96,7 @@ export class RegisterComponent extends BasePageComponent {
 	}
 
 	goToLogin() {
-		this.routerService.navigateTo('login')
+		this.routerService.navigateTo('login', {} as NavigateParams<any>, this.form.touched)
 	}
 
 	openTermsAndPolicies(event: MouseEvent) {

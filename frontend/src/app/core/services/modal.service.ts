@@ -4,6 +4,7 @@ import { Router, NavigationStart } from '@angular/router'
 import { Subscription } from 'rxjs'
 import { filter } from 'rxjs/operators'
 import { NotificationService } from './notification.service'
+import { LoggerService } from './logger.service' // Assume LoggerService exists
 
 export type ModalSize = 'very-small-card' | 'small-card' | 'medium-card' | 'large-card'
 
@@ -76,7 +77,8 @@ export class ModalService implements OnDestroy {
 		}
 	}
 
-	open<T>(component: Type<T>, size: ModalSize = 'very-small-card', data?: Partial<T>): void {
+	open<T>(component: Type<T>, size: ModalSize = 'small-card', data?: Partial<T>): void {
+		LoggerService.info('Opening modal with component:', component)
 		if (this.modalRef) {
 			this.attemptClose(() => this.open(component, size, data))
 			return
@@ -134,6 +136,7 @@ export class ModalService implements OnDestroy {
 	}
 
 	close(): void {
+		LoggerService.info('Closing modal')
 		if (this.modalRef) {
 			this.appRef.detachView(this.modalRef.hostView)
 			this.modalRef.destroy()

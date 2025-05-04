@@ -3,6 +3,7 @@ import { Observable, take } from 'rxjs'
 import { MenuService } from '../services/menu.service'
 import { NavigateParams, RouteHistoryParams, RouteParams, RouterService } from '../services/router.service'
 import { hasProperties } from '../utils/common-utils'
+import { LoggerService } from '../services/logger.service'
 
 @Directive()
 export abstract class BasePageComponent implements OnInit, OnDestroy {
@@ -48,14 +49,19 @@ export abstract class BasePageComponent implements OnInit, OnDestroy {
 		this.routerService
 			.getRouteInfoParams()
 			.pipe(take(1))
-			.subscribe((activatedRouteInfo: RouteHistoryParams<any>) => {
-				this.routeInfo = activatedRouteInfo
-				if (!this.routeInfo.vid) {
-					this._getVID()
-				} else {
-					this._startWithVID()
+			.subscribe(
+				(activatedRouteInfo: RouteHistoryParams<any>) => {
+					this.routeInfo = activatedRouteInfo
+					if (!this.routeInfo.vid) {
+						this._getVID()
+					} else {
+						this._startWithVID()
+					}
+				},
+				(error) => {
+					LoggerService.error('BasePageComponent: Error validating route info', error)
 				}
-			})
+			)
 	}
 
 	private _getVID(): void {
@@ -64,28 +70,39 @@ export abstract class BasePageComponent implements OnInit, OnDestroy {
 			queryParams: this.routeInfo.queryParams,
 		}
 		const [uri] = this.routerService.currentUrl.split('?')
-		this.routerService.navigateTo(uri, navigateParams).then(() => this._validateVID())
+		this.routerService
+			.navigateTo(uri, navigateParams)
+			.then(() => this._validateVID())
+			.catch((error) => {
+				LoggerService.error('BasePageComponent: Error while navigating to URI for VID', error)
+			})
 	}
 
 	private _startWithVID(): void {
-		this._onComponentInit().subscribe(() => {
-			let startPageParams: RouteParams<any> =
-				this.routerService.getStoredPageViewParams(this.routeInfo.vid)?.obj?.params || {}
+		this._onComponentInit().subscribe(
+			() => {
+				let startPageParams: RouteParams<any> =
+					this.routerService.getStoredPageViewParams(this.routeInfo.vid)?.obj?.params || {}
 
-			this.restore({
-				...startPageParams,
-				hasParams: hasProperties(startPageParams),
-			})
+				this.restore({
+					...startPageParams,
+					hasParams: hasProperties(startPageParams),
+				})
 
-			if (!hasProperties(this.routeInfo.params)) {
-				this.routeInfo.params = startPageParams
+				if (!hasProperties(this.routeInfo.params)) {
+					LoggerService.warn('BasePageComponent: No parameters found in route info, using default parameters')
+					this.routeInfo.params = startPageParams
+				}
+				this.objCopy = startPageParams.objCopy || ''
+				this.loadParams(this.routeInfo.params, this.routeInfo.queryParams)
+
+				this._onSave()
+				this.routerService.setStoredCurrentPage(this.routeInfo)
+			},
+			(error) => {
+				LoggerService.error('BasePageComponent: Error during component initialization with VID', error)
 			}
-			this.objCopy = startPageParams.objCopy || ''
-			this.loadParams(this.routeInfo.params, this.routeInfo.queryParams)
-
-			this._onSave()
-			this.routerService.setStoredCurrentPage(this.routeInfo)
-		})
+		)
 	}
 
 	private _onSave(): void {
@@ -98,6 +115,8 @@ export abstract class BasePageComponent implements OnInit, OnDestroy {
 				d: new Date(),
 				obj: routeHistoryParams,
 			})
+		} else {
+			LoggerService.warn('BasePageComponent: No VID found, unable to save route information')
 		}
 	}
 }

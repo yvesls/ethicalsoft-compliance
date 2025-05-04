@@ -1,4 +1,5 @@
 import { parseISO, format } from 'date-fns'
+import { LoggerService } from '../services/logger.service'
 
 export function dateParserSend(key: string, value: any) {
 	if (value instanceof Date) {
@@ -14,6 +15,8 @@ export function dateParserSend(key: string, value: any) {
 		const match = regexISO.exec(value)
 		if (match) {
 			return format(parseISO(value), "yyyy-MM-dd'T'HH:mm:ss")
+		} else {
+			LoggerService.warn(`dateParserSend: Invalid date format detected for value: ${value}`)
 		}
 	}
 
@@ -41,6 +44,8 @@ export function dateParser(key: string, value: any) {
 			return new Date(parseInt(sa[0], 10), parseInt(sa[1], 10) - 1, parseInt(sa[2], 10))
 		}
 	}
+
+	LoggerService.error(`dateParser: Invalid date string or unsupported format: ${value}`)
 	return value
 }
 

@@ -9,6 +9,7 @@ import { CodeVerificationComponent } from './features/auth/code-verification/cod
 import { ResetPasswordComponent } from './features/auth/reset-password/reset-password.component'
 import { NavigationSourceGuard } from './core/guards/navigation-source.guard'
 import { RegisterComponent } from './features/auth/register/register.component'
+import { RoleEnum } from './shared/enums/role.enum'
 
 export const routes: Routes = [
 	{
@@ -26,6 +27,7 @@ export const routes: Routes = [
 		path: 'home',
 		component: HomeComponent,
 		canActivate: [LayoutGuard, AuthGuard],
+		data: { roles: [RoleEnum.USER] },
 	},
 	{
 		path: 'recover-account',

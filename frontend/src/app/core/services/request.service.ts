@@ -5,6 +5,8 @@ import { UrlParameter } from '../interfaces/url-parameter.interface'
 import { dateParser, dateParserSend } from '../utils/common-utils'
 import { RequestInputOptions } from '../interfaces/request-input-options.interface'
 import { getErrorMessage } from '../../shared/enums/error-messages.enum'
+import { LoggerService } from './logger.service'
+import { NotificationService } from './notification.service'
 
 export const USE_AUTH_CONTEXT = new HttpContextToken<boolean>(() => false)
 export const USE_CACHE_CONTEXT = new HttpContextToken<boolean>(() => false)
@@ -23,7 +25,10 @@ const DELETE = 'delete'
 export class RequestService {
 	private _apiUrl?: string
 
-	constructor(private http: HttpClient) {}
+	constructor(
+		private http: HttpClient,
+		private notificationService: NotificationService
+	) {}
 
 	get apiUrl(): string | undefined {
 		return this._apiUrl
@@ -38,6 +43,11 @@ export class RequestService {
 	}
 
 	makeFilePost<T>(url: string, options: RequestInputOptions, ...params: UrlParameter[]): Observable<T> {
+		if (!options.data) {
+			LoggerService.error('RequestService: No file data provided for POST request.', { url, options })
+			this.notificationService.showError('No file data to send.')
+			throw Error('Não há arquivo para ser enviado.')
+		}
 		return this._makeFileUploadRequest<T>(this._getUrl(url, options.isBase, params), options)
 	}
 
@@ -103,6 +113,7 @@ export class RequestService {
 
 	private _makeFileUploadRequest<T>(url: string, options: RequestInputOptions): Observable<T> {
 		if (!options.data) {
+			LoggerService.error('RequestService: Não há arquivo para ser enviado')
 			throw Error('Não há arquivo para ser enviado.')
 		}
 		const headers = options.headers ?? new HttpHeaders()
@@ -127,14 +138,16 @@ export class RequestService {
 			map((response) => {
 				if (response?.body) {
 					try {
-						return JSON.parse(response.body, dateParser)
+						return JSON.parse(response.body)
 					} catch (errorParse) {
+						LoggerService.error('RequestService: Error parsing response body', errorParse)
 						return response.body
 					}
 				}
 				return null
 			}),
 			catchError((error) => {
+				LoggerService.error('RequestService: HTTP request failed', error)
 				let formattedError: any = {
 					status: 0,
 					errorType: 'ERROR',

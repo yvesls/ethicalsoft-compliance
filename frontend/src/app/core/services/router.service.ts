@@ -5,10 +5,10 @@ import { Md5 } from 'ts-md5'
 import { deepCopy } from '../utils/common-utils'
 import { NotificationService } from './notification.service'
 import { StorageService } from './storage.service'
-import { FormStateService } from './form-state.service'
 import { addDays } from '../utils/date-utils'
 import { LayoutStateService } from './layout-state.service'
 import { NavigationSourceService } from './navigation-source.service'
+import { LoggerService } from './logger.service'
 
 @Injectable({ providedIn: 'root' })
 export class RouterService {
@@ -21,7 +21,6 @@ export class RouterService {
 		private router: Router,
 		private storageService: StorageService,
 		private notificationService: NotificationService,
-		private formStateService: FormStateService,
 		private layoutStateService: LayoutStateService,
 		private navigationSourceService: NavigationSourceService
 	) {
@@ -41,11 +40,14 @@ export class RouterService {
 		})
 	}
 
-	async navigateTo<T>(url: string, navigateParams?: NavigateParams<T>): Promise<boolean> {
+	async navigateTo<T>(
+		url: string,
+		navigateParams?: NavigateParams<T>,
+		isFormDirty: boolean = false
+	): Promise<boolean> {
 		const { params = {}, queryParams = {} } = navigateParams || {}
-		this._createPageData<T>(url, params, queryParams)
-		this.navigationSourceService.setInternalNavigation(true)
-		if (this.formStateService.getFormDirty()) {
+
+		if (isFormDirty) {
 			return new Promise((resolve) => {
 				this.notificationService.showConfirm(
 					'Os dados não salvos serão perdidos. Deseja continuar?',
@@ -57,6 +59,10 @@ export class RouterService {
 				)
 			})
 		}
+
+		this._createPageData<T>(url, params, queryParams)
+		this.navigationSourceService.setInternalNavigation(true)
+
 		return this._redirectTo(url, queryParams)
 	}
 
@@ -65,6 +71,7 @@ export class RouterService {
 		this._generateVID(queryParams)
 		this.navigationSourceService.setInternalNavigation(true)
 		window.open(`${url}?vid=${queryParams['vid']}`, '_blank')
+		LoggerService.warn('Opening URL in new tab', { url, queryParams })
 	}
 
 	rawNavigate(uri: string, queryParams?: Params | null): Promise<boolean> {
@@ -86,6 +93,10 @@ export class RouterService {
 						queryParams: deepCopy(routeQueryParams),
 					}
 					observer.next(routerHistoryParams)
+					observer.complete()
+				},
+				error: (error) => {
+					LoggerService.error('Error getting route info parameters', error)
 					observer.complete()
 				},
 			})
