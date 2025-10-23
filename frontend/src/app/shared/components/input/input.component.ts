@@ -27,6 +27,9 @@ export class InputComponent implements ControlValueAccessor {
 	@Input() validationMessages: { [key: string]: string } = {}
 	@Input() control!: AbstractControl | null
 
+  public currentType = 'text'
+  public isPasswordVisible = false
+
 	value: any = ''
 	disabled = false
 	touched = false
@@ -38,6 +41,7 @@ export class InputComponent implements ControlValueAccessor {
 		if (!this.id) {
 			this.id = this.label.toLowerCase().replace(/\s/g, '-')
 		}
+    this.currentType = this.type;
 	}
 
 	writeValue(value: any): void {
@@ -69,8 +73,28 @@ export class InputComponent implements ControlValueAccessor {
 		}
 	}
 
-	getErrorMessages(): string[] {
-		if (!this.control?.errors) return []
-		return Object.keys(this.control.errors).map((key) => this.validationMessages[key] || `Campo inválido`)
-	}
+  getErrorMessages(): string[] {
+    if (!this.control?.errors) {
+      return [];
+    }
+
+    const errors = this.control.errors;
+
+    return Object.keys(errors).map((key) => {
+      if (this.validationMessages[key]) {
+        return this.validationMessages[key];
+      }
+
+      if (typeof errors[key] === 'string') {
+        return errors[key];
+      }
+
+      return `Erro de validação: ${key}`;
+    });
+  }
+
+  togglePasswordVisibility(): void {
+    this.isPasswordVisible = !this.isPasswordVisible;
+    this.currentType = this.isPasswordVisible ? 'text' : 'password';
+  }
 }

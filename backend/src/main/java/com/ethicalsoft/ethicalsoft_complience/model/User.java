@@ -23,7 +23,7 @@ public class User implements UserDetails {
 
 	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
 	private List<Representative> representatives;
-	
+
 	@Id
 	@GeneratedValue( strategy = GenerationType.IDENTITY )
 	@Column( name = "user_id" )
@@ -50,9 +50,6 @@ public class User implements UserDetails {
 	@Enumerated(EnumType.STRING)
 	@Column(name = "role")
 	private UserRoleEnum role;
-
-	@OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-	private RefreshToken refreshToken;
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {

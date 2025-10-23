@@ -2,16 +2,18 @@ package com.ethicalsoft.ethicalsoft_complience.repository;
 
 import com.ethicalsoft.ethicalsoft_complience.model.RefreshToken;
 import com.ethicalsoft.ethicalsoft_complience.model.User;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 
 import java.util.Optional;
 
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long> {
 
-	Optional<RefreshToken> findByTokenHash( String tokenHash );
+	Optional<RefreshToken> findByToken( String tokenHash );
 
-	void deleteByTokenHash( String tokenHash );
-
-	void deleteByUser( User user );
+	@Transactional
+	@Modifying
+	void deleteByUser(User user);
 
 }
