@@ -23,6 +23,12 @@ export class AuthStore extends BaseStore {
 		return this.requestService.makePost(this.getUrl('token'), { data: inputLogin })
 	}
 
+  logout(refreshToken: string): Observable<void> {
+    return this.requestService.makePost(this.getUrl('logout'), {
+      data: { refreshToken }
+    });
+  }
+
 	refreshToken(refreshToken: AuthRefreshTokenInterface): Observable<AuthTokenInterface> {
 		return this.requestService.makePost(this.getUrl('refresh-token'), { data: refreshToken })
 	}

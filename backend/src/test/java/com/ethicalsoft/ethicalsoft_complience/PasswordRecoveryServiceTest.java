@@ -1,5 +1,6 @@
 package com.ethicalsoft.ethicalsoft_complience;
 
+import com.ethicalsoft.ethicalsoft_complience.exception.UserNotFoundException;
 import com.ethicalsoft.ethicalsoft_complience.model.RecoveryCode;
 import com.ethicalsoft.ethicalsoft_complience.model.User;
 import com.ethicalsoft.ethicalsoft_complience.model.dto.auth.CodeValidationDTO;
@@ -58,7 +59,7 @@ import static org.mockito.Mockito.*;
         when(userRepository.findByEmail("invalid@example.com")).thenReturn(Optional.empty());
         PasswordRecoveryDTO passwordRecoveryDTO = new PasswordRecoveryDTO();
         passwordRecoveryDTO.setEmail("invalid@example.com");
-        assertThrows(UsernameNotFoundException.class, () -> passwordRecoveryService.requestRecovery(passwordRecoveryDTO));
+        assertThrows( UsernameNotFoundException.class, () -> passwordRecoveryService.requestRecovery(passwordRecoveryDTO));
     }
 
     @Test
@@ -139,7 +140,7 @@ import static org.mockito.Mockito.*;
 
         when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
 
-        assertThrows(UsernameNotFoundException.class,
+        assertThrows( UserNotFoundException.class,
                 () -> passwordRecoveryService.resetPassword(passwordResetDTO));
     }
 }

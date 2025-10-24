@@ -10,6 +10,7 @@ import { NotificationService } from '../../../core/services/notification.service
 import { ModalService } from '../../../core/services/modal.service'
 import { TermsComponent } from '../terms/terms.component'
 import { NavigateParams } from '../../../core/services/router.service'
+import { CustomValidators } from '../../../shared/validators/custom.validator'
 
 @Component({
 	selector: 'app-register',
@@ -59,19 +60,12 @@ export class RegisterComponent extends BasePageComponent {
 				firstName: ['', Validators.required],
 				lastName: ['', Validators.required],
 				email: ['', Validators.compose([Validators.email, Validators.required])],
-				password: ['', Validators.required],
+				password: ['', Validators.compose([Validators.required, CustomValidators.passwordValidator()])],
 				confirmPassword: ['', Validators.required],
 				acceptedTerms: [false, Validators.requiredTrue],
 			},
-			{ validators: this.passwordMatchValidator }
+			{ validators: CustomValidators.passwordMatchValidator() }
 		)
-	}
-
-	private passwordMatchValidator(group: FormGroup) {
-		const password = group.get('password')?.value
-		const confirmPassword = group.get('confirmPassword')?.value
-
-		return password === confirmPassword ? null : { passwordMismatch: true }
 	}
 
 	register() {

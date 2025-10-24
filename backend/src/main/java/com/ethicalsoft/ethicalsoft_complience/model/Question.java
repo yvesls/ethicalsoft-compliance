@@ -13,21 +13,27 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table( name = "question" )
+@Table(name = "question")
 public class Question {
 	@Id
-	@GeneratedValue( strategy = GenerationType.IDENTITY )
-	@Column( name = "question_id" )
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "question_id")
 	private Integer id;
 
-	@Column( name = "text", nullable = false )
+	@Column(name = "text", nullable = false)
 	private String value;
 
 	@ManyToOne
-	@JoinColumn( name = "questionnaire_id" )
+	@JoinColumn(name = "questionnaire_id")
 	private Questionnaire questionnaire;
 
 	@ManyToMany
-	@JoinTable( name = "question_role", joinColumns = @JoinColumn( name = "question_id" ), inverseJoinColumns = @JoinColumn( name = "role_id" ) )
+	@JoinTable(name = "question_role",
+			joinColumns = @JoinColumn(name = "question_id"),
+			inverseJoinColumns = @JoinColumn(name = "role_id"))
 	private Set<Role> roles;
+
+	@ManyToOne
+	@JoinColumn(name = "stage_id")
+	private Stage stage;
 }

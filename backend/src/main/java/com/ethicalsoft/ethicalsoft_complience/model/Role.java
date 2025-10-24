@@ -13,17 +13,23 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table( name = "role" )
+@Table(name = "role")
 public class Role {
 
 	@Id
-	@GeneratedValue( strategy = GenerationType.IDENTITY )
-	@Column( name = "role_id" )
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "role_id")
 	private Long id;
 
-	@Column( name = "nome", unique = true, nullable = false )
+	@Column(name = "nome", unique = true, nullable = false)
 	private String name;
 
-	@ManyToMany( mappedBy = "roles" )
+	@Column(name = "description")
+	private String description;
+
+	@ManyToMany(mappedBy = "roles")
 	private Set<Representative> representatives;
+
+	@ManyToMany(mappedBy = "roles")
+	private Set<Question> questions;
 }

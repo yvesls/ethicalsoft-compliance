@@ -21,25 +21,34 @@ import java.util.List;
 @Table( name = "user_account" )
 public class User implements UserDetails {
 
-	@OneToMany( mappedBy = "user", cascade = CascadeType.ALL )
-	private static List<Representative> representatives;
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+	private List<Representative> representatives;
+
 	@Id
 	@GeneratedValue( strategy = GenerationType.IDENTITY )
 	@Column( name = "user_id" )
 	private Long id;
+
 	@Column( name = "first_name", nullable = false )
 	private String firstName;
+
 	@Column( name = "email", unique = true, nullable = false )
 	private String email;
+
 	@Column( name = "last_name", nullable = false )
 	private String lastName;
+
 	@Column( name = "password", nullable = false )
 	private String password;
+
 	@Column( name = "accepted_terms" )
 	private boolean acceptedTerms;
+
 	@Column( name = "first_access" )
 	private boolean firstAccess;
-	@Enumerated( EnumType.STRING )
+
+	@Enumerated(EnumType.STRING)
+	@Column(name = "role")
 	private UserRoleEnum role;
 
 	@Override

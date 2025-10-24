@@ -21,7 +21,7 @@ public class RefreshToken {
 	private Long id;
 
 	@Column( name = "token", nullable = false, unique = true )
-	private String tokenHash;
+	private String token;
 
 	@OneToOne
 	@JoinColumn( name = "user_id", nullable = false )
@@ -30,8 +30,8 @@ public class RefreshToken {
 	@Column( nullable = false )
 	private Instant expiryDate;
 
-	public RefreshToken( String tokenHash, User user, Instant expiryDate ) {
-		this.tokenHash = tokenHash;
+	public RefreshToken( String token, User user, Instant expiryDate ) {
+		this.token = token;
 		this.user = user;
 		this.expiryDate = expiryDate;
 	}

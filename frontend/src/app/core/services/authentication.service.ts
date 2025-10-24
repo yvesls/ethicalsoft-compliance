@@ -135,23 +135,39 @@ export class AuthenticationService {
 		)
 	}
 
+  private clearLocalTokens(): void {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+  }
+
 	logout(): void {
-		if (isPlatformBrowser(this.platformId)) {
-			sessionStorage.clear()
-			localStorage.clear()
-		}
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+    const refreshToken = this.getRefreshToken();
 
-		this._authToken = null
-		this._user = null
-		this.userRoles$.next([])
-		this.isLoggedIn$.next(false)
+    sessionStorage.clear();
+    localStorage.clear();
 
-		if (this.refreshTimer) {
-			clearTimeout(this.refreshTimer)
-		}
+    this._authToken = null;
+    this._user = null;
+    this.userRoles$.next([]);
+    this.isLoggedIn$.next(false);
 
-		this.routerService.navigateTo('/login')
-	}
+    if (this.refreshTimer) {
+      clearTimeout(this.refreshTimer);
+    }
+
+    if (refreshToken) {
+      this.authStore.logout(refreshToken).subscribe({
+        error: (err) => {
+          LoggerService.error('AuthenticationService: Backend logout failed', err);
+        }
+      });
+    }
+
+    this.routerService.rawNavigate('login');
+  }
 
 	private setAuthToken(tokenData: AuthTokenInterface | null, keepSession: boolean = false): void {
 		if (!tokenData) {

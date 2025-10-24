@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Set;
 
 @Getter
@@ -14,13 +15,17 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "stage")
-public class Stage {
+@Table(name = "iteration")
+public class Iteration {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "stage_id")
-	private Integer id;
+	@Column(name = "iteration_id")
+	private Long id;
+
+	@ManyToOne
+	@JoinColumn(name = "project_id", nullable = false)
+	private Project project;
 
 	@Column(name = "name", nullable = false, length = 100)
 	private String name;
@@ -28,13 +33,14 @@ public class Stage {
 	@Column(name = "weight", nullable = false, precision = 5, scale = 2)
 	private BigDecimal weight;
 
-	@ManyToOne
-	@JoinColumn(name = "project_id")
-	private Project project;
+	@Column(name = "application_start_date")
+	@Temporal(TemporalType.DATE)
+	private LocalDate applicationStartDate;
 
-	@OneToMany(mappedBy = "stage")
+	@Column(name = "application_end_date")
+	@Temporal(TemporalType.DATE)
+	private LocalDate applicationEndDate;
+
+	@OneToMany(mappedBy = "iterationRef")
 	private Set<Questionnaire> questionnaires;
-
-	@OneToMany(mappedBy = "stage")
-	private Set<Question> questions;
 }
