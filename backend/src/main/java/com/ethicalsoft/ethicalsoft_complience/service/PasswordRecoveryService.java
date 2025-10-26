@@ -1,12 +1,12 @@
 package com.ethicalsoft.ethicalsoft_complience.service;
 
 import com.ethicalsoft.ethicalsoft_complience.exception.UserNotFoundException;
-import com.ethicalsoft.ethicalsoft_complience.model.RecoveryCode;
-import com.ethicalsoft.ethicalsoft_complience.model.dto.auth.CodeValidationDTO;
-import com.ethicalsoft.ethicalsoft_complience.model.dto.auth.PasswordRecoveryDTO;
-import com.ethicalsoft.ethicalsoft_complience.model.dto.auth.PasswordResetDTO;
-import com.ethicalsoft.ethicalsoft_complience.repository.RecoveryCodeRepository;
-import com.ethicalsoft.ethicalsoft_complience.repository.UserRepository;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.RecoveryCode;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.auth.CodeValidationDTO;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.auth.PasswordRecoveryDTO;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.auth.PasswordResetDTO;
+import com.ethicalsoft.ethicalsoft_complience.postgres.repository.RecoveryCodeRepository;
+import com.ethicalsoft.ethicalsoft_complience.postgres.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

@@ -1,9 +1,9 @@
 package com.ethicalsoft.ethicalsoft_complience.service;
 
 import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
-import com.ethicalsoft.ethicalsoft_complience.model.dto.UserDTO;
-import com.ethicalsoft.ethicalsoft_complience.model.enums.ErrorTypeEnum;
-import com.ethicalsoft.ethicalsoft_complience.repository.UserRepository;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.UserDTO;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.ErrorTypeEnum;
+import com.ethicalsoft.ethicalsoft_complience.postgres.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;

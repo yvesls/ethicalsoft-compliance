@@ -1,7 +1,7 @@
 package com.ethicalsoft.ethicalsoft_complience.controller;
 
 import com.ethicalsoft.ethicalsoft_complience.controller.base.BaseController;
-import com.ethicalsoft.ethicalsoft_complience.model.dto.auth.*;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.auth.*;
 import com.ethicalsoft.ethicalsoft_complience.service.AuthService;
 import com.ethicalsoft.ethicalsoft_complience.service.PasswordRecoveryService;
 import com.ethicalsoft.ethicalsoft_complience.service.RefreshTokenService;

@@ -1,9 +1,9 @@
 package com.ethicalsoft.ethicalsoft_complience.infra.security;
 
-import com.ethicalsoft.ethicalsoft_complience.model.User;
-import com.ethicalsoft.ethicalsoft_complience.model.enums.UserRoleEnum;
-import com.ethicalsoft.ethicalsoft_complience.repository.RepresentativeRepository;
-import com.ethicalsoft.ethicalsoft_complience.repository.UserRepository;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.User;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.UserRoleEnum;
+import com.ethicalsoft.ethicalsoft_complience.postgres.repository.RepresentativeRepository;
+import com.ethicalsoft.ethicalsoft_complience.postgres.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

@@ -1,6 +1,6 @@
 package com.ethicalsoft.ethicalsoft_complience.infra.security;
 
-import com.ethicalsoft.ethicalsoft_complience.repository.UserRepository;
+import com.ethicalsoft.ethicalsoft_complience.postgres.repository.UserRepository;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

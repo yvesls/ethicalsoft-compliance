@@ -1,10 +1,10 @@
 package com.ethicalsoft.ethicalsoft_complience.service;
 
 import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
-import com.ethicalsoft.ethicalsoft_complience.model.RefreshToken;
-import com.ethicalsoft.ethicalsoft_complience.model.User;
-import com.ethicalsoft.ethicalsoft_complience.model.dto.auth.RefreshTokenDTO;
-import com.ethicalsoft.ethicalsoft_complience.repository.RefreshTokenRepository;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.RefreshToken;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.User;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.auth.RefreshTokenDTO;
+import com.ethicalsoft.ethicalsoft_complience.postgres.repository.RefreshTokenRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,7 +1,7 @@
 package com.ethicalsoft.ethicalsoft_complience.controller;
 
 import com.ethicalsoft.ethicalsoft_complience.controller.base.BaseController;
-import com.ethicalsoft.ethicalsoft_complience.model.dto.UserDTO;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.UserDTO;
 import com.ethicalsoft.ethicalsoft_complience.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

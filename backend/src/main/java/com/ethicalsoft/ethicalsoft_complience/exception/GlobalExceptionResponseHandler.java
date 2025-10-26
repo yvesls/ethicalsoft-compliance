@@ -1,7 +1,7 @@
 package com.ethicalsoft.ethicalsoft_complience.exception;
 
 
-import com.ethicalsoft.ethicalsoft_complience.model.enums.ErrorTypeEnum;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.ErrorTypeEnum;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
