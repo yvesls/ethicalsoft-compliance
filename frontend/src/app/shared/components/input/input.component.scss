@@ -1,11 +1,14 @@
+@use '../../../../assets/scss/base/vars' as *;
+
 .input-wrapper {
   position: relative;
-  width: 100%;
+  padding-right: 40px;
 
   .password-toggle-btn {
     position: absolute;
     right: 0;
     top: 0;
+
     height: 100%;
     width: 40px;
 
@@ -16,7 +19,7 @@
     border: none;
     padding: 0;
     cursor: pointer;
-    margin-top: 2px;
+
     img {
       width: 26px;
       height: 26px;

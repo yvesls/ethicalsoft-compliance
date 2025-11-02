@@ -6,7 +6,7 @@ import java.util.stream.Stream;
 
 @Getter
 public enum ProjectTypeEnum {
-	WATERFALL( "Cascata" ), ITERATIVE( "Iterativo Incremental" );
+	CASCATA( "Cascata" ), ITERATIVO( "Iterativo Incremental" );
 
 	private final String aString;
 

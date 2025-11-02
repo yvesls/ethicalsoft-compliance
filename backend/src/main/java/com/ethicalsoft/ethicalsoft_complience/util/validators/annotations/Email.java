@@ -1,8 +1,8 @@
-package util.validators.annotations;
+package com.ethicalsoft.ethicalsoft_complience.util.validators.annotations;
 
+import com.ethicalsoft.ethicalsoft_complience.util.validators.EmailValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
-import util.validators.EmailValidator;
 
 import java.lang.annotation.*;
 

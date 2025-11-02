@@ -3,14 +3,18 @@
     {{ label }} <span *ngIf="required" class="text-red">*</span>
   </label>
 
-  <div class="input-wrapper">
+  <div
+    class="input-wrapper"
+    [class.is-invalid-border]="control?.touched && control?.invalid"
+  >
     <input
       [attr.id]="id"
-      [attr.type]="currentType" [placeholder]="placeholder"
-      [ngClass]="[inputClasses, control?.touched && control?.invalid ? 'is-invalid-border' : '']"
+      [attr.type]="currentType"
+      [placeholder]="placeholder"
       [value]="value"
       (input)="onInput($event)"
       (blur)="onBlur()"
+      [ngClass]="[inputClasses]"
     />
 
     <button

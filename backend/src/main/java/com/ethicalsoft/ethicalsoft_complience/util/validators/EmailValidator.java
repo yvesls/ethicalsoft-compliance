@@ -1,9 +1,9 @@
-package util.validators;
+package com.ethicalsoft.ethicalsoft_complience.util.validators;
 
+import com.ethicalsoft.ethicalsoft_complience.util.ObjectUtil;
+import com.ethicalsoft.ethicalsoft_complience.util.validators.annotations.Email;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-import util.ObjectUtil;
-import util.validators.annotations.Email;
 
 import java.util.regex.Pattern;
 

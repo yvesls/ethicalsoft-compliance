@@ -6,11 +6,11 @@ import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.QuestionnaireDT
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.QuestionRepository;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.QuestionnaireRepository;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.RoleRepository;
+import com.ethicalsoft.ethicalsoft_complience.util.ModelMapperUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import util.ModelMapperUtils;
 
 import java.util.List;
 import java.util.Map;

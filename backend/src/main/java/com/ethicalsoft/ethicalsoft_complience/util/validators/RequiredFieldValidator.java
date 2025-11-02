@@ -1,9 +1,9 @@
-package util.validators;
+package com.ethicalsoft.ethicalsoft_complience.util.validators;
 
+import com.ethicalsoft.ethicalsoft_complience.util.ObjectUtil;
+import com.ethicalsoft.ethicalsoft_complience.util.validators.annotations.RequiredField;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-import util.ObjectUtil;
-import util.validators.annotations.RequiredField;
 
 public class RequiredFieldValidator implements ConstraintValidator<RequiredField, Object> {
 

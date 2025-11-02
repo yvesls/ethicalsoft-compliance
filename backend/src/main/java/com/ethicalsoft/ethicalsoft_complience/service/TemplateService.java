@@ -6,11 +6,11 @@ import com.ethicalsoft.ethicalsoft_complience.mongo.model.dto.TemplateStageDTO;
 import com.ethicalsoft.ethicalsoft_complience.mongo.repository.ProjectTemplateRepository;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.Project;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.ProjectRepository;
+import com.ethicalsoft.ethicalsoft_complience.util.ModelMapperUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import util.ModelMapperUtils;
 
 import java.util.List;
 

@@ -14,22 +14,27 @@
 			<h5 class="m-0 p-0">Ethicalsoft Compliance</h5>
 		</div>
 
-		<div class="sidebar-content">
-			<nav class="menu">
-				<ul>
-					<li *ngFor="let item of menuItems$ | async" class="menu-item" [routerLink]="item.route">
-						<span class="menu-icon">
-							<img
-								*ngIf="item.icon"
-								src="../../../../assets/icons/{{ item.icon }}.svg"
-								alt="{{ item.label }}"
-							/>
-						</span>
-						<span class="menu-title">{{ item.label }}</span>
-					</li>
-				</ul>
-			</nav>
-		</div>
+    <div class="sidebar-content">
+      <nav class="menu">
+        <ul>
+          <li *ngFor="let item of menuItems$ | async"
+              class="menu-item"
+              [routerLink]="item.route"
+              routerLinkActive="active-link"
+              [routerLinkActiveOptions]="{exact: true}">
+
+            <span class="menu-icon">
+              <img
+                *ngIf="item.icon"
+                src="../../../../assets/icons/{{ item.icon }}.svg"
+                alt="{{ item.label }}"
+              />
+            </span>
+            <span class="menu-title">{{ item.label }}</span>
+          </li>
+        </ul>
+      </nav>
+    </div>
 
 		<div class="sidebar-footer">
 			<div class="exit">

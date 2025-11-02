@@ -1,4 +1,4 @@
-package util;
+package com.ethicalsoft.ethicalsoft_complience.util;
 
 import jakarta.persistence.Id;
 import lombok.experimental.UtilityClass;

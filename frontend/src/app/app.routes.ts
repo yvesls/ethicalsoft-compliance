@@ -53,6 +53,18 @@ export const routes: Routes = [
 		canActivate: [LayoutGuard],
 		data: { showLayout: false },
 	},
+  {
+    path: 'projects',
+    canActivate: [AuthGuard, LayoutGuard],
+    data: {
+      roles: [RoleEnum.ADMIN, RoleEnum.USER],
+      showLayout: true,
+    },
+    loadChildren: () =>
+      import('./features/projects/projects.routes').then(
+        (r) => r.PROJECTS_ROUTES
+      ),
+  },
 	{
 		path: '**',
 		component: NotFoundComponent,

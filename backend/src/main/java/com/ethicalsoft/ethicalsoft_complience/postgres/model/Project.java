@@ -31,6 +31,7 @@ public class Project {
 	private Set<Representative> representatives;
 
 	@Column(name = "type", nullable = false, length = 50)
+	@Enumerated(EnumType.STRING)
 	private ProjectTypeEnum type;
 
 	@Column(name = "start_date", nullable = false)

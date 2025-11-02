@@ -1,12 +1,12 @@
 package com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.auth;
 
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.UserRoleEnum;
+import com.ethicalsoft.ethicalsoft_complience.util.validators.annotations.Email;
+import com.ethicalsoft.ethicalsoft_complience.util.validators.annotations.RequiredField;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import util.validators.annotations.Email;
-import util.validators.annotations.RequiredField;
 
 @Getter
 @Setter

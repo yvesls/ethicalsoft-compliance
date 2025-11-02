@@ -1,0 +1,49 @@
+:host {
+  display: block;
+  margin-top: 1.5rem;
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: center;
+}
+
+.pagination-list {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  gap: 0.25rem;
+}
+
+.page-item {
+  &.active .page-link {
+    background-color: var(--primary-color, #007bff);
+    color: #fff;
+    border-color: var(--primary-color, #007bff);
+  }
+
+  &.disabled .page-link {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &.ellipsis .page-link-ellipsis {
+    padding: 0.5rem 0.75rem;
+    color: var(--text-color, #ccc);
+  }
+}
+
+.page-link {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--background-color-light, #333);
+  color: var(--text-color, #fff);
+  border: 1px solid var(--border-color, #555);
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover:not(:disabled) {
+    background-color: var(--background-color-hover, #444);
+  }
+}

@@ -1,57 +1,98 @@
 @use '../base/vars' as *;
 @use 'sass:color';
 
+$text-color-dark: $gray-secundary;
+
+%form-control-base {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 3rem;
+  padding: 0.5rem 1rem;
+  background-color: #fff;
+  border: 1px solid $gray-primary;
+  border-radius: 10px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  margin-top: 0.2rem;
+
+  &:focus,
+  &:focus-within {
+    box-shadow: none !important;
+    outline: none;
+  }
+}
+
 .form-group {
-	display: flex;
-	flex-direction: column;
+  display: flex;
+  flex-direction: column;
 
-	label {
-		color: $gray-secundary;
-		text-align: left;
-		margin-top: 1rem;
-	}
+  label {
+    color: $gray-secundary;
+    text-align: left;
+    margin-top: 1rem;
+  }
 
-	input[type='text'],
-	input[type='password'],
-	input[type='email'],
-	input[type='number'],
-	input[type='date'] {
-		padding: 0.5rem;
-		margin-top: 0.2rem;
-		border: 1px solid $gray-primary;
-		border-radius: 10px;
-		height: 3rem;
+  .input-wrapper,
+  .select-trigger {
+    @extend %form-control-base;
+  }
 
-		&:focus {
-			box-shadow: $box-shadow-primary;
-			outline: none;
-			transition: $transition-default;
-		}
+  .input-wrapper {
+    input[type='text'],
+    input[type='password'],
+    input[type='email'],
+    input[type='number'] {
+      width: 100%;
+      height: 100%;
+      border: none;
+      padding: 0;
+      margin: 0;
+      background-color: transparent;
 
-		&:hover {
-			background-color: transparent;
-			transition: $transition-default;
-		}
-	}
+      color: $gray-secundary !important;
 
-	input.is-invalid-border {
-		border-color: $red;
-	}
+      &:focus {
+        outline: none;
+        box-shadow: none !important;
+      }
 
-	input:-webkit-autofill,
-	input:-webkit-autofill:hover,
-	input:-webkit-autofill:focus,
-	input:-webkit-autofill:active {
-		background-color: $gray-primary;
-		transition: background-color 0.2s ease-out;
-		-webkit-box-shadow: 0 0 0px 1000px color.adjust($gray-primary, $lightness: 40%) inset;
-		color: $gray-secundary;
-	}
+      &::placeholder {
+        color: $gray-primary;
+        opacity: 1;
+      }
+      &::-webkit-input-placeholder { color: $gray-primary; }
+      &::-moz-placeholder { color: $gray-primary; opacity: 1; }
+      &:-ms-input-placeholder { color: $gray-primary; }
+      &:-moz-placeholder { color: $gray-primary; opacity: 1; }
+    }
+  }
 
-	.is-invalid {
-		font-size: 14px;
-		color: $red;
-		text-align: start;
-		padding: 1px;
-	}
+  input[type='date'] {
+    @extend %form-control-base;
+  }
+
+  .is-invalid-border {
+    border-color: $red !important;
+    box-shadow: none !important;
+  }
+
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    -webkit-text-fill-color: $gray-secundary !important;
+
+    box-shadow: none !important;
+    outline: none;
+
+    -webkit-box-shadow: 0 0 0px 1000px #fff inset;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+
+  .is-invalid {
+    font-size: 14px;
+    color: $red;
+    text-align: start;
+    padding: 1px;
+  }
 }

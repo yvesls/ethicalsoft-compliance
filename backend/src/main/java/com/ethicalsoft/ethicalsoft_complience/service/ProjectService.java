@@ -6,16 +6,19 @@ import com.ethicalsoft.ethicalsoft_complience.postgres.model.Role;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.User;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.RepresentativeDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.ProjectCreationRequest;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.response.ProjectSummaryResponseDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.ProjectTypeEnum;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.ProjectRepository;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.RepresentativeRepository;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.RoleRepository;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.UserRepository;
+import com.ethicalsoft.ethicalsoft_complience.util.ModelMapperUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import util.ModelMapperUtils;
 
 import java.time.LocalDate;
 import java.util.HashSet;
@@ -43,6 +46,21 @@ public class ProjectService {
 		project.setQuestionnaires( new HashSet<>() );
 
 		return projectRepository.save( project );
+	}
+
+	@Transactional(readOnly = true)
+	public Page<ProjectSummaryResponseDTO> getAllProjectSummaries( Pageable pageable) {
+		Page<Project> projectPage = projectRepository.findAll(pageable);
+
+		return projectPage.map(project -> ProjectSummaryResponseDTO.builder()
+				.id(project.getId())
+				.name(project.getName())
+				.type(project.getType().name())
+				.startDate(project.getStartDate())
+				.representativeCount(project.getRepresentatives() != null ? project.getRepresentatives().size() : 0)
+				.stageCount(project.getStages() != null ? project.getStages().size() : 0)
+				.iterationCount(project.getIterations() != null ? project.getIterations().size() : 0)
+				.build());
 	}
 
 	@Transactional

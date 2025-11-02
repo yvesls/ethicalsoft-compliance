@@ -8,9 +8,9 @@ import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.ProjectTypeEn
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.StageRepository;
 import com.ethicalsoft.ethicalsoft_complience.service.QuestionnaireService;
 import com.ethicalsoft.ethicalsoft_complience.service.strategy.ProjectCreationStrategy;
+import com.ethicalsoft.ethicalsoft_complience.util.ModelMapperUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import util.ModelMapperUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -27,7 +27,7 @@ public class WaterfallProjectStrategy implements ProjectCreationStrategy {
 
 	@Override
 	public ProjectTypeEnum getType() {
-		return ProjectTypeEnum.WATERFALL;
+		return ProjectTypeEnum.CASCATA;
 	}
 
 	@Override

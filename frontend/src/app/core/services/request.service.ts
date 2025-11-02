@@ -2,7 +2,7 @@ import { HttpClient, HttpContext, HttpContextToken, HttpHeaders, HttpParams, Htt
 import { Injectable } from '@angular/core'
 import { Observable, catchError, map, throwError } from 'rxjs'
 import { UrlParameter } from '../interfaces/url-parameter.interface'
-import { dateParser, dateParserSend } from '../utils/common-utils'
+import { dateParserSend } from '../utils/common-utils'
 import { RequestInputOptions } from '../interfaces/request-input-options.interface'
 import { getErrorMessage } from '../../shared/enums/error-messages.enum'
 import { LoggerService } from './logger.service'
@@ -108,7 +108,7 @@ export class RequestService {
 	private _getUrl(action: string, isBase: boolean = false, params?: UrlParameter[]): string {
 		const baseUrl = isBase ? '' : (this._apiUrl ?? '')
 		const query = params?.length ? '?' + params.map((p) => `${p.key}=${p.value}`).join('&') : ''
-		return `${baseUrl}${action}${query}`
+		return `${baseUrl}/${action}${query}`
 	}
 
 	private _makeFileUploadRequest<T>(url: string, options: RequestInputOptions): Observable<T> {

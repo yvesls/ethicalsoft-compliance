@@ -2,6 +2,7 @@ package com.ethicalsoft.ethicalsoft_complience.exception;
 
 
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.ErrorTypeEnum;
+import com.ethicalsoft.ethicalsoft_complience.util.ObjectUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -10,7 +11,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.ToString;
 import org.springframework.http.HttpStatus;
-import util.ObjectUtil;
 
 import java.time.LocalDateTime;
 import java.util.List;
