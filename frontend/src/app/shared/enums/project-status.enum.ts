@@ -1,6 +1,6 @@
 export enum ProjectStatus {
-  Aberto = 'ABERTO',
-  Rascunho = 'RASCUNHO',
-  Arquivado = 'ARQUIVADO',
-  Concluido = 'CONCLUIDO',
+  Aberto = 'Aberto',
+  Rascunho = 'Rascunho',
+  Arquivado = 'Arquivado',
+  Concluido = 'Concluído',
 }

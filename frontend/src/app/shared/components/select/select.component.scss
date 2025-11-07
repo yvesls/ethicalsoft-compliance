@@ -1,6 +1,5 @@
 @use '../../../../assets/scss/base/vars' as *;
 
-$icon-color: #B3B3B3;
 $border-color: $gray-primary;
 
 .select-wrapper {
@@ -14,7 +13,7 @@ $border-color: $gray-primary;
   overflow: hidden;
   text-overflow: ellipsis;
 
-  padding-right: 70px !important;
+  padding-right: 4.375rem !important;
 
   .placeholder-text {
     color: $gray-primary;
@@ -27,7 +26,7 @@ $border-color: $gray-primary;
   &.is-open,
   &:focus {
     outline: none;
-    box-shadow: 0 0 0 2px rgba($gray-primary, 0.2);
+    box-shadow: 0 0 0 0,125rem rgba($gray-primary, 0.2);
   }
 
   &.disabled {
@@ -40,11 +39,11 @@ $border-color: $gray-primary;
 .icons-wrapper {
   position: absolute;
   top: 50%;
-  right: 16px;
+  right: 1rem;
   transform: translateY(-50%);
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 0.75rem;
   pointer-events: none;
 }
 
@@ -54,11 +53,11 @@ $border-color: $gray-primary;
   align-items: center;
   width: 100%;
   padding: 0.7rem 1.5rem;
-  padding-right: 70px;
+  padding-right: 4.375rem;
 
-  background-color: #fff;
+  background-color: $white;
   border: 1px solid $border-color;
-  border-radius: 8px;
+  border-radius: 0.5rem;
   cursor: pointer;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
@@ -81,7 +80,7 @@ $border-color: $gray-primary;
   }
 
   &.disabled {
-    background-color: #f7f7f7;
+    background-color: $white;
     cursor: not-allowed;
     opacity: 0.7;
   }
@@ -90,19 +89,19 @@ $border-color: $gray-primary;
 .icons-wrapper {
   position: absolute;
   top: 50%;
-  right: 16px;
+  right: 1rem;
   transform: translateY(-50%);
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 0.75rem;
   pointer-events: none;
 }
 
 .clear-btn {
   position: static;
   transform: none;
-  width: 15px;
-  height: 15px;
+  width: 0.9375rem;
+  height: 0.9375rem;
   background: none;
   border: none;
   cursor: pointer;
@@ -113,8 +112,8 @@ $border-color: $gray-primary;
   pointer-events: all;
 
   img {
-    width: 14px;
-    height: 14px;
+    width: 0.875rem;
+    height: 0.875rem;
     filter: brightness(0) saturate(100%) invert(35%) sepia(80%) saturate(2851%) hue-rotate(345deg) brightness(92%) contrast(92%);
     opacity: 0.7;
     transition: opacity 0.2s ease;
@@ -127,8 +126,8 @@ $border-color: $gray-primary;
 .chevron-icon {
   position: static;
   transform: none;
-  width: 12px;
-  height: 12px;
+  width: 0.75rem;
+  height: 0.75rem;
   transition: transform 0.2s ease-in-out;
 
   filter: brightness(0) saturate(100%) invert(86%) sepia(0%) saturate(738%) hue-rotate(222deg) brightness(85%) contrast(85%);
@@ -140,14 +139,14 @@ $border-color: $gray-primary;
 
 .select-panel {
   position: absolute;
-  top: calc(100% + 4px);
+  top: calc(100% + 0.25rem);
   left: 0;
   width: 100%;
-  background: #fff;
+  background: $white;
   border: 1px solid $border-color;
 
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-radius: 0.5rem;
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.08);
   overflow: hidden;
   z-index: 100;
 }
@@ -155,14 +154,14 @@ $border-color: $gray-primary;
 .select-options-list {
   list-style: none;
   margin: 0;
-  padding: 4px 0;
-  max-height: 220px;
+  padding: 0.25rem 0;
+  max-height: 13.75rem;
   overflow-y: auto;
 }
 
 .select-option {
   padding: 0.75rem 1.5rem;
-  color: #515151;
+  color: $gray-secundary;
   cursor: pointer;
   transition: background-color 0.2s ease, color 0.2s ease;
   white-space: nowrap;
@@ -171,12 +170,12 @@ $border-color: $gray-primary;
 
   &:hover {
     background-color: $green-primary;
-    color: #515151;
+    color: $white;
   }
 
   &.is-selected {
     background-color: $green-primary;
-    color: #fff;
+    color: $white;
     font-weight: 500;
   }
 }

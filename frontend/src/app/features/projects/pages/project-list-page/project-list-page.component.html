@@ -1,107 +1,75 @@
 <div class="page-container">
-  <div class="card filter-card">
-    <form [formGroup]="filterForm" (ngSubmit)="onSearch()">
+  <app-filter-bar
+    [formGroup]="filterForm"
+    (search)="onSearch()"
+    gridTemplateColumns="2fr 1.5fr 1.5fr 1fr auto" >
 
-      <div class="filter-grid">
-        <app-select
-          formControlName="type"
-          label="Tipo"
-          placeholder="Selecione o tipo"
-          [control]="filterForm.get('type')"
-          [options]="projectTypeOptions"
-          [allowClear]="true">
-        </app-select>
+    <app-select
+      filters formControlName="type"
+      label="Tipo"
+      placeholder="Selecione o tipo"
+      [control]="filterForm.get('type')"
+      [options]="projectTypeOptions"
+      [allowClear]="true">
+    </app-select>
 
-        <app-select
-          formControlName="status"
-          label="Status"
-          placeholder="Selecione o status"
-          [control]="filterForm.get('status')"
-          [options]="projectStatusOptions"
-          [allowClear]="true">
-        </app-select>
+    <app-select
+      filters formControlName="status"
+      label="Status"
+      placeholder="Selecione o status"
+      [control]="filterForm.get('status')"
+      [options]="projectStatusOptions"
+      [allowClear]="true">
+    </app-select>
 
-        <app-input
-          formControlName="name"
-          label="Nome"
-          type="text"
-          placeholder="Informe o nome"
-          [control]="filterForm.get('name')"
-        ></app-input>
+    <app-input
+      filters formControlName="name"
+      label="Nome"
+      type="text"
+      placeholder="Informe o nome"
+      [control]="filterForm.get('name')"
+    ></app-input>
 
-        <app-input
-          formControlName="code"
-          label="Código"
-          type="text"
-          placeholder="Informe o Código"
-          [control]="filterForm.get('code')"
-        ></app-input>
-      </div>
+    <app-input
+      filters formControlName="code"
+      label="Código"
+      type="text"
+      placeholder="Informe o Código"
+      [control]="filterForm.get('code')"
+    ></app-input>
 
-      <div class="filter-actions">
-        <button type="button" class="btn btn-primary" (click)="goToCreateProject()">Criar novo projeto</button>
+    <button filters type="submit" class="btn btn-primary btn-icon">
+        <img src="assets/icons/search.svg" alt="Buscar" />
+    </button>
 
-        <button typeV="submit" class="btn btn-secondary btn-icon">
-           <img src="assets/icons/search.svg" alt="Buscar" style="width: 20px; height: 20px;" />
-        </button>
-      </div>
+    <div actions>
+      <button type="button" class="btn btn-secundary" (click)="goToCreateProject()">Criar novo projeto</button>
+    </div>
+  </app-filter-bar>
 
-    </form>
-  </div>
+  <app-list
+    [status]="status()"
+    [error]="error()"
+    noItemsMessage="Nenhum projeto encontrado."
+    [itemCount]="projects().length" >
 
-  <div class="card list-card">
-
-    <div class="list-card-header">
-      <div class="column-check"><input type="checkbox"></div>
-      <div class="column-projeto">Projeto</div>
-      <div class="column-tipo">Tipo</div>
-      <div class="column-situacao">Situação</div>
-      <div class="column-inicio">Início</div>
-      <div class="column-encerramento">Encerramento</div>
+    <div listBody>
+      <app-list-item
+        *ngFor=" let project of projects(); trackBy: trackByProjectId"
+        [item]="project"
+        [navigateTo]="['/projects', project.id]">
+      </app-list-item>
     </div>
 
-    <div class="list-card-body">
-
-      <div *ngIf="status() === 'loading'" class="empty-state">
-        <p>Carregando projetos...</p>
-      </div>
-
-      <div *ngIf="status() === 'error'" class="empty-state error-state">
-        <p>Erro ao carregar projetos: {{ error() }}</p>
-      </div>
-
-      <div *ngIf="status() === 'loaded' && projects().length === 0" class="empty-state">
-        <p>Nenhum projeto encontrado.</p>
-      </div>
-
-      <div class="list-row" *ngFor="let project of projects()">
-        <div class="column-check"><input type="checkbox"></div>
-        <div class="column-projeto">
-          <img [src]="statusIconMap[project.status]" [alt]="project.status" class="status-icon-img" style="width: 10px; height: 10px;" />
-          <div class="project-details">
-            <strong>{{ project.name }}</strong>
-            <span>{{ project.code }}</span>
-          </div>
-        </div>
-        <div class="column-tipo">
-          <div>
-            <strong>{{ project.type }}</strong>
-          </div>
-        </div>
-        <div class="column-situacao">{{ project.status }}</div>
-        <div class="column-inicio">{{ project.startDate | date: 'dd/MM/yyyy' }}</div>
-        <div class="column-encerramento">{{ project.endDate | date: 'dd/MM/yyyy' }}</div>
-      </div>
-    </div>
-
-    <div class="list-card-footer" *ngIf="pagination().totalItems > pagination().pageSize">
-       <app-pagination
+    <div listFooter>
+      <app-pagination
          [currentPage]="pagination().currentPage"
          [totalItems]="pagination().totalItems"
          [pageSize]="pagination().pageSize"
          (pageChange)="onPageChange($event)">
-       </app-pagination>
+      </app-pagination>
     </div>
-  </div>
+
+  </app-list>
 
 </div>

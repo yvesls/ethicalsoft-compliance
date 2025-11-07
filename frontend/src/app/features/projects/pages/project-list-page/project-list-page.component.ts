@@ -37,6 +37,9 @@ import { ProjectFilters } from '../../../../shared/interfaces/project-filters.in
 import { Page } from '../../../../shared/interfaces/pageable.interface';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
+import { FilterBarComponent } from '../../../../shared/components/filter-bar/filter-bar.component';
+import { ListComponent } from '../../../../shared/components/list/list.component';
+import { ListItemComponent } from '../../../../shared/components/list-item/list-item.component';
 
 const getEnumKeys = (e: object) =>
   Object.keys(e).filter((k) => typeof (e as any)[k] === 'string');
@@ -58,11 +61,13 @@ interface ProjectListState {
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    DatePipe,
     PaginationComponent,
     NgxSpinnerModule,
     InputComponent,
     SelectComponent,
+    FilterBarComponent,
+    ListComponent,
+    ListItemComponent,
   ],
   templateUrl: './project-list-page.component.html',
   styleUrl: './project-list-page.component.scss',
@@ -217,5 +222,8 @@ export class ProjectListPageComponent implements OnInit {
       queryParams,
     });
   }
-}
 
+  trackByProjectId(index: number, project: Project): string {
+    return project.id;
+  }
+}

@@ -22,4 +22,6 @@ public class ProjectSummaryResponseDTO {
 	private int representativeCount;
 	private int stageCount;
 	private int iterationCount;
+	private String currentStage;
+	private Integer currentIteration;
 }

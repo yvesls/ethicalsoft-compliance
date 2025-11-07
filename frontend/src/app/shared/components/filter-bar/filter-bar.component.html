@@ -1,0 +1,13 @@
+<div class="card filter-card">
+  <form [formGroup]="formGroup" (ngSubmit)="onSubmit()">
+
+    <div class="filter-grid" [style.grid-template-columns]="gridTemplateColumns">
+      <ng-content select="[filters]"></ng-content>
+    </div>
+
+    <div class="filter-actions">
+      <ng-content select="[actions]"></ng-content>
+    </div>
+
+  </form>
+</div>

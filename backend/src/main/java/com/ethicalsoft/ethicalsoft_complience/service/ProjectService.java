@@ -1,11 +1,9 @@
 package com.ethicalsoft.ethicalsoft_complience.service;
 
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.Project;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.Representative;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.Role;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.User;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.*;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.RepresentativeDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.ProjectCreationRequest;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.ProjectSearchRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.response.ProjectSummaryResponseDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.ProjectTypeEnum;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.ProjectRepository;
@@ -17,11 +15,14 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -37,31 +38,88 @@ public class ProjectService {
 	@Transactional
 	public Project createProjectShell( ProjectCreationRequest request ) {
 		Project project = ModelMapperUtils.map( request, Project.class );
-
 		project.setType( ProjectTypeEnum.fromValue( request.getType() ) );
-
 		project.setStages( new HashSet<>() );
 		project.setIterations( new HashSet<>() );
 		project.setRepresentatives( new HashSet<>() );
 		project.setQuestionnaires( new HashSet<>() );
-
 		return projectRepository.save( project );
 	}
 
 	@Transactional(readOnly = true)
-	public Page<ProjectSummaryResponseDTO> getAllProjectSummaries( Pageable pageable) {
-		Page<Project> projectPage = projectRepository.findAll(pageable);
+	public Page<ProjectSummaryResponseDTO> getAllProjectSummaries( ProjectSearchRequestDTO filters, Pageable pageable) {
 
-		return projectPage.map(project -> ProjectSummaryResponseDTO.builder()
-				.id(project.getId())
-				.name(project.getName())
-				.type(project.getType().name())
-				.startDate(project.getStartDate())
-				.representativeCount(project.getRepresentatives() != null ? project.getRepresentatives().size() : 0)
-				.stageCount(project.getStages() != null ? project.getStages().size() : 0)
-				.iterationCount(project.getIterations() != null ? project.getIterations().size() : 0)
-				.build());
+		// 1. Cria a query dinâmica (Specification) a partir dos filtros
+		Specification<Project> spec = ProjectSpecification.findByCriteria(filters);
+
+		// 2. Chama o NOVO método do repositório
+		// Este método agora executa a query dinâmica (spec)
+		// e o EntityGraph (para evitar N+1)
+		Page<Project> projectPage = projectRepository.findAll(spec, pageable);
+
+		LocalDate now = LocalDate.now();
+
+		// O resto da lógica de mapeamento permanece idêntica
+		return projectPage.map(project -> {
+			String currentStage = null;
+			Integer currentIteration = null;
+
+			if (project.getType() == ProjectTypeEnum.CASCATA) {
+				currentStage = findCurrentStageName(project.getQuestionnaires(), now);
+			} else if (project.getType() == ProjectTypeEnum.ITERATIVO) {
+				currentIteration = findCurrentIterationNumber(project.getIterations(), now);
+			}
+
+			return ProjectSummaryResponseDTO.builder()
+					.id(project.getId())
+					.name(project.getName())
+					.type(project.getType().name())
+					.status(project.getStatus())
+					.deadline( project.getDeadline() )
+					.startDate(project.getStartDate())
+					.representativeCount(project.getRepresentatives() != null ? project.getRepresentatives().size() : 0)
+					.stageCount(project.getStages() != null ? project.getStages().size() : 0)
+					.iterationCount(project.getIterations() != null ? project.getIterations().size() : 0)
+					.currentStage(currentStage)
+					.currentIteration(currentIteration)
+					.build();
+		});
 	}
+
+	private String findCurrentStageName(Set<Questionnaire> questionnaires, LocalDate now) {
+		if (questionnaires == null || questionnaires.isEmpty()) {
+			return null;
+		}
+		return questionnaires.stream()
+				.filter(q -> q.getApplicationStartDate() != null && q.getApplicationEndDate() != null &&
+						!now.isBefore(q.getApplicationStartDate()) && !now.isAfter(q.getApplicationEndDate()))
+				.map(Questionnaire::getStage)
+				.filter( Objects::nonNull)
+				.map(Stage::getName)
+				.findFirst()
+				.orElse(null);
+	}
+
+	private Integer findCurrentIterationNumber(Set<Iteration> iterations, LocalDate now) {
+		if (iterations == null || iterations.isEmpty()) {
+			return null;
+		}
+
+		var sortedIterations = iterations.stream()
+				.filter(it -> it.getApplicationStartDate() != null)
+				.sorted( Comparator.comparing(Iteration::getApplicationStartDate))
+				.toList();
+
+		for (int i = 0; i < sortedIterations.size(); i++) {
+			Iteration it = sortedIterations.get(i);
+			if (it.getApplicationEndDate() != null &&
+					!now.isBefore(it.getApplicationStartDate()) && !now.isAfter(it.getApplicationEndDate())) {
+				return i + 1;
+			}
+		}
+		return null;
+	}
+
 
 	@Transactional
 	public Set<Representative> createRepresentatives( Project project, Set<RepresentativeDTO> repDTOs ) {

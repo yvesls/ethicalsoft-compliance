@@ -11,7 +11,7 @@ $text-color-dark: $gray-secundary;
   padding: 0.5rem 1rem;
   background-color: #fff;
   border: 1px solid $gray-primary;
-  border-radius: 10px;
+  border-radius: 0.625rem;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   margin-top: 0.2rem;
 
@@ -90,7 +90,7 @@ $text-color-dark: $gray-secundary;
   }
 
   .is-invalid {
-    font-size: 14px;
+    font-size: 0.875rem;
     color: $red;
     text-align: start;
     padding: 1px;

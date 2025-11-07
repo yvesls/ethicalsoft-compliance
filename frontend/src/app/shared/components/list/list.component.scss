@@ -1,0 +1,45 @@
+@use '../../../../assets/scss/base/vars' as *;
+
+:host {
+  display: block;
+}
+
+.list-card {
+  border: none;
+  border-radius: $radius-default;
+  margin-top: 2rem;
+  margin-bottom: 1.5rem;
+  box-shadow: none;
+
+  .list-card-body {
+    padding: 1rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+
+    &.no-padding {
+      padding: 0;
+      gap: 0;
+    }
+  }
+
+  .list-card-footer {
+    padding: 1rem 1.5rem;
+    border-top: 0.0625rem solid $gray-primary;
+
+    &:empty {
+      padding: 0;
+      border-top: none;
+    }
+  }
+
+  .empty-state {
+    padding: 3rem 1.5rem;
+    text-align: center;
+    color: $blue-primary;
+    font-size: 0.875rem;
+
+    &.error-state p {
+      color: $red;
+    }
+  }
+}

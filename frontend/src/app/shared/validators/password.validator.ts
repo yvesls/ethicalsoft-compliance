@@ -6,14 +6,11 @@ export function passwordValidator(): ValidatorFn {
     const senha = control.value;
 
     if (!senha) {
-      // Deixa o 'Validators.required' cuidar de valores vazios
       return null;
     }
-
-    // 3. Itera sobre as regras, filtra as que falharam e pega suas mensagens
     const errorMessages = passwordRules
-      .filter(rule => !rule.test(senha)) // Encontra todas as regras que FALHARAM
-      .map(rule => rule.message);          // Pega a mensagem de erro de cada uma
+      .filter(rule => !rule.test(senha))
+      .map(rule => rule.message);
 
 
     if (errorMessages.length > 0) {

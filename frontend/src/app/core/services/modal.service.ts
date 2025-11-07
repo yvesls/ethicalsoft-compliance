@@ -4,7 +4,7 @@ import { Router, NavigationStart } from '@angular/router'
 import { Subscription } from 'rxjs'
 import { filter } from 'rxjs/operators'
 import { NotificationService } from './notification.service'
-import { LoggerService } from './logger.service' // Assume LoggerService exists
+import { LoggerService } from './logger.service'
 
 export type ModalSize = 'very-small-card' | 'small-card' | 'medium-card' | 'large-card'
 

@@ -2,7 +2,7 @@ import { Injectable, OnDestroy } from '@angular/core'
 import { Router, NavigationStart } from '@angular/router'
 import { Subscription } from 'rxjs'
 import { filter } from 'rxjs/operators'
-import { LoggerService } from './logger.service' // Assumindo que há uma LoggerService implementada.
+import { LoggerService } from './logger.service'
 import { getErrorMessage } from '../../shared/enums/error-messages.enum'
 
 @Injectable({

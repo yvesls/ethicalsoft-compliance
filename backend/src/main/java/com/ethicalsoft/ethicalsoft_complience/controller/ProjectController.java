@@ -1,6 +1,7 @@
 package com.ethicalsoft.ethicalsoft_complience.controller;
 
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.ProjectCreationRequest;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.ProjectSearchRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.response.ProjectResponse;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.response.ProjectSummaryResponseDTO;
 import com.ethicalsoft.ethicalsoft_complience.service.ProjectService;
@@ -29,7 +30,8 @@ public class ProjectController {
 
 	@PostMapping("/search")
 	public Page<ProjectSummaryResponseDTO> getAllProjects(
+			@RequestBody ProjectSearchRequestDTO filters,
 			@PageableDefault(page = 0, size = 10, sort = "name") Pageable pageable) {
-		return projectService.getAllProjectSummaries(pageable);
+		return projectService.getAllProjectSummaries(filters, pageable);
 	}
 }

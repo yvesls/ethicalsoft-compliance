@@ -2,158 +2,158 @@
 @use '../../../../assets/scss/base/_media-queries' as *;
 
 .sidebar {
-	width: var(--sidebar-width);
-	height: 100vh;
-	background-color: $blue-primary;
-	color: $white;
-	transition:
-		width 0.3s ease-in-out,
-		left 0.3s ease-in-out;
-	position: fixed;
-	top: 0;
-	left: 0;
-	display: flex;
-	flex-direction: column;
-	z-index: 10;
+  width: var(--sidebar-width);
+  height: 100vh;
+  background-color: $blue-primary;
+  color: $white;
+  transition:
+    width 0.3s ease-in-out,
+    left 0.3s ease-in-out;
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
 
-	@include for-tablet-landscape-down {
-		left: calc(-1 * var(--sidebar-width));
-		box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
+  @include for-tablet-landscape-down {
+    left: calc(-1 * var(--sidebar-width));
+    box-shadow: 0.3125rem 0 0.9375rem rgba(0, 0, 0, 0.1);
 
-		&.opened {
-			left: 0;
-		}
+    &.opened {
+      left: 0;
+    }
 
-		.sidebar-toggler {
-			z-index: 30;
-		}
-	}
+    .sidebar-toggler {
+      z-index: 30;
+    }
+  }
 
-	@include for-phone-only {
-		width: min(85vw, 300px);
-	}
+  @include for-phone-only {
+    width: min(85vw, 18.75rem);
+  }
 
-	.sidebar-layout {
-		display: flex;
-		flex-direction: column;
-		height: 100%;
-		overflow-y: auto;
-	}
+  .sidebar-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow-y: auto;
+  }
 
-	.sidebar-header {
-		margin: 20px;
-		display: flex;
-		justify-content: center;
-		align-items: center;
+  .sidebar-header {
+    margin: 1.25rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
-		.logo {
-			margin-right: 5px;
-			img {
-				width: 70px;
+    .logo {
+      margin-right: 0.3125rem;
+      img {
+        width: 4.375rem;
 
-				@include for-tablet-down {
-					width: 60px;
-				}
+        @include for-tablet-down {
+          width: 3.75rem;
+        }
 
-				@include for-phone-only {
-					width: 50px;
-				}
-			}
-		}
+        @include for-phone-only {
+          width: 3.125rem;
+        }
+      }
+    }
 
-		h5 {
-			@include for-tablet-down {
-				font-size: 0.9rem;
-			}
-		}
-	}
+    h5 {
+      @include for-tablet-down {
+        font-size: 0.9rem;
+      }
+    }
+  }
 
-	.sidebar-toggler {
-		position: absolute;
-		top: 41px;
-		right: -15px;
-		width: 26px;
-		height: 26px;
-		background: $green-primary;
-		color: $white;
-		border-radius: 50%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		cursor: pointer;
-		transition: background 0.3s;
-		z-index: 30;
+  .sidebar-toggler {
+    position: absolute;
+    top: 2.5625rem;
+    right: -0.9375rem;
+    width: 1.625rem;
+    height: 1.625rem;
+    background: $green-primary;
+    color: $white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.3s;
+    z-index: 30;
 
-		@include for-tablet-down {
-			right: -15px;
-			width: 24px;
-			height: 24px;
-		}
+    @include for-tablet-down {
+      right: -0.9375rem;
+      width: 1.5rem;
+      height: 1.5rem;
+    }
 
-		@include for-phone-only {
-			right: -15px;
-			width: 22px;
-			height: 22px;
-		}
+    @include for-phone-only {
+      right: -0.9375rem;
+      width: 1.375rem;
+      height: 1.375rem;
+    }
 
-		&:hover {
-			background: $green-secundary;
-		}
-	}
+    &:hover {
+      background: $green-secundary;
+    }
+  }
 
-	.menu {
-		@include for-tablet-landscape-down {
-			margin-top: 10px;
-		}
+  .menu {
+    @include for-tablet-landscape-down {
+      margin-top: 0.625rem;
+    }
 
-		.menu-item {
-			display: flex;
-			justify-items: center;
-			align-items: center;
-			padding: 20px 20px 20px 30px;
-			color: $white;
-			text-decoration: none;
-			transition: color 0.3s;
-			cursor: pointer;
+    .menu-item {
+      display: flex;
+      justify-items: center;
+      align-items: center;
+      padding: 1.25rem 1.25rem 1.25rem 1.875rem;
+      color: $white;
+      text-decoration: none;
+      transition: color 0.3s;
+      cursor: pointer;
 
-			@include for-tablet-down {
-				padding: 15px 15px 15px 25px;
-			}
+      @include for-tablet-down {
+        padding: 0.9375rem 0.9375rem 0.9375rem 1.5625rem;
+      }
 
-			@include for-phone-only {
-				padding: 12px 10px 12px 20px;
-			}
+      @include for-phone-only {
+        padding: 0.75rem 0.625rem 0.75rem 1.25rem;
+      }
 
-			.menu-icon {
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				margin-right: 10px;
+      .menu-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.625rem;
 
-				img {
-					height: 20px;
-					margin-top: -3px;
+        img {
+          height: 1.25rem;
+          margin-top: -0.1875rem;
           filter: brightness(0.8);
           transition: all 0.2s ease-in-out;
-					@include for-phone-only {
-						height: 18px;
-					}
-				}
-			}
+          @include for-phone-only {
+            height: 1.125rem;
+          }
+        }
+      }
 
-			.menu-title {
-				padding: 0;
-				margin: 0;
-				line-height: 1;
+      .menu-title {
+        padding: 0;
+        margin: 0;
+        line-height: 1;
         transition: all 0.2s ease-in-out;
-				@include for-tablet-down {
-					font-size: 0.9rem;
-				}
+        @include for-tablet-down {
+          font-size: 0.9rem;
+        }
 
-				@include for-phone-only {
-					font-size: 0.85rem;
-				}
-			}
+        @include for-phone-only {
+          font-size: 0.85rem;
+        }
+      }
 
       &.active-link {
         background-color: rgba(255, 255, 255, 0.05);
@@ -169,91 +169,91 @@
         }
       }
 
-			&:hover {
-				.menu-icon img {
-					filter: brightness(0) saturate(100%) invert(52%) sepia(29%) saturate(1115%) hue-rotate(52deg) brightness(96%) contrast(89%);
-				}
+      &:hover {
+        .menu-icon img {
+          filter: brightness(0) saturate(100%) invert(52%) sepia(29%) saturate(1115%) hue-rotate(52deg) brightness(96%) contrast(89%);
+        }
 
-				.menu-title {
-					color: $green-primary;
-				}
-			}
-		}
-	}
+        .menu-title {
+          color: $green-primary;
+        }
+      }
+    }
+  }
 
-	.sidebar-footer {
-		padding: 20px;
-		display: flex;
-		justify-content: center;
-		flex-direction: column;
-		text-align: center;
-		font-size: 0.8rem;
-		margin-top: auto;
+  .sidebar-footer {
+    padding: 1.25rem;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    font-size: 0.8rem;
+    margin-top: auto;
 
-		@include for-tablet-down {
-			padding: 15px;
-			font-size: 0.75rem;
-		}
+    @include for-tablet-down {
+      padding: 0.9375rem;
+      font-size: 0.75rem;
+    }
 
-		@include for-phone-only {
-			padding: 12px;
-			font-size: 0.7rem;
-		}
-	}
+    @include for-phone-only {
+      padding: 0.75rem;
+      font-size: 0.7rem;
+    }
+  }
 
-	&.collapsed {
-		width: var(--sidebar-collapsed-width);
+  &.collapsed {
+    width: var(--sidebar-collapsed-width);
 
-		.sidebar-header {
-			justify-content: center;
+    .sidebar-header {
+      justify-content: center;
 
-			h5 {
-				display: none;
-			}
-		}
+      h5 {
+        display: none;
+      }
+    }
 
-		.menu {
-			.menu-item {
-				justify-content: center;
-				padding: 15px 0;
+    .menu {
+      .menu-item {
+        justify-content: center;
+        padding: 0.9375rem 0;
 
-				@include for-phone-only {
-					padding: 12px 0;
-				}
+        @include for-phone-only {
+          padding: 0.75rem 0;
+        }
 
-				.menu-icon {
-					margin-right: 0;
-				}
+        .menu-icon {
+          margin-right: 0;
+        }
 
-				.menu-title {
-					display: none;
-				}
-			}
-		}
-	}
+        .menu-title {
+          display: none;
+        }
+      }
+    }
+  }
 
-	.exit {
-		margin: auto;
+  .exit {
+    margin: auto;
 
-		img {
-			height: 30px;
-			margin-bottom: 10px;
-			transform: rotate(180deg);
+    img {
+      height: 1.875rem;
+      margin-bottom: 0.625rem;
+      transform: rotate(180deg);
 
-			@include for-tablet-down {
-				height: 25px;
-			}
+      @include for-tablet-down {
+        height: 1.5625rem;
+      }
 
-			@include for-phone-only {
-				height: 22px;
-				margin-bottom: 8px;
-			}
+      @include for-phone-only {
+        height: 1.375rem;
+        margin-bottom: 0.5rem;
+      }
 
-			&:hover {
-				transition: filter 0.3s;
-				filter: brightness(0) saturate(100%) invert(48%) sepia(40%) saturate(1009%) hue-rotate(52deg)
-					brightness(94%) contrast(89%);
-			}
-		}
-	}
+      &:hover {
+        transition: filter 0.3s;
+        filter: brightness(0) saturate(100%) invert(48%) sepia(40%) saturate(1009%) hue-rotate(52deg)
+          brightness(94%) contrast(89%);
+      }
+    }
+  }
 }

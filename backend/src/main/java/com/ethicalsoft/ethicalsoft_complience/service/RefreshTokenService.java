@@ -28,14 +28,25 @@ public class RefreshTokenService {
 	public String createRefreshToken( User user ) {
 		String token = UUID.randomUUID().toString();
 		String hashedToken = DigestUtils.sha256Hex(token);
+		Instant expiryDate = Instant.now().plusMillis( refreshTokenDuration );
 
-		refreshTokenRepository.deleteByUser(user);
-		RefreshToken newRefreshToken = new RefreshToken(
-				hashedToken,
-				user,
-				Instant.now().plusMillis( refreshTokenDuration )
-		);
-		refreshTokenRepository.save(newRefreshToken);
+		Optional<RefreshToken> existingTokenOpt = refreshTokenRepository.findByUser(user);
+
+		RefreshToken refreshTokenToSave;
+		if (existingTokenOpt.isPresent()) {
+			refreshTokenToSave = existingTokenOpt.get();
+			refreshTokenToSave.setToken(hashedToken);
+			refreshTokenToSave.setExpiryDate(expiryDate);
+		} else {
+			refreshTokenToSave = new RefreshToken(
+					hashedToken,
+					user,
+					expiryDate
+			);
+		}
+
+		refreshTokenRepository.save(refreshTokenToSave);
+
 		return hashedToken;
 	}
 
