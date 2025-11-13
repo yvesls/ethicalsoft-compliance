@@ -1,77 +1,96 @@
 import { Component, Input, forwardRef } from '@angular/core'
 import { CommonModule } from '@angular/common'
-import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, AbstractControl } from '@angular/forms'
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, AbstractControl } from '@angular/forms'
 
 @Component({
-	selector: 'app-input',
-	standalone: true,
-	imports: [CommonModule],
-	templateUrl: './input.component.html',
-	styleUrls: ['./input.component.scss'],
-	providers: [
-		{
-			provide: NG_VALUE_ACCESSOR,
-			useExisting: forwardRef(() => InputComponent),
-			multi: true,
-		},
-	],
+  selector: 'app-input',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './input.component.html',
+  styleUrls: ['./input.component.scss'],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => InputComponent),
+      multi: true,
+    },
+  ],
 })
 export class InputComponent implements ControlValueAccessor {
-	@Input() label = ''
-	@Input() type = 'text'
-	@Input() id = ''
-	@Input() placeholder = ''
-	@Input() required = false
-	@Input() inputClasses = ''
-	@Input() labelClasses = ''
-	@Input() validationMessages: { [key: string]: string } = {}
-	@Input() control!: AbstractControl | null
+  @Input() label = ''
+  @Input() type = 'text'
+  @Input() id = ''
+  @Input() placeholder = ''
+  @Input() required = false
+  @Input() inputClasses = ''
+  @Input() labelClasses = ''
+  @Input() validationMessages: { [key: string]: string } = {}
+  @Input() control!: AbstractControl | null
 
   public currentType = 'text'
   public isPasswordVisible = false
 
-	value: any = ''
-	disabled = false
-	touched = false
+  value: any = ''
+  disabled = false
+  touched = false
 
-	private onChange = (value: any) => {}
-	private onTouched = () => {}
+  private onChange = (value: any) => {}
+  private onTouched = () => {}
 
-	ngOnInit(): void {
-		if (!this.id) {
-			this.id = this.label.toLowerCase().replace(/\s/g, '-')
-		}
+  ngOnInit(): void {
+    if (!this.id) {
+      this.id = this.label.toLowerCase().replace(/\s/g, '-')
+    }
     this.currentType = this.type;
-	}
 
-	writeValue(value: any): void {
-		this.value = value
-	}
+    if (this.type === 'date') {
+      this.currentType = 'text';
+    }
+  }
 
-	registerOnChange(fn: any): void {
-		this.onChange = fn
-	}
+  writeValue(value: any): void {
+    this.value = value
+    if (this.type === 'date' && value) {
+      this.currentType = 'date';
+    } else if (this.type === 'date' && !value) {
+      this.currentType = 'text';
+    }
+  }
 
-	registerOnTouched(fn: any): void {
-		this.onTouched = fn
-	}
+  registerOnChange(fn: any): void {
+    this.onChange = fn
+  }
 
-	setDisabledState(isDisabled: boolean): void {
-		this.disabled = isDisabled
-	}
+  registerOnTouched(fn: any): void {
+    this.onTouched = fn
+  }
 
-	onInput(event: Event): void {
-		const value = (event.target as HTMLInputElement).value
-		this.value = value
-		this.onChange(value)
-	}
+  setDisabledState(isDisabled: boolean): void {
+    this.disabled = isDisabled
+  }
 
-	onBlur(): void {
-		if (!this.touched) {
-			this.touched = true
-			this.onTouched()
-		}
-	}
+  onInput(event: Event): void {
+    const value = (event.target as HTMLInputElement).value
+    this.value = value
+    this.onChange(value)
+  }
+
+  onFocus(): void {
+    if (this.type === 'date') {
+      this.currentType = 'date';
+    }
+  }
+
+  onBlur(): void {
+    if (!this.touched) {
+      this.touched = true
+      this.onTouched()
+    }
+
+    if (this.type === 'date' && !this.value) {
+      this.currentType = 'text';
+    }
+  }
 
   getErrorMessages(): string[] {
     if (!this.control?.errors) {
@@ -89,7 +108,7 @@ export class InputComponent implements ControlValueAccessor {
         return errors[key];
       }
 
-      return `Erro de validação: ${key}`;
+      return `${key}`;
     });
   }
 

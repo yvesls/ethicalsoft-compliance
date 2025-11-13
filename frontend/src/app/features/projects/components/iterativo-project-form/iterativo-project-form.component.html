@@ -1,0 +1,254 @@
+<form [formGroup]="projectForm" (ngSubmit)="onSubmit()">
+
+  <app-accordion-panel
+    title="Projeto"
+    [required]="true"
+    [startOpen]="panelStates.project"
+    (toggled)="panelStates.project = !panelStates.project"
+  >
+    <div class="form-grid form-grid-4">
+      <app-select
+        label="Template"
+        placeholder="Selecione o template"
+        formControlName="template"
+        [options]="templateOptions"
+        [control]="getControl('template')"
+        [required]="true"
+        [allowClear]="true"
+      ></app-select>
+      <app-input
+        label="Nome"
+        placeholder="Informe o nome"
+        formControlName="name"
+        [control]="getControl('name')"
+        [required]="true"
+      ></app-input>
+      <app-select
+        label="Tipo"
+        placeholder="Selecione o tipo"
+        formControlName="type"
+        [options]="projectTypeOptions"
+        [control]="getControl('type')"
+        [required]="true"
+        [allowClear]="true"
+      ></app-select>
+      <app-input
+        label="Data de início"
+        type="date"
+        placeholder="Data de início"
+        formControlName="startDate"
+        [control]="getControl('startDate')"
+        [required]="true"
+        class="form-input-datepicker"
+      ></app-input>
+    </div>
+
+    <div class="form-grid form-grid-4">
+      <app-input
+        label="Prazo limite"
+        placeholder="Prazo limite"
+        type="date"
+        formControlName="deadline"
+        [control]="getControl('deadline')"
+        class="form-input-datepicker"
+      >
+      </app-input>
+      <app-input
+        label="Duração das Iterações (em dias úteis)"
+        placeholder="Informe a duração das Iterações"
+        type="number"
+        formControlName="iterationDuration"
+        [control]="getControl('iterationDuration')"
+        [required]="true"
+      ></app-input>
+      <app-input
+        label="Número de Iterações"
+        placeholder="Informe o número de Iterações"
+        type="number"
+        formControlName="iterationCount"
+        [control]="getControl('iterationCount')"
+        [required]="true"
+      ></app-input>
+    </div>
+
+    <div class="panel-actions">
+      <button type="button" class="btn btn-primary">Continuar</button>
+    </div>
+  </app-accordion-panel>
+
+  <app-accordion-panel
+    title="Etapas"
+    [required]="true"
+    [startOpen]="panelStates.steps"
+    (toggled)="panelStates.steps = !panelStates.steps"
+  >
+    <div class="steps-container">
+      <table class="steps-table steps-table-iterativo">
+        <thead>
+          <tr>
+            <th>Nome da etapa</th>
+            <th>Peso</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (stepName of iterativeSteps; let i = $index; track i) {
+            <tr>
+              <td class="cell-name">{{ stepName }}</td>
+              <td class="cell-weight">{{ getIterativeStepWeight(stepName) }}</td>
+              <td class="cell-actions">
+                <button
+                  type="button"
+                  class="btn-icon btn-delete"
+                  title="Remover etapa"
+                  (click)="removeIterativeStep(stepName)"
+                  [disabled]="iterativeSteps.length === 1"
+                >
+                  <img src="assets/icons/trash.svg" alt="Remover" />
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      <div class="d-flex justify-content-end">
+        <button
+            type="button"
+            class="btn btn-secundary"
+            (click)="addIterativeStep()"
+          >
+            <span class="plus-icon">+</span>
+            Adicionar etapa
+          </button>
+      </div>
+      <div class="panel-actions">
+        <button type="button" class="btn btn-primary">Continuar</button>
+      </div>
+    </div>
+  </app-accordion-panel>
+
+  <app-accordion-panel
+    title="Representantes"
+    [required]="true"
+    [startOpen]="panelStates.representatives"
+    (toggled)="panelStates.representatives = !panelStates.representatives"
+  >
+    <div class="representatives-container">
+      <table class="steps-table representatives-table">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th class="text-start">Sobrenome</th>
+            <th class="text-start">Email</th>
+            <th class="text-start">Data de inclusão</th>
+            <th>Peso</th>
+            <th class="text-start">Encargos</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
+        <tbody formArrayName="representatives">
+          <tr
+            *ngFor="let rep of representativesFormArray.controls; let i = index"
+            [formGroupName]="i"
+          >
+            <td class="cell-name">{{ rep.get('firstName')?.value }}</td>
+            <td class="cell-name">{{ rep.get('lastName')?.value }}</td>
+            <td class="cell-name">{{ rep.get('email')?.value }}</td>
+            <td class="cell-name">{{ rep.get('inclusionDate')?.value }}</td>
+            <td class="cell-weight">{{ rep.get('weight')?.value }}</td>
+            <td class="cell-name">{{ rep.get('roles')?.value }}</td>
+            <td class="cell-actions">
+              <button
+                type="button"
+                class="btn-icon btn-delete"
+                (click)="removeRepresentative(i)"
+              >
+                <img src="assets/icons/trash.svg" alt="Remover" />
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="d-flex justify-content-end">
+        <button
+          type="button"
+          class="btn btn-secundary"
+          (click)="addRepresentative()"
+        >
+          <span class="plus-icon">+</span> Adicionar representante
+        </button>
+      </div>
+      <div class="panel-actions">
+        <button type="button" class="btn btn-primary">Continuar</button>
+      </div>
+    </div>
+  </app-accordion-panel>
+
+  <app-accordion-panel
+    title="Questionários"
+    [required]="true"
+    [startOpen]="panelStates.questionnaires"
+    (toggled)="panelStates.questionnaires = !panelStates.questionnaires"
+  >
+    <div class="steps-container">
+      <div class="questionnaires-scroll">
+        <table class="steps-table questionnaires-table-iterativo">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th class="text-start">Iteração</th>
+              <th>Peso</th>
+              <th class="text-start">Data de início</th>
+              <th class="text-start">Data de término</th>
+              <th>Ação</th>
+            </tr>
+          </thead>
+          <tbody formArrayName="questionnaires">
+            <tr
+              *ngFor="let q of questionnairesFormArray.controls; let i = index"
+              [formGroupName]="i"
+            >
+              <td class="cell-name">{{ q.get('name')?.value }}</td>
+              <td class="cell-name">{{ q.get('iteration')?.value }}</td>
+              <td class="cell-weight">{{ q.get('weight')?.value }}</td>
+              <td class="cell-name">{{ q.get('applicationStartDate')?.value }}</td>
+              <td class="cell-name">{{ q.get('applicationEndDate')?.value }}</td>
+              <td class="cell-actions">
+                <button
+                  type="button"
+                  class="btn-icon btn-delete"
+                  title="Remover questionário"
+                  (click)="removeQuestionnaire(i)"
+                >
+                  <img src="assets/icons/trash.svg" alt="Remover" />
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="d-flex justify-content-end">
+        <button
+          type="button"
+          class="btn btn-secundary"
+          (click)="addQuestionnaire()"
+        >
+          <span class="plus-icon">+</span> Importar questionários
+        </button>
+      </div>
+      <div class="panel-actions">
+        <button type="button" class="btn btn-primary">Continuar</button>
+      </div>
+    </div>
+  </app-accordion-panel>
+
+  <div class="page-actions">
+    <button
+      type="submit"
+      class="btn btn-primary"
+      [disabled]="projectForm.invalid"
+    >
+      Salvar projeto
+    </button>
+  </div>
+</form>

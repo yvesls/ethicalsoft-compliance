@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, Input, HostBinding } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
-import { Project } from '../../interfaces/project.interface';
+import { Project } from '../../interfaces/project/project.interface';
 import { ProjectStatus } from '../../enums/project-status.enum';
 import { ProjectType } from '../../enums/project-type.enum';
 

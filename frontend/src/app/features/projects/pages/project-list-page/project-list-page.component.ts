@@ -1,3 +1,4 @@
+import { ProjectTypeSelectionComponent } from './../../components/project-type-selection/project-type-selection.component';
 import {
   Component,
   ChangeDetectionStrategy,
@@ -27,19 +28,20 @@ import {
 
 import {
   Project
-} from '../../../../shared/interfaces/project.interface';
+} from '../../../../shared/interfaces/project/project.interface';
 import { ProjectStatus } from '../../../../shared/enums/project-status.enum';
 import { ProjectType } from '../../../../shared/enums/project-type.enum';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
 import { NgxSpinnerModule, NgxSpinnerService } from 'ngx-spinner';
 import { ProjectStore } from '../../../../shared/stores/project.store';
-import { ProjectFilters } from '../../../../shared/interfaces/project-filters.interface';
+import { ProjectFilters } from '../../../../shared/interfaces/project/project-filters.interface';
 import { Page } from '../../../../shared/interfaces/pageable.interface';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
 import { FilterBarComponent } from '../../../../shared/components/filter-bar/filter-bar.component';
 import { ListComponent } from '../../../../shared/components/list/list.component';
 import { ListItemComponent } from '../../../../shared/components/list-item/list-item.component';
+import { ModalService } from '../../../../core/services/modal.service';
 
 const getEnumKeys = (e: object) =>
   Object.keys(e).filter((k) => typeof (e as any)[k] === 'string');
@@ -80,6 +82,7 @@ export class ProjectListPageComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   private projectStore = inject(ProjectStore);
   private spinner = inject(NgxSpinnerService);
+  private modalService = inject(ModalService);
 
   projectTypes = getEnumKeys(ProjectType);
   projectStatuses = getEnumKeys(ProjectStatus);
@@ -203,7 +206,7 @@ export class ProjectListPageComponent implements OnInit {
   }
 
   goToCreateProject(): void {
-    this.router.navigate(['/projects/create']);
+    this.modalService.open(ProjectTypeSelectionComponent, 'small-card');
   }
 
   private updateQueryParams(filters: any, page: number): void {

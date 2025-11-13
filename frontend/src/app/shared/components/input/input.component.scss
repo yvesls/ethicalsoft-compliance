@@ -2,23 +2,48 @@
 
 .input-wrapper {
   position: relative;
-  padding-right: 2.5rem;
 
-  .password-toggle-btn {
+  input[type="text"],
+  input[type="password"],
+  input[type="email"],
+  input[type="number"],
+  input[type="date"] {
+    border: none;
+    background-color: transparent;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+
+    &:focus {
+      outline: none;
+      box-shadow: none;
+    }
+  }
+
+  &.has-icon {
+    padding-right: 2.5rem;
+  }
+
+  .input-icon-btn {
     position: absolute;
     right: 0;
     top: 0;
-
     height: 100%;
     width: 2.5rem;
-
     display: flex;
     align-items: center;
     justify-content: center;
     background: none;
     border: none;
     padding: 0;
-    cursor: pointer;
+
+    &.is-static {
+      pointer-events: none;
+    }
+
+    &:not(.is-static) {
+      cursor: pointer;
+    }
 
     img {
       width: 1.625rem;
@@ -27,7 +52,7 @@
       transition: opacity 0.2s ease-in-out;
     }
 
-    &:hover {
+    &:not(.is-static):hover {
       img {
         opacity: 1;
       }

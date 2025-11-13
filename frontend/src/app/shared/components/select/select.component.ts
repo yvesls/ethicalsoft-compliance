@@ -152,7 +152,7 @@ export class SelectComponent implements ControlValueAccessor, OnInit {
     }
     const errors = this.control.errors;
     return Object.keys(errors).map((key) => {
-      return this.validationMessages[key] || `Erro: ${key}`;
+      return this.validationMessages[key] || `${key}`;
     });
   }
 }

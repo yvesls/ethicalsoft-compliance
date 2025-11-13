@@ -1,0 +1,59 @@
+@use '../../../../assets/scss/base/vars' as *;
+
+:host {
+  display: block;
+}
+
+.accordion-panel {
+  width: 100%;
+  border: 1px solid $gray-primary;
+  border-radius: $radius-default;
+  background-color: $white;
+  overflow: hidden;
+
+  + .accordion-panel {
+    margin-top: 2rem;
+  }
+}
+
+.accordion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: rgba($gray-primary, 0.2);
+  }
+
+  .header-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: $text-color;
+  }
+
+  .required-asterisk {
+    color: $red;
+    margin-left: 0.25rem;
+  }
+
+  .chevron-icon {
+    width: 0.875rem;
+    height: 0.875rem;
+    transition: transform 0.3s ease-in-out;
+
+    filter: brightness(0) saturate(100%) invert(35%) sepia(0%) saturate(1450%) hue-rotate(189deg) brightness(94%) contrast(84%);
+
+    &.is-open {
+      transform: rotate(180deg);
+    }
+  }
+}
+
+.accordion-body {
+  padding: 0 1.5rem 1.5rem 1.5rem;
+  border-top: 1px solid $gray-primary;
+}

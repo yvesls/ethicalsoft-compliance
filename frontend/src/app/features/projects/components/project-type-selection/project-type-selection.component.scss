@@ -1,0 +1,62 @@
+@use '../../../../../assets/scss/base/vars' as *;
+
+:host {
+  display: block;
+}
+
+.modal-title {
+  color: $blue-primary;
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.modal-message {
+  font-size: 1rem;
+  color: $gray-secundary;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.type-selection-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.type-card {
+  border: 0.125rem solid $gray-primary;
+  border-radius: 0.625rem;
+  padding: 1.5rem;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  h3 {
+    margin: 0 0 0.5rem 0;
+    color: $blue-primary;
+    font-size: 1.125rem;
+  }
+
+  p {
+    font-size: 0.875rem;
+    line-height: 1.4;
+    margin: 0;
+  }
+
+  &:hover {
+    border-color: $blue-secundary;
+  }
+
+  &.selected {
+    border-color: $blue-primary;
+    box-shadow: 0 0 0 0.125rem rgba($blue-primary, 0.5);
+    background-color: rgba($blue-primary, 0.05);
+  }
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}

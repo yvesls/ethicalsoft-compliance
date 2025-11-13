@@ -6,6 +6,7 @@
   <div
     class="input-wrapper"
     [class.is-invalid-border]="control?.touched && control?.invalid"
+    [class.has-icon]="type === 'password'"
   >
     <input
       [attr.id]="id"
@@ -14,13 +15,14 @@
       [value]="value"
       (input)="onInput($event)"
       (blur)="onBlur()"
+      (focus)="onFocus()"
       [ngClass]="[inputClasses]"
     />
 
     <button
       *ngIf="type === 'password'"
       type="button"
-      class="password-toggle-btn"
+      class="input-icon-btn"
       (click)="togglePasswordVisibility()"
       tabindex="-1"
     >

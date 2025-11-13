@@ -1,0 +1,317 @@
+@use '../../../../../assets/scss/base/vars' as *;
+
+:host {
+  display: block;
+  padding: 1.5rem 2rem;
+}
+
+/* ============================================
+   FORM GRID STYLES - Global
+   ============================================ */
+
+::ng-deep .form-grid {
+  display: grid;
+  gap: 1.5rem;
+  width: 100%;
+  margin-bottom: 1.5rem;
+
+  &.form-grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  &.form-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  &.form-grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ============================================
+   PANEL ACTIONS - Global
+   ============================================ */
+
+::ng-deep .panel-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid $gray-primary;
+}
+
+/* ============================================
+   PAGE ACTIONS - Global
+   ============================================ */
+
+::ng-deep .page-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+/* ============================================
+   STEPS TABLE STYLES - Global
+   ============================================ */
+
+::ng-deep .steps-container {
+  padding: 1.5rem 0 0;
+  margin-top: 1.5rem;
+}
+
+::ng-deep .representatives-container {
+  padding: 1.5rem 0 0;
+  margin-top: 1.5rem;
+}
+
+::ng-deep .steps-table,
+::ng-deep .representatives-table,
+::ng-deep .questionnaires-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.5rem;
+  background-color: $white;
+
+  display: table;
+  table-layout: fixed;
+
+  thead {
+    background-color: transparent;
+    display: table-header-group;
+
+    tr {
+      border-bottom: 1px solid $gray-tertiary;
+      display: table-row;
+
+      th {
+        padding: 1rem 1rem;
+        text-align: center;
+        font-size: 0.65rem;
+        font-weight: 600;
+        color: $gray-secundary;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        background-color: transparent;
+        border: none;
+        word-break: break-word;
+
+        &:first-child {
+          text-align: left;
+        }
+
+        &:last-child {
+          width: 6.25rem;
+        }
+      }
+    }
+  }
+
+  tbody {
+    display: table-row-group;
+
+    tr {
+      border-bottom: 1px solid $gray-tertiary;
+      transition: $transition-default;
+      display: table-row;
+
+      &:last-child {
+        border-bottom: 1px solid $gray-tertiary;
+      }
+
+      &:hover {
+        background-color: $white-secundary;
+      }
+
+      td {
+        padding: 1rem;
+        vertical-align: middle;
+        border: none;
+
+        &.cell-name {
+          font-weight: 500;
+          color: $text-color;
+          font-size: 0.9rem;
+          padding: 1rem;
+        }
+
+        &.cell-date-range {
+          font-size: 0.85rem;
+          color: $gray-secundary;
+          padding: 1rem;
+
+          .date-range-label {
+            display: inline;
+            font-weight: 400;
+            color: $gray-secundary;
+            margin-right: 0.5rem;
+          }
+
+          .date-range-value {
+            display: inline;
+            color: $gray-secundary;
+            font-size: 0.85rem;
+          }
+        }
+
+        &.cell-weight {
+          text-align: center;
+          font-weight: 600;
+          color: $text-color;
+          font-size: 0.95rem;
+          padding: 1rem;
+        }
+
+        &.cell-actions {
+          text-align: center;
+          padding: 1rem;
+          white-space: nowrap;
+          width: 6.25rem;
+
+          .btn-icon {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: $transition-default;
+            margin: 0 0.25rem;
+
+            &:hover:not(:disabled) {
+              opacity: 0.7;
+            }
+
+            &:disabled {
+              cursor: not-allowed;
+              opacity: 0.3;
+            }
+
+            img {
+              width: 18px;
+              height: 18px;
+            }
+          }
+
+          .btn-delete {
+            img {
+              filter: invert(35%) sepia(100%) saturate(2000%) hue-rotate(350deg);
+            }
+
+            &:hover:not(:disabled) {
+              img {
+                filter: invert(20%) sepia(100%) saturate(2000%) hue-rotate(350deg);
+              }
+            }
+          }
+
+          .btn-edit {
+            img {
+              filter: invert(50%) sepia(50%) saturate(1000%) hue-rotate(180deg);
+            }
+
+            &:hover:not(:disabled) {
+              img {
+                filter: invert(30%) sepia(50%) saturate(1000%) hue-rotate(180deg);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/* ============================================
+   STEPS INFO BOX - Global
+   ============================================ */
+
+::ng-deep .steps-info {
+  padding: 1rem;
+  background-color: rgba($red, 0.05);
+  border-left: 4px solid $red;
+  margin-bottom: 1.5rem;
+  border-radius: 4px;
+
+  .info-text {
+    margin: 0;
+    font-size: 0.875rem;
+    color: $red;
+    font-weight: 500;
+
+    strong {
+      margin-right: 0.5rem;
+      color: $red;
+    }
+  }
+}
+
+/* ============================================
+   GENERIC BUTTON STYLES - Global
+   ============================================ */
+
+::ng-deep .btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: $transition-default;
+  font-size: 0.875rem;
+
+  &.btn-primary {
+    background-color: $blue-primary;
+    color: $white;
+
+    &:hover:not(:disabled) {
+      opacity: 0.9;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  &.btn-secondary {
+    background-color: $white-secundary;
+    color: $text-color;
+    border: 1px solid $gray-primary;
+
+    &:hover:not(:disabled) {
+      background-color: $white;
+      border-color: $gray-secundary;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}
+
+/* ============================================
+   QUESTIONAIRES SCROLL - Global
+   ============================================ */
+
+::ng-deep .questionnaires-scroll {
+  max-height: 400px;
+  overflow-y: auto;
+  margin-bottom: 1.5rem;
+  border: 1px solid $gray-primary;
+  border-radius: 4px;
+
+  .steps-table {
+    margin-bottom: 0;
+  }
+}
+
+/* ============================================
+   ACCORDION STYLES - Global
+   ============================================ */
+
+::ng-deep app-accordion-panel {
+  margin-bottom: 1.5rem;
+}

@@ -67,10 +67,6 @@ $text-color-dark: $gray-secundary;
     }
   }
 
-  input[type='date'] {
-    @extend %form-control-base;
-  }
-
   .is-invalid-border {
     border-color: $red !important;
     box-shadow: none !important;

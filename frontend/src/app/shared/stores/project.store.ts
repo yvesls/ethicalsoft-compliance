@@ -1,8 +1,8 @@
 import { Observable } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { BaseStore } from './base/base.store';
-import { ProjectFilters } from '../interfaces/project-filters.interface';
-import { Project } from '../interfaces/project.interface';
+import { ProjectFilters } from '../interfaces/project/project-filters.interface';
+import { Project } from '../interfaces/project/project.interface';
 import { RequestInputOptions } from '../../core/interfaces/request-input-options.interface';
 import { Page } from '../interfaces/pageable.interface';
 
