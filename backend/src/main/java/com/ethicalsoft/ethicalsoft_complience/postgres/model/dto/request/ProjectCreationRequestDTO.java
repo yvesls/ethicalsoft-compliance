@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Set;
 
 @Data
-public class ProjectCreationRequest {
+public class ProjectCreationRequestDTO {
 	private String name;
 	private String type;
 	private LocalDate startDate;

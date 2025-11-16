@@ -17,6 +17,6 @@ export abstract class BaseStore {
 	}
 
 	getUrl(action: string) {
-		return `${this.baseController}/${action}`
+		return action ? `${this.baseController}/${action}` : this.baseController
 	}
 }

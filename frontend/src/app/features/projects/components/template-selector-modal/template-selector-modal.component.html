@@ -1,0 +1,38 @@
+<div class="modal-header">
+  <h2>Selecionar template</h2>
+  <button class="close-btn" (click)="close()">×</button>
+</div>
+
+<div class="modal-body">
+  <div class="template-selector" *ngIf="!isLoading">
+    <app-select
+      label=""
+      placeholder="Selecione o template a partir de um projeto existente"
+      [options]="templateOptions"
+      [formControl]="templateControl"
+    ></app-select>
+  </div>
+
+  <div class="loading" *ngIf="isLoading">
+    <p>Carregando templates...</p>
+  </div>
+</div>
+
+<div class="modal-actions">
+  <button
+    type="button"
+    class="btn btn-secondary"
+    (click)="importFromExternal()"
+  >
+    Importar de arquivo externo
+  </button>
+
+  <button
+    type="button"
+    class="btn btn-primary"
+    [disabled]="!templateControl.value"
+    (click)="confirm()"
+  >
+    Confirmar
+  </button>
+</div>

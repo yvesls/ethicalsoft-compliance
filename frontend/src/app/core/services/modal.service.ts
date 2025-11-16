@@ -1,7 +1,7 @@
 import { Injectable, ApplicationRef, createComponent, Type, ComponentRef, OnDestroy } from '@angular/core'
 import { FormGroup } from '@angular/forms'
 import { Router, NavigationStart } from '@angular/router'
-import { Subscription } from 'rxjs'
+import { Subscription, Subject } from 'rxjs'
 import { filter } from 'rxjs/operators'
 import { NotificationService } from './notification.service'
 import { LoggerService } from './logger.service'
@@ -15,6 +15,7 @@ export class ModalService implements OnDestroy {
 	private isConfirming = false
 	private routerSubscription: Subscription
 	private pendingNavigation?: any
+	private modalClosedSubject = new Subject<void>()
 
 	constructor(
 		private appRef: ApplicationRef,
@@ -32,6 +33,11 @@ export class ModalService implements OnDestroy {
 
 	ngOnDestroy() {
 		this.routerSubscription?.unsubscribe()
+		this.modalClosedSubject.complete()
+	}
+
+	get modalClosed$() {
+		return this.modalClosedSubject.asObservable()
 	}
 
 	private handleNavigation(event: NavigationStart) {
@@ -147,5 +153,8 @@ export class ModalService implements OnDestroy {
 			this.modalElement.remove()
 			this.modalElement = undefined
 		}
+
+		// Emite evento de modal fechado
+		this.modalClosedSubject.next()
 	}
 }

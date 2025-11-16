@@ -1,0 +1,157 @@
+@use '../../../../../../assets/scss/base/vars' as *;
+
+:host {
+  display: block;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid $gray-primary;
+
+  h2 {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: $text-color;
+    flex: 1;
+    padding-right: 1rem;
+  }
+
+  .close-btn {
+    background: none;
+    border: none;
+    font-size: 1.75rem;
+    line-height: 1;
+    color: $gray-secundary;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: $transition-default;
+
+    &:hover {
+      color: $text-color;
+    }
+  }
+}
+
+.modal-body {
+  margin-bottom: 2rem;
+
+  .stages-container {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid $gray-primary;
+    border-radius: 4px;
+  }
+
+  .loading {
+    text-align: center;
+    padding: 2rem;
+    color: $gray-secundary;
+  }
+}
+
+.stages-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  thead {
+    background-color: $white-secundary;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+
+    tr {
+      border-bottom: 1px solid $gray-tertiary;
+
+      th {
+        padding: 1rem;
+        text-align: left;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: $gray-secundary;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+
+        &.checkbox-col {
+          width: 50px;
+          text-align: center;
+        }
+
+        &.text-center {
+          text-align: center;
+        }
+      }
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid $gray-tertiary;
+      cursor: pointer;
+      transition: $transition-default;
+
+      &:hover {
+        background-color: $white-secundary;
+      }
+
+      &.selected {
+        background-color: rgba($blue-primary, 0.1);
+        border-left: 3px solid $blue-primary;
+      }
+
+      td {
+        padding: 1rem;
+        font-size: 0.875rem;
+        color: $text-color;
+
+        &.checkbox-col {
+          text-align: center;
+          width: 50px;
+        }
+
+        &.text-center {
+          text-align: center;
+        }
+      }
+    }
+  }
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+
+  .btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: $transition-default;
+    font-size: 0.875rem;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    &.btn-primary {
+      background-color: $blue-primary;
+      color: $white;
+
+      &:hover:not(:disabled) {
+        opacity: 0.9;
+      }
+    }
+  }
+}

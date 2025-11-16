@@ -2,7 +2,7 @@ package com.ethicalsoft.ethicalsoft_complience.service.facade;
 
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.Project;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.Representative;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.ProjectCreationRequest;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.ProjectCreationRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.response.ProjectResponse;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.ProjectTypeEnum;
 import com.ethicalsoft.ethicalsoft_complience.service.ProjectService;
@@ -31,7 +31,7 @@ public class ProjectFacade {
 	}
 
 	@Transactional
-	public ProjectResponse createProject( ProjectCreationRequest request ) {
+	public ProjectResponse createProject( ProjectCreationRequestDTO request ) {
 
 		Project project = projectService.createProjectShell( request );
 

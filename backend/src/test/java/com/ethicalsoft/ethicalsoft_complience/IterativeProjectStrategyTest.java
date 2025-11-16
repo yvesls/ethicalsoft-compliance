@@ -5,7 +5,7 @@ import com.ethicalsoft.ethicalsoft_complience.postgres.model.Project;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.Stage;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.IterationDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.StageDTO;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.ProjectCreationRequest;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.ProjectCreationRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.IterationRepository;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.StageRepository;
 import com.ethicalsoft.ethicalsoft_complience.service.QuestionnaireService;
@@ -51,7 +51,7 @@ class IterativeProjectStrategyTest {
 	private ArgumentCaptor<Map<String, Iteration>> iterationMapCaptor;
 
 	private Project project;
-	private ProjectCreationRequest request;
+	private ProjectCreationRequestDTO request;
 
 	@BeforeEach
 	void setUp() {
@@ -64,7 +64,7 @@ class IterativeProjectStrategyTest {
 		IterationDTO iterationDTO = new IterationDTO();
 		iterationDTO.setName( "Sprint 1" );
 
-		request = new ProjectCreationRequest();
+		request = new ProjectCreationRequestDTO();
 		request.setStages( List.of( stageDTO ) );
 		request.setIterations( Set.of( iterationDTO ) );
 		request.setQuestionnaires( Set.of() );

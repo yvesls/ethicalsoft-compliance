@@ -52,14 +52,10 @@ export abstract class BasePageComponent implements OnInit, OnDestroy {
 			.subscribe(
 				(activatedRouteInfo: RouteHistoryParams<any>) => {
 					this.routeInfo = activatedRouteInfo
-					console.log('[BasePageComponent] _validateVID - routeInfo:', this.routeInfo)
-					console.log('[BasePageComponent] _validateVID - VID presente:', !!this.routeInfo.vid)
 
 					if (!this.routeInfo.vid) {
-						console.log('[BasePageComponent] Sem VID - chamando _getVID()')
 						this._getVID()
 					} else {
-						console.log('[BasePageComponent] Com VID - chamando _startWithVID()')
 						this._startWithVID()
 					}
 				},
@@ -88,10 +84,6 @@ export abstract class BasePageComponent implements OnInit, OnDestroy {
 			() => {
 				let startPageParams: RouteParams<any> =
 					this.routerService.getStoredPageViewParams(this.routeInfo.vid)?.obj?.params || {}
-
-				console.log('[BasePageComponent] _startWithVID - VID:', this.routeInfo.vid)
-				console.log('[BasePageComponent] _startWithVID - Parâmetros salvos:', startPageParams)
-				console.log('[BasePageComponent] _startWithVID - hasParams:', hasProperties(startPageParams))
 
 				this.restore({
 					...startPageParams,

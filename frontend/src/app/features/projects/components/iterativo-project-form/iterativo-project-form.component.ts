@@ -27,6 +27,12 @@ import {
   BasePageComponent,
   RestoreParams,
 } from '../../../../core/abstractions/base-page.component';
+import { TemplateStore } from '../../../../shared/stores/template.store';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ModalService } from '../../../../core/services/modal.service';
+import { NotificationService } from '../../../../core/services/notification.service';
+import { TemplateActionModalComponent } from '../template-action-modal/template-action-modal.component';
+import { CreateStageIterativeModalComponent, NewStageIterativeData } from '../create-stage-iterative-modal/create-stage-iterative-modal.component';
 
 export interface Representative {
   firstName: string;
@@ -62,6 +68,10 @@ export interface Questionnaire {
 export class IterativoProjectFormComponent extends BasePageComponent implements OnInit {
   private fb = inject(FormBuilder);
   private cdr = inject(ChangeDetectorRef);
+  private destroyRef = inject(DestroyRef);
+  private templateStore = inject(TemplateStore);
+  private modalService = inject(ModalService);
+  private notificationService = inject(NotificationService);
 
   public ProjectType = ProjectType;
   public projectForm!: FormGroup;
@@ -79,9 +89,7 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
     'Testes',
   ];
 
-  public templateOptions: SelectOption[] = [
-    { value: 'template2', label: 'Padrão - Iterativo' },
-  ];
+  public templateOptions: SelectOption[] = [];
   public projectTypeOptions: SelectOption[] = [
     { value: ProjectType.Iterativo, label: 'Iterativo Incremental' },
   ];
@@ -117,10 +125,99 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
         ],
       }
     );
+
+    this.loadTemplates();
+    this.setupTemplateListener();
   }
 
   protected override loadParams(params: any, queryParams?: any): void {
 
+  }
+
+  private loadTemplates(): void {
+    this.templateStore.getAllTemplates()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (templates) => {
+          const iterativoTemplates = templates.filter(t => t.type === ProjectType.Iterativo);
+          this.templateOptions = iterativoTemplates.map(t => ({
+            value: t.id,
+            label: t.name
+          }));
+          this.cdr.markForCheck();
+        },
+        error: (error) => {
+          console.error('Erro ao carregar templates:', error);
+        }
+      });
+  }
+
+  private setupTemplateListener(): void {
+    this.projectForm.get('template')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((templateId) => {
+        if (templateId) {
+          this.loadTemplateData(templateId);
+        }
+      });
+  }
+
+  private loadTemplateData(templateId: string): void {
+    this.templateStore.getFullTemplate(templateId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (template) => {
+          if (template.defaultIterationDuration) {
+            this.projectForm.patchValue({
+              iterationDuration: template.defaultIterationDuration
+            });
+          }
+          if (template.defaultIterationCount) {
+            this.projectForm.patchValue({
+              iterationCount: template.defaultIterationCount
+            });
+          }
+
+          if (template.iterations && template.iterations.length > 0) {
+           this.iterativeSteps = template.iterations.map(iter => iter.name);
+
+            const stepsFormGroup = this.fb.group({});
+            template.iterations.forEach(iter => {
+              const controlName = iter.name.toLowerCase().replace(/\s+/g, '_');
+              stepsFormGroup.addControl(controlName, this.fb.control(iter.weight, Validators.required));
+            });
+            this.projectForm.setControl('steps', stepsFormGroup);
+          }
+
+          if (template.representatives && template.representatives.length > 0) {
+            const repsData = template.representatives.map(rep => ({
+              firstName: rep.firstName,
+              lastName: rep.lastName,
+              email: rep.email,
+              inclusionDate: new Date().toLocaleDateString('pt-BR'),
+              weight: rep.weight,
+              roles: rep.roleNames.join(', ')
+            }));
+            this.projectForm.setControl('representatives', this.buildRepresentativesForm(repsData));
+          }
+
+          if (template.questionnaires && template.questionnaires.length > 0) {
+            const questionnairesData = template.questionnaires.map(q => ({
+              name: q.name,
+              iteration: q.iterationRefName || '',
+              weight: 1,
+              applicationStartDate: new Date().toISOString().split('T')[0],
+              applicationEndDate: new Date().toISOString().split('T')[0]
+            }));
+            this.projectForm.setControl('questionnaires', this.buildQuestionnairesForm(questionnairesData));
+          }
+
+          this.cdr.markForCheck();
+        },
+        error: (error) => {
+          console.error('❌ Erro ao carregar template completo iterativo:', error);
+        }
+      });
   }
 
   private _initForm(): void {
@@ -230,8 +327,12 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
   protected override restore(restoreParameter: RestoreParams<any>): void {
     if (restoreParameter.hasParams) {
       if (restoreParameter['formValue']) {
-        console.log('Restaurando dados do formulário:', restoreParameter['formValue']);
         const formValue = restoreParameter['formValue'];
+        if (formValue.steps) {
+          this.iterativeSteps = Object.keys(formValue.steps).map(key =>
+            key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+          );
+        }
 
         this.projectForm.setControl(
           'steps',
@@ -252,7 +353,6 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
       }
 
       if (restoreParameter['panelStates']) {
-        console.log('Restaurando estados dos painéis:', restoreParameter['panelStates']);
         this.panelStates = restoreParameter['panelStates'];
       }
     }
@@ -286,12 +386,12 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
       roles: ['', [Validators.required]],
     });
     this.representativesFormArray.push(newRep);
-    this.cdr.markForCheck();
+    this.cdr.detectChanges();
   }
 
   removeRepresentative(index: number): void {
     this.representativesFormArray.removeAt(index);
-    this.cdr.markForCheck();
+    this.cdr.detectChanges();
   }
 
   private buildQuestionnairesForm(data?: Questionnaire[]): FormArray {
@@ -328,31 +428,61 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
       applicationEndDate: [new Date().toISOString().split('T')[0], [Validators.required]],
     });
     this.questionnairesFormArray.push(newQ);
-    this.cdr.markForCheck();
+    this.cdr.detectChanges();
   }
 
   removeQuestionnaire(index: number): void {
     this.questionnairesFormArray.removeAt(index);
-    this.cdr.markForCheck();
+    this.cdr.detectChanges();
   }
 
   getIterativeStepWeight(stepName: string): number {
-    const step = this.stepsFormGroup?.get(stepName.toLowerCase());
-    return step ? step.get('weight')?.value || 0 : 0;
+    const controlName = stepName.toLowerCase().replace(/\s+/g, '_');
+    const control = this.stepsFormGroup?.get(controlName);
+    return control ? control.value || 0 : 0;
   }
 
   addIterativeStep(): void {
-    const newStepName = prompt('Nome da nova etapa:');
-    if (newStepName && newStepName.trim()) {
-      this.iterativeSteps.push(newStepName.trim());
-      this.stepsFormGroup.addControl(
-        newStepName.toLowerCase().replace(/\s+/g, '_'),
-        this.fb.group({
-          weight: [0, [Validators.required, Validators.min(0)]],
-        })
-      );
-      this.cdr.markForCheck();
-    }
+    const modalRef = this.openModal<TemplateActionModalComponent>(TemplateActionModalComponent);
+
+    const actionSubscription = modalRef.actionSelected.subscribe((action: 'create' | 'import') => {
+      if (action === 'create') {
+        const closeSubscription = this.modalService.modalClosed$
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe(() => {
+            this.openCreateStageModal();
+            closeSubscription.unsubscribe();
+          });
+      } else if (action === 'import') {
+        this.notificationService.showWarning('Funcionalidade em desenvolvimento');
+      }
+      actionSubscription.unsubscribe();
+    });
+  }
+
+  private openCreateStageModal(): void {
+    const modalRef = this.openModal<CreateStageIterativeModalComponent>(CreateStageIterativeModalComponent);
+
+    const subscription = modalRef.stageCreated.subscribe((newStage: NewStageIterativeData) => {
+      this.addNewIterativeStage(newStage);
+      subscription.unsubscribe();
+    });
+  }
+
+  private openModal<T>(component: any): T {
+    this.modalService.open(component, 'small-card');
+    return (this.modalService as any).modalRef?.instance as T;
+  }
+
+  private addNewIterativeStage(newStage: NewStageIterativeData): void {
+    this.iterativeSteps.push(newStage.name);
+    const controlName = newStage.name.toLowerCase().replace(/\s+/g, '_');
+    this.stepsFormGroup.addControl(
+      controlName,
+      this.fb.control(newStage.weight, [Validators.required, Validators.min(0)])
+    );
+
+    this.cdr.detectChanges();
   }
 
   removeIterativeStep(stepName: string): void {
@@ -363,7 +493,7 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
         this.stepsFormGroup.removeControl(
           stepName.toLowerCase().replace(/\s+/g, '_')
         );
-        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       }
     }
   }
@@ -373,6 +503,5 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
       this.projectForm.markAllAsTouched();
       return;
     }
-    console.log('Formulário ITERATIVO Válido:', this.projectForm.getRawValue());
   }
 }

@@ -1,6 +1,6 @@
 package com.ethicalsoft.ethicalsoft_complience.controller;
 
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.ProjectCreationRequest;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.ProjectCreationRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.ProjectSearchRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.response.ProjectResponse;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.response.ProjectSummaryResponseDTO;
@@ -24,7 +24,7 @@ public class ProjectController {
 	private final ProjectService projectService;
 
 	@PostMapping
-	public ProjectResponse createProject( @RequestBody ProjectCreationRequest request ) {
+	public ProjectResponse createProject( @RequestBody ProjectCreationRequestDTO request ) {
 		return projectFacade.createProject( request );
 	}
 

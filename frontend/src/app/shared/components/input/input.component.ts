@@ -108,7 +108,10 @@ export class InputComponent implements ControlValueAccessor {
         return errors[key];
       }
 
-      return `${key}`;
+      if (typeof errors[key] === 'object' && errors[key]?.message) {
+        return errors[key].message;
+      }
+      return `Campo inválido`;
     });
   }
 

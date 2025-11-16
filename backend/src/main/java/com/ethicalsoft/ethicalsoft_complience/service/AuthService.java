@@ -12,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -48,6 +49,18 @@ public class AuthService {
 		newUser.setFirstAccess( false );
 
 		this.userRepository.save( newUser );
+	}
+
+	public User getAuthenticatedUser() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (authentication == null || !authentication.isAuthenticated()) {
+			throw new SecurityException("Nenhum usuário autenticado encontrado.");
+		}
+		return (User) authentication.getPrincipal();
+	}
+
+	public Long getAuthenticatedUserId() {
+		return getAuthenticatedUser().getId();
 	}
 
 }

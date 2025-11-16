@@ -1,0 +1,61 @@
+<div class="modal-header">
+  <h2>Selecionar etapa(s) do template - {{ templateName }}</h2>
+  <button class="close-btn" (click)="close()">×</button>
+</div>
+
+<div class="modal-body">
+  <div class="stages-container" *ngIf="!isLoading">
+    <form [formGroup]="form">
+      <table class="stages-table">
+        <thead>
+          <tr>
+            <th class="checkbox-col">
+              <input
+                type="checkbox"
+                (change)="selectAll($event)"
+                [checked]="hasSelection"
+              />
+            </th>
+            <th>Nome</th>
+            <th class="text-center">Peso</th>
+            <th class="text-center">Data de criação</th>
+          </tr>
+        </thead>
+        <tbody formArrayName="stages">
+          <tr
+            *ngFor="let stage of stagesFormArray.controls; let i = index"
+            [formGroupName]="i"
+            [class.selected]="stage.get('selected')?.value"
+            (click)="toggleSelection(i)"
+          >
+            <td class="checkbox-col">
+              <input
+                type="checkbox"
+                formControlName="selected"
+                (click)="$event.stopPropagation()"
+              />
+            </td>
+            <td>{{ stage.get('name')?.value }}</td>
+            <td class="text-center">{{ stage.get('weight')?.value }}</td>
+            <td class="text-center">21/12/2024</td>
+          </tr>
+        </tbody>
+      </table>
+    </form>
+  </div>
+
+  <div class="loading" *ngIf="isLoading">
+    <p>Carregando etapas...</p>
+  </div>
+</div>
+
+<div class="modal-actions">
+  <button
+    type="button"
+    class="btn btn-primary"
+    [disabled]="!hasSelection"
+    (click)="confirm()"
+  >
+    Selecionar
+  </button>
+</div>

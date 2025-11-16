@@ -2,7 +2,7 @@ package com.ethicalsoft.ethicalsoft_complience.service;
 
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.*;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.RepresentativeDTO;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.ProjectCreationRequest;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.ProjectCreationRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.ProjectSearchRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.response.ProjectSummaryResponseDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.ProjectTypeEnum;
@@ -36,7 +36,7 @@ public class ProjectService {
 	private final RoleRepository roleRepository;
 
 	@Transactional
-	public Project createProjectShell( ProjectCreationRequest request ) {
+	public Project createProjectShell( ProjectCreationRequestDTO request ) {
 		Project project = ModelMapperUtils.map( request, Project.class );
 		project.setType( ProjectTypeEnum.fromValue( request.getType() ) );
 		project.setStages( new HashSet<>() );

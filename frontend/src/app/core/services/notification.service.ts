@@ -121,10 +121,8 @@ export class NotificationService implements OnDestroy {
 	closeModal() {
 		document.querySelectorAll('.notification-modal').forEach((modal) => {
 			modal.classList.add('closing')
-			setTimeout(() => {
-				modal.remove()
-				LoggerService.info('NotificationService: Modal removed from DOM.')
-			}, 50)
+      modal.remove()
+      LoggerService.info('NotificationService: Modal removed from DOM.')
 		})
 	}
 }

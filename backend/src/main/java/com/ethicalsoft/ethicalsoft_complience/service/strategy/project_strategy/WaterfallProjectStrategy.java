@@ -3,7 +3,7 @@ package com.ethicalsoft.ethicalsoft_complience.service.strategy.project_strategy
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.Iteration;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.Project;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.Stage;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.ProjectCreationRequest;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.ProjectCreationRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.ProjectTypeEnum;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.StageRepository;
 import com.ethicalsoft.ethicalsoft_complience.service.QuestionnaireService;
@@ -31,7 +31,7 @@ public class WaterfallProjectStrategy implements ProjectCreationStrategy {
 	}
 
 	@Override
-	public void createStructure( Project project, ProjectCreationRequest request ) {
+	public void createStructure( Project project, ProjectCreationRequestDTO request ) {
 		if ( request.getStages() == null || request.getStages().isEmpty() ) {
 			throw new IllegalArgumentException( "Projetos Cascata devem ter etapas definidas." );
 		}

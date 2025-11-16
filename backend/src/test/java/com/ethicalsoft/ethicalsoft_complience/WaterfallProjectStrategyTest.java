@@ -5,7 +5,7 @@ import com.ethicalsoft.ethicalsoft_complience.postgres.model.Project;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.Stage;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.QuestionnaireDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.StageDTO;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.ProjectCreationRequest;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.ProjectCreationRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.StageRepository;
 import com.ethicalsoft.ethicalsoft_complience.service.QuestionnaireService;
 import com.ethicalsoft.ethicalsoft_complience.service.strategy.project_strategy.WaterfallProjectStrategy;
@@ -49,7 +49,7 @@ class WaterfallProjectStrategyTest {
 	private ArgumentCaptor<Map<String, Iteration>> iterationMapCaptor;
 
 	private Project project;
-	private ProjectCreationRequest request;
+	private ProjectCreationRequestDTO request;
 
 	@BeforeEach
 	void setUp() {
@@ -60,7 +60,7 @@ class WaterfallProjectStrategyTest {
 		stageDTO.setName( "Requirements" );
 		stageDTO.setWeight( BigDecimal.TEN );
 
-		request = new ProjectCreationRequest();
+		request = new ProjectCreationRequestDTO();
 		request.setStages( List.of( stageDTO ) );
 		request.setQuestionnaires( Set.of( new QuestionnaireDTO() ) );
 	}
