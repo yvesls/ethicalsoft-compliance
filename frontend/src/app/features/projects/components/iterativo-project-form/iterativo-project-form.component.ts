@@ -215,7 +215,7 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
           this.cdr.markForCheck();
         },
         error: (error) => {
-          console.error('❌ Erro ao carregar template completo iterativo:', error);
+          console.error('Erro ao carregar template completo iterativo:', error);
         }
       });
   }
