@@ -8,4 +8,5 @@ import java.math.BigDecimal;
 public class TemplateStageDTO {
 	private String name;
 	private BigDecimal weight;
+	private int sequence;
 }

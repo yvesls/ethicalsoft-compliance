@@ -124,6 +124,7 @@ public class TemplateService {
 			TemplateStageDTO dto = new TemplateStageDTO();
 			dto.setName(stage.getName());
 			dto.setWeight(stage.getWeight());
+			dto.setSequence(stage.getSequence());
 			return dto;
 		}).toList();
 	}

@@ -32,7 +32,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ModalService } from '../../../../core/services/modal.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { TemplateActionModalComponent } from '../template-action-modal/template-action-modal.component';
-import { CreateStageIterativeModalComponent, NewStageIterativeData } from '../create-stage-iterative-modal/create-stage-iterative-modal.component';
+import { StageIterativeModalComponent, StageIterativeData } from '../stage-iterative-modal/stage-iterative-modal.component';
+import { ActionType } from '../../../../shared/enums/action-type.enum';
 
 export interface Representative {
   firstName: string;
@@ -49,6 +50,11 @@ export interface Questionnaire {
   weight: number;
   applicationStartDate: string;
   applicationEndDate: string;
+}
+
+export interface IterativeStaps {
+  name: string;
+  weight: number;
 }
 
 @Component({
@@ -82,12 +88,7 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
     questionnaires: false,
   };
 
-  public iterativeSteps = [
-    'Iniciação',
-    'Desenvolvimento',
-    'Requisitos',
-    'Testes',
-  ];
+  public iterativeSteps: IterativeStaps[] = [];
 
   public templateOptions: SelectOption[] = [];
   public projectTypeOptions: SelectOption[] = [
@@ -162,6 +163,12 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
       });
   }
 
+  private hasUserModifiedSteps(): boolean {
+    const stepsFormGroup = this.projectForm.get('steps') as FormGroup;
+    return this.iterativeSteps.length > 0 ||
+           (stepsFormGroup && Object.keys(stepsFormGroup.controls).length > 0);
+  }
+
   private loadTemplateData(templateId: string): void {
     this.templateStore.getFullTemplate(templateId)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -178,8 +185,11 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
             });
           }
 
-          if (template.iterations && template.iterations.length > 0) {
-           this.iterativeSteps = template.iterations.map(iter => iter.name);
+          if (template.iterations && template.iterations.length > 0 && !this.hasUserModifiedSteps()) {
+           this.iterativeSteps = template.iterations.map(iter => ({
+             name: iter.name,
+             weight: iter.weight
+           }));
 
             const stepsFormGroup = this.fb.group({});
             template.iterations.forEach(iter => {
@@ -220,35 +230,6 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
       });
   }
 
-  private _initForm(): void {
-    this.projectForm = this.fb.group(
-      {
-        template: [null, [Validators.required]],
-        name: ['', [Validators.required]],
-        type: [
-          { value: ProjectType.Iterativo, disabled: true },
-          [Validators.required],
-        ],
-        startDate: [null, [Validators.required]],
-        deadline: [null, [CustomValidators.minDateToday()]],
-        iterationDuration: [null, [Validators.required, Validators.min(1)]],
-        iterationCount: [null, [Validators.required, Validators.min(1)]],
-        steps: this.buildIterativoStepsForm(),
-        representatives: this.buildRepresentativesForm(),
-        questionnaires: this.buildQuestionnairesForm(),
-      },
-      {
-        validators: [
-          CustomValidators.dateRange(
-            'startDate',
-            'deadline',
-            'A data de início não pode ser maior que o prazo limite.'
-          ),
-        ],
-      }
-    );
-  }
-
   private buildIterativoStepsForm(data?: any): FormGroup {
     const defaults = {
       initiation: 3,
@@ -266,42 +247,7 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
   }
 
   private buildRepresentativesForm(data?: Representative[]): FormArray {
-    const defaults: Representative[] = [
-      {
-        firstName: 'Maria',
-        lastName: 'Visconde',
-        email: 'cliente1@projeto.com',
-        inclusionDate: '21/12/2024',
-        weight: 1,
-        roles: 'Desenvolvedor(a), Líder de Equipe',
-      },
-      {
-        firstName: 'João',
-        lastName: 'Ferreira',
-        email: 'cliente2@projeto.com',
-        inclusionDate: '21/12/2024',
-        weight: 2,
-        roles: 'Desenvolvedor(a)',
-      },
-      {
-        firstName: 'Carlos',
-        lastName: 'Moreno',
-        email: 'cliente3@projeto.com',
-        inclusionDate: '21/12/2024',
-        weight: 1,
-        roles: 'Analista de Negócios',
-      },
-      {
-        firstName: 'Samara',
-        lastName: 'Alviverde',
-        email: 'cliente4@projeto.com',
-        inclusionDate: '21/12/2024',
-        weight: 3,
-        roles: 'Gerente de Projeto',
-      },
-    ];
-
-    const representativesData = data || defaults;
+    const representativesData = data || [];
 
     return this.fb.array(
       representativesData.map((rep) =>
@@ -329,9 +275,13 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
       if (restoreParameter['formValue']) {
         const formValue = restoreParameter['formValue'];
         if (formValue.steps) {
-          this.iterativeSteps = Object.keys(formValue.steps).map(key =>
-            key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
-          );
+          this.iterativeSteps = Object.entries(formValue.steps).map(([key, value]) => {
+            const name = key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+            return {
+              name: name,
+              weight: value as number
+            };
+          });
         }
 
         this.projectForm.setControl(
@@ -356,7 +306,6 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
         this.panelStates = restoreParameter['panelStates'];
       }
     }
-
     this.cdr.markForCheck();
   }
 
@@ -395,14 +344,8 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
   }
 
   private buildQuestionnairesForm(data?: Questionnaire[]): FormArray {
-    const iterationCount = this.projectForm?.get('iterationCount')?.value || 4;
-    const defaults: Questionnaire[] = Array.from({ length: iterationCount }, (_, i) => ({
-      name: `Questionário ${i + 1}`,
-      iteration: `Sprint ${i + 1}`,
-      weight: 1,
-      applicationStartDate: new Date().toISOString().split('T')[0],
-      applicationEndDate: new Date().toISOString().split('T')[0],
-    }));
+    const iterationCount = this.projectForm?.get('iterationCount')?.value;
+    const defaults: Questionnaire[] = Array.from({ length: iterationCount }, (_, i) => ({} as Questionnaire));
 
     const questionnairesData = data || defaults;
 
@@ -436,14 +379,9 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
     this.cdr.detectChanges();
   }
 
-  getIterativeStepWeight(stepName: string): number {
-    const controlName = stepName.toLowerCase().replace(/\s+/g, '_');
-    const control = this.stepsFormGroup?.get(controlName);
-    return control ? control.value || 0 : 0;
-  }
-
   addIterativeStep(): void {
-    const modalRef = this.openModal<TemplateActionModalComponent>(TemplateActionModalComponent);
+    this.modalService.open(TemplateActionModalComponent, 'small-card');
+    const modalRef = (this.modalService as any).modalRef?.instance as TemplateActionModalComponent;
 
     const actionSubscription = modalRef.actionSelected.subscribe((action: 'create' | 'import') => {
       if (action === 'create') {
@@ -461,21 +399,64 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
   }
 
   private openCreateStageModal(): void {
-    const modalRef = this.openModal<CreateStageIterativeModalComponent>(CreateStageIterativeModalComponent);
+    this.modalService.open(StageIterativeModalComponent, 'small-card');
+    const modalRef = (this.modalService as any).modalRef?.instance as StageIterativeModalComponent;
 
-    const subscription = modalRef.stageCreated.subscribe((newStage: NewStageIterativeData) => {
+    const createdSubscription = modalRef.stageCreated.subscribe((newStage: StageIterativeData) => {
       this.addNewIterativeStage(newStage);
-      subscription.unsubscribe();
+      createdSubscription.unsubscribe();
     });
   }
 
-  private openModal<T>(component: any): T {
-    this.modalService.open(component, 'small-card');
-    return (this.modalService as any).modalRef?.instance as T;
+  editIterativeStep(index: number): void {
+    const step = this.iterativeSteps[index];
+
+    this.modalService.open(StageIterativeModalComponent, 'small-card', {
+      mode: ActionType.EDIT,
+      editData: {
+        id: String(index),
+        name: step.name,
+        weight: step.weight
+      }
+    });
+
+    const modalRef = (this.modalService as any).modalRef?.instance as StageIterativeModalComponent;
+
+    const updatedSubscription = modalRef.stageUpdated.subscribe((updatedStage: StageIterativeData) => {
+      this.updateIterativeStage(index, updatedStage);
+      updatedSubscription.unsubscribe();
+    });
   }
 
-  private addNewIterativeStage(newStage: NewStageIterativeData): void {
-    this.iterativeSteps.push(newStage.name);
+  private updateIterativeStage(index: number, updatedStage: StageIterativeData): void {
+    const oldStep = this.iterativeSteps[index];
+    const oldControlName = oldStep.name.toLowerCase().replace(/\s+/g, '_');
+    const newControlName = updatedStage.name.toLowerCase().replace(/\s+/g, '_');
+
+    this.iterativeSteps[index] = {
+      name: updatedStage.name,
+      weight: updatedStage.weight
+    };
+
+    if (oldControlName !== newControlName) {
+      const currentValue = this.stepsFormGroup.get(oldControlName)?.value;
+      this.stepsFormGroup.removeControl(oldControlName);
+      this.stepsFormGroup.addControl(
+        newControlName,
+        this.fb.control(updatedStage.weight, [Validators.required, Validators.min(0)])
+      );
+    } else {
+      this.stepsFormGroup.get(oldControlName)?.setValue(updatedStage.weight);
+    }
+
+    this.cdr.detectChanges();
+  }
+
+  private addNewIterativeStage(newStage: StageIterativeData): void {
+    this.iterativeSteps.push({
+      name: newStage.name,
+      weight: newStage.weight
+    });
     const controlName = newStage.name.toLowerCase().replace(/\s+/g, '_');
     this.stepsFormGroup.addControl(
       controlName,
@@ -487,7 +468,7 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
 
   removeIterativeStep(stepName: string): void {
     if (this.iterativeSteps.length > 1) {
-      const index = this.iterativeSteps.indexOf(stepName);
+      const index = this.iterativeSteps.findIndex(step => step.name === stepName);
       if (index > -1) {
         this.iterativeSteps.splice(index, 1);
         this.stepsFormGroup.removeControl(

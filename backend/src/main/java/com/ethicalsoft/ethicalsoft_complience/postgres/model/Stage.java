@@ -28,6 +28,9 @@ public class Stage {
 	@Column(name = "weight", nullable = false, precision = 5, scale = 2)
 	private BigDecimal weight;
 
+	@Column(name = "sequence", nullable = false)
+	private int sequence;
+
 	@ManyToOne
 	@JoinColumn(name = "project_id")
 	private Project project;
