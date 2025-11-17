@@ -90,9 +90,8 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
   ];
 
   private hasRestoredSteps = false;
-  private lastValidPanelIndex = 0; // Controla qual painel pode ser aberto
+  private lastValidPanelIndex = 0;
 
-  // Mapeamento dos painéis para controle sequencial
   private readonly PANEL_ORDER = ['project', 'steps', 'representatives', 'questionnaires'] as const;
 
   constructor() {
@@ -125,7 +124,7 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
         ],
         steps: this.buildCascataStepsForm(),
         representatives: this.buildRepresentativesForm(),
-        questionnaires: this.fb.array([]), // Inicializa vazio
+        questionnaires: this.fb.array([]),
       },
       {
         validators: [
@@ -178,7 +177,6 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
   }
 
   private hasUserModifiedSteps(): boolean {
-    // Similar ao iterativo: verifica se já foi restaurado OU se tem itens no array
     const stepsArray = this.projectForm.get('steps') as FormArray;
     return this.hasRestoredSteps || (stepsArray && stepsArray.length > 0);
   }
@@ -202,48 +200,33 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
       });
   }
 
-  /**
-   * Recalcula as faixas de aplicação de todas as etapas baseado na sequence.
-   * REGRA CENTRAL (BR08):
-   * 1. Ordena as etapas por sequence (1, 2, 3...)
-   * 2. Calcula as datas de forma sequencial:
-   *    - Sequência 1: inicia na startDate do projeto
-   *    - Sequência N: inicia no fim da Sequência N-1
-   * 3. Aplica regra de 10% (abertura) e 90% (limite) sobre a durationDays
-   */
   private recalculateAllStageRanges(): void {
     const startDate = this.projectForm.get('startDate')?.value;
     if (!startDate) return;
 
-    // 1. Ordena as etapas por sequence
     const sortedSteps = this.getSortedStepsBySequence();
 
     let previousStageEndDate: Date = new Date(startDate);
 
-    // 2. Itera sobre as etapas ordenadas e calcula as datas
     sortedSteps.forEach((stepInfo) => {
       const stepControl = this.stepsFormArray.at(stepInfo.index);
       const durationDays = stepControl.get('durationDays')?.value || 0;
 
       if (durationDays > 0) {
-        // A etapa inicia onde a anterior terminou
         const stageStartDate = new Date(previousStageEndDate);
 
-        // Calcula a faixa de aplicação (BR08: 10% a 90%)
         const openingOffset = Math.round(durationDays * 0.1);
         const closingOffset = Math.round(durationDays * 0.9);
 
         const applicationStartDate = FormUtils.addBusinessDays(stageStartDate, openingOffset);
         const applicationEndDate = FormUtils.addBusinessDays(stageStartDate, closingOffset);
 
-        // Atualiza o FormGroup da etapa
         stepControl.patchValue({
           applicationStartDate: FormUtils.formatDateISO(applicationStartDate),
           applicationEndDate: FormUtils.formatDateISO(applicationEndDate),
           dateRange: `${FormUtils.formatDateBR(FormUtils.formatDateISO(applicationStartDate))} - ${FormUtils.formatDateBR(FormUtils.formatDateISO(applicationEndDate))}`
         }, { emitEvent: false });
 
-        // Atualiza a data de término para a próxima etapa
         previousStageEndDate = FormUtils.addBusinessDays(stageStartDate, durationDays);
       }
     });
@@ -252,10 +235,6 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
     this.cdr.detectChanges();
   }
 
-  /**
-   * Retorna as etapas ordenadas por sequence (crescente).
-   * Útil para processamento sequencial.
-   */
   private getSortedStepsBySequence(): { index: number; sequence: number }[] {
     return this.stepsFormArray.controls
       .map((control, index) => ({
@@ -274,20 +253,18 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
             const stepsData = template.stages.map(stage => ({
               name: stage.name,
               weight: stage.weight,
-              sequence: stage.sequence || 1, // Lê sequence do template
+              sequence: stage.sequence || 1,
               dateRange: '',
-              durationDays: stage.durationDays || 0, // Se disponível no template
+              durationDays: stage.durationDays || 0,
               applicationStartDate: '',
               applicationEndDate: ''
             }));
             this.projectForm.setControl('steps', this.buildCascataStepsForm(stepsData));
 
-            // Após carregar do template, recalcula as datas se startDate já estiver definido
             const startDate = this.projectForm.get('startDate')?.value;
             if (startDate) {
               this.recalculateAllStageRanges();
             } else {
-              // Apenas sincroniza questionários sem datas calculadas
               this.syncQuestionnairesWithSteps();
             }
           }
@@ -434,12 +411,6 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
       }));
   }
 
-  /**
-   * Gerencia a lógica de sequências ao criar uma nova etapa.
-   * Empurra as sequências existentes que são >= à nova sequência.
-   *
-   * @param newSequence - A sequência desejada para a nova etapa
-   */
   private handleSequenceOnCreate(newSequence: number): void {
     this.stepsFormArray.controls.forEach((control) => {
       const currentSequence = control.get('sequence')?.value;
@@ -450,35 +421,22 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
     });
   }
 
-  /**
-   * Gerencia a lógica de sequências ao editar uma etapa existente.
-   * Implementa a lógica de "troca": se a nova sequência já existe,
-   * a etapa que a possui recebe a sequência antiga da etapa editada.
-   *
-   * @param editIndex - Índice da etapa sendo editada
-   * @param newSequence - A nova sequência desejada
-   */
   private handleSequenceOnEdit(editIndex: number, newSequence: number): void {
     const editedStepControl = this.stepsFormArray.at(editIndex);
     const oldSequence = editedStepControl.get('sequence')?.value;
 
-    // Se a sequência não mudou, não faz nada
     if (oldSequence === newSequence) {
       return;
     }
 
-    // Encontra a etapa que atualmente tem a nova sequência desejada
     const conflictIndex = this.stepsFormArray.controls.findIndex(
       (control, idx) => idx !== editIndex && control.get('sequence')?.value === newSequence
     );
 
     if (conflictIndex !== -1) {
-      // Troca: a etapa em conflito recebe a sequência antiga da etapa editada
       const conflictControl = this.stepsFormArray.at(conflictIndex);
       conflictControl.patchValue({ sequence: oldSequence }, { emitEvent: false });
     }
-
-    // Atualiza a sequência da etapa editada
     editedStepControl.patchValue({ sequence: newSequence }, { emitEvent: false });
   }
 
@@ -486,7 +444,6 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
     const stepFormGroup = this.stepsFormArray.at(index) as FormGroup;
     const oldStepName = stepFormGroup.get('name')?.value;
 
-    // Gerencia troca de sequência antes de atualizar
     this.handleSequenceOnEdit(index, updatedStage.sequence);
 
     stepFormGroup.patchValue({
@@ -499,13 +456,11 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
       applicationEndDate: updatedStage.applicationEndDate
     });
 
-    // Recalcula todas as etapas e sincroniza questionários automaticamente
     this.recalculateAllStageRanges();
     this.cdr.detectChanges();
   }
 
   private addNewStage(newStage: StageCascataData): void {
-    // Empurra sequências existentes para frente antes de adicionar
     this.handleSequenceOnCreate(newStage.sequence);
 
     this.stepsFormArray.push(
@@ -520,7 +475,6 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
       })
     );
 
-    // Recalcula todas as etapas e sincroniza questionários
     this.recalculateAllStageRanges();
     this.cdr.detectChanges();
   }
@@ -530,33 +484,24 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
       const stepName = this.stepsFormArray.at(index).get('name')?.value;
 
       this.stepsFormArray.removeAt(index);
-      this.recalculateAllStageRanges(); // Recalcula para manter sincronização
+      this.recalculateAllStageRanges();
       this.cdr.detectChanges();
     }
   }
 
-  /**
-   * Sincroniza o array de questionários com o array de etapas.
-   * REGRA DE NEGÓCIO: Cada etapa representa um questionário.
-   * Os questionários são ordenados por sequence e refletem as datas das etapas.
-   */
   private syncQuestionnairesWithSteps(): void {
-    // Limpa o array de questionários
     while (this.questionnairesFormArray.length > 0) {
       this.questionnairesFormArray.removeAt(0);
     }
 
-    // Obtém as etapas ordenadas por sequence
     const sortedSteps = this.getSortedStepsBySequence();
 
-    // Cria um questionário para cada etapa, na ordem correta
     sortedSteps.forEach((stepInfo) => {
       const stepControl = this.stepsFormArray.at(stepInfo.index);
       const stepName = stepControl.get('name')?.value;
       const startDate = stepControl.get('applicationStartDate')?.value || '';
       const endDate = stepControl.get('applicationEndDate')?.value || '';
 
-      // Adiciona o questionário (sem passar weight, conforme solicitado)
       this.questionnairesFormArray.push(
         this.fb.group({
           name: [stepName, [Validators.required]],
@@ -715,10 +660,6 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
     return `A etapa "${stageName}" tem data de término (${stageEndDate}) que ultrapassa o prazo limite do projeto (${deadline}). Ajuste o prazo limite do projeto ou reduza o peso desta etapa.`;
   }
 
-  /**
-   * Retorna a mensagem de erro quando etapas ultrapassam o deadline.
-   * Esta é a validação principal da tabela de etapas.
-   */
   getStagesExceedDeadlineMessage(): string {
     const error = this.projectForm.errors?.['stagesExceedDeadline'];
     if (!error) return '';
@@ -729,20 +670,10 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
     return `${count} etapa${plural} ultrapassa${count === 1 ? '' : 'm'} o prazo limite do projeto. A etapa "${worstCase.stageName}" (Sequência ${worstCase.sequence}) excede em aproximadamente ${worstCase.daysOver} dia${worstCase.daysOver > 1 ? 's' : ''} úteis. Ajuste a data de início, estenda o prazo limite ou reduza a duração das etapas.`;
   }
 
-  /**
-   * Verifica se há erro de etapas excedendo o deadline.
-   * Usado para controlar a exibição do erro na tabela.
-   */
   hasStagesExceedDeadlineError(): boolean {
     return !!this.projectForm.errors?.['stagesExceedDeadline'];
   }
 
-  /**
-   * Avança para o próximo painel se o atual for válido.
-   * Implementa a lógica de navegação sequencial entre accordions.
-   *
-   * @param currentPanelKey - A chave do painel atual ('project', 'steps', etc.)
-   */
   continueToNextPanel(currentPanelKey: keyof typeof this.panelStates): void {
     const currentIndex = this.PANEL_ORDER.indexOf(currentPanelKey as any);
 
@@ -772,12 +703,6 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
     this.cdr.detectChanges();
   }
 
-  /**
-   * Verifica se um painel específico está válido.
-   *
-   * @param panelKey - A chave do painel a validar
-   * @returns true se o painel estiver válido
-   */
   private isPanelValid(panelKey: keyof typeof this.panelStates): boolean {
     switch (panelKey) {
       case 'project':
@@ -803,13 +728,6 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
     }
   }
 
-  /**
-   * Verifica se um painel pode ser aberto pelo usuário.
-   * Apenas painéis até o lastValidPanelIndex podem ser abertos.
-   *
-   * @param panelKey - A chave do painel
-   * @returns true se o painel pode ser aberto
-   */
   canOpenPanel(panelKey: keyof typeof this.panelStates): boolean {
     const panelIndex = this.PANEL_ORDER.indexOf(panelKey as any);
     return panelIndex <= this.lastValidPanelIndex;
