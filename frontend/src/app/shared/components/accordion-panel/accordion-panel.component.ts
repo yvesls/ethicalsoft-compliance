@@ -3,12 +3,16 @@ import {
 } from '@angular/common';
 import {
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   Input,
   OnInit,
+  OnChanges,
+  SimpleChanges,
   signal,
   Output,
-  EventEmitter
+  EventEmitter,
+  inject
 } from '@angular/core';
 
 @Component({
@@ -19,22 +23,55 @@ import {
   styleUrls: ['./accordion-panel.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AccordionPanelComponent implements OnInit {
+export class AccordionPanelComponent implements OnInit, OnChanges {
+  private cdr = inject(ChangeDetectorRef);
+  private isUpdatingFromExternal = false;
+
   @Input() title: string = '';
   @Input() required: boolean = false;
   @Input() startOpen: boolean = false;
+  @Input() disabled: boolean = false;
+  @Input() isOpenExternal?: boolean;
 
-  @Output() toggled = new EventEmitter<void>();
+  @Output() toggled = new EventEmitter<boolean>();
+  @Output() attemptedToggle = new EventEmitter<void>();
 
   public isOpen = signal(false);
 
   ngOnInit(): void {
-    this.isOpen.set(this.startOpen);
+    if (this.isOpenExternal !== undefined) {
+      this.isOpen.set(this.isOpenExternal);
+    } else {
+      this.isOpen.set(this.startOpen);
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['isOpenExternal'] && this.isOpenExternal !== undefined) {
+      console.log(`[${this.title}] ngOnChanges - isOpenExternal changed to:`, this.isOpenExternal);
+      this.isUpdatingFromExternal = true;
+      this.isOpen.set(this.isOpenExternal);
+      this.isUpdatingFromExternal = false;
+      this.cdr.markForCheck();
+    }
   }
 
   toggle(): void {
-    this.isOpen.update(open => !open);
+    console.log(`[${this.title}] toggle() called - disabled: ${this.disabled}, isUpdatingFromExternal: ${this.isUpdatingFromExternal}`);
 
-    this.toggled.emit();
+    if (this.disabled) {
+      this.attemptedToggle.emit();
+      return;
+    }
+
+    if (this.isUpdatingFromExternal) {
+      console.log(`[${this.title}] Ignoring toggle - updating from external`);
+      return;
+    }
+
+    const newState = !this.isOpen();
+    console.log(`[${this.title}] Emitting toggled with state:`, newState);
+    this.isOpen.set(newState);
+    this.toggled.emit(newState);
   }
 }

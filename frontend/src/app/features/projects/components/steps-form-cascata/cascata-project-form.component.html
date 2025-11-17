@@ -3,8 +3,10 @@
   <app-accordion-panel
     title="Projeto"
     [required]="true"
-    [startOpen]="panelStates.project"
-    (toggled)="panelStates.project = !panelStates.project"
+    [isOpenExternal]="panelStates.project"
+    [disabled]="false"
+    (toggled)="onPanelToggled('project', $event)"
+    (attemptedToggle)="onAttemptedToggle('project')"
   >
     <div class="form-grid form-grid-4">
       <app-select
@@ -49,6 +51,7 @@
         type="date"
         formControlName="deadline"
         [control]="getControl('deadline')"
+        [required]="true"
         class="form-input-datepicker"
       >
       </app-input>
@@ -70,20 +73,23 @@
       </div>
     </div>
     <div class="panel-actions">
-      <button type="button" class="btn btn-primary">Continuar</button>
+      <button type="button" class="btn btn-primary" (click)="continueToNextPanel('project')">Continuar</button>
     </div>
   </app-accordion-panel>
 
   <app-accordion-panel
     title="Etapas"
     [required]="true"
-    [startOpen]="panelStates.steps"
-    (toggled)="panelStates.steps = !panelStates.steps"
+    [isOpenExternal]="panelStates.steps"
+    [disabled]="!canOpenPanel('steps')"
+    (toggled)="onPanelToggled('steps', $event)"
+    (attemptedToggle)="onAttemptedToggle('steps')"
   >
     <div class="steps-container">
       <table class="steps-table steps-table-cascata">
         <thead>
           <tr>
+            <th>Sequência</th>
             <th>Nome da etapa</th>
             <th class="text-start">Faixa de aplicação</th>
             <th>Peso</th>
@@ -92,6 +98,7 @@
         </thead>
         <tbody formArrayName="steps">
           <tr *ngFor="let step of stepsFormArray.controls; let i = index; trackBy: trackByIndex" [formGroupName]="i">
+            <td class="cell-sequence">{{ step.get('sequence')?.value }}</td>
             <td class="cell-name">{{ step.get('name')?.value }}</td>
             <td class="cell-date-range">
               <span class="date-range-label">Período:</span>
@@ -99,6 +106,14 @@
             </td>
             <td class="cell-weight">{{ step.get('weight')?.value }}</td>
             <td class="cell-actions">
+              <button
+                type="button"
+                class="btn-icon btn-edit"
+                title="Editar etapa"
+                (click)="editStep(i)"
+              >
+                <img src="assets/icons/pen-edit.svg" alt="Editar" />
+              </button>
               <button
                 type="button"
                 class="btn-icon btn-delete"
@@ -112,6 +127,10 @@
           </tr>
         </tbody>
       </table>
+      <div class="table-error-message" *ngIf="hasStagesExceedDeadlineError()">
+        <img src="assets/icons/alert-triangle.svg" alt="Erro" class="error-icon" />
+        <span>{{ getStagesExceedDeadlineMessage() }}</span>
+      </div>
       <div class="d-flex justify-content-end">
         <button
             type="button"
@@ -123,7 +142,14 @@
           </button>
       </div>
       <div class="panel-actions">
-        <button type="button" class="btn btn-primary">Continuar</button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="continueToNextPanel('steps')"
+          [disabled]="hasStagesExceedDeadlineError() || stepsFormArray.length === 0"
+        >
+          Continuar
+        </button>
       </div>
     </div>
   </app-accordion-panel>
@@ -131,8 +157,10 @@
   <app-accordion-panel
     title="Representantes"
     [required]="true"
-    [startOpen]="panelStates.representatives"
-    (toggled)="panelStates.representatives = !panelStates.representatives"
+    [isOpenExternal]="panelStates.representatives"
+    [disabled]="!canOpenPanel('representatives')"
+    (toggled)="onPanelToggled('representatives', $event)"
+    (attemptedToggle)="onAttemptedToggle('representatives')"
   >
     <div class="steps-container">
       <table class="steps-table representatives-table">
@@ -179,7 +207,14 @@
           </button>
       </div>
       <div class="panel-actions">
-        <button type="button" class="btn btn-primary">Continuar</button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="continueToNextPanel('representatives')"
+          [disabled]="representativesFormArray.length === 0"
+        >
+          Continuar
+        </button>
       </div>
     </div>
   </app-accordion-panel>
@@ -187,14 +222,17 @@
   <app-accordion-panel
     title="Questionários"
     [required]="true"
-    [startOpen]="panelStates.questionnaires"
-    (toggled)="panelStates.questionnaires = !panelStates.questionnaires"
+    [isOpenExternal]="panelStates.questionnaires"
+    [disabled]="!canOpenPanel('questionnaires')"
+    (toggled)="onPanelToggled('questionnaires', $event)"
+    (attemptedToggle)="onAttemptedToggle('questionnaires')"
   >
     <div class="steps-container">
       <div class="questionnaires-scroll">
         <table class="steps-table questionnaires-table">
           <thead>
             <tr>
+              <th>Sequência</th>
               <th>Nome</th>
               <th class="text-start">Data de início</th>
               <th class="text-start">Data de término</th>
@@ -206,9 +244,10 @@
               *ngFor="let q of questionnairesFormArray.controls; let i = index"
               [formGroupName]="i"
             >
+              <td class="cell-sequence">{{ q.get('sequence')?.value || '-' }}</td>
               <td class="cell-name">{{ q.get('name')?.value }}</td>
-              <td class="cell-name">{{ q.get('applicationStartDate')?.value }}</td>
-              <td class="cell-name">{{ q.get('applicationEndDate')?.value }}</td>
+              <td class="cell-name">{{ q.get('applicationStartDate')?.value || '-' }}</td>
+              <td class="cell-name">{{ q.get('applicationEndDate')?.value || '-' }}</td>
               <td class="cell-actions">
                 <button
                   type="button"
@@ -224,7 +263,7 @@
         </table>
       </div>
       <div class="panel-actions">
-        <button type="button" class="btn btn-primary">Continuar</button>
+        <button type="button" class="btn btn-primary" (click)="continueToNextPanel('questionnaires')">Continuar</button>
       </div>
     </div>
   </app-accordion-panel>

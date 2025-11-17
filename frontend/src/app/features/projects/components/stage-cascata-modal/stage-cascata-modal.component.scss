@@ -1,0 +1,153 @@
+@use '../../../../../assets/scss/base/vars' as *;
+
+.stage-modal {
+  h2 {
+    margin-bottom: 1.5rem;
+  }
+
+  .date-range-preview {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background-color: $info-bg;
+    border: 0.0625rem solid $info-border;
+    border-radius: 0.5rem;
+
+    h3 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: $info-text;
+      margin-bottom: 1rem;
+    }
+
+    .date-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .date-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+
+      .label {
+        font-size: 0.9rem;
+        color: $neutral-text;
+        font-weight: 500;
+      }
+
+      .value {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: $info-text-dark;
+        background-color: $white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 0.25rem;
+        border: 0.0625rem solid $info-border;
+      }
+    }
+
+    .info-text {
+      margin-top: 1rem;
+      margin-bottom: 0;
+
+      small {
+        color: $neutral-text-light;
+        font-size: 0.8rem;
+        line-height: 1.4;
+      }
+    }
+  }
+
+  .date-range-warning {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background-color: $warning-bg;
+    border: 0.0625rem solid $warning-border;
+    border-radius: 0.5rem;
+
+    .warning-text {
+      margin: 0;
+
+      small {
+        color: $warning-text;
+        font-size: 0.85rem;
+      }
+    }
+  }
+
+  .date-range-error {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background-color: $error-bg;
+    border: 0.125rem solid $error-border;
+    border-radius: 0.5rem;
+
+    h3 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: $error-text;
+      margin-bottom: 1rem;
+    }
+
+    .error-info {
+      p {
+        color: $error-text-dark;
+        font-size: 0.9rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .date-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+
+        .label {
+          font-size: 0.9rem;
+          color: $error-text-dark;
+          font-weight: 500;
+        }
+
+        .value {
+          font-size: 0.9rem;
+          font-weight: 600;
+          color: $info-text-dark;
+          background-color: $white;
+          padding: 0.25rem 0.75rem;
+          border-radius: 0.25rem;
+          border: 0.0625rem solid $info-border;
+
+          &.error {
+            color: $error-text;
+            background-color: $error-bg-light;
+            border-color: $error-border;
+          }
+        }
+      }
+
+      .error-text {
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+
+        small {
+          color: $error-text-dark;
+          font-size: 0.85rem;
+          font-weight: 600;
+        }
+      }
+
+      .suggestions {
+        margin: 0;
+        padding-left: 1.5rem;
+        color: $error-text-dark;
+        font-size: 0.85rem;
+
+        li {
+          margin-bottom: 0.25rem;
+        }
+      }
+    }
+  }
+}

@@ -1,5 +1,5 @@
-<div class="accordion-panel">
-  <div class="accordion-header" (click)="toggle()">
+<div class="accordion-panel" [class.disabled]="disabled">
+  <div class="accordion-header" (click)="toggle()" [class.disabled]="disabled">
     <span class="header-title">
       {{ title }}
       <span *ngIf="required" class="required-asterisk">*</span>

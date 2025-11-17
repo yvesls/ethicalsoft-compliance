@@ -14,6 +14,18 @@
   + .accordion-panel {
     margin-top: 2rem;
   }
+
+  &.disabled {
+    opacity: 0.6;
+
+    .accordion-header {
+      cursor: not-allowed;
+
+      &:hover {
+        background-color: transparent;
+      }
+    }
+  }
 }
 
 .accordion-header {

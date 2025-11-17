@@ -10,6 +10,8 @@ export interface TemplateListDTO {
 export interface TemplateStageDTO {
   name: string;
   weight: number;
+  sequence?: number;
+  durationDays?: number;
 }
 
 export interface TemplateIterationDTO {
