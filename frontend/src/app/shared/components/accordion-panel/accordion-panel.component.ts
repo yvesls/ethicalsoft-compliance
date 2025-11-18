@@ -48,7 +48,6 @@ export class AccordionPanelComponent implements OnInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['isOpenExternal'] && this.isOpenExternal !== undefined) {
-      console.log(`[${this.title}] ngOnChanges - isOpenExternal changed to:`, this.isOpenExternal);
       this.isUpdatingFromExternal = true;
       this.isOpen.set(this.isOpenExternal);
       this.isUpdatingFromExternal = false;
@@ -57,20 +56,16 @@ export class AccordionPanelComponent implements OnInit, OnChanges {
   }
 
   toggle(): void {
-    console.log(`[${this.title}] toggle() called - disabled: ${this.disabled}, isUpdatingFromExternal: ${this.isUpdatingFromExternal}`);
-
     if (this.disabled) {
       this.attemptedToggle.emit();
       return;
     }
 
     if (this.isUpdatingFromExternal) {
-      console.log(`[${this.title}] Ignoring toggle - updating from external`);
       return;
     }
 
     const newState = !this.isOpen();
-    console.log(`[${this.title}] Emitting toggled with state:`, newState);
     this.isOpen.set(newState);
     this.toggled.emit(newState);
   }

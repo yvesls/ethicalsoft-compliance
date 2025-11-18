@@ -91,6 +91,7 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
 
   private hasRestoredSteps = false;
   private lastValidPanelIndex = 0;
+  private selectedTemplateData: any = null;
 
   private readonly PANEL_ORDER = ['project', 'steps', 'representatives', 'questionnaires'] as const;
 
@@ -185,14 +186,18 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
     this.projectForm.get('startDate')?.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((startDate) => {
-        if (startDate) {
+        if (startDate && this.stepsFormArray.length > 0) {
           this.recalculateAllStageRanges();
         }
       });
 
     this.projectForm.get('deadline')?.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => {
+      .subscribe((deadline) => {
+        if (deadline && this.stepsFormArray.length > 0) {
+          this.recalculateAllStageRanges();
+        }
+
         this.projectForm.get('startDate')?.updateValueAndValidity({ emitEvent: false });
         this.stepsFormArray.controls.forEach(stepControl => {
           stepControl.updateValueAndValidity({ emitEvent: false });
@@ -249,37 +254,11 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (template) => {
-          if (template.stages && template.stages.length > 0 && !this.hasUserModifiedSteps()) {
-            const stepsData = template.stages.map(stage => ({
-              name: stage.name,
-              weight: stage.weight,
-              sequence: stage.sequence || 1,
-              dateRange: '',
-              durationDays: stage.durationDays || 0,
-              applicationStartDate: '',
-              applicationEndDate: ''
-            }));
-            this.projectForm.setControl('steps', this.buildCascataStepsForm(stepsData));
+          this.selectedTemplateData = template;
 
-            const startDate = this.projectForm.get('startDate')?.value;
-            if (startDate) {
-              this.recalculateAllStageRanges();
-            } else {
-              this.syncQuestionnairesWithSteps();
-            }
-          }
-
-          if (template.representatives && template.representatives.length > 0) {
-            const repsData = template.representatives.map(rep => ({
-              firstName: rep.firstName,
-              lastName: rep.lastName,
-              email: rep.email,
-              inclusionDate: new Date().toLocaleDateString('pt-BR'),
-              weight: rep.weight,
-              roles: rep.roleNames.join(', ')
-            }));
-            this.projectForm.setControl('representatives', this.buildRepresentativesForm(repsData));
-          }
+          this.projectForm.patchValue({
+            name: template.name
+          });
 
           this.cdr.detectChanges();
         },
@@ -369,7 +348,7 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
     const projectDeadline = this.projectForm.get('deadline')?.value;
     const existingStages = this.getExistingStagesDataExcluding(index);
 
-    this.modalService.open(StageCascataModalComponent, 'small-card', {
+    this.modalService.open(StageCascataModalComponent, 'medium-card', {
       mode: ActionType.EDIT,
       editData: {
         id: String(index),
@@ -625,6 +604,23 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
     return FormUtils.calculateBusinessDays(new Date(startDate), new Date(deadline));
   }
 
+  private distributeEqualDurationDays(): void {
+    const totalDays = this.calculateProjectDuration();
+    if (totalDays <= 0) return;
+
+    const stepsCount = this.stepsFormArray.length;
+    if (stepsCount === 0) return;
+
+    const daysPerStage = Math.floor(totalDays / stepsCount);
+    const remainder = totalDays % stepsCount;
+
+    this.stepsFormArray.controls.forEach((control, index) => {
+      const extraDay = index < remainder ? 1 : 0;
+      const assignedDays = daysPerStage + extraDay;
+      control.get('durationDays')?.setValue(assignedDays);
+    });
+  }
+
   private getExistingStagesData(): { weight: number; durationDays: number; sequence: number }[] {
     return this.stepsFormArray.controls.map(control => ({
       weight: control.get('weight')?.value || 0,
@@ -683,24 +679,61 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
       return;
     }
 
-    console.log('=== CONTINUE TO NEXT PANEL ===');
-    console.log('Current panel:', currentPanelKey);
-    console.log('Panel states BEFORE:', { ...this.panelStates });
-
     this.panelStates[currentPanelKey] = false;
-
     this.lastValidPanelIndex = Math.max(this.lastValidPanelIndex, currentIndex + 1);
 
     const nextPanelKey = this.PANEL_ORDER[currentIndex + 1];
     if (nextPanelKey) {
+      this.loadPanelData(nextPanelKey);
       this.panelStates[nextPanelKey] = true;
-      console.log('Next panel:', nextPanelKey);
     }
 
-    console.log('Panel states AFTER:', { ...this.panelStates });
-    console.log('==============================');
-
     this.cdr.detectChanges();
+  }
+
+  private loadPanelData(panelKey: keyof typeof this.panelStates): void {
+    if (!this.selectedTemplateData) return;
+
+    switch (panelKey) {
+      case 'steps':
+        if (this.selectedTemplateData.stages && this.selectedTemplateData.stages.length > 0 && !this.hasUserModifiedSteps()) {
+          const stepsData = this.selectedTemplateData.stages.map((stage: any) => ({
+            name: stage.name,
+            weight: stage.weight,
+            sequence: stage.sequence || 1,
+            dateRange: '',
+            durationDays: 0,
+            applicationStartDate: '',
+            applicationEndDate: ''
+          }));
+          this.projectForm.setControl('steps', this.buildCascataStepsForm(stepsData));
+
+          this.distributeEqualDurationDays();
+          this.recalculateAllStageRanges();
+        }
+        break;
+
+      case 'representatives':
+        if (this.selectedTemplateData.representatives && this.selectedTemplateData.representatives.length > 0) {
+          const repsArray = this.projectForm.get('representatives') as FormArray;
+          if (repsArray.length === 0) {
+            const repsData = this.selectedTemplateData.representatives.map((rep: any) => ({
+              firstName: rep.firstName,
+              lastName: rep.lastName,
+              email: rep.email,
+              inclusionDate: new Date().toLocaleDateString('pt-BR'),
+              weight: rep.weight,
+              roles: rep.roleNames.join(', ')
+            }));
+            this.projectForm.setControl('representatives', this.buildRepresentativesForm(repsData));
+          }
+        }
+        break;
+
+      case 'questionnaires':
+        this.syncQuestionnairesWithSteps();
+        break;
+    }
   }
 
   private isPanelValid(panelKey: keyof typeof this.panelStates): boolean {
@@ -734,7 +767,6 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
   }
 
   onPanelToggled(panelKey: keyof typeof this.panelStates, newState: boolean): void {
-    console.log(`Panel ${panelKey} toggled to:`, newState);
     this.panelStates[panelKey] = newState;
     this.cdr.detectChanges();
   }
