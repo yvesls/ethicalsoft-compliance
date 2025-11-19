@@ -215,7 +215,7 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
 
     sortedSteps.forEach((stepInfo) => {
       const stepControl = this.stepsFormArray.at(stepInfo.index);
-      const durationDays = stepControl.get('durationDays')?.value || 0;
+      const durationDays = Number(stepControl.get('durationDays')?.value) || 0;
 
       if (durationDays > 0) {
         const stageStartDate = new Date(previousStageEndDate);
@@ -377,9 +377,9 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
   private getExistingStagesDataExcluding(excludeIndex: number): { weight: number; durationDays: number; sequence: number }[] {
     return this.stepsFormArray.controls
       .map((control, idx) => ({
-        weight: control.get('weight')?.value || 0,
-        durationDays: control.get('durationDays')?.value || 0,
-        sequence: control.get('sequence')?.value || 1,
+        weight: Number(control.get('weight')?.value) || 0,
+        durationDays: Number(control.get('durationDays')?.value) || 0,
+        sequence: Number(control.get('sequence')?.value) || 1,
         index: idx
       }))
       .filter(stage => stage.index !== excludeIndex)
@@ -623,9 +623,9 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
 
   private getExistingStagesData(): { weight: number; durationDays: number; sequence: number }[] {
     return this.stepsFormArray.controls.map(control => ({
-      weight: control.get('weight')?.value || 0,
-      durationDays: control.get('durationDays')?.value || 0,
-      sequence: control.get('sequence')?.value || 1
+      weight: Number(control.get('weight')?.value) || 0,
+      durationDays: Number(control.get('durationDays')?.value) || 0,
+      sequence: Number(control.get('sequence')?.value) || 1
     }));
   }
 
@@ -660,10 +660,7 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
     const error = this.projectForm.errors?.['stagesExceedDeadline'];
     if (!error) return '';
 
-    const { worstCase, count } = error;
-    const plural = count > 1 ? 's' : '';
-
-    return `${count} etapa${plural} ultrapassa${count === 1 ? '' : 'm'} o prazo limite do projeto. A etapa "${worstCase.stageName}" (Sequência ${worstCase.sequence}) excede em aproximadamente ${worstCase.daysOver} dia${worstCase.daysOver > 1 ? 's' : ''} úteis. Ajuste a data de início, estenda o prazo limite ou reduza a duração das etapas.`;
+    return error.message || '';
   }
 
   hasStagesExceedDeadlineError(): boolean {

@@ -58,7 +58,7 @@
     </div>
 
     <!-- Validation Errors -->
-    <div class="validation-errors" *ngIf="projectForm.errors">
+    <div class="validation-errors" *ngIf="projectForm.errors && (projectForm.errors['deadlineTooEarly'] || projectForm.errors['startDateTooLate'] || projectForm.errors['stageExceedsDeadline'])">
       <div class="error-message" *ngIf="projectForm.errors['deadlineTooEarly']">
         <img src="assets/icons/alert-triangle.svg" alt="Erro" class="error-icon" />
         <span>{{ getDeadlineErrorMessage() }}</span>
@@ -127,9 +127,11 @@
           </tr>
         </tbody>
       </table>
-      <div class="table-error-message" *ngIf="hasStagesExceedDeadlineError()">
-        <img src="assets/icons/alert-triangle.svg" alt="Erro" class="error-icon" />
-        <span>{{ getStagesExceedDeadlineMessage() }}</span>
+      <div class="validation-errors" *ngIf="hasStagesExceedDeadlineError()">
+        <div class="error-message">
+          <img src="assets/icons/alert-triangle.svg" alt="Erro" class="error-icon" />
+          <span>{{ getStagesExceedDeadlineMessage() }}</span>
+        </div>
       </div>
       <div class="d-flex justify-content-end">
         <button

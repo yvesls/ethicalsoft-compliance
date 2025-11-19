@@ -171,6 +171,13 @@ export class StageCascataModalComponent extends BasePageComponent implements OnI
 
     const stageStartDate = this.calculateStageStartDate();
 
+    if (isNaN(stageStartDate.getTime())) {
+      console.error('Data de início da etapa inválida:', stageStartDate);
+      this.calculatedDateRange = null;
+      this.cdr.detectChanges();
+      return;
+    }
+
     const { openingDate, closingDate } = BusinessDaysUtils.calculateApplicationRange(
       stageStartDate,
       durationDays
@@ -198,12 +205,16 @@ export class StageCascataModalComponent extends BasePageComponent implements OnI
     const projectStart = new Date(this.projectStartDate!);
     const currentSequence = this.form.get('sequence')?.value || 1;
 
-    // Calcula o total de dias das etapas com sequence menor que a atual
+    if (isNaN(projectStart.getTime())) {
+      console.error('ERRO: Data de início do projeto inválida!', this.projectStartDate);
+      return new Date();
+    }
+
     let totalPreviousDays = 0;
     for (const stage of this.existingStages) {
-      // Apenas soma etapas que vêm ANTES na sequência
       if (stage.sequence < currentSequence) {
-        totalPreviousDays += stage.durationDays || 0;
+        const days = Number(stage.durationDays) || 0;
+        totalPreviousDays += days;
       }
     }
 

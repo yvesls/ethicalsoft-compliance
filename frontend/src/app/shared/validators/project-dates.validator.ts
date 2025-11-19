@@ -127,7 +127,7 @@ export class ProjectDatesValidators {
 
       let totalDurationDays = 0;
       for (const step of steps) {
-        totalDurationDays += step.durationDays || 0;
+        totalDurationDays += Number(step.durationDays) || 0;
       }
 
       if (totalDurationDays === 0) {

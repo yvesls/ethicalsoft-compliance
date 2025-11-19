@@ -44,7 +44,8 @@ export class StagesDeadlineValidator {
               sequence: firstViolation.sequence,
               endDate: firstViolation.applicationEndDate,
               daysOver: daysOver
-            }
+            },
+            message: `${violatingStages.length} etapa${violatingStages.length > 1 ? 's' : ''} ultrapassa${violatingStages.length === 1 ? '' : 'm'} o prazo limite do projeto. A etapa "${firstViolation.name}" (Sequência ${firstViolation.sequence}) excede em aproximadamente ${daysOver} dia${daysOver > 1 ? 's' : ''} úteis. Ajuste a data de início, estenda o prazo limite ou reduza a duração das etapas.`
           }
         };
       }
