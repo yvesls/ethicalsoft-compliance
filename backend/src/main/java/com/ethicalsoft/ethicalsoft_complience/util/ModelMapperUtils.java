@@ -9,6 +9,7 @@ import org.modelmapper.convention.MatchingStrategies;
 import org.modelmapper.spi.MatchingStrategy;
 import org.springframework.beans.PropertyAccessor;
 import org.springframework.beans.PropertyAccessorFactory;
+import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
@@ -245,13 +246,13 @@ public class ModelMapperUtils {
 	public static <T> T setIdValue( Class<T> clazz, Long id ) {
 		try {
 			T entity = clazz.getDeclaredConstructor().newInstance();
-			PropertyAccessor accessor = getEntityAccessor( entity );
 			Class<?> currentClass = clazz;
 
 			while ( currentClass != null && currentClass != Object.class ) {
 				for ( Field field : currentClass.getDeclaredFields() ) {
 					if ( hasIdAnnotation( field ) ) {
-						accessor.setPropertyValue( field.getName(), id );
+						ReflectionUtils.makeAccessible( field );
+						ReflectionUtils.setField( field, entity, id );
 						return entity;
 					}
 				}
@@ -270,13 +271,13 @@ public class ModelMapperUtils {
 	public static <T> T setStringIdValue( Class<T> clazz, String id ) {
 		try {
 			T entity = clazz.getDeclaredConstructor().newInstance();
-			PropertyAccessor accessor = getEntityAccessor( entity );
 			Class<?> currentClass = clazz;
 
 			while ( currentClass != null && currentClass != Object.class ) {
 				for ( Field field : currentClass.getDeclaredFields() ) {
 					if ( hasIdAnnotation( field ) ) {
-						accessor.setPropertyValue( field.getName(), id );
+						ReflectionUtils.makeAccessible( field );
+						ReflectionUtils.setField( field, entity, id );
 						return entity;
 					}
 				}
