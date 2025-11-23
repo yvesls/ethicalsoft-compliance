@@ -47,7 +47,7 @@ export class CreateProjectPageComponent implements OnInit {
   private async loadComponent(type: ProjectType): Promise<void> {
     if (type === ProjectType.Cascata) {
       const { CascataProjectFormComponent } = await import(
-        '../../components/steps-form-cascata/cascata-project-form.component'
+        '../../components/cascata-project-form/cascata-project-form.component'
       );
       this.formComponent.set(CascataProjectFormComponent);
     } else if (type === ProjectType.Iterativo) {
