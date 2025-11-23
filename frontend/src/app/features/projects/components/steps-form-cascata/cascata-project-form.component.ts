@@ -25,6 +25,7 @@ import { CustomValidators } from '../../../../shared/validators/custom.validator
 import { ProjectDatesValidators } from '../../../../shared/validators/project-dates.validator';
 import { StagesDeadlineValidator } from '../../../../shared/validators/stages-deadline.validator';
 import { FormUtils } from '../../../../shared/utils/form-utils';
+import { capitalizeWords } from '../../../../core/utils/common-utils';
 import {
   BasePageComponent,
   RestoreParams,
@@ -35,15 +36,15 @@ import { ModalService } from '../../../../core/services/modal.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { TemplateActionModalComponent } from '../template-action-modal/template-action-modal.component';
 import { StageCascataModalComponent, StageCascataData } from '../stage-cascata-modal/stage-cascata-modal.component';
+import { RepresentativeModalComponent, RepresentativeData } from '../representative-modal/representative-modal.component';
 import { ActionType } from '../../../../shared/enums/action-type.enum';
 
 export interface Representative {
   firstName: string;
   lastName: string;
   email: string;
-  inclusionDate: string;
   weight: number;
-  roles: string;
+  roles: string[];
 }
 
 export interface Questionnaire {
@@ -294,8 +295,7 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
         firstName: [rep.firstName, Validators.required],
         lastName: [rep.lastName, Validators.required],
         email: [rep.email, [Validators.required, Validators.email]],
-        inclusionDate: [rep.inclusionDate, Validators.required],
-        weight: [rep.weight, [Validators.required, Validators.min(0)]],
+        weight: [rep.weight, [Validators.required, Validators.min(1)]],
         roles: [rep.roles, Validators.required],
       });
     });
@@ -496,16 +496,54 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
   }
 
   addRepresentative(): void {
-    const newRep = this.fb.group({
-      firstName: ['', Validators.required],
-      lastName: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]],
-      inclusionDate: [new Date().toLocaleDateString('pt-BR'), Validators.required],
-      weight: [1, [Validators.required, Validators.min(0)]],
-      roles: ['', Validators.required],
+    this.modalService.open(RepresentativeModalComponent, 'medium-card', {
+      mode: ActionType.CREATE
     });
-    this.representativesFormArray.push(newRep);
-    this.cdr.detectChanges();
+
+    const modalRef = (this.modalService as any).modalRef?.instance as RepresentativeModalComponent;
+
+    const createdSubscription = modalRef.representativeCreated.subscribe((newRepresentative: RepresentativeData) => {
+      const newRep = this.fb.group({
+        firstName: [newRepresentative.firstName, Validators.required],
+        lastName: [newRepresentative.lastName, Validators.required],
+        email: [newRepresentative.email, [Validators.required, Validators.email]],
+        weight: [newRepresentative.weight, [Validators.required, Validators.min(1)]],
+        roles: [newRepresentative.roles, Validators.required],
+      });
+      this.representativesFormArray.push(newRep);
+      createdSubscription.unsubscribe();
+      this.cdr.detectChanges();
+    });
+  }
+
+  editRepresentative(index: number): void {
+    const repFormGroup = this.representativesFormArray.at(index) as FormGroup;
+
+    this.modalService.open(RepresentativeModalComponent, 'medium-card', {
+      mode: ActionType.EDIT,
+      editData: {
+        id: String(index),
+        firstName: repFormGroup.get('firstName')?.value,
+        lastName: repFormGroup.get('lastName')?.value,
+        email: repFormGroup.get('email')?.value,
+        weight: repFormGroup.get('weight')?.value,
+        roles: repFormGroup.get('roles')?.value
+      }
+    });
+
+    const modalRef = (this.modalService as any).modalRef?.instance as RepresentativeModalComponent;
+
+    const updatedSubscription = modalRef.representativeUpdated.subscribe((updatedRepresentative: RepresentativeData) => {
+      repFormGroup.patchValue({
+        firstName: updatedRepresentative.firstName,
+        lastName: updatedRepresentative.lastName,
+        email: updatedRepresentative.email,
+        weight: updatedRepresentative.weight,
+        roles: updatedRepresentative.roles
+      });
+      updatedSubscription.unsubscribe();
+      this.cdr.detectChanges();
+    });
   }
 
   removeRepresentative(index: number): void {
@@ -715,12 +753,11 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
           const repsArray = this.projectForm.get('representatives') as FormArray;
           if (repsArray.length === 0) {
             const repsData = this.selectedTemplateData.representatives.map((rep: any) => ({
-              firstName: rep.firstName,
-              lastName: rep.lastName,
+              firstName: capitalizeWords(rep.firstName),
+              lastName: capitalizeWords(rep.lastName),
               email: rep.email,
-              inclusionDate: new Date().toLocaleDateString('pt-BR'),
               weight: rep.weight,
-              roles: rep.roleNames.join(', ')
+              roles: rep.roleNames || []
             }));
             this.projectForm.setControl('representatives', this.buildRepresentativesForm(repsData));
           }

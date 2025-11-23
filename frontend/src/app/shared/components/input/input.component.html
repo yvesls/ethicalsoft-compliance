@@ -17,6 +17,8 @@
       (blur)="onBlur()"
       (focus)="onFocus()"
       [ngClass]="[inputClasses]"
+      [disabled]="disabled"
+      [attr.readonly]="readonly ? '' : null"
     />
 
     <button

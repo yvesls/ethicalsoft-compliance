@@ -2,13 +2,13 @@
 
 .modal-header {
   padding: 1.5rem 2rem;
-  border-bottom: 1px solid $border-color;
+  border-bottom: 1px solid $gray-secundary;
 
   h2 {
     margin: 0;
     font-size: 1.5rem;
     font-weight: 600;
-    color: $text-primary;
+    color: $gray-primary;
   }
 }
 
@@ -54,7 +54,7 @@
 
 .modal-footer {
   padding: 1rem 2rem;
-  border-top: 1px solid $border-color;
+  border-top: 1px solid $gray-secundary;
   display: flex;
   justify-content: flex-end;
   gap: 1rem;

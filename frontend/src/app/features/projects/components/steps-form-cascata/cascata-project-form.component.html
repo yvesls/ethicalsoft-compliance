@@ -171,7 +171,6 @@
             <th>Nome</th>
             <th class="text-start">Sobrenome</th>
             <th class="text-start">Email</th>
-            <th class="text-start">Data de inclusão</th>
             <th>Peso</th>
             <th class="text-start">Encargos</th>
             <th>Ação</th>
@@ -182,10 +181,17 @@
             <td class="cell-name">{{ rep.get('firstName')?.value }}</td>
             <td class="cell-name">{{ rep.get('lastName')?.value }}</td>
             <td class="cell-name">{{ rep.get('email')?.value }}</td>
-            <td class="cell-name">{{ rep.get('inclusionDate')?.value }}</td>
             <td class="cell-weight">{{ rep.get('weight')?.value }}</td>
-            <td class="cell-name">{{ rep.get('roles')?.value }}</td>
+            <td class="cell-name">{{ rep.get('roles')?.value?.join(', ') || '-' }}</td>
             <td class="cell-actions">
+              <button
+                type="button"
+                class="btn-icon btn-edit"
+                title="Editar representante"
+                (click)="editRepresentative(i)"
+              >
+                <img src="assets/icons/pen-edit.svg" alt="Editar" />
+              </button>
               <button
                 type="button"
                 class="btn-icon btn-delete"

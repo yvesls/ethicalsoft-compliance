@@ -1,6 +1,7 @@
 import { Component, Input, forwardRef } from '@angular/core'
 import { CommonModule } from '@angular/common'
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, AbstractControl } from '@angular/forms'
+import { capitalizeWords } from '../../../core/utils/common-utils'
 
 @Component({
   selector: 'app-input',
@@ -26,6 +27,8 @@ export class InputComponent implements ControlValueAccessor {
   @Input() labelClasses = ''
   @Input() validationMessages: { [key: string]: string } = {}
   @Input() control!: AbstractControl | null
+  @Input() autoCapitalize = false
+  @Input() readonly = false
 
   public currentType = 'text'
   public isPasswordVisible = false
@@ -70,7 +73,17 @@ export class InputComponent implements ControlValueAccessor {
   }
 
   onInput(event: Event): void {
-    const value = (event.target as HTMLInputElement).value
+    if (this.disabled || this.readonly) {
+      return;
+    }
+
+    let value = (event.target as HTMLInputElement).value
+
+    if (this.autoCapitalize && this.type === 'text') {
+      value = capitalizeWords(value);
+      (event.target as HTMLInputElement).value = value;
+    }
+
     this.value = value
     this.onChange(value)
   }
@@ -85,6 +98,14 @@ export class InputComponent implements ControlValueAccessor {
     if (!this.touched) {
       this.touched = true
       this.onTouched()
+    }
+
+    if (this.autoCapitalize && this.type === 'text' && this.value) {
+      const capitalizedValue = capitalizeWords(this.value);
+      if (capitalizedValue !== this.value) {
+        this.value = capitalizedValue;
+        this.onChange(capitalizedValue);
+      }
     }
 
     if (this.type === 'date' && !this.value) {

@@ -154,3 +154,27 @@ export function equalsArray<T>(a: Array<T>, b: Array<T>): boolean {
 export function copy(o: any) {
 	return { ...o }
 }
+
+/**
+ * Capitaliza a primeira letra de cada palavra em uma string
+ * @param text - Texto a ser capitalizado
+ * @returns Texto com a primeira letra de cada palavra em maiúscula
+ * @example
+ * capitalizeWords('joão da silva') // returns 'João Da Silva'
+ * capitalizeWords('MARIA SANTOS') // returns 'Maria Santos'
+ */
+export function capitalizeWords(text: string | null | undefined): string {
+	if (!text || typeof text !== 'string') {
+		return '';
+	}
+
+	return text
+		.toLowerCase()
+		.split(' ')
+		.map(word => {
+			if (word.length === 0) return '';
+			return word.charAt(0).toUpperCase() + word.slice(1);
+		})
+		.join(' ')
+		.trim();
+}
