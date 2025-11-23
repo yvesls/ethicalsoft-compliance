@@ -30,23 +30,3 @@
     }
   }
 }
-
-.questionnaires-scroll {
-  max-height: 400px;
-  overflow-y: auto;
-  position: relative;
-
-  .steps-table {
-    thead {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      background-color: #fff;
-
-      th {
-        background-color: #fff;
-        box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);
-      }
-    }
-  }
-}

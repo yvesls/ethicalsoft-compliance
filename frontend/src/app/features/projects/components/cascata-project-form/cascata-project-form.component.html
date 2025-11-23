@@ -236,12 +236,12 @@
     (attemptedToggle)="onAttemptedToggle('questionnaires')"
   >
     <div class="steps-container">
-      <div class="questionnaires-scroll">
+      <div class="table-wrapper" [class.scrollable]="questionnairesFormArray.controls.length > 5">
         <table class="steps-table questionnaires-table">
           <thead>
             <tr>
               <th>Sequência</th>
-              <th>Nome</th>
+              <th class="text-start">Nome</th>
               <th class="text-start">Data de início</th>
               <th class="text-start">Data de término</th>
               <th>Ação</th>
