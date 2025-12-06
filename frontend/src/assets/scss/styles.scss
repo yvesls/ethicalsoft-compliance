@@ -5,7 +5,6 @@
 @use './base/_media-queries' as *;
 @use './components/cards' as *;
 @use 'bootstrap/scss/bootstrap';
-@use 'ngx-spinner/animations/ball-scale-multiple.css';
 
 * {
 	font-family: $font-family;

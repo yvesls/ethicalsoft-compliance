@@ -1,6 +1,6 @@
 import { HttpContext, HttpHeaders } from '@angular/common/http'
 
-export interface RequestInputOptions<TPayload = Record<string, unknown>> {
+export interface RequestInputOptions<TPayload = unknown> {
 	data?: TPayload
 	contentType?: string
 	isBase?: boolean

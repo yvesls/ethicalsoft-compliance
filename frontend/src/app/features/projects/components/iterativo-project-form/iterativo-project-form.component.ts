@@ -32,7 +32,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ModalService } from '../../../../core/services/modal.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { GenericParams, RouteParams, RouterService } from '../../../../core/services/router.service';
-import { TemplateActionModalComponent } from '../template-action-modal/template-action-modal.component';
 import { StageIterativeModalComponent, StageIterativeData } from '../stage-iterative-modal/stage-iterative-modal.component';
 import { RepresentativeModalComponent, RepresentativeData } from '../representative-modal/representative-modal.component';
 import { ActionType } from '../../../../shared/enums/action-type.enum';
@@ -561,25 +560,7 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
   }
 
   addStage(): void {
-    this.modalService.open(TemplateActionModalComponent, 'small-card');
-    const modalRef = this.getModalInstance<TemplateActionModalComponent>();
-    if (!modalRef) {
-      return;
-    }
-
-    const actionSubscription = modalRef.actionSelected.subscribe((action: 'create' | 'import') => {
-      if (action === 'create') {
-        const closeSubscription = this.modalService.modalClosed$
-          .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe(() => {
-            this.openCreateStageModal();
-            closeSubscription.unsubscribe();
-          });
-      } else if (action === 'import') {
-        this.notificationService.showWarning('Funcionalidade em desenvolvimento');
-      }
-      actionSubscription.unsubscribe();
-    });
+  this.openCreateStageModal();
   }
 
   private openCreateStageModal(): void {
