@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core'
+import { inject, Injectable } from '@angular/core'
 import { CanActivate, ActivatedRouteSnapshot } from '@angular/router'
 import { Observable, of } from 'rxjs'
 import { StorageService } from '../services/storage.service'
@@ -7,7 +7,7 @@ import { StorageService } from '../services/storage.service'
 	providedIn: 'root',
 })
 export class LayoutGuard implements CanActivate {
-	constructor(private storageService: StorageService) {}
+	private readonly storageService = inject(StorageService)
 
 	canActivate(route: ActivatedRouteSnapshot): Observable<boolean> {
 		const showLayout = route.data?.['showLayout'] ?? true

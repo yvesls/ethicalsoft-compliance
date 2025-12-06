@@ -1,0 +1,138 @@
+<form [formGroup]="form">
+  <app-accordion-panel
+    title="Dados do Questionário"
+    [required]="true"
+    [isOpenExternal]="questionnaireDataAccordionOpen"
+    (toggled)="toggleQuestionnaireDataAccordion()"
+  >
+    <div class="form-grid form-grid-4">
+      <app-input
+        label="Sequência"
+        formControlName="sequence"
+        [control]="getControl('sequence')"
+        [readonly]="true" ></app-input>
+
+      <app-input
+        label="Nome"
+        placeholder="Informe o nome"
+        formControlName="name"
+        [control]="getControl('name')"
+        [required]="true"
+      ></app-input>
+
+      <app-input
+        label="Data de início"
+        type="date"
+        formControlName="applicationStartDate"
+        [control]="getControl('applicationStartDate')"
+        [readonly]="true"
+      ></app-input>
+
+      <app-input
+        label="Data de término"
+        type="date"
+        formControlName="applicationEndDate"
+        [control]="getControl('applicationEndDate')"
+        [readonly]="true"
+      ></app-input>
+    </div>
+  </app-accordion-panel>
+
+  <app-accordion-panel
+    [title]="'Perguntas (' + filteredQuestions.length + ')'"
+    [isOpenExternal]="questionsAccordionOpen"
+    (toggled)="toggleQuestionsAccordion()"
+    class="mt-3"
+  >
+    <div class="questions-container">
+      <div class="filters-row d-flex gap-3 mb-3">
+        <app-input
+          class="flex-grow-1"
+          label="Pesquisar pergunta"
+          placeholder="Digite para buscar..."
+          [(ngModel)]="searchTerm"
+          [ngModelOptions]="{standalone: true}"
+        ></app-input>
+
+        <app-select
+          class="flex-grow-1"
+          label="Filtrar por papel"
+          placeholder="Todos os papéis"
+          [(ngModel)]="selectedRole"
+          [ngModelOptions]="{standalone: true}"
+          [options]="roleFilterOptions"
+          [allowClear]="true"
+        ></app-select>
+      </div>
+
+      <div class="separation-line"></div>
+
+      @if (filteredQuestions.length === 0) {
+        <div class="empty-state text-center py-4">
+          <p class="text-muted mb-3">Nenhuma pergunta encontrada.</p>
+        </div>
+      } @else {
+        <div class="table-responsive">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th class="w-50 text-start">Pergunta</th>
+                <th class="w-30 text-start">Papéis</th>
+                <th class="w-20 text-center">Ação</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (question of filteredQuestions; track question.id) {
+                <tr>
+                  <td class="text-start">{{ question.value }}</td>
+                  <td>
+                    <div class="d-flex flex-wrap gap-1">
+                      @for (role of question.roleNames; track role) {
+                        <span class="badge">{{ role }}</span>
+                      }
+                    </div>
+                  </td>
+                  <td class="text-center">
+                    <div class="d-flex justify-content-center gap-2">
+                      <button
+                        type="button"
+                        class="btn-icon"
+                        (click)="openEditQuestionModal(question)"
+                        title="Editar"
+                      >
+                        <img src="assets/icons/pen-edit.svg" alt="Editar" />
+                      </button>
+                      <button
+                        type="button"
+                        class="btn-icon"
+                        (click)="deleteQuestion(question)"
+                        title="Excluir"
+                      >
+                        <img src="assets/icons/trash.svg" alt="Excluir" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      <div class="d-flex justify-content-end mt-3 gap-2">
+        <button
+          type="button"
+          class="btn btn-secundary"
+          (click)="openAddQuestionModal()"
+        >
+          Adicionar pergunta
+        </button>
+      </div>
+
+      <div class="panel-actions mt-4 pt-3 border-top">
+        <button type="button" class="btn btn-secondary me-2" (click)="onCancel()">Voltar</button>
+        <button type="button" class="btn btn-primary" (click)="onSave()">Salvar</button>
+      </div>
+    </div>
+  </app-accordion-panel>
+</form>

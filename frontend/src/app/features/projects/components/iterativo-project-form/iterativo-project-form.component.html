@@ -214,7 +214,7 @@
   >
     <div class="steps-container">
       <div class="table-wrapper" [class.scrollable]="questionnairesFormArray.controls.length > 5">
-        <table class="steps-table questionnaires-table">
+        <table class="questionnaires-table">
           <thead>
             <tr>
               <th>Nome</th>
@@ -236,6 +236,7 @@
                     type="button"
                     class="btn-icon"
                     title="Editar questionário"
+                    (click)="editQuestionnaire(i)"
                   >
                     <img src="assets/icons/pen-edit.svg" alt="Editar" />
                   </button>

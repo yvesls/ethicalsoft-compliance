@@ -34,9 +34,11 @@ import { TemplateStore } from '../../../../shared/stores/template.store';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ModalService } from '../../../../core/services/modal.service';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { RouterService } from '../../../../core/services/router.service';
 import { TemplateActionModalComponent } from '../template-action-modal/template-action-modal.component';
 import { StageCascataModalComponent, StageCascataData } from '../stage-cascata-modal/stage-cascata-modal.component';
 import { RepresentativeModalComponent, RepresentativeData } from '../representative-modal/representative-modal.component';
+import { QuestionData } from '../question-modal/question-modal.component';
 import { ActionType } from '../../../../shared/enums/action-type.enum';
 
 export interface Representative {
@@ -52,6 +54,8 @@ export interface Questionnaire {
   sequence: number;
   applicationStartDate: string;
   applicationEndDate: string;
+  stageName?: string;
+  questions?: QuestionData[];
 }
 
 @Component({
@@ -75,6 +79,7 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
   private templateStore = inject(TemplateStore);
   private modalService = inject(ModalService);
   private notificationService = inject(NotificationService);
+  public override routerService = inject(RouterService);
 
   public ProjectType = ProjectType;
   public projectForm!: FormGroup;
@@ -148,6 +153,10 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
   }
 
   protected override loadParams(params: any, queryParams?: any): void {
+    if (params?.questionnaireUpdate) {
+      this.applyQuestionnaireUpdate(params.questionnaireUpdate);
+      delete params.questionnaireUpdate;
+    }
   }
 
   private loadTemplates(): void {
@@ -469,6 +478,10 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
   }
 
   private syncQuestionnairesWithSteps(): void {
+    const previousValues = this.questionnairesFormArray.getRawValue() as Questionnaire[];
+    const questionnaireByStage = new Map(
+      (previousValues || []).map((item) => [item.stageName || item.name, item])
+    );
     while (this.questionnairesFormArray.length > 0) {
       this.questionnairesFormArray.removeAt(0);
     }
@@ -480,6 +493,7 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
       const stepName = stepControl.get('name')?.value;
       const startDate = stepControl.get('applicationStartDate')?.value || '';
       const endDate = stepControl.get('applicationEndDate')?.value || '';
+      const cached = questionnaireByStage.get(stepName);
 
       this.questionnairesFormArray.push(
         this.fb.group({
@@ -488,6 +502,7 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
           sequence: [stepInfo.sequence],
           applicationStartDate: [startDate],
           applicationEndDate: [endDate],
+          questions: [cached?.questions || []],
         })
       );
     });
@@ -551,6 +566,92 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
     this.cdr.detectChanges();
   }
 
+  editQuestionnaire(index: number): void {
+    const questionnaireGroup = this.questionnairesFormArray.at(index) as FormGroup | null;
+    const questionnaire = questionnaireGroup?.getRawValue();
+    if (!questionnaire) {
+      this.notificationService.showWarning('Não foi possível carregar o questionário selecionado.');
+      return;
+    }
+    const projectName = this.projectForm.get('name')?.value || 'Novo Projeto';
+
+    // Buscar as perguntas do template correspondente
+    const questions = this.getQuestionsForQuestionnaire(questionnaire);
+
+    this.routerService.navigateTo('/projects/questionnaire/cascata', {
+      params: {
+        p: {
+          projectName: projectName,
+          questionnaireIndex: index,
+          sequence: questionnaire.sequence,
+          name: questionnaire.name,
+          applicationStartDate: questionnaire.applicationStartDate,
+          applicationEndDate: questionnaire.applicationEndDate,
+          stageName: questionnaire.stageName,
+          questions: questions
+        }
+      }
+    });
+  }
+
+  private getQuestionsForQuestionnaire(questionnaire: any): QuestionData[] {
+    if (questionnaire?.questions?.length) {
+      return questionnaire.questions;
+    }
+
+    if (!this.selectedTemplateData?.questionnaires) {
+      return [];
+    }
+
+    // Encontrar o questionário correspondente no template pela etapa
+    const templateQuestionnaire = this.selectedTemplateData.questionnaires.find(
+      (tq: any) => tq.stageName === questionnaire.stageName || tq.name === questionnaire.name
+    );
+
+    if (!templateQuestionnaire?.questions) {
+      return [];
+    }
+
+    // Mapear as perguntas do template para o formato esperado pelo componente
+    return templateQuestionnaire.questions.map((question: any, index: number) => ({
+      id: `${Date.now()}-${index}`,
+      value: question.value,
+      roleNames: Array.from(question.roleNames || [])
+    }));
+  }
+
+  private applyQuestionnaireUpdate(update: any): void {
+    if (!update || typeof update.questionnaireIndex !== 'number') {
+      return;
+    }
+
+    const questionnaireGroup = this.questionnairesFormArray.at(update.questionnaireIndex) as FormGroup | null;
+    if (!questionnaireGroup) {
+      return;
+    }
+
+    questionnaireGroup.patchValue(
+      {
+        name: update.name,
+        sequence: update.sequence,
+        applicationStartDate: update.applicationStartDate,
+        applicationEndDate: update.applicationEndDate,
+        stageName: update.stageName || questionnaireGroup.get('stageName')?.value,
+      },
+      { emitEvent: false }
+    );
+
+    const questionsControl = questionnaireGroup.get('questions');
+    if (questionsControl) {
+      questionsControl.setValue(update.questions || []);
+    } else {
+      questionnaireGroup.addControl('questions', this.fb.control(update.questions || []));
+    }
+
+    questionnaireGroup.markAsDirty();
+    this.cdr.detectChanges();
+  }
+
   private buildQuestionnairesForm(data?: Questionnaire[]): FormArray {
     if (!data || data.length === 0) {
       return this.fb.array([]);
@@ -563,6 +664,8 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
           sequence: [q.sequence, [Validators.required, Validators.min(1)]],
           applicationStartDate: [q.applicationStartDate || ''],
           applicationEndDate: [q.applicationEndDate || ''],
+          stageName: [q.stageName || q.name],
+          questions: [q.questions || []],
         })
       )
     );
@@ -572,6 +675,7 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
     return {
       formValue: this.projectForm.getRawValue(),
       panelStates: this.panelStates,
+      lastValidPanelIndex: this.lastValidPanelIndex,
     };
   }
 
@@ -605,6 +709,10 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
 
       if (restoreParameter['panelStates']) {
         this.panelStates = restoreParameter['panelStates'];
+      }
+
+      if (typeof restoreParameter['lastValidPanelIndex'] === 'number') {
+        this.lastValidPanelIndex = restoreParameter['lastValidPanelIndex'];
       }
     }
 

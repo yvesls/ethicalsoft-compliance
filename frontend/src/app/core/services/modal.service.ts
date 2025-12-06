@@ -1,7 +1,8 @@
-import { Injectable, ApplicationRef, createComponent, Type, ComponentRef, OnDestroy } from '@angular/core'
+import { ApplicationRef, ComponentRef, Injectable, OnDestroy, Type, createComponent, inject } from '@angular/core'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { FormGroup } from '@angular/forms'
-import { Router, NavigationStart } from '@angular/router'
-import { Subscription, Subject } from 'rxjs'
+import { NavigationExtras, NavigationStart, Router } from '@angular/router'
+import { Observable, Subject } from 'rxjs'
 import { filter } from 'rxjs/operators'
 import { NotificationService } from './notification.service'
 import { LoggerService } from './logger.service'
@@ -10,20 +11,19 @@ export type ModalSize = 'very-small-card' | 'small-card' | 'medium-card' | 'larg
 
 @Injectable({ providedIn: 'root' })
 export class ModalService implements OnDestroy {
-	private modalRef?: ComponentRef<any>
-	private modalElement?: HTMLElement
+	private readonly appRef = inject(ApplicationRef)
+	private readonly notificationService = inject(NotificationService)
+	private readonly router = inject(Router)
+
+	private modalRef: ComponentRef<unknown> | null = null
+	private modalElement: HTMLElement | null = null
 	private isConfirming = false
-	private routerSubscription: Subscription
-	private pendingNavigation?: any
+	private pendingNavigation?: PendingNavigation
 	private modalClosedSubject = new Subject<void>()
 
-	constructor(
-		private appRef: ApplicationRef,
-		private notificationService: NotificationService,
-		private router: Router
-	) {
-		this.routerSubscription = this.router.events
-			.pipe(filter((event): event is NavigationStart => event instanceof NavigationStart))
+	constructor() {
+		this.router.events
+			.pipe(filter((event): event is NavigationStart => event instanceof NavigationStart), takeUntilDestroyed())
 			.subscribe((event) => {
 				if (this.modalRef) {
 					this.handleNavigation(event)
@@ -31,20 +31,18 @@ export class ModalService implements OnDestroy {
 			})
 	}
 
-	ngOnDestroy() {
-		this.routerSubscription?.unsubscribe()
+	ngOnDestroy(): void {
 		this.modalClosedSubject.complete()
 	}
 
-	get modalClosed$() {
+	get modalClosed$(): Observable<void> {
 		return this.modalClosedSubject.asObservable()
 	}
 
 	private handleNavigation(event: NavigationStart) {
-		const instance = this.modalRef?.instance as any
-		const form = instance?.form
+		const form = this.getModalForm()
 
-		if (form instanceof FormGroup && form.touched && !this.isConfirming) {
+		if (form?.touched && !this.isConfirming) {
 			this.pendingNavigation = {
 				url: event.url,
 				extras:
@@ -83,7 +81,7 @@ export class ModalService implements OnDestroy {
 		}
 	}
 
-	open<T>(component: Type<T>, size: ModalSize = 'small-card', data?: Partial<T>): void {
+	open<T extends object>(component: Type<T>, size: ModalSize = 'small-card', data?: Partial<T>): void {
 		LoggerService.info('Opening modal with component:', component)
 		if (this.modalRef) {
 			this.attemptClose(() => this.open(component, size, data))
@@ -92,8 +90,8 @@ export class ModalService implements OnDestroy {
 
 		this.modalRef = createComponent(component, { environmentInjector: this.appRef.injector })
 
-		if (data) {
-			Object.assign(this.modalRef.instance, data)
+		if (data && this.modalRef.instance) {
+			Object.assign(this.modalRef.instance as object, data)
 		}
 
 		this.modalElement = document.createElement('div')
@@ -117,12 +115,10 @@ export class ModalService implements OnDestroy {
 	}
 
 	private attemptClose(onConfirm?: () => void): void {
-		const instance = this.modalRef?.instance as any
-		const form = instance?.form
+		const form = this.getModalForm()
 
-		if (form instanceof FormGroup && form.touched && !this.isConfirming) {
+		if (form?.touched && !this.isConfirming) {
 			this.isConfirming = true
-
 			this.notificationService.showConfirm(
 				'Você tem alterações não salvas. Deseja fechar mesmo assim?',
 				() => {
@@ -146,15 +142,30 @@ export class ModalService implements OnDestroy {
 		if (this.modalRef) {
 			this.appRef.detachView(this.modalRef.hostView)
 			this.modalRef.destroy()
-			this.modalRef = undefined
+			this.modalRef = null
 		}
 
 		if (this.modalElement) {
 			this.modalElement.remove()
-			this.modalElement = undefined
+			this.modalElement = null
 		}
 
 		// Emite evento de modal fechado
 		this.modalClosedSubject.next()
 	}
+
+	private getModalForm(): FormGroup | null {
+		const instance = this.modalRef?.instance as ModalComponentInstance | undefined
+		const form = instance?.form
+		return form instanceof FormGroup ? form : null
+	}
+}
+
+interface PendingNavigation {
+	url: string
+	extras?: NavigationExtras
+}
+
+interface ModalComponentInstance {
+	form?: FormGroup
 }

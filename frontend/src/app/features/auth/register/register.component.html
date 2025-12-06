@@ -83,7 +83,7 @@
 			<label class="terms-label">
 				<input type="checkbox" formControlName="acceptedTerms" />
 				Concordo com os
-				<span class="link" (click)="openTermsAndPolicies($event)">termos e com a política</span> do Ethical
+				<button class="link" type="button" (click)="openTermsAndPolicies($event)">termos e com a política</button> do Ethical
 				Software Compliance
 			</label>
 		</div>
@@ -93,5 +93,5 @@
 		</div>
 	</form>
 
-	<p class="login">Já tem uma conta? <span (click)="goToLogin()">Entrar agora</span></p>
+	<p class="login">Já tem uma conta? <button class="link" type="button" (click)="goToLogin()">Entrar agora</button></p>
 </div>

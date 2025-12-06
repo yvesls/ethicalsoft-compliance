@@ -1,0 +1,39 @@
+<div class="question-modal">
+  <h2>{{ modalTitle }}</h2>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <div class="form-group">
+      <app-input
+        label="Pergunta *"
+        type="text"
+        formControlName="value"
+        placeholder="Digite a pergunta"
+        [control]="form.get('value')"
+      ></app-input>
+    </div>
+
+    <div class="form-group">
+      <label for="roleNames" class="mb-2 d-block fw-medium">Papéis *</label>
+      <app-multi-select
+        id="roleNames"
+        [options]="roleOptions"
+        formControlName="roleNames"
+        placeholder="Selecione os papéis"
+      ></app-multi-select>
+      @if (form.get('roleNames')?.invalid && form.get('roleNames')?.touched) {
+        <small class="error-message text-danger mt-1 d-block">
+          Selecione pelo menos um papel
+        </small>
+      }
+    </div>
+
+    <div class="panel-actions mt-4 d-flex justify-content-end gap-2">
+      <button type="button" class="btn btn-secondary" (click)="close()">
+        Cancelar
+      </button>
+      <button type="submit" class="btn btn-primary">
+        {{ mode === 'CREATE' ? 'Criar' : 'Salvar' }}
+      </button>
+    </div>
+  </form>
+</div>

@@ -344,6 +344,31 @@ app-footer {
 	}
 }
 
+.form-grid {
+  display: grid;
+  gap: 1.5rem;
+  width: 100%;
+  margin-bottom: 1.5rem;
+
+  &.form-grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  &.form-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  &.form-grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.separation-line {
+  width: 100%;
+  padding: 0 1.5rem 1.5rem 1.5rem;
+  border-bottom: 1px solid $white-secundary;
+}
+
 @keyframes fadeInScale {
 	from {
 		opacity: 0;

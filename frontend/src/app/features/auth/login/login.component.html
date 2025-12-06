@@ -40,7 +40,7 @@
 					<input type="checkbox" formControlName="keepSession" /> Manter sessão
 				</span>
 			</div>
-			<span class="link" (click)="goToRecover()">Esqueci minha senha</span>
+			<button class="link" type="button" (click)="goToRecover()">Esqueci minha senha</button>
 		</div>
 
 		<div class="col-12">
@@ -49,6 +49,6 @@
 	</form>
 	<p class="register">
 		É um analista e deseja utilizar o software no seu projeto?
-		<span (click)="goToRegister()">Registre-se!</span>
+		<button class="link" type="button" (click)="goToRegister()">Registre-se!</button>
 	</p>
 </div>

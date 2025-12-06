@@ -86,7 +86,7 @@
     (attemptedToggle)="onAttemptedToggle('steps')"
   >
     <div class="steps-container">
-      <table class="steps-table steps-table-cascata">
+      <table class="steps-table">
         <thead>
           <tr>
             <th>Sequência</th>
@@ -98,7 +98,7 @@
         </thead>
         <tbody formArrayName="steps">
           <tr *ngFor="let step of stepsFormArray.controls; let i = index; trackBy: trackByIndex" [formGroupName]="i">
-            <td class="cell-sequence">{{ step.get('sequence')?.value }}</td>
+            <td class="cell-name">{{ step.get('sequence')?.value }}</td>
             <td class="cell-name">{{ step.get('name')?.value }}</td>
             <td class="cell-date-range">
               <span class="date-range-label">Período:</span>
@@ -165,7 +165,7 @@
     (attemptedToggle)="onAttemptedToggle('representatives')"
   >
     <div class="steps-container">
-      <table class="steps-table representatives-table">
+      <table class="representatives-table">
         <thead>
           <tr>
             <th>Nome</th>
@@ -197,6 +197,7 @@
                 class="btn-icon btn-delete"
                 title="Remover representante"
                 (click)="removeRepresentative(i)"
+                [disabled]="representativesFormArray.length === 1"
               >
                 <img src="assets/icons/trash.svg" alt="Remover" />
               </button>
@@ -236,8 +237,8 @@
     (attemptedToggle)="onAttemptedToggle('questionnaires')"
   >
     <div class="steps-container">
-      <div class="table-wrapper" [class.scrollable]="questionnairesFormArray.controls.length > 5">
-        <table class="steps-table questionnaires-table">
+      <div class="" [class.scrollable]="questionnairesFormArray.controls.length > 5">
+        <table class="questionnaires-table">
           <thead>
             <tr>
               <th>Sequência</th>
@@ -252,14 +253,22 @@
               *ngFor="let q of questionnairesFormArray.controls; let i = index"
               [formGroupName]="i"
             >
-              <td class="cell-sequence">{{ q.get('sequence')?.value || '-' }}</td>
+              <td class="cell-name">{{ q.get('sequence')?.value || '-' }}</td>
               <td class="cell-name">{{ q.get('name')?.value }}</td>
               <td class="cell-name">{{ q.get('applicationStartDate')?.value || '-' }}</td>
               <td class="cell-name">{{ q.get('applicationEndDate')?.value || '-' }}</td>
               <td class="cell-actions">
                 <button
                   type="button"
-                  class="btn-icon btn-delete"
+                  class="btn-icon"
+                  title="Editar perguntas do questionário"
+                  (click)="editQuestionnaire(i)"
+                >
+                  <img src="assets/icons/pen-edit.svg" alt="Editar" />
+                </button>
+                <button
+                  type="button"
+                  class="btn-icon"
                   title="Remover questionário"
                   disabled
                 >

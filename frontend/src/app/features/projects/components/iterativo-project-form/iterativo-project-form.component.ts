@@ -32,12 +32,14 @@ import { TemplateStore } from '../../../../shared/stores/template.store';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ModalService } from '../../../../core/services/modal.service';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { RouterService } from '../../../../core/services/router.service';
 import { TemplateActionModalComponent } from '../template-action-modal/template-action-modal.component';
 import { StageIterativeModalComponent, StageIterativeData } from '../stage-iterative-modal/stage-iterative-modal.component';
 import { RepresentativeModalComponent, RepresentativeData } from '../representative-modal/representative-modal.component';
 import { ActionType } from '../../../../shared/enums/action-type.enum';
 import { FormUtils } from '../../../../shared/utils/form-utils';
 import { Subscription } from 'rxjs';
+import { QuestionData } from '../question-modal/question-modal.component';
 
 export interface Representative {
   firstName: string;
@@ -52,6 +54,7 @@ export interface Questionnaire {
   iteration: string;
   weight: number;
   dateRange: string;
+  questions?: QuestionData[];
 }
 
 export interface Iteration {
@@ -87,6 +90,7 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
   private templateStore = inject(TemplateStore);
   private modalService = inject(ModalService);
   private notificationService = inject(NotificationService);
+  public override routerService = inject(RouterService);
 
   public ProjectType = ProjectType;
   public projectForm!: FormGroup;
@@ -149,7 +153,10 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
   }
 
   protected override loadParams(params: any, queryParams?: any): void {
-
+    if (params?.questionnaireUpdate) {
+      this.applyQuestionnaireUpdate(params.questionnaireUpdate);
+      delete params.questionnaireUpdate;
+    }
   }
 
   private loadTemplates(): void {
@@ -318,6 +325,21 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
     );
   }
 
+  private buildQuestionnairesForm(data?: Questionnaire[]): FormArray {
+    const questionnaires = data || [];
+    return this.fb.array(
+      questionnaires.map((questionnaire) =>
+        this.fb.group({
+          name: [questionnaire.name, [Validators.required]],
+          iteration: [questionnaire.iteration, [Validators.required]],
+          weight: [questionnaire.weight, [Validators.required, Validators.min(0)]],
+          dateRange: [questionnaire.dateRange],
+          questions: [questionnaire.questions || []],
+        })
+      )
+    );
+  }
+
   private hasUserModifiedStages(): boolean {
     const stagesArray = this.projectForm.get('stages') as FormArray;
     return stagesArray && stagesArray.length > 0;
@@ -343,6 +365,7 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
     return {
       formValue: this.projectForm.getRawValue(),
       panelStates: this.panelStates,
+      lastValidPanelIndex: this.lastValidPanelIndex,
     };
   }
 
@@ -368,7 +391,7 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
 
         this.projectForm.setControl(
           'questionnaires',
-          this.fb.array(formValue.questionnaires || [])
+          this.buildQuestionnairesForm(formValue.questionnaires || [])
         );
 
         this.projectForm.patchValue(formValue);
@@ -376,6 +399,10 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
 
       if (restoreParameter['panelStates']) {
         this.panelStates = restoreParameter['panelStates'];
+      }
+
+      if (typeof restoreParameter['lastValidPanelIndex'] === 'number') {
+        this.lastValidPanelIndex = restoreParameter['lastValidPanelIndex'];
       }
     }
     this.cdr.markForCheck();
@@ -455,6 +482,88 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
   removeRepresentative(index: number): void {
     this.representativesFormArray.removeAt(index);
     this.cdr.detectChanges();
+  }
+
+  editQuestionnaire(index: number): void {
+    const questionnaireGroup = this.questionnairesFormArray.at(index) as FormGroup | null;
+    const questionnaire = questionnaireGroup?.getRawValue();
+    if (!questionnaire) {
+      this.notificationService.showWarning('Não foi possível carregar o questionário selecionado.');
+      return;
+    }
+    const projectName = this.projectForm.get('name')?.value || 'Novo Projeto';
+
+    // Buscar as perguntas do template correspondente
+    const questions = this.getQuestionsForQuestionnaire(questionnaire);
+
+    // Navegar para a página de edição de questionário com os parâmetros
+    this.routerService.navigateTo('/projects/questionnaire/iterativo', {
+      params: {
+        p: {
+          projectName: projectName,
+          questionnaireIndex: index,
+          name: questionnaire.name,
+          weight: questionnaire.weight,
+          iteration: questionnaire.iteration,
+          questions: questions
+        }
+      }
+    });
+  }
+
+  private getQuestionsForQuestionnaire(questionnaire: any): QuestionData[] {
+    if (questionnaire?.questions?.length) {
+      return questionnaire.questions;
+    }
+
+    if (!this.selectedTemplateData?.questionnaires) {
+      return [];
+    }
+
+    const templateQuestionnaire = this.selectedTemplateData.questionnaires.find(
+      (tq: any) => tq.iterationRefName === questionnaire.iteration || tq.name === questionnaire.name
+    );
+
+    if (!templateQuestionnaire?.questions) {
+      return [];
+    }
+
+    return templateQuestionnaire.questions.map((question: any, index: number) => ({
+      id: `${Date.now()}-${index}`,
+      value: question.value,
+      roleNames: Array.from(question.roleNames || [])
+    }));
+  }
+
+  private applyQuestionnaireUpdate(update: any): void {
+    if (!update || typeof update.questionnaireIndex !== 'number') {
+      return;
+    }
+
+    const questionnaireGroup = this.questionnairesFormArray.at(update.questionnaireIndex) as FormGroup | null;
+    if (!questionnaireGroup) {
+      return;
+    }
+
+    questionnaireGroup.patchValue(
+      {
+        name: update.name,
+        weight: update.weight,
+        iteration: update.iteration || questionnaireGroup.get('iteration')?.value,
+        dateRange: update.dateRange || questionnaireGroup.get('dateRange')?.value,
+      },
+      { emitEvent: false }
+    );
+
+    const questionsControl = questionnaireGroup.get('questions');
+    if (questionsControl) {
+      questionsControl.setValue(update.questions || []);
+    } else {
+      questionnaireGroup.addControl('questions', this.fb.control(update.questions || []));
+    }
+
+    questionnaireGroup.markAsDirty();
+    this.cdr.markForCheck();
   }
 
   addStage(): void {
@@ -699,6 +808,11 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
     const iterationsArray = this.iterationsFormArray;
     const questionnairesArray = this.projectForm.get('questionnaires') as FormArray;
 
+    const previousValues = questionnairesArray.getRawValue() as Questionnaire[];
+    const cacheByIteration = new Map(
+      (previousValues || []).map((item) => [item.iteration || item.name, item])
+    );
+
     questionnairesArray.clear();
 
     if (iterationsArray.length === 0) {
@@ -726,13 +840,15 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
       const questionnaireEndDate = FormUtils.addBusinessDays(new Date(iterationStart), closingOffset);
 
       const dateRange = `${FormUtils.formatDateBR(FormUtils.formatDateISO(questionnaireStartDate))} - ${FormUtils.formatDateBR(FormUtils.formatDateISO(questionnaireEndDate))}`;
+      const cached = cacheByIteration.get(iterationName);
 
       questionnairesArray.push(
         this.fb.group({
           name: [iterationName, [Validators.required]],
           iteration: [iterationName, [Validators.required]],
-          weight: [1, [Validators.required, Validators.min(0)]],
-          dateRange: [dateRange],
+          weight: [cached?.weight ?? 1, [Validators.required, Validators.min(0)]],
+          dateRange: [cached?.dateRange || dateRange],
+          questions: [cached?.questions || []],
         })
       );
     });

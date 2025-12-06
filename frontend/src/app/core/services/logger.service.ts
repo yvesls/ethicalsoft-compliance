@@ -7,19 +7,19 @@ export class LoggerService {
 		this.logger.setLevel('debug')
 	}
 
-	static info(message: string, ...params: any[]): void {
+	static info(message: string, ...params: unknown[]): void {
 		this.logger.info(message, ...params)
 	}
 
-	static debug(message: string, ...params: any[]): void {
+	static debug(message: string, ...params: unknown[]): void {
 		this.logger.debug(message, ...params)
 	}
 
-	static warn(message: string, ...params: any[]): void {
+	static warn(message: string, ...params: unknown[]): void {
 		this.logger.warn(message, ...params)
 	}
 
-	static error(message: string, ...params: any[]): void {
+	static error(message: string, ...params: unknown[]): void {
 		this.logger.error(message, ...params)
 	}
 }

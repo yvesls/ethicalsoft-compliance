@@ -1,6 +1,6 @@
-import { Injectable, OnDestroy } from '@angular/core'
+import { Injectable, inject } from '@angular/core'
 import { Router, NavigationStart } from '@angular/router'
-import { Subscription } from 'rxjs'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { filter } from 'rxjs/operators'
 import { LoggerService } from './logger.service'
 import { getErrorMessage } from '../../shared/enums/error-messages.enum'
@@ -8,35 +8,25 @@ import { getErrorMessage } from '../../shared/enums/error-messages.enum'
 @Injectable({
 	providedIn: 'root',
 })
-export class NotificationService implements OnDestroy {
-	private routerSubscription: Subscription
+export class NotificationService {
+	private readonly router = inject(Router)
 
-	constructor(private router: Router) {
-		this.routerSubscription = this.router.events
-			.pipe(filter((event): event is NavigationStart => event instanceof NavigationStart))
+	constructor() {
+		this.router.events
+			.pipe(filter((event): event is NavigationStart => event instanceof NavigationStart), takeUntilDestroyed())
 			.subscribe(() => {
 				this.closeModal()
 				LoggerService.info('NotificationService: Router event NavigationStart detected. Closing modal.')
 			})
 	}
 
-	ngOnDestroy() {
-		if (this.routerSubscription) {
-			this.routerSubscription.unsubscribe()
-			LoggerService.info('NotificationService: Unsubscribed from router events.')
-		}
-	}
-
-	showWarning(error: any) {
+	showWarning(error: unknown) {
 		LoggerService.warn('NotificationService: Showing warning notification.')
-		if (typeof error === 'string') {
-			this.showModal('warning', 'Atenção', error)
-		} else {
-			this.showModal('warning', 'Atenção', this.formatErrorMessage(error))
-		}
+		const message = typeof error === 'string' ? error : this.formatErrorMessage(error)
+		this.showModal('warning', 'Atenção', message)
 	}
 
-	showError(error: any) {
+	showError(error: unknown) {
 		LoggerService.error('NotificationService: Showing error notification.')
 		this.showModal('error', 'Erro', this.formatErrorMessage(error))
 	}
@@ -51,10 +41,25 @@ export class NotificationService implements OnDestroy {
 		this.showModal('confirm', 'Atenção', message, callbackConfirm, callbackCancel)
 	}
 
-	private formatErrorMessage(error: any): string {
-		const errorMessage = error.message?.trim()
-		LoggerService.error('NotificationService: Formatting error message', error)
-		return `**Erro ${error.status}** - ${error.errorType}: ${errorMessage || getErrorMessage(error.status)}`
+	private formatErrorMessage(error: unknown): string {
+		if (typeof error === 'string') {
+			return error
+		}
+
+		if (error instanceof Error) {
+			LoggerService.error('NotificationService: Formatting error message from Error instance', error)
+			return error.message
+		}
+
+		if (this.isApiError(error)) {
+			LoggerService.error('NotificationService: Formatting API error message', error)
+			const message = error.message?.trim()
+			const status = error.status ?? 0
+			return `**Erro ${status}** - ${error.errorType ?? 'ERROR'}: ${message || getErrorMessage(status)}`
+		}
+
+		LoggerService.error('NotificationService: Unknown error type received', error)
+		return getErrorMessage(0)
 	}
 
 	private showModal(
@@ -65,6 +70,10 @@ export class NotificationService implements OnDestroy {
 		callbackCancel?: () => void
 	) {
 		LoggerService.info('NotificationService: Displaying modal of type', type)
+		if (!this.hasDOM()) {
+			LoggerService.warn('NotificationService: DOM is not available, skipping modal rendering.')
+			return
+		}
 		this.closeModal()
 
 		const modal = document.createElement('div')
@@ -119,10 +128,28 @@ export class NotificationService implements OnDestroy {
 	}
 
 	closeModal() {
-		document.querySelectorAll('.notification-modal').forEach((modal) => {
+		if (!this.hasDOM()) {
+			return
+		}
+		const modals = document.querySelectorAll<HTMLElement>('.notification-modal')
+		for (const modal of modals) {
 			modal.classList.add('closing')
-      modal.remove()
-      LoggerService.info('NotificationService: Modal removed from DOM.')
-		})
+			modal.remove()
+			LoggerService.info('NotificationService: Modal removed from DOM.')
+		}
 	}
+
+	private isApiError(error: unknown): error is ApiError {
+		return typeof error === 'object' && error !== null && ('status' in error || 'errorType' in error || 'message' in error)
+	}
+
+	private hasDOM(): boolean {
+		return typeof document !== 'undefined'
+	}
+}
+
+interface ApiError {
+	status?: number
+	errorType?: string
+	message?: string
 }
