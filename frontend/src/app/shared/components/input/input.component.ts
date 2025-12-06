@@ -1,7 +1,10 @@
-import { Component, Input, forwardRef } from '@angular/core'
+import { Component, Input, forwardRef, OnInit } from '@angular/core'
 import { CommonModule } from '@angular/common'
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, AbstractControl } from '@angular/forms'
+import { noop } from 'rxjs'
 import { capitalizeWords } from '../../../core/utils/common-utils'
+
+type InputValue = string | number | null
 
 @Component({
   selector: 'app-input',
@@ -17,7 +20,7 @@ import { capitalizeWords } from '../../../core/utils/common-utils'
     },
   ],
 })
-export class InputComponent implements ControlValueAccessor {
+export class InputComponent implements ControlValueAccessor, OnInit {
   @Input() label = ''
   @Input() type = 'text'
   @Input() id = ''
@@ -25,7 +28,7 @@ export class InputComponent implements ControlValueAccessor {
   @Input() required = false
   @Input() inputClasses = ''
   @Input() labelClasses = ''
-  @Input() validationMessages: { [key: string]: string } = {}
+  @Input() validationMessages: Record<string, string> = {}
   @Input() control!: AbstractControl | null
   @Input() autoCapitalize = false
   @Input() readonly = false
@@ -33,16 +36,16 @@ export class InputComponent implements ControlValueAccessor {
   public currentType = 'text'
   public isPasswordVisible = false
 
-  value: any = ''
+  value: InputValue = null
   disabled = false
   touched = false
 
-  private onChange = (value: any) => {}
-  private onTouched = () => {}
+  private onChange: (value: InputValue) => void = () => { noop() }
+  private onTouched: () => void = () => { noop() }
 
   ngOnInit(): void {
     if (!this.id) {
-      this.id = this.label.toLowerCase().replace(/\s/g, '-')
+  this.id = this.label.toLowerCase().replaceAll(/\s/g, '-')
     }
     this.currentType = this.type;
 
@@ -51,8 +54,8 @@ export class InputComponent implements ControlValueAccessor {
     }
   }
 
-  writeValue(value: any): void {
-    this.value = value
+  writeValue(value: unknown): void {
+    this.value = (value as InputValue) ?? null
     if (this.type === 'date' && value) {
       this.currentType = 'date';
     } else if (this.type === 'date' && !value) {
@@ -60,11 +63,11 @@ export class InputComponent implements ControlValueAccessor {
     }
   }
 
-  registerOnChange(fn: any): void {
+  registerOnChange(fn: (value: InputValue) => void): void {
     this.onChange = fn
   }
 
-  registerOnTouched(fn: any): void {
+  registerOnTouched(fn: () => void): void {
     this.onTouched = fn
   }
 
@@ -100,7 +103,7 @@ export class InputComponent implements ControlValueAccessor {
       this.onTouched()
     }
 
-    if (this.autoCapitalize && this.type === 'text' && this.value) {
+    if (this.autoCapitalize && this.type === 'text' && typeof this.value === 'string' && this.value) {
       const capitalizedValue = capitalizeWords(this.value);
       if (capitalizedValue !== this.value) {
         this.value = capitalizedValue;
@@ -125,12 +128,14 @@ export class InputComponent implements ControlValueAccessor {
         return this.validationMessages[key];
       }
 
-      if (typeof errors[key] === 'string') {
-        return errors[key];
+      const errorValue = errors[key as keyof typeof errors];
+
+      if (typeof errorValue === 'string') {
+        return errorValue;
       }
 
-      if (typeof errors[key] === 'object' && errors[key]?.message) {
-        return errors[key].message;
+      if (typeof errorValue === 'object' && errorValue && 'message' in errorValue) {
+        return (errorValue as { message?: string }).message ?? 'Campo inválido';
       }
       return `Campo inválido`;
     });

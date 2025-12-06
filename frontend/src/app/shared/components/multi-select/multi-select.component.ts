@@ -14,9 +14,12 @@ import {
   NG_VALUE_ACCESSOR,
   AbstractControl,
 } from '@angular/forms';
+import { noop } from 'rxjs';
+
+type MultiSelectValue = string | number;
 
 export interface MultiSelectOption {
-  value: any;
+  value: MultiSelectValue;
   label: string;
 }
 
@@ -40,49 +43,51 @@ export class MultiSelectComponent implements ControlValueAccessor, OnInit {
   @Input() placeholder = 'Selecione...';
   @Input() required = false;
   @Input() labelClasses = '';
-  @Input() validationMessages: { [key: string]: string } = {};
+  @Input() validationMessages: Record<string, string> = {};
   @Input() control!: AbstractControl | null;
   @Input() options: MultiSelectOption[] = [];
   @Input() maxSelectedItems?: number;
-  @Input() itemsNotRemovable: any[] = [];
+  @Input() itemsNotRemovable: MultiSelectValue[] = [];
 
-  @ViewChild('dropdown') dropdownRef!: ElementRef;
-  @ViewChild('selectContainer') selectContainerRef!: ElementRef;
+  @ViewChild('dropdown') dropdownRef!: ElementRef<HTMLDivElement>;
+  @ViewChild('selectContainer') selectContainerRef!: ElementRef<HTMLDivElement>;
 
   isOpen = signal(false);
   searchTerm = signal('');
-  selectedValues: any[] = [];
+  selectedValues: MultiSelectValue[] = [];
   disabled = false;
   touched = false;
 
-  private onChange = (value: any[]) => {};
-  private onTouched = () => {};
+  private onChange: (value: MultiSelectValue[]) => void = () => { noop() };
+  private onTouched: () => void = () => { noop() };
 
   ngOnInit(): void {
     if (!this.id) {
-      this.id = this.label.toLowerCase().replace(/\s/g, '-');
+      this.id = this.label.toLowerCase().replaceAll(/\s/g, '-');
     }
   }
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
+    const target = event.target as Node | null;
     if (
       this.selectContainerRef &&
-      !this.selectContainerRef.nativeElement.contains(event.target)
+      target &&
+      !this.selectContainerRef.nativeElement.contains(target)
     ) {
       this.closeDropdown();
     }
   }
 
-  writeValue(value: any[]): void {
-    this.selectedValues = value || [];
+  writeValue(value: MultiSelectValue[] | null): void {
+    this.selectedValues = value ?? [];
   }
 
-  registerOnChange(fn: any): void {
+  registerOnChange(fn: (value: MultiSelectValue[]) => void): void {
     this.onChange = fn;
   }
 
-  registerOnTouched(fn: any): void {
+  registerOnTouched(fn: () => void): void {
     this.onTouched = fn;
   }
 
@@ -121,11 +126,11 @@ export class MultiSelectComponent implements ControlValueAccessor, OnInit {
     );
   }
 
-  isSelected(value: any): boolean {
+  isSelected(value: MultiSelectValue): boolean {
     return this.selectedValues.includes(value);
   }
 
-  isRemovable(value: any): boolean {
+  isRemovable(value: MultiSelectValue): boolean {
     return !this.itemsNotRemovable.includes(value);
   }
 
@@ -138,19 +143,17 @@ export class MultiSelectComponent implements ControlValueAccessor, OnInit {
           (v) => v !== option.value
         );
       }
-    } else {
-      if (
-        !this.maxSelectedItems ||
-        this.selectedValues.length < this.maxSelectedItems
-      ) {
-        this.selectedValues = [...this.selectedValues, option.value];
-      }
+    } else if (
+      !this.maxSelectedItems ||
+      this.selectedValues.length < this.maxSelectedItems
+    ) {
+      this.selectedValues = [...this.selectedValues, option.value];
     }
 
     this.onChange(this.selectedValues);
   }
 
-  removeSelectedItem(value: any, event: Event): void {
+  removeSelectedItem(value: MultiSelectValue, event: Event): void {
     event.stopPropagation();
 
     if (!this.isRemovable(value) || this.disabled) return;
@@ -192,7 +195,7 @@ export class MultiSelectComponent implements ControlValueAccessor, OnInit {
     return this.selectedValues.some((v) => this.isRemovable(v));
   }
 
-  getLabelForValue(value: any): string {
+  getLabelForValue(value: MultiSelectValue): string {
     return this.options.find(o => o.value === value)?.label || '';
   }
 
@@ -208,12 +211,14 @@ export class MultiSelectComponent implements ControlValueAccessor, OnInit {
         return this.validationMessages[key];
       }
 
-      if (typeof errors[key] === 'string') {
-        return errors[key];
+      const errorValue = errors[key as keyof typeof errors];
+
+      if (typeof errorValue === 'string') {
+        return errorValue;
       }
 
-      if (typeof errors[key] === 'object' && errors[key]?.message) {
-        return errors[key].message;
+      if (typeof errorValue === 'object' && errorValue && 'message' in errorValue) {
+        return (errorValue as { message?: string }).message ?? 'Campo inválido';
       }
       return `Campo inválido`;
     });

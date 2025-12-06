@@ -6,17 +6,15 @@ import { RequestService } from '../../../core/services/request.service'
 	providedIn: 'root',
 })
 export abstract class BaseStore {
-	protected baseController: string = ''
-	protected requestService: RequestService
+	protected baseController = ''
+	protected readonly requestService: RequestService = inject(RequestService)
 
 	constructor(baseControllerName: string) {
-		this.requestService = inject(RequestService)
 		this.requestService.apiUrl = environment.apiBaseUrl
-
 		this.baseController = baseControllerName
 	}
 
-	getUrl(action: string) {
+	getUrl(action: string): string {
 		return action ? `${this.baseController}/${action}` : this.baseController
 	}
 }

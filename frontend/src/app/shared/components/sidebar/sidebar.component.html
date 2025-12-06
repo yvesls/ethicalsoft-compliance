@@ -1,12 +1,12 @@
 <aside [class.collapsed]="isCollapsed" class="sidebar">
 	<div class="sidebar-layout">
-		<a class="sidebar-toggler" (click)="toggleSidebar()">
+		<button class="sidebar-toggler" type="button" (click)="toggleSidebar()" aria-label="Alternar sidebar">
 			<img
 				src="../../../../assets/icons/{{ isCollapsed ? 'right' : 'left' }}.svg"
 				alt="Toggle Sidebar"
 				width="12"
 			/>
-		</a>
+		</button>
 		<div class="sidebar-header">
 			<div class="logo">
 				<img src="../../../../assets/images/logo.png" alt="logo" />
@@ -14,27 +14,32 @@
 			<h5 class="m-0 p-0">Ethicalsoft Compliance</h5>
 		</div>
 
-    <div class="sidebar-content">
-      <nav class="menu">
-        <ul>
-          <li *ngFor="let item of menuItems$ | async"
-              class="menu-item"
-              [routerLink]="item.route"
-              routerLinkActive="active-link"
-              [routerLinkActiveOptions]="{exact: true}">
-
-            <span class="menu-icon">
-              <img
-                *ngIf="item.icon"
-                src="../../../../assets/icons/{{ item.icon }}.svg"
-                alt="{{ item.label }}"
-              />
-            </span>
-            <span class="menu-title">{{ item.label }}</span>
-          </li>
-        </ul>
-      </nav>
-    </div>
+		<div class="sidebar-content">
+			<nav class="menu">
+				@if (menuItems$ | async; as menuItems) {
+					<ul>
+						@for (item of menuItems; track item.route ?? item.label) {
+							<li
+								class="menu-item"
+								[routerLink]="item.route"
+								routerLinkActive="active-link"
+								[routerLinkActiveOptions]="{ exact: true }"
+							>
+								<span class="menu-icon">
+									@if (item.icon) {
+										<img
+											src="../../../../assets/icons/{{ item.icon }}.svg"
+											alt="{{ item.label }}"
+										/>
+									}
+								</span>
+								<span class="menu-title">{{ item.label }}</span>
+							</li>
+						}
+					</ul>
+				}
+			</nav>
+		</div>
 
 		<div class="sidebar-footer">
 			<div class="exit">

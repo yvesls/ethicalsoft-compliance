@@ -1,7 +1,7 @@
 <div class="page-container">
   <app-filter-bar
     [formGroup]="filterForm"
-    (search)="onSearch()"
+    (filterSubmit)="onSearch()"
     gridTemplateColumns="2fr 1.5fr 1.5fr 1fr auto" >
 
     <app-select
@@ -54,11 +54,12 @@
     [itemCount]="projects().length" >
 
     <div listBody>
-      <app-list-item
-        *ngFor=" let project of projects(); trackBy: trackByProjectId"
-        [item]="project"
-        [navigateTo]="['/projects', project.id]">
-      </app-list-item>
+  @for (project of projects(); track trackByProjectId($index, project)) {
+        <app-list-item
+          [item]="project"
+          [navigateTo]="['/projects', project.id]">
+        </app-list-item>
+      }
     </div>
 
     <div listFooter>

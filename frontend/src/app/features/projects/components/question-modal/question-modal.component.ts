@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter, inject, Input, ChangeDetectorRef, ChangeDetectionStrategy, OnInit } from '@angular/core';
+import { Component, Output, EventEmitter, inject, Input, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -33,7 +33,7 @@ export class QuestionModalComponent implements OnInit {
 
   form!: FormGroup;
   actionType: ActionType = ActionType.CREATE;
-  modalTitle: string = 'Criar nova pergunta';
+  modalTitle = 'Criar nova pergunta';
   roleOptions = REPRESENTATIVE_ROLE_OPTIONS;
 
   constructor() {

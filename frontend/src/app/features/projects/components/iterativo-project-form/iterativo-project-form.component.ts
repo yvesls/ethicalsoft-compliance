@@ -17,10 +17,9 @@ import {
 } from '@angular/forms';
 
 import { ProjectType } from '../../../../shared/enums/project-type.enum';
-import { SelectOption } from '../../../../shared/components/select/select.component';
 import { AccordionPanelComponent } from '../../../../shared/components/accordion-panel/accordion-panel.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
-import { SelectComponent } from '../../../../shared/components/select/select.component';
+import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
 
 import { CustomValidators } from '../../../../shared/validators/custom.validator';
 import { capitalizeWords } from '../../../../core/utils/common-utils';
@@ -32,7 +31,7 @@ import { TemplateStore } from '../../../../shared/stores/template.store';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ModalService } from '../../../../core/services/modal.service';
 import { NotificationService } from '../../../../core/services/notification.service';
-import { RouterService } from '../../../../core/services/router.service';
+import { GenericParams, RouteParams, RouterService } from '../../../../core/services/router.service';
 import { TemplateActionModalComponent } from '../template-action-modal/template-action-modal.component';
 import { StageIterativeModalComponent, StageIterativeData } from '../stage-iterative-modal/stage-iterative-modal.component';
 import { RepresentativeModalComponent, RepresentativeData } from '../representative-modal/representative-modal.component';
@@ -40,6 +39,13 @@ import { ActionType } from '../../../../shared/enums/action-type.enum';
 import { FormUtils } from '../../../../shared/utils/form-utils';
 import { Subscription } from 'rxjs';
 import { QuestionData } from '../question-modal/question-modal.component';
+import {
+  ProjectTemplate,
+  TemplateQuestionDTO,
+  TemplateQuestionnaireDTO,
+  TemplateRepresentativeDTO,
+  TemplateStageDTO,
+} from '../../../../shared/interfaces/template/template.interface';
 
 export interface Representative {
   firstName: string;
@@ -69,6 +75,32 @@ export interface Stage {
   weight: number;
 }
 
+interface QuestionnaireUpdatePayload extends Questionnaire {
+  questionnaireIndex: number;
+  questions: QuestionData[];
+}
+
+type PanelKey = 'project' | 'stages' | 'representatives' | 'questionnaires';
+type PanelStates = Record<PanelKey, boolean>;
+
+interface IterativoProjectRouteParams extends GenericParams {
+  questionnaireUpdate?: QuestionnaireUpdatePayload;
+}
+
+interface IterativoProjectFormValue {
+  template: string | null;
+  name: string;
+  type: ProjectType;
+  startDate: string | null;
+  deadline: string | null;
+  iterationDuration: number;
+  iterationCount: number | null;
+  iterations?: Iteration[];
+  stages?: Stage[];
+  representatives?: Representative[];
+  questionnaires?: Questionnaire[];
+}
+
 @Component({
   selector: 'app-iterativo-project-form',
   standalone: true,
@@ -83,7 +115,7 @@ export interface Stage {
   styleUrls: ['./iterativo-project-form.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class IterativoProjectFormComponent extends BasePageComponent implements OnInit {
+export class IterativoProjectFormComponent extends BasePageComponent<IterativoProjectRouteParams> implements OnInit {
   private fb = inject(FormBuilder);
   private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
@@ -94,7 +126,7 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
 
   public ProjectType = ProjectType;
   public projectForm!: FormGroup;
-  public panelStates = {
+  public panelStates: PanelStates = {
     project: true,
     stages: false,
     representatives: false,
@@ -106,9 +138,9 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
     { value: ProjectType.Iterativo, label: 'Iterativo Incremental' },
   ];
 
-  private selectedTemplateData: any = null;
+  private selectedTemplateData: ProjectTemplate | null = null;
   private lastValidPanelIndex = 0;
-  private readonly PANEL_ORDER = ['project', 'stages', 'representatives', 'questionnaires'] as const;
+  private readonly PANEL_ORDER: PanelKey[] = ['project', 'stages', 'representatives', 'questionnaires'];
 
   private suppressIterationValueChanges = false;
   private iterationsValueChangesSub?: Subscription;
@@ -152,10 +184,11 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
     this.setupIterationListener();
   }
 
-  protected override loadParams(params: any, queryParams?: any): void {
-    if (params?.questionnaireUpdate) {
-      this.applyQuestionnaireUpdate(params.questionnaireUpdate);
-      delete params.questionnaireUpdate;
+  protected override loadParams(params: RouteParams<IterativoProjectRouteParams>): void {
+    const questionnaireUpdate = params['questionnaireUpdate'] as QuestionnaireUpdatePayload | undefined;
+    if (questionnaireUpdate) {
+      this.applyQuestionnaireUpdate(questionnaireUpdate);
+      delete params['questionnaireUpdate'];
     }
   }
 
@@ -283,22 +316,6 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
       });
   }
 
-  private buildIterativoStepsForm(data?: any): FormGroup {
-    const defaults = {
-      initiation: 3,
-      development: 3,
-      requirements: 5,
-      tests: 1,
-    };
-    const formData = data || defaults;
-    return this.fb.group({
-      initiation: [formData.initiation, Validators.required],
-      development: [formData.development, Validators.required],
-      requirements: [formData.requirements, Validators.required],
-      tests: [formData.tests, Validators.required],
-    });
-  }
-
   private buildStagesForm(data?: Stage[]): FormArray {
     const stagesData = data || [];
     return this.fb.array(
@@ -361,7 +378,7 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
     );
   }
 
-  protected override save(): any {
+  protected override save(): RouteParams<IterativoProjectRouteParams> {
     return {
       formValue: this.projectForm.getRawValue(),
       panelStates: this.panelStates,
@@ -369,41 +386,11 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
     };
   }
 
-  protected override restore(restoreParameter: RestoreParams<any>): void {
+  protected override restore(restoreParameter: RestoreParams<IterativoProjectRouteParams>): void {
     if (restoreParameter.hasParams) {
-      if (restoreParameter['formValue']) {
-        const formValue = restoreParameter['formValue'];
-
-        this.projectForm.setControl(
-          'iterations',
-          this.buildIterationsForm(formValue.iterations || [])
-        );
-
-        this.projectForm.setControl(
-          'stages',
-          this.buildStagesForm(formValue.stages || [])
-        );
-
-        this.projectForm.setControl(
-          'representatives',
-          this.buildRepresentativesForm(formValue.representatives || [])
-        );
-
-        this.projectForm.setControl(
-          'questionnaires',
-          this.buildQuestionnairesForm(formValue.questionnaires || [])
-        );
-
-        this.projectForm.patchValue(formValue);
-      }
-
-      if (restoreParameter['panelStates']) {
-        this.panelStates = restoreParameter['panelStates'];
-      }
-
-      if (typeof restoreParameter['lastValidPanelIndex'] === 'number') {
-        this.lastValidPanelIndex = restoreParameter['lastValidPanelIndex'];
-      }
+      const formValue = restoreParameter['formValue'] as IterativoProjectFormValue | undefined;
+      this.applyRestoreFormValue(formValue);
+      this.restorePanelMetadata(restoreParameter);
     }
     this.cdr.markForCheck();
   }
@@ -433,7 +420,10 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
       mode: ActionType.CREATE
     });
 
-    const modalRef = (this.modalService as any).modalRef?.instance as RepresentativeModalComponent;
+    const modalRef = this.getModalInstance<RepresentativeModalComponent>();
+    if (!modalRef) {
+      return;
+    }
 
     const createdSubscription = modalRef.representativeCreated.subscribe((newRepresentative: RepresentativeData) => {
       const newRep = this.fb.group({
@@ -464,7 +454,10 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
       }
     });
 
-    const modalRef = (this.modalService as any).modalRef?.instance as RepresentativeModalComponent;
+    const modalRef = this.getModalInstance<RepresentativeModalComponent>();
+    if (!modalRef) {
+      return;
+    }
 
     const updatedSubscription = modalRef.representativeUpdated.subscribe((updatedRepresentative: RepresentativeData) => {
       repFormGroup.patchValue({
@@ -486,7 +479,7 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
 
   editQuestionnaire(index: number): void {
     const questionnaireGroup = this.questionnairesFormArray.at(index) as FormGroup | null;
-    const questionnaire = questionnaireGroup?.getRawValue();
+    const questionnaire = questionnaireGroup?.getRawValue() as Questionnaire | undefined;
     if (!questionnaire) {
       this.notificationService.showWarning('Não foi possível carregar o questionário selecionado.');
       return;
@@ -494,7 +487,7 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
     const projectName = this.projectForm.get('name')?.value || 'Novo Projeto';
 
     // Buscar as perguntas do template correspondente
-    const questions = this.getQuestionsForQuestionnaire(questionnaire);
+  const questions = this.getQuestionsForQuestionnaire(questionnaire);
 
     // Navegar para a página de edição de questionário com os parâmetros
     this.routerService.navigateTo('/projects/questionnaire/iterativo', {
@@ -511,31 +504,32 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
     });
   }
 
-  private getQuestionsForQuestionnaire(questionnaire: any): QuestionData[] {
-    if (questionnaire?.questions?.length) {
-      return questionnaire.questions;
-    }
-
-    if (!this.selectedTemplateData?.questionnaires) {
+  private getQuestionsForQuestionnaire(questionnaire: Questionnaire | undefined): QuestionData[] {
+    if (!questionnaire) {
       return [];
     }
 
-    const templateQuestionnaire = this.selectedTemplateData.questionnaires.find(
-      (tq: any) => tq.iterationRefName === questionnaire.iteration || tq.name === questionnaire.name
+    if (questionnaire.questions?.length) {
+      return questionnaire.questions;
+    }
+
+    const templateQuestionnaire = this.selectedTemplateData?.questionnaires?.find(
+      (tq: TemplateQuestionnaireDTO) =>
+        tq.iterationRefName === questionnaire.iteration || tq.name === questionnaire.name
     );
 
     if (!templateQuestionnaire?.questions) {
       return [];
     }
 
-    return templateQuestionnaire.questions.map((question: any, index: number) => ({
+    return templateQuestionnaire.questions.map((question: TemplateQuestionDTO, index: number) => ({
       id: `${Date.now()}-${index}`,
       value: question.value,
       roleNames: Array.from(question.roleNames || [])
     }));
   }
 
-  private applyQuestionnaireUpdate(update: any): void {
+  private applyQuestionnaireUpdate(update: QuestionnaireUpdatePayload | undefined): void {
     if (!update || typeof update.questionnaireIndex !== 'number') {
       return;
     }
@@ -557,9 +551,9 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
 
     const questionsControl = questionnaireGroup.get('questions');
     if (questionsControl) {
-      questionsControl.setValue(update.questions || []);
+      questionsControl.setValue(update.questions ?? []);
     } else {
-      questionnaireGroup.addControl('questions', this.fb.control(update.questions || []));
+      questionnaireGroup.addControl('questions', this.fb.control(update.questions ?? []));
     }
 
     questionnaireGroup.markAsDirty();
@@ -568,7 +562,10 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
 
   addStage(): void {
     this.modalService.open(TemplateActionModalComponent, 'small-card');
-    const modalRef = (this.modalService as any).modalRef?.instance as TemplateActionModalComponent;
+    const modalRef = this.getModalInstance<TemplateActionModalComponent>();
+    if (!modalRef) {
+      return;
+    }
 
     const actionSubscription = modalRef.actionSelected.subscribe((action: 'create' | 'import') => {
       if (action === 'create') {
@@ -587,7 +584,10 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
 
   private openCreateStageModal(): void {
     this.modalService.open(StageIterativeModalComponent, 'small-card');
-    const modalRef = (this.modalService as any).modalRef?.instance as StageIterativeModalComponent;
+    const modalRef = this.getModalInstance<StageIterativeModalComponent>();
+    if (!modalRef) {
+      return;
+    }
 
     const createdSubscription = modalRef.stageCreated.subscribe((newStage: StageIterativeData) => {
       this.addNewStage(newStage);
@@ -607,7 +607,10 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
       }
     });
 
-    const modalRef = (this.modalService as any).modalRef?.instance as StageIterativeModalComponent;
+    const modalRef = this.getModalInstance<StageIterativeModalComponent>();
+    if (!modalRef) {
+      return;
+    }
 
     const updatedSubscription = modalRef.stageUpdated.subscribe((updatedStage: StageIterativeData) => {
       this.updateStage(index, updatedStage);
@@ -646,12 +649,11 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
   onSubmit(): void {
     if (this.projectForm.invalid) {
       this.projectForm.markAllAsTouched();
-      return;
     }
   }
 
-  continueToNextPanel(currentPanelKey: keyof typeof this.panelStates): void {
-    const currentIndex = this.PANEL_ORDER.indexOf(currentPanelKey as any);
+  continueToNextPanel(currentPanelKey: PanelKey): void {
+    const currentIndex = this.PANEL_ORDER.indexOf(currentPanelKey);
 
     if (!this.isPanelValid(currentPanelKey)) {
       this.projectForm.markAllAsTouched();
@@ -671,83 +673,89 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
     this.cdr.detectChanges();
   }
 
-  private isPanelValid(panelKey: keyof typeof this.panelStates): boolean {
+  private isPanelValid(panelKey: PanelKey): boolean {
     switch (panelKey) {
-      case 'project':
+      case 'project': {
         const requiredControls = ['template', 'name', 'startDate', 'deadline', 'iterationDuration'];
         const allRequiredValid = requiredControls.every(controlName => this.projectForm.get(controlName)?.valid);
         const groupErrors = this.projectForm.errors;
         const hasRelevantGroupError = groupErrors?.['dateRange'];
-        const iterationCount = this.projectForm.get('iterationCount')?.value;
+        const iterationCount = Number(this.projectForm.get('iterationCount')?.value) || 0;
         return allRequiredValid && !hasRelevantGroupError && iterationCount > 0;
+      }
 
-      case 'stages':
+      case 'stages': {
         const stagesArray = this.projectForm.get('stages') as FormArray;
-        return stagesArray && stagesArray.valid && stagesArray.length > 0;
+        return Boolean(stagesArray && stagesArray.valid && stagesArray.length > 0);
+      }
 
-      case 'questionnaires':
+      case 'questionnaires': {
         const questionnairesArray = this.projectForm.get('questionnaires') as FormArray;
-        return questionnairesArray && questionnairesArray.length > 0;
+        return Boolean(questionnairesArray && questionnairesArray.length > 0);
+      }
 
-      case 'representatives':
+      case 'representatives': {
         const repsArray = this.projectForm.get('representatives') as FormArray;
-        return repsArray && repsArray.valid && repsArray.length > 0;
+        return Boolean(repsArray && repsArray.valid && repsArray.length > 0);
+      }
 
       default:
         return false;
     }
   }
 
-  canOpenPanel(panelKey: keyof typeof this.panelStates): boolean {
-    const panelIndex = this.PANEL_ORDER.indexOf(panelKey as any);
+  canOpenPanel(panelKey: PanelKey): boolean {
+    const panelIndex = this.PANEL_ORDER.indexOf(panelKey);
     return panelIndex <= this.lastValidPanelIndex;
   }
 
-  onPanelToggled(panelKey: keyof typeof this.panelStates, newState: boolean): void {
+  onPanelToggled(panelKey: PanelKey, newState: boolean): void {
     this.panelStates[panelKey] = newState;
     this.cdr.detectChanges();
   }
 
-  onAttemptedToggle(panelKey: keyof typeof this.panelStates): void {
-    this.notificationService.showWarning('Complete os painéis anteriores antes de acessar este.');
+  onAttemptedToggle(panelKey: PanelKey): void {
+    this.notificationService.showWarning(`Complete os painéis anteriores antes de acessar "${panelKey}".`);
   }
 
-  private loadPanelData(panelKey: keyof typeof this.panelStates): void {
-    if (!this.selectedTemplateData) return;
+  private loadPanelData(panelKey: PanelKey): void {
+    if (!this.selectedTemplateData) {
+      return;
+    }
 
     switch (panelKey) {
-      case 'stages':
+      case 'stages': {
         this.generateIterations();
 
-        if (this.selectedTemplateData.stages && this.selectedTemplateData.stages.length > 0 && !this.hasUserModifiedStages()) {
-          const stagesData = this.selectedTemplateData.stages.map((stage: any) => ({
-            name: stage.name,
-            weight: stage.weight
-          }));
-
+        if (
+          this.selectedTemplateData.stages?.length &&
+          !this.hasUserModifiedStages()
+        ) {
+          const stagesData = this.selectedTemplateData.stages.map((stage: TemplateStageDTO) =>
+            this.mapTemplateStageToForm(stage)
+          );
           this.projectForm.setControl('stages', this.buildStagesForm(stagesData));
         }
         break;
+      }
 
-      case 'questionnaires':
+      case 'questionnaires': {
         this.generateQuestionnaires();
         break;
+      }
 
-      case 'representatives':
-        if (this.selectedTemplateData.representatives && this.selectedTemplateData.representatives.length > 0) {
+      case 'representatives': {
+        if (this.selectedTemplateData.representatives?.length) {
           const repsArray = this.projectForm.get('representatives') as FormArray;
           if (repsArray.length === 0) {
-            const repsData = this.selectedTemplateData.representatives.map((rep: any) => ({
-              firstName: capitalizeWords(rep.firstName),
-              lastName: capitalizeWords(rep.lastName),
-              email: rep.email,
-              weight: rep.weight,
-              roles: rep.roleNames || []
-            }));
+            const repsData = this.selectedTemplateData.representatives.map((rep: TemplateRepresentativeDTO) =>
+              this.mapTemplateRepresentativeToForm(rep)
+            );
             this.projectForm.setControl('representatives', this.buildRepresentativesForm(repsData));
           }
         }
         break;
+      }
     }
 
     this.cdr.detectChanges();
@@ -761,8 +769,8 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
     if (iterationCount <= 0 || iterationDuration <= 0 || !startDateValue) {
       this.iterationsValueChangesSub?.unsubscribe();
       this.iterationsValueChangesSub = undefined;
-      this.projectForm.setControl('iterations', this.buildIterationsForm([]));
-      this.projectForm.setControl('questionnaires', this.fb.array([]));
+  this.projectForm.setControl('iterations', this.buildIterationsForm([]));
+  this.projectForm.setControl('questionnaires', this.buildQuestionnairesForm([]));
       this.cdr.markForCheck();
       return;
     }
@@ -820,13 +828,14 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
       return;
     }
 
-    iterationsArray.controls.forEach((iterationControl, index) => {
+    for (const [index, control] of iterationsArray.controls.entries()) {
+      const iterationControl = control as FormGroup;
       const iterationName = iterationControl.get('name')?.value || `Iteração ${index + 1}`;
       const iterationStartValue = iterationControl.get('applicationStartDate')?.value;
       const iterationEndValue = iterationControl.get('applicationEndDate')?.value;
 
       if (!iterationStartValue || !iterationEndValue) {
-        return;
+        continue;
       }
 
       const iterationStart = new Date(iterationStartValue);
@@ -851,7 +860,7 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
           questions: [cached?.questions || []],
         })
       );
-    });
+    }
 
     this.cdr.markForCheck();
   }
@@ -867,5 +876,50 @@ export class IterativoProjectFormComponent extends BasePageComponent implements 
 
   importQuestionnaires(): void {
     this.notificationService.showWarning('Funcionalidade em desenvolvimento');
+  }
+
+  private applyRestoreFormValue(formValue?: IterativoProjectFormValue): void {
+    if (!formValue) {
+      return;
+    }
+
+    this.projectForm.setControl('iterations', this.buildIterationsForm(formValue.iterations || []));
+    this.projectForm.setControl('stages', this.buildStagesForm(formValue.stages || []));
+    this.projectForm.setControl('representatives', this.buildRepresentativesForm(formValue.representatives || []));
+    this.projectForm.setControl('questionnaires', this.buildQuestionnairesForm(formValue.questionnaires || []));
+
+    this.projectForm.patchValue(formValue);
+  }
+
+  private restorePanelMetadata(restoreParameter: RestoreParams<IterativoProjectRouteParams>): void {
+    if (restoreParameter['panelStates']) {
+      this.panelStates = restoreParameter['panelStates'] as PanelStates;
+    }
+
+    if (typeof restoreParameter['lastValidPanelIndex'] === 'number') {
+      this.lastValidPanelIndex = restoreParameter['lastValidPanelIndex'];
+    }
+  }
+
+  private getModalInstance<T>(): T | null {
+    const modalAccessor = this.modalService as unknown as { modalRef?: { instance: T } };
+    return modalAccessor.modalRef?.instance ?? null;
+  }
+
+  private mapTemplateStageToForm(stage: TemplateStageDTO): Stage {
+    return {
+      name: stage.name,
+      weight: stage.weight,
+    };
+  }
+
+  private mapTemplateRepresentativeToForm(rep: TemplateRepresentativeDTO): Representative {
+    return {
+      firstName: capitalizeWords(rep.firstName),
+      lastName: capitalizeWords(rep.lastName),
+      email: rep.email,
+      weight: rep.weight,
+      roles: rep.roleNames ?? [],
+    };
   }
 }

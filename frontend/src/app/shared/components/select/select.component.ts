@@ -1,9 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, forwardRef, HostListener, inject, Input, OnInit } from '@angular/core';
 import { AbstractControl, ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { noop } from 'rxjs';
+
+type SelectValue = string | number;
 
 export interface SelectOption {
-  value: any;
+  value: SelectValue;
   label: string;
 }
 
@@ -28,9 +31,9 @@ export class SelectComponent implements ControlValueAccessor, OnInit {
   @Input() placeholder = 'Selecione';
   @Input() required = false;
   @Input() labelClasses = '';
-  @Input( { transform: (value: boolean | string) => typeof value === 'string' ? value === '' : !!value })
-  allowClear: boolean = false;
-  @Input() validationMessages: { [key: string]: string } = {};
+  @Input({ transform: (value: boolean | string) => (typeof value === 'string' ? value === '' : !!value) })
+  allowClear = false;
+  @Input() validationMessages: Record<string, string> = {};
   @Input() control!: AbstractControl | null;
 
   private _options: SelectOption[] = [];
@@ -43,35 +46,35 @@ export class SelectComponent implements ControlValueAccessor, OnInit {
     return this._options;
   }
 
-  value: any = null;
+  value: SelectValue | null = null;
   selectedLabel: string | null = null;
   disabled = false;
   touched = false;
   isOpen = false;
 
-  private el = inject(ElementRef);
-  private cdr = inject(ChangeDetectorRef);
+  private readonly el = inject(ElementRef<HTMLElement>);
+  private readonly cdr = inject(ChangeDetectorRef);
 
-  private onChange = (value: any) => {};
-  private onTouched = () => {};
+  private onChange: (value: SelectValue | null) => void = () => { noop() };
+  private onTouched: () => void = () => { noop() };
 
   ngOnInit(): void {
     if (!this.id) {
-      this.id = this.label.toLowerCase().replace(/\s/g, '-');
+      this.id = this.label.toLowerCase().replaceAll(/\s/g, '-');
     }
   }
 
-  writeValue(value: any): void {
+  writeValue(value: SelectValue | null): void {
     this.value = value ?? null;
     this.updateSelectedLabel();
     this.cdr.markForCheck();
   }
 
-  registerOnChange(fn: any): void {
+  registerOnChange(fn: (value: SelectValue | null) => void): void {
     this.onChange = fn;
   }
 
-  registerOnTouched(fn: any): void {
+  registerOnTouched(fn: () => void): void {
     this.onTouched = fn;
   }
 
@@ -84,16 +87,20 @@ export class SelectComponent implements ControlValueAccessor, OnInit {
   }
 
   private updateSelectedLabel(): void {
-    if (this.value !== null) {
-      const selected = this.options.find((opt) => opt.value == this.value);
-      this.selectedLabel = selected ? selected.label : null;
-    } else {
+    if (this.value === null) {
       this.selectedLabel = null;
+      return;
     }
+
+    const selected = this.options.find((opt) => opt.value === this.value);
+    this.selectedLabel = selected ? selected.label : null;
   }
 
-  toggleDropdown(event: MouseEvent): void {
+  toggleDropdown(event: MouseEvent | KeyboardEvent): void {
     event.stopPropagation();
+    if (event instanceof KeyboardEvent) {
+      event.preventDefault();
+    }
     if (this.disabled) return;
     this.isOpen = !this.isOpen;
 
@@ -118,7 +125,7 @@ export class SelectComponent implements ControlValueAccessor, OnInit {
     this.cdr.markForCheck();
   }
 
-  clearSelection(event: MouseEvent): void {
+  clearSelection(event: Event): void {
     event.stopPropagation();
     if (this.disabled) return;
 
@@ -139,7 +146,8 @@ export class SelectComponent implements ControlValueAccessor, OnInit {
 
   @HostListener('document:click', ['$event'])
   clickOutside(event: MouseEvent): void {
-    if (this.isOpen && !this.el.nativeElement.contains(event.target)) {
+    const target = event.target as Node | null;
+    if (this.isOpen && target && !this.el.nativeElement.contains(target)) {
       this.isOpen = false;
       this.onBlur();
       this.cdr.markForCheck();
@@ -152,7 +160,21 @@ export class SelectComponent implements ControlValueAccessor, OnInit {
     }
     const errors = this.control.errors;
     return Object.keys(errors).map((key) => {
-      return this.validationMessages[key] || `${key}`;
+      if (this.validationMessages[key]) {
+        return this.validationMessages[key];
+      }
+
+      const errorValue = errors[key as keyof typeof errors];
+
+      if (typeof errorValue === 'string') {
+        return errorValue;
+      }
+
+      if (typeof errorValue === 'object' && errorValue && 'message' in errorValue) {
+        return (errorValue as { message?: string }).message ?? 'Campo inválido';
+      }
+
+      return 'Campo inválido';
     });
   }
 }

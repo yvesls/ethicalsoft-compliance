@@ -1,4 +1,4 @@
-import { PasswordRule } from "./password-rule";
+import { PasswordRule } from './password-rule'
 
 export const passwordRules: PasswordRule[] = [
   {
@@ -19,10 +19,10 @@ export const passwordRules: PasswordRule[] = [
   },
   {
     message: 'Possuir um número.',
-    test: (value) => /[0-9]/.test(value),
+    test: (value) => /\d/.test(value),
   },
   {
     message: 'Possuir um carácter especial.',
-    test: (value) => /[!@#$%^&*()+=,.?":{}|<>`~\[\]\\/-]/.test(value),
+    test: (value) => /[^A-Za-z0-9]/.test(value),
   },
-];
+]

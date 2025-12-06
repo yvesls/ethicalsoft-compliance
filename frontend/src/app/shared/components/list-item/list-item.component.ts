@@ -22,14 +22,14 @@ export class ListItemComponent {
     return !!this.navigateTo;
   }
 
-  statusIconMap: { [key: string]: string } = {
+  statusIconMap: Record<string, string> = {
     'ABERTO': 'assets/icons/list-check.svg',
     'RASCUNHO': 'assets/icons/clock.svg',
     'CONCLUIDO': 'assets/icons/circle-check.svg',
     'ARQUIVADO': 'assets/icons/box-archive.svg',
   };
 
-  statusDisplayMap: { [key: string]: string } = {
+  statusDisplayMap: Record<string, string> = {
     'ABERTO': ProjectStatus.Aberto,
     'RASCUNHO': ProjectStatus.Rascunho,
     'CONCLUIDO': ProjectStatus.Concluido,

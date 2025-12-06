@@ -16,10 +16,9 @@ import {
   FormArray,
 } from '@angular/forms';
 import { ProjectType } from '../../../../shared/enums/project-type.enum';
-import { SelectOption } from '../../../../shared/components/select/select.component';
 import { AccordionPanelComponent } from '../../../../shared/components/accordion-panel/accordion-panel.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
-import { SelectComponent } from '../../../../shared/components/select/select.component';
+import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
 
 import { CustomValidators } from '../../../../shared/validators/custom.validator';
 import { ProjectDatesValidators } from '../../../../shared/validators/project-dates.validator';
@@ -34,12 +33,19 @@ import { TemplateStore } from '../../../../shared/stores/template.store';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ModalService } from '../../../../core/services/modal.service';
 import { NotificationService } from '../../../../core/services/notification.service';
-import { RouterService } from '../../../../core/services/router.service';
+import { GenericParams, RouteParams, RouterService } from '../../../../core/services/router.service';
 import { TemplateActionModalComponent } from '../template-action-modal/template-action-modal.component';
 import { StageCascataModalComponent, StageCascataData } from '../stage-cascata-modal/stage-cascata-modal.component';
 import { RepresentativeModalComponent, RepresentativeData } from '../representative-modal/representative-modal.component';
 import { QuestionData } from '../question-modal/question-modal.component';
 import { ActionType } from '../../../../shared/enums/action-type.enum';
+import {
+  ProjectTemplate,
+  TemplateQuestionDTO,
+  TemplateQuestionnaireDTO,
+  TemplateRepresentativeDTO,
+  TemplateStageDTO,
+} from '../../../../shared/interfaces/template/template.interface';
 
 export interface Representative {
   firstName: string;
@@ -58,6 +64,39 @@ export interface Questionnaire {
   questions?: QuestionData[];
 }
 
+interface QuestionnaireUpdatePayload extends Questionnaire {
+  questionnaireIndex: number | null;
+  questions: QuestionData[];
+}
+
+interface CascataStageFormValue {
+  name: string;
+  weight: number;
+  sequence: number;
+  dateRange: string;
+  durationDays: number;
+  applicationStartDate: string;
+  applicationEndDate: string;
+}
+
+type PanelKey = 'project' | 'steps' | 'representatives' | 'questionnaires';
+type PanelStates = Record<PanelKey, boolean>;
+
+interface CascataProjectRouteParams extends GenericParams {
+  questionnaireUpdate?: QuestionnaireUpdatePayload;
+}
+
+interface CascataProjectFormValue {
+  template: string | null;
+  name: string;
+  type: ProjectType;
+  startDate: string | null;
+  deadline: string | null;
+  steps?: CascataStageFormValue[];
+  representatives?: Representative[];
+  questionnaires?: Questionnaire[];
+}
+
 @Component({
   selector: 'app-cascata-project-form',
   standalone: true,
@@ -72,7 +111,7 @@ export interface Questionnaire {
   styleUrls: ['./cascata-project-form.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CascataProjectFormComponent extends BasePageComponent implements OnInit {
+export class CascataProjectFormComponent extends BasePageComponent<CascataProjectRouteParams> implements OnInit {
   private fb = inject(FormBuilder);
   private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
@@ -83,7 +122,7 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
 
   public ProjectType = ProjectType;
   public projectForm!: FormGroup;
-  public panelStates = {
+  public panelStates: PanelStates = {
     project: true,
     steps: false,
     representatives: false,
@@ -97,9 +136,9 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
 
   private hasRestoredSteps = false;
   private lastValidPanelIndex = 0;
-  private selectedTemplateData: any = null;
+  private selectedTemplateData: ProjectTemplate | null = null;
 
-  private readonly PANEL_ORDER = ['project', 'steps', 'representatives', 'questionnaires'] as const;
+  private readonly PANEL_ORDER: PanelKey[] = ['project', 'steps', 'representatives', 'questionnaires'];
 
   constructor() {
     super();
@@ -152,10 +191,13 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
     this.setupDateListeners();
   }
 
-  protected override loadParams(params: any, queryParams?: any): void {
-    if (params?.questionnaireUpdate) {
-      this.applyQuestionnaireUpdate(params.questionnaireUpdate);
-      delete params.questionnaireUpdate;
+  protected override loadParams(
+    params: RouteParams<CascataProjectRouteParams>
+  ): void {
+    const questionnaireUpdate = params['questionnaireUpdate'] as QuestionnaireUpdatePayload | undefined;
+    if (questionnaireUpdate) {
+      this.applyQuestionnaireUpdate(questionnaireUpdate);
+      delete params['questionnaireUpdate'];
     }
   }
 
@@ -209,9 +251,9 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
         }
 
         this.projectForm.get('startDate')?.updateValueAndValidity({ emitEvent: false });
-        this.stepsFormArray.controls.forEach(stepControl => {
+        for (const stepControl of this.stepsFormArray.controls) {
           stepControl.updateValueAndValidity({ emitEvent: false });
-        });
+        }
       });
   }
 
@@ -223,7 +265,7 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
 
     let previousStageEndDate: Date = new Date(startDate);
 
-    sortedSteps.forEach((stepInfo) => {
+    for (const stepInfo of sortedSteps) {
       const stepControl = this.stepsFormArray.at(stepInfo.index);
       const durationDays = Number(stepControl.get('durationDays')?.value) || 0;
 
@@ -244,7 +286,7 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
 
         previousStageEndDate = FormUtils.addBusinessDays(stageStartDate, durationDays);
       }
-    });
+  }
 
     this.syncQuestionnairesWithSteps();
     this.cdr.detectChanges();
@@ -278,9 +320,9 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
       });
   }
 
-  private buildCascataStepsForm(data?: any[]): FormArray {
-    const stepsData = data || [];
-    const stepGroups = stepsData.map((step: any) => {
+  private buildCascataStepsForm(data?: CascataStageFormValue[]): FormArray {
+    const stepsData = data ?? [];
+    const stepGroups = stepsData.map((step) => {
       return this.fb.group({
         name: [step.name, Validators.required],
         weight: [step.weight, [Validators.required, Validators.min(0)]],
@@ -298,8 +340,8 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
   }
 
   private buildRepresentativesForm(data?: Representative[]): FormArray {
-    const representativesData = data || [];
-    const repGroups = representativesData.map((rep: any) => {
+    const representativesData = data ?? [];
+    const repGroups = representativesData.map((rep) => {
       return this.fb.group({
         firstName: [rep.firstName, Validators.required],
         lastName: [rep.lastName, Validators.required],
@@ -313,7 +355,10 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
 
   addStep(): void {
     this.modalService.open(TemplateActionModalComponent, 'small-card');
-    const modalRef = (this.modalService as any).modalRef?.instance as TemplateActionModalComponent;
+    const modalRef = this.getModalInstance<TemplateActionModalComponent>();
+    if (!modalRef) {
+      return;
+    }
 
     const actionSubscription = modalRef.actionSelected.subscribe((action: 'create' | 'import') => {
       if (action === 'create') {
@@ -342,7 +387,10 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
       existingStages: existingStages
     });
 
-    const modalRef = (this.modalService as any).modalRef?.instance as StageCascataModalComponent;
+    const modalRef = this.getModalInstance<StageCascataModalComponent>();
+    if (!modalRef) {
+      return;
+    }
 
     const createdSubscription = modalRef.stageCreated.subscribe((newStage: StageCascataData) => {
       this.addNewStage(newStage);
@@ -374,7 +422,10 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
       existingStages: existingStages
     });
 
-    const modalRef = (this.modalService as any).modalRef?.instance as StageCascataModalComponent;
+    const modalRef = this.getModalInstance<StageCascataModalComponent>();
+    if (!modalRef) {
+      return;
+    }
 
     const updatedSubscription = modalRef.stageUpdated.subscribe((updatedStage: StageCascataData) => {
       this.updateStage(index, updatedStage);
@@ -400,13 +451,13 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
   }
 
   private handleSequenceOnCreate(newSequence: number): void {
-    this.stepsFormArray.controls.forEach((control) => {
+    for (const control of this.stepsFormArray.controls) {
       const currentSequence = control.get('sequence')?.value;
 
       if (currentSequence >= newSequence) {
         control.patchValue({ sequence: currentSequence + 1 }, { emitEvent: false });
       }
-    });
+    }
   }
 
   private handleSequenceOnEdit(editIndex: number, newSequence: number): void {
@@ -429,8 +480,7 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
   }
 
   private updateStage(index: number, updatedStage: StageCascataData): void {
-    const stepFormGroup = this.stepsFormArray.at(index) as FormGroup;
-    const oldStepName = stepFormGroup.get('name')?.value;
+  const stepFormGroup = this.stepsFormArray.at(index) as FormGroup;
 
     this.handleSequenceOnEdit(index, updatedStage.sequence);
 
@@ -469,8 +519,6 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
 
   removeStep(index: number): void {
     if (this.stepsFormArray.length > 1) {
-      const stepName = this.stepsFormArray.at(index).get('name')?.value;
-
       this.stepsFormArray.removeAt(index);
       this.recalculateAllStageRanges();
       this.cdr.detectChanges();
@@ -478,9 +526,9 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
   }
 
   private syncQuestionnairesWithSteps(): void {
-    const previousValues = this.questionnairesFormArray.getRawValue() as Questionnaire[];
-    const questionnaireByStage = new Map(
-      (previousValues || []).map((item) => [item.stageName || item.name, item])
+    const previousValues = (this.questionnairesFormArray.getRawValue() || []) as Questionnaire[];
+    const questionnaireByStage = new Map<string, Questionnaire | undefined>(
+      previousValues.map((item) => [item.stageName || item.name, item])
     );
     while (this.questionnairesFormArray.length > 0) {
       this.questionnairesFormArray.removeAt(0);
@@ -488,7 +536,7 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
 
     const sortedSteps = this.getSortedStepsBySequence();
 
-    sortedSteps.forEach((stepInfo) => {
+    for (const stepInfo of sortedSteps) {
       const stepControl = this.stepsFormArray.at(stepInfo.index);
       const stepName = stepControl.get('name')?.value;
       const startDate = stepControl.get('applicationStartDate')?.value || '';
@@ -505,7 +553,7 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
           questions: [cached?.questions || []],
         })
       );
-    });
+  }
 
     this.cdr.detectChanges();
   }
@@ -515,7 +563,10 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
       mode: ActionType.CREATE
     });
 
-    const modalRef = (this.modalService as any).modalRef?.instance as RepresentativeModalComponent;
+    const modalRef = this.getModalInstance<RepresentativeModalComponent>();
+    if (!modalRef) {
+      return;
+    }
 
     const createdSubscription = modalRef.representativeCreated.subscribe((newRepresentative: RepresentativeData) => {
       const newRep = this.fb.group({
@@ -546,7 +597,10 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
       }
     });
 
-    const modalRef = (this.modalService as any).modalRef?.instance as RepresentativeModalComponent;
+    const modalRef = this.getModalInstance<RepresentativeModalComponent>();
+    if (!modalRef) {
+      return;
+    }
 
     const updatedSubscription = modalRef.representativeUpdated.subscribe((updatedRepresentative: RepresentativeData) => {
       repFormGroup.patchValue({
@@ -568,7 +622,7 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
 
   editQuestionnaire(index: number): void {
     const questionnaireGroup = this.questionnairesFormArray.at(index) as FormGroup | null;
-    const questionnaire = questionnaireGroup?.getRawValue();
+    const questionnaire = questionnaireGroup?.getRawValue() as Questionnaire | undefined;
     if (!questionnaire) {
       this.notificationService.showWarning('Não foi possível carregar o questionário selecionado.');
       return;
@@ -594,8 +648,12 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
     });
   }
 
-  private getQuestionsForQuestionnaire(questionnaire: any): QuestionData[] {
-    if (questionnaire?.questions?.length) {
+  private getQuestionsForQuestionnaire(questionnaire: Questionnaire | undefined): QuestionData[] {
+    if (!questionnaire) {
+      return [];
+    }
+
+    if (questionnaire.questions?.length) {
       return questionnaire.questions;
     }
 
@@ -605,7 +663,7 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
 
     // Encontrar o questionário correspondente no template pela etapa
     const templateQuestionnaire = this.selectedTemplateData.questionnaires.find(
-      (tq: any) => tq.stageName === questionnaire.stageName || tq.name === questionnaire.name
+      (tq: TemplateQuestionnaireDTO) => tq.stageName === questionnaire.stageName || tq.name === questionnaire.name
     );
 
     if (!templateQuestionnaire?.questions) {
@@ -613,14 +671,14 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
     }
 
     // Mapear as perguntas do template para o formato esperado pelo componente
-    return templateQuestionnaire.questions.map((question: any, index: number) => ({
+    return templateQuestionnaire.questions.map((question: TemplateQuestionDTO, index: number) => ({
       id: `${Date.now()}-${index}`,
       value: question.value,
       roleNames: Array.from(question.roleNames || [])
     }));
   }
 
-  private applyQuestionnaireUpdate(update: any): void {
+  private applyQuestionnaireUpdate(update: QuestionnaireUpdatePayload | undefined): void {
     if (!update || typeof update.questionnaireIndex !== 'number') {
       return;
     }
@@ -671,7 +729,7 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
     );
   }
 
-  protected override save(): any {
+  protected override save(): RouteParams<CascataProjectRouteParams> {
     return {
       formValue: this.projectForm.getRawValue(),
       panelStates: this.panelStates,
@@ -679,41 +737,11 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
     };
   }
 
-  protected override restore(restoreParameter: RestoreParams<any>): void {
+  protected override restore(restoreParameter: RestoreParams<CascataProjectRouteParams>): void {
     if (restoreParameter.hasParams) {
-      if (restoreParameter['formValue']) {
-        const formValue = restoreParameter['formValue'];
-
-        if (formValue.steps && formValue.steps.length > 0) {
-          this.hasRestoredSteps = true;
-        }
-
-        this.projectForm.setControl(
-          'steps',
-          this.buildCascataStepsForm(formValue.steps || [])
-        );
-
-        this.projectForm.setControl(
-          'representatives',
-          this.buildRepresentativesForm(formValue.representatives || [])
-        );
-
-        if (formValue.questionnaires && formValue.questionnaires.length > 0) {
-          this.projectForm.setControl('questionnaires', this.buildQuestionnairesForm(formValue.questionnaires));
-        } else {
-          this.syncQuestionnairesWithSteps();
-        }
-
-        this.projectForm.patchValue(formValue);
-      }
-
-      if (restoreParameter['panelStates']) {
-        this.panelStates = restoreParameter['panelStates'];
-      }
-
-      if (typeof restoreParameter['lastValidPanelIndex'] === 'number') {
-        this.lastValidPanelIndex = restoreParameter['lastValidPanelIndex'];
-      }
+      const formValue = restoreParameter['formValue'] as CascataProjectFormValue | undefined;
+      this.applyRestoreFormValue(formValue);
+      this.restorePanelMetadata(restoreParameter);
     }
 
     this.cdr.detectChanges();
@@ -760,11 +788,11 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
     const daysPerStage = Math.floor(totalDays / stepsCount);
     const remainder = totalDays % stepsCount;
 
-    this.stepsFormArray.controls.forEach((control, index) => {
+    for (const [index, control] of this.stepsFormArray.controls.entries()) {
       const extraDay = index < remainder ? 1 : 0;
       const assignedDays = daysPerStage + extraDay;
       control.get('durationDays')?.setValue(assignedDays);
-    });
+    }
   }
 
   private getExistingStagesData(): { weight: number; durationDays: number; sequence: number }[] {
@@ -813,8 +841,8 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
     return !!this.projectForm.errors?.['stagesExceedDeadline'];
   }
 
-  continueToNextPanel(currentPanelKey: keyof typeof this.panelStates): void {
-    const currentIndex = this.PANEL_ORDER.indexOf(currentPanelKey as any);
+  continueToNextPanel(currentPanelKey: PanelKey): void {
+    const currentIndex = this.PANEL_ORDER.indexOf(currentPanelKey);
 
     if (!this.isPanelValid(currentPanelKey)) {
       this.projectForm.markAllAsTouched();
@@ -834,66 +862,68 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
     this.cdr.detectChanges();
   }
 
-  private loadPanelData(panelKey: keyof typeof this.panelStates): void {
+  private loadPanelData(panelKey: PanelKey): void {
     if (!this.selectedTemplateData) return;
 
     switch (panelKey) {
-      case 'steps':
-        if (this.selectedTemplateData.stages && this.selectedTemplateData.stages.length > 0 && !this.hasUserModifiedSteps()) {
-          const stepsData = this.selectedTemplateData.stages.map((stage: any) => ({
-            name: stage.name,
-            weight: stage.weight,
-            sequence: stage.sequence || 1,
-            dateRange: '',
-            durationDays: 0,
-            applicationStartDate: '',
-            applicationEndDate: ''
-          }));
+      case 'steps': {
+        if (
+          this.selectedTemplateData.stages?.length &&
+          !this.hasUserModifiedSteps()
+        ) {
+          const stepsData = this.selectedTemplateData.stages.map((stage: TemplateStageDTO) =>
+            this.mapStageTemplateToForm(stage)
+          );
           this.projectForm.setControl('steps', this.buildCascataStepsForm(stepsData));
 
           this.distributeEqualDurationDays();
           this.recalculateAllStageRanges();
         }
         break;
+      }
 
-      case 'representatives':
-        if (this.selectedTemplateData.representatives && this.selectedTemplateData.representatives.length > 0) {
+      case 'representatives': {
+        if (this.selectedTemplateData.representatives?.length) {
           const repsArray = this.projectForm.get('representatives') as FormArray;
           if (repsArray.length === 0) {
-            const repsData = this.selectedTemplateData.representatives.map((rep: any) => ({
-              firstName: capitalizeWords(rep.firstName),
-              lastName: capitalizeWords(rep.lastName),
-              email: rep.email,
-              weight: rep.weight,
-              roles: rep.roleNames || []
-            }));
+            const repsData = this.selectedTemplateData.representatives.map((rep: TemplateRepresentativeDTO) =>
+              this.mapTemplateRepresentativeToForm(rep)
+            );
             this.projectForm.setControl('representatives', this.buildRepresentativesForm(repsData));
           }
         }
         break;
+      }
 
-      case 'questionnaires':
+      case 'questionnaires': {
         this.syncQuestionnairesWithSteps();
         break;
+      }
     }
   }
 
-  private isPanelValid(panelKey: keyof typeof this.panelStates): boolean {
+  private isPanelValid(panelKey: PanelKey): boolean {
     switch (panelKey) {
-      case 'project':
+      case 'project': {
         const requiredControls = ['template', 'name', 'startDate', 'deadline'];
         const allRequiredValid = requiredControls.every(controlName => this.projectForm.get(controlName)?.valid);
         const groupErrors = this.projectForm.errors;
-        const hasRelevantGroupError = groupErrors?.['dateRange'] || groupErrors?.['deadlineTooEarly'] || groupErrors?.['startDateTooLate'];
+        const hasRelevantGroupError =
+          groupErrors?.['dateRange'] ||
+          groupErrors?.['deadlineTooEarly'] ||
+          groupErrors?.['startDateTooLate'];
         return allRequiredValid && !hasRelevantGroupError;
+      }
 
-      case 'steps':
+      case 'steps': {
         const stepsArray = this.projectForm.get('steps') as FormArray;
-        return stepsArray && stepsArray.valid && stepsArray.length > 0 && !this.hasStagesExceedDeadlineError();
+        return Boolean(stepsArray && stepsArray.valid && stepsArray.length > 0 && !this.hasStagesExceedDeadlineError());
+      }
 
-      case 'representatives':
+      case 'representatives': {
         const repsArray = this.projectForm.get('representatives') as FormArray;
-        return repsArray && repsArray.valid && repsArray.length > 0;
+        return Boolean(repsArray && repsArray.valid && repsArray.length > 0);
+      }
 
       case 'questionnaires':
         return true;
@@ -903,24 +933,85 @@ export class CascataProjectFormComponent extends BasePageComponent implements On
     }
   }
 
-  canOpenPanel(panelKey: keyof typeof this.panelStates): boolean {
-    const panelIndex = this.PANEL_ORDER.indexOf(panelKey as any);
+  canOpenPanel(panelKey: PanelKey): boolean {
+    const panelIndex = this.PANEL_ORDER.indexOf(panelKey);
     return panelIndex <= this.lastValidPanelIndex;
   }
 
-  onPanelToggled(panelKey: keyof typeof this.panelStates, newState: boolean): void {
+  onPanelToggled(panelKey: PanelKey, newState: boolean): void {
     this.panelStates[panelKey] = newState;
     this.cdr.detectChanges();
   }
 
-  onAttemptedToggle(panelKey: keyof typeof this.panelStates): void {
-    this.notificationService.showWarning('Complete os painéis anteriores antes de acessar este.');
+  onAttemptedToggle(panelKey: PanelKey): void {
+    this.notificationService.showWarning(`Complete os painéis anteriores antes de acessar "${panelKey}".`);
   }
 
   onSubmit(): void {
     if (this.projectForm.invalid) {
       this.projectForm.markAllAsTouched();
+    }
+  }
+
+  private getModalInstance<T>(): T | null {
+    const modalAccessor = this.modalService as unknown as { modalRef?: { instance: T } };
+    return modalAccessor.modalRef?.instance ?? null;
+  }
+
+  private mapStageTemplateToForm(stage: TemplateStageDTO): CascataStageFormValue {
+    return {
+      name: stage.name,
+      weight: stage.weight,
+      sequence: stage.sequence ?? 1,
+      dateRange: '',
+      durationDays: stage.durationDays ?? 0,
+      applicationStartDate: '',
+      applicationEndDate: '',
+    };
+  }
+
+  private mapTemplateRepresentativeToForm(rep: TemplateRepresentativeDTO): Representative {
+    return {
+      firstName: capitalizeWords(rep.firstName),
+      lastName: capitalizeWords(rep.lastName),
+      email: rep.email,
+      weight: rep.weight,
+      roles: rep.roleNames ?? [],
+    };
+  }
+
+  private applyRestoreFormValue(formValue?: CascataProjectFormValue): void {
+    if (!formValue) {
       return;
+    }
+
+    const stepsData = formValue.steps || [];
+    if (stepsData.length > 0) {
+      this.hasRestoredSteps = true;
+    }
+
+    this.projectForm.setControl('steps', this.buildCascataStepsForm(stepsData));
+    this.projectForm.setControl(
+      'representatives',
+      this.buildRepresentativesForm(formValue.representatives || [])
+    );
+
+    if (formValue.questionnaires?.length) {
+      this.projectForm.setControl('questionnaires', this.buildQuestionnairesForm(formValue.questionnaires));
+    } else {
+      this.syncQuestionnairesWithSteps();
+    }
+
+    this.projectForm.patchValue(formValue);
+  }
+
+  private restorePanelMetadata(restoreParameter: RestoreParams<CascataProjectRouteParams>): void {
+    if (restoreParameter['panelStates']) {
+      this.panelStates = restoreParameter['panelStates'] as PanelStates;
+    }
+
+    if (typeof restoreParameter['lastValidPanelIndex'] === 'number') {
+      this.lastValidPanelIndex = restoreParameter['lastValidPanelIndex'];
     }
   }
 }

@@ -2,7 +2,7 @@ import { Component, inject, OnInit, OnDestroy, signal, WritableSignal, ChangeDet
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
 
-import { BasePageComponent } from '../../../../core/abstractions/base-page.component';
+import { BasePageComponent, RestoreParams } from '../../../../core/abstractions/base-page.component';
 import { ModalService } from '../../../../core/services/modal.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { ActionType } from '../../../../shared/enums/action-type.enum';
@@ -11,6 +11,19 @@ import { AccordionPanelComponent } from '../../../../shared/components/accordion
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
 import { Subscription } from 'rxjs';
+import { GenericParams, RouteParams } from '../../../../core/services/router.service';
+
+interface CascataQuestionnaireRouteParams extends GenericParams {
+  questionnaireIndex?: number;
+  stageName?: string;
+  sequence?: number | string;
+  name?: string;
+  applicationStartDate?: string;
+  applicationEndDate?: string;
+  questions?: QuestionData[];
+}
+
+type CascataQuestionnaireRestoreParams = RestoreParams<CascataQuestionnaireRouteParams>;
 
 @Component({
   selector: 'app-cascata-questionnaire-form',
@@ -19,13 +32,13 @@ import { Subscription } from 'rxjs';
   templateUrl: './cascata-questionnaire-form.component.html',
   styleUrls: ['./cascata-questionnaire-form.component.scss']
 })
-export class CascataQuestionnaireFormComponent extends BasePageComponent implements OnInit, OnDestroy {
+export class CascataQuestionnaireFormComponent extends BasePageComponent<CascataQuestionnaireRouteParams> implements OnInit, OnDestroy {
   private modalService = inject(ModalService);
   private fb = inject(FormBuilder);
   private cdr = inject(ChangeDetectorRef);
   private notificationService = inject(NotificationService);
   private questionnaireIndex: number | null = null;
-  private questionnaireMetadata: any = null;
+  private questionnaireMetadata: CascataQuestionnaireRouteParams | null = null;
 
   form!: FormGroup;
   questions: WritableSignal<QuestionData[]> = signal([]);
@@ -64,10 +77,10 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent impleme
     });
   }
 
-  protected override loadParams(params: any): void {
+  protected override loadParams(params: RouteParams<CascataQuestionnaireRouteParams>): void {
     if (!params) return;
 
-    const data = params.p || params;
+    const data = (params.p ?? params) as CascataQuestionnaireRouteParams;
     this.questionnaireIndex = typeof data.questionnaireIndex === 'number' ? data.questionnaireIndex : null;
     this.questionnaireMetadata = data;
 
@@ -120,7 +133,7 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent impleme
     });
 
     setTimeout(() => {
-      const modalInstance = (this.modalService as any).modalRef?.instance as QuestionModalComponent;
+      const modalInstance = this.modalService.getActiveInstance<QuestionModalComponent>();
       if (modalInstance) {
         this.questionModalSubscription = modalInstance.questionCreated.subscribe((newQuestion: QuestionData) => {
           if (!newQuestion.id) newQuestion.id = Date.now().toString();
@@ -139,10 +152,10 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent impleme
     });
 
     setTimeout(() => {
-      const modalInstance = (this.modalService as any).modalRef?.instance as QuestionModalComponent;
+      const modalInstance = this.modalService.getActiveInstance<QuestionModalComponent>();
       if (modalInstance) {
         this.questionModalSubscription = modalInstance.questionUpdated.subscribe((updatedQuestion: QuestionData) => {
-          this.questions.update(qs => qs.map(q => q.id === updatedQuestion.id ? updatedQuestion : q));
+          this.replaceQuestion(updatedQuestion);
           this.cdr.detectChanges();
         });
       }
@@ -181,22 +194,31 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent impleme
     this.routerService.backToPrevious(0, true);
   }
 
-  protected override save(): any {
+  protected override save(): RouteParams<CascataQuestionnaireRouteParams> {
     return {
       formValue: this.form.getRawValue(),
       questions: this.questions()
-    };
+    } satisfies CascataQuestionnaireRouteParams;
   }
 
-  protected override restore(restoreParameter: any): void {
-    if (restoreParameter) {
-      if (restoreParameter.formValue) {
-        this.form.patchValue(restoreParameter.formValue);
-      }
-      if (restoreParameter.questions) {
-        this.questions.set(restoreParameter.questions);
-      }
+  protected override restore(restoreParameter: CascataQuestionnaireRestoreParams): void {
+    if (!restoreParameter?.hasParams) {
+      return;
     }
+
+    const formValue = restoreParameter['formValue'];
+    if (formValue) {
+      this.form.patchValue(formValue);
+    }
+
+    const savedQuestions = (restoreParameter['questions'] ?? restoreParameter.p?.['questions']) as QuestionData[] | undefined;
+    if (savedQuestions) {
+      this.questions.set(savedQuestions);
+    }
+  }
+
+  private replaceQuestion(updatedQuestion: QuestionData): void {
+    this.questions.update((qs) => qs.map((q) => (q.id === updatedQuestion.id ? updatedQuestion : q)));
   }
 
   override ngOnDestroy(): void {

@@ -1,12 +1,14 @@
 import { Component, Output, EventEmitter, inject, Input, ChangeDetectorRef, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { BasePageComponent } from '../../../../core/abstractions/base-page.component';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { BasePageComponent, RestoreParams } from '../../../../core/abstractions/base-page.component';
 import { ModalService } from '../../../../core/services/modal.service';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
 import { FormUtils } from '../../../../shared/utils/form-utils';
 import { ActionType } from '../../../../shared/enums/action-type.enum';
+import { GenericParams, RouteParams } from '../../../../core/services/router.service';
 
 export interface QuestionnaireIterativeData {
   id?: string;
@@ -23,6 +25,22 @@ interface DateRange {
   endDate: string;
   exceedsDeadline?: boolean;
 }
+
+interface QuestionnaireFormValue {
+  name: string;
+  iteration: string;
+  weight: number;
+  durationDays: number;
+}
+
+type QuestionnaireRouteState = RouteParams<GenericParams> & {
+  formValue: QuestionnaireFormValue;
+  actionType: ActionType;
+  questionnaireData?: QuestionnaireIterativeData;
+  calculatedDateRange: DateRange | null;
+};
+
+type QuestionnaireRestoreState = RestoreParams<GenericParams> & Partial<QuestionnaireRouteState>;
 
 @Component({
   selector: 'app-questionnaire-iterative-modal',
@@ -52,14 +70,14 @@ export class QuestionnaireIterativeModalComponent extends BasePageComponent impl
   calculatedDateRange: DateRange | null = null;
   actionType: ActionType = ActionType.CREATE;
   questionnaireData?: QuestionnaireIterativeData;
-  modalTitle: string = 'Criar novo questionário';
+  modalTitle = 'Criar novo questionário';
 
   constructor() {
     super();
-    this.initializeForm();
   }
 
   override ngOnInit(): void {
+    this.initializeForm();
     super.ngOnInit();
 
     if (this.mode) {
@@ -86,36 +104,39 @@ export class QuestionnaireIterativeModalComponent extends BasePageComponent impl
     this.cdr.detectChanges();
   }
 
-  protected onInit(): void {
+  protected override onInit(): void {
+    return;
   }
 
-  protected save(): any {
+  protected override save(): QuestionnaireRouteState {
     return {
-      formValue: this.form.value,
+      formValue: this.getFormValue(),
       actionType: this.actionType,
       questionnaireData: this.questionnaireData,
       calculatedDateRange: this.calculatedDateRange
     };
   }
 
-  protected restore(restoreParameter: any): void {
+  protected override restore(restoreParameter: QuestionnaireRestoreState): void {
     if (restoreParameter?.hasParams && restoreParameter.formValue) {
       this.form.patchValue(restoreParameter.formValue, { emitEvent: false });
       this.actionType = restoreParameter.actionType || ActionType.CREATE;
       this.questionnaireData = restoreParameter.questionnaireData;
-      this.calculatedDateRange = restoreParameter.calculatedDateRange;
+      this.calculatedDateRange = restoreParameter.calculatedDateRange ?? null;
       this.updateModalTitle();
       this.cdr.detectChanges();
     }
   }
 
-  protected loadParams(params: any): void {
-    if (params?.action) {
-      this.actionType = params.action;
+  protected override loadParams(params: RouteParams<GenericParams>): void {
+    const actionParam = params['action'];
+    if (actionParam) {
+      this.actionType = actionParam as ActionType;
     }
 
-    if (params?.data) {
-      this.questionnaireData = params.data;
+    const dataParam = params['data'];
+    if (dataParam) {
+      this.questionnaireData = dataParam as QuestionnaireIterativeData;
       if (this.questionnaireData) {
         this.form.patchValue({
           name: this.questionnaireData.name,
@@ -145,14 +166,15 @@ export class QuestionnaireIterativeModalComponent extends BasePageComponent impl
   }
 
   private setupFormListeners(): void {
-    this.form.valueChanges.subscribe(() => {
-      this.calculateDateRange();
-    });
+    this.form.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => {
+        this.calculateDateRange();
+      });
   }
 
   private calculateDateRange(): void {
-    const iteration = this.form.get('iteration')?.value;
-    const durationDays = this.form.get('durationDays')?.value;
+    const { iteration, durationDays } = this.getFormValue();
 
     if (!this.projectStartDate || !iteration || !this.iterationDuration || !durationDays) {
       this.calculatedDateRange = null;
@@ -160,8 +182,8 @@ export class QuestionnaireIterativeModalComponent extends BasePageComponent impl
       return;
     }
 
-    const iterationNumber = parseInt(iteration.replace(/\D/g, ''));
-    if (isNaN(iterationNumber)) {
+  const iterationNumber = Number.parseInt(iteration.replaceAll(/\D/g, ''));
+  if (Number.isNaN(iterationNumber)) {
       this.calculatedDateRange = null;
       this.cdr.detectChanges();
       return;
@@ -208,11 +230,13 @@ export class QuestionnaireIterativeModalComponent extends BasePageComponent impl
       return;
     }
 
+    const formValue = this.getFormValue();
+
     const questionnaireFormData: QuestionnaireIterativeData = {
-      name: this.form.value.name,
-      iteration: this.form.value.iteration,
-      weight: this.form.value.weight,
-      durationDays: this.form.value.durationDays,
+      name: formValue.name,
+      iteration: formValue.iteration,
+      weight: formValue.weight,
+      durationDays: formValue.durationDays,
       applicationStartDate: this.calculatedDateRange.startDate,
       applicationEndDate: this.calculatedDateRange.endDate
     };
@@ -237,5 +261,9 @@ export class QuestionnaireIterativeModalComponent extends BasePageComponent impl
     }
 
     return `${FormUtils.formatDateBR(this.calculatedDateRange.startDate)} - ${FormUtils.formatDateBR(this.calculatedDateRange.endDate)}`;
+  }
+
+  private getFormValue(): QuestionnaireFormValue {
+    return this.form.getRawValue() as QuestionnaireFormValue;
   }
 }

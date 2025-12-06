@@ -27,10 +27,10 @@ export class AccordionPanelComponent implements OnInit, OnChanges {
   private cdr = inject(ChangeDetectorRef);
   private isUpdatingFromExternal = false;
 
-  @Input() title: string = '';
-  @Input() required: boolean = false;
-  @Input() startOpen: boolean = false;
-  @Input() disabled: boolean = false;
+  @Input() title = '';
+  @Input() required = false;
+  @Input() startOpen = false;
+  @Input() disabled = false;
   @Input() isOpenExternal?: boolean;
 
   @Output() toggled = new EventEmitter<boolean>();
@@ -39,11 +39,12 @@ export class AccordionPanelComponent implements OnInit, OnChanges {
   public isOpen = signal(false);
 
   ngOnInit(): void {
-    if (this.isOpenExternal !== undefined) {
-      this.isOpen.set(this.isOpenExternal);
-    } else {
+    if (this.isOpenExternal === undefined) {
       this.isOpen.set(this.startOpen);
+      return;
     }
+
+    this.isOpen.set(this.isOpenExternal);
   }
 
   ngOnChanges(changes: SimpleChanges): void {

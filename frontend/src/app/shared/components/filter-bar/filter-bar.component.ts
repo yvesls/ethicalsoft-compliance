@@ -21,9 +21,9 @@ export class FilterBarComponent {
 
   @Input() gridTemplateColumns = '1fr 1fr 1fr 1fr';
 
-  @Output() search = new EventEmitter<void>();
+  @Output() filterSubmit = new EventEmitter<void>();
 
   onSubmit(): void {
-    this.search.emit();
+    this.filterSubmit.emit();
   }
 }

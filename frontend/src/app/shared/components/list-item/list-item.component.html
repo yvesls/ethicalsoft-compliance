@@ -2,18 +2,23 @@
 
   <div class="item-main-content">
     <div class="item-header">
-      <img
-        *ngIf="item.status && statusIconMap[item.status]"
-        [src]="statusIconMap[item.status]"
-        [alt]="item.status"
-        class="status-icon-img"
-      />
-      <span *ngIf="item.status" class="header-status">
-        {{ statusDisplayMap[item.status] || item.status }}
-      </span>
-      <span *ngIf="item.id !== undefined" class="header-code">
-        {{ formattedCode }}
-      </span>
+      @if (item.status && statusIconMap[item.status]) {
+        <img
+          [src]="statusIconMap[item.status]"
+          [alt]="item.status"
+          class="status-icon-img"
+        />
+      }
+      @if (item.status) {
+        <span class="header-status">
+          {{ statusDisplayMap[item.status] || item.status }}
+        </span>
+      }
+      @if (item.id !== undefined) {
+        <span class="header-code">
+          {{ formattedCode }}
+        </span>
+      }
     </div>
     <div class="item-title">
       <strong>{{ item.name }}</strong>
@@ -38,7 +43,13 @@
 
     <div class="column-encerramento">
       <span class="data-label">Encerramento</span>
-      <span class="data-value">{{ item.endDate ? (item.endDate | date: 'dd/MM/yyyy') : '---/--/----' }}</span>
+      <span class="data-value">
+        @if (item.endDate) {
+          {{ item.endDate | date: 'dd/MM/yyyy' }}
+        } @else {
+          ---/--/----
+        }
+      </span>
     </div>
   </div>
 </div>

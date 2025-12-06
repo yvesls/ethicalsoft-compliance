@@ -29,7 +29,7 @@ export class CreateProjectPageComponent implements OnInit {
 
   public ProjectType = ProjectType;
   public projectType = signal<ProjectType | null>(null);
-  public formComponent = signal<Type<any> | null>(null);
+  public formComponent = signal<Type<unknown> | null>(null);
 
   ngOnInit(): void {
     this.route.queryParams.pipe(take(1)).subscribe((queryParams) => {

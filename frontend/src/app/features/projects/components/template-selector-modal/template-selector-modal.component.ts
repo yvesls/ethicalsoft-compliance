@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, OnInit, ChangeDetectorRef, Input, Output, EventEmitter } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit, ChangeDetectorRef, Input, Output, EventEmitter, inject, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ModalService } from '../../../../core/services/modal.service';
@@ -6,6 +6,7 @@ import { TemplateListDTO, TemplatePartType } from '../../../../shared/interfaces
 import { ProjectType } from '../../../../shared/enums/project-type.enum';
 import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
 import { TemplateStore } from '../../../../shared/stores/template.store';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-template-selector-modal',
@@ -25,11 +26,10 @@ export class TemplateSelectorModalComponent implements OnInit {
   templateControl = new FormControl<string | null>(null);
   isLoading = true;
 
-  constructor(
-    private modalService: ModalService,
-    private templateStore: TemplateStore,
-    private cdr: ChangeDetectorRef
-  ) {}
+  private readonly modalService = inject(ModalService);
+  private readonly templateStore = inject(TemplateStore);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly destroyRef = inject(DestroyRef);
 
   ngOnInit(): void {
     this.loadTemplates();
@@ -37,7 +37,9 @@ export class TemplateSelectorModalComponent implements OnInit {
 
   private loadTemplates(): void {
     this.isLoading = true;
-    this.templateStore.getAllTemplates().subscribe({
+    this.templateStore.getAllTemplates()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
       next: (templates) => {
         this.templates = this.projectType
           ? templates.filter(t => t.type === this.projectType)
@@ -55,8 +57,8 @@ export class TemplateSelectorModalComponent implements OnInit {
         console.error('Erro ao carregar templates:', error);
         this.isLoading = false;
         this.cdr.markForCheck();
-      }
-    });
+        }
+      });
   }
 
   confirm(): void {
@@ -68,7 +70,7 @@ export class TemplateSelectorModalComponent implements OnInit {
   }
 
   importFromExternal(): void {
-    // TODO: Implementar importação de arquivo externo
+    // Em desenvolvimento: importação de arquivo externo
   }
 
   close(): void {

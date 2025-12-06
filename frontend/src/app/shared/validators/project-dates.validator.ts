@@ -1,6 +1,12 @@
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { BusinessDaysUtils } from '../../core/utils/business-days-utils';
 
+interface StageFormValue {
+  name?: string;
+  applicationEndDate?: string;
+  durationDays?: number | string;
+}
+
 export class ProjectDatesValidators {
   static stageApplicationRangeWithinDeadline(): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
@@ -8,7 +14,7 @@ export class ProjectDatesValidators {
       if (!parent) return null;
 
       const deadline = parent.get('deadline')?.value;
-      const steps = parent.get('steps')?.value;
+      const steps = parent.get('steps')?.value as StageFormValue[] | undefined;
 
       if (!deadline || !steps || !Array.isArray(steps)) {
         return null;
@@ -74,7 +80,7 @@ export class ProjectDatesValidators {
       if (!parent) return null;
 
       const deadline = control.value;
-      const steps = parent.get('steps')?.value;
+      const steps = parent.get('steps')?.value as StageFormValue[] | undefined;
 
       if (!deadline || !steps || !Array.isArray(steps) || steps.length === 0) {
         return null;
@@ -82,7 +88,7 @@ export class ProjectDatesValidators {
 
       const deadlineDate = new Date(deadline);
       let maxEndDate: Date | null = null;
-      let conflictingStage: any = null;
+      let conflictingStage: StageFormValue | null = null;
 
       for (const step of steps) {
         if (step.applicationEndDate) {
@@ -94,16 +100,22 @@ export class ProjectDatesValidators {
         }
       }
 
-      if (maxEndDate && maxEndDate > deadlineDate) {
+      if (
+        maxEndDate &&
+        maxEndDate > deadlineDate &&
+        conflictingStage?.applicationEndDate
+      ) {
         const formattedDeadline = BusinessDaysUtils.formatDateBR(deadline);
         const formattedStageEnd = BusinessDaysUtils.formatDateBR(conflictingStage.applicationEndDate);
+
+        const stageName = conflictingStage.name ?? 'Etapa';
 
         return {
           deadlineTooEarly: {
             deadline: formattedDeadline,
             latestStageEnd: formattedStageEnd,
-            stageName: conflictingStage.name,
-            message: `O prazo limite (${formattedDeadline}) não permite acomodar a etapa "${conflictingStage.name}" que termina em ${formattedStageEnd}. Por favor, estenda o prazo limite ou ajuste os pesos das etapas.`
+            stageName,
+            message: `O prazo limite (${formattedDeadline}) não permite acomodar a etapa "${stageName}" que termina em ${formattedStageEnd}. Por favor, estenda o prazo limite ou ajuste os pesos das etapas.`
           }
         };
       }
@@ -119,7 +131,7 @@ export class ProjectDatesValidators {
 
       const startDate = control.value;
       const deadline = parent.get('deadline')?.value;
-      const steps = parent.get('steps')?.value;
+      const steps = parent.get('steps')?.value as StageFormValue[] | undefined;
 
       if (!startDate || !deadline || !steps || !Array.isArray(steps) || steps.length === 0) {
         return null;

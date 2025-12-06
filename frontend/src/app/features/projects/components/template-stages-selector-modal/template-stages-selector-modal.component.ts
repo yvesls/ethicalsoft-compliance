@@ -1,9 +1,10 @@
-import { Component, ChangeDetectionStrategy, OnInit, ChangeDetectorRef, Input, Output, EventEmitter } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit, ChangeDetectorRef, Input, Output, EventEmitter, inject, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ModalService } from '../../../../core/services/modal.service';
 import { TemplateStore } from '../../../../shared/stores/template.store';
 import { TemplateStageDTO } from '../../../../shared/interfaces/template/template.interface';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 export interface SelectedStage extends TemplateStageDTO {
   selected: boolean;
@@ -26,13 +27,11 @@ export class TemplateStagesSelectorModalComponent implements OnInit {
   stages: SelectedStage[] = [];
   form!: FormGroup;
   isLoading = true;
-
-  constructor(
-    private modalService: ModalService,
-    private templateStore: TemplateStore,
-    private fb: FormBuilder,
-    private cdr: ChangeDetectorRef
-  ) {}
+  private readonly modalService = inject(ModalService);
+  private readonly templateStore = inject(TemplateStore);
+  private readonly fb = inject(FormBuilder);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly destroyRef = inject(DestroyRef);
 
   ngOnInit(): void {
     this.form = this.fb.group({
@@ -47,7 +46,9 @@ export class TemplateStagesSelectorModalComponent implements OnInit {
 
   private loadStages(): void {
     this.isLoading = true;
-    this.templateStore.getTemplateStages(this.templateId).subscribe({
+    this.templateStore.getTemplateStages(this.templateId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
       next: (stages) => {
         this.stages = stages.map(stage => ({
           ...stage,
@@ -62,12 +63,12 @@ export class TemplateStagesSelectorModalComponent implements OnInit {
         console.error('Erro ao carregar etapas:', error);
         this.isLoading = false;
         this.cdr.markForCheck();
-      }
-    });
+        }
+      });
   }
 
   private buildFormArray(): void {
-    this.stages.forEach(stage => {
+    for (const stage of this.stages) {
       this.stagesFormArray.push(
         this.fb.group({
           selected: [stage.selected],
@@ -75,7 +76,7 @@ export class TemplateStagesSelectorModalComponent implements OnInit {
           weight: [stage.weight]
         })
       );
-    });
+    }
   }
 
   toggleSelection(index: number): void {
@@ -86,9 +87,9 @@ export class TemplateStagesSelectorModalComponent implements OnInit {
 
   selectAll(event: Event): void {
     const checked = (event.target as HTMLInputElement).checked;
-    this.stagesFormArray.controls.forEach(control => {
+    for (const control of this.stagesFormArray.controls) {
       control.get('selected')?.setValue(checked);
-    });
+    }
   }
 
   get hasSelection(): boolean {

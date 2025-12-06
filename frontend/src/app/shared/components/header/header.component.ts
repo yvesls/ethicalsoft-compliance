@@ -12,14 +12,11 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 	styleUrl: './header.component.scss',
 })
 export class HeaderComponent implements OnInit {
-	routerPath: string = ''
+	routerPath = ''
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
-
-	constructor(
-		private routerService: RouterService,
-		private notificationService: NotificationService
-	) {}
+  private routerService = inject(RouterService);
+  private notificationService = inject(NotificationService);
 
 	ngOnInit(): void {
     this.routerPath = this.routerService.getFormattedRoute();

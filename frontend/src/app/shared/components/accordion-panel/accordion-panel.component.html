@@ -1,8 +1,17 @@
 <div class="accordion-panel" [class.disabled]="disabled">
-  <div class="accordion-header" (click)="toggle()" [class.disabled]="disabled">
+  <button
+    type="button"
+    class="accordion-header"
+    (click)="toggle()"
+    [class.disabled]="disabled"
+    [disabled]="disabled"
+    [attr.aria-expanded]="isOpen()"
+  >
     <span class="header-title">
       {{ title }}
-      <span *ngIf="required" class="required-asterisk">*</span>
+      @if (required) {
+        <span class="required-asterisk">*</span>
+      }
     </span>
     <img
       src="assets/icons/angle-down.svg"
@@ -10,7 +19,7 @@
       class="chevron-icon"
       [class.is-open]="isOpen()"
     />
-  </div>
+  </button>
 
   @if (isOpen()) {
     <div class="accordion-body">

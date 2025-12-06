@@ -1,6 +1,9 @@
 <div class="form-group">
   <label [attr.for]="id" [class]="labelClasses">
-    {{ label }} <span *ngIf="required" class="text-red">*</span>
+    {{ label }}
+    @if (required) {
+      <span class="text-red">*</span>
+    }
   </label>
 
   <div
@@ -9,91 +12,112 @@
     [class.is-invalid-border]="control?.touched && control?.invalid"
     [class.disabled]="disabled"
   >
-    <div class="multi-select-control" (click)="toggleDropdown()">
+    <div
+      class="multi-select-control"
+      role="button"
+      tabindex="0"
+      aria-haspopup="listbox"
+      [attr.aria-expanded]="isOpen()"
+      (click)="toggleDropdown()"
+      (keydown.enter)="toggleDropdown()"
+      (keydown.space)="toggleDropdown()"
+    >
       <div class="multi-select-value" [class.placeholder]="selectedValues.length === 0">
         {{ displayText }}
       </div>
       <div class="multi-select-actions">
-        <button
-          *ngIf="selectedValues.length > 0 && hasRemovableItems && !disabled"
-          type="button"
-          class="clear-btn"
-          (click)="clearAll($event)"
-          tabindex="-1"
-        >
-          <img src="assets/icons/error.svg" alt="Limpar seleção" />
-        </button>
+        @if (selectedValues.length > 0 && hasRemovableItems && !disabled) {
+          <button
+            type="button"
+            class="clear-btn"
+            (click)="clearAll($event)"
+            tabindex="-1"
+          >
+            <img src="assets/icons/error.svg" alt="Limpar seleção" />
+          </button>
+        }
         <div class="dropdown-arrow" [class.open]="isOpen()">
           <img src="assets/icons/angle-down.svg" alt="Abrir dropdown" />
         </div>
       </div>
     </div>
 
-    <div #dropdown class="multi-select-dropdown" *ngIf="isOpen()">
-      <div class="dropdown-search">
-        <input
-          type="text"
-          class="search-input"
-          placeholder="Buscar..."
-          [value]="searchTerm()"
-          (input)="onSearchInput($event)"
-          (click)="$event.stopPropagation()"
-        />
-      </div>
-
-      <div class="dropdown-options">
-        <div
-          *ngFor="let option of filteredOptions"
-          class="dropdown-option"
-          [class.selected]="isSelected(option.value)"
-          [class.not-removable]="!isRemovable(option.value)"
-          (click)="toggleOption(option)"
-        >
-          <div class="option-checkbox">
-            <input
-              type="checkbox"
-              [checked]="isSelected(option.value)"
-              [disabled]="!isRemovable(option.value) && isSelected(option.value)"
-              (click)="$event.stopPropagation()"
-              readonly
-            />
-          </div>
-          <span class="option-label">{{ option.label }}</span>
+    @if (isOpen()) {
+      <div #dropdown class="multi-select-dropdown" role="listbox">
+        <div class="dropdown-search">
+          <input
+            type="text"
+            class="search-input"
+            placeholder="Buscar..."
+            [value]="searchTerm()"
+            (input)="onSearchInput($event)"
+            (click)="$event.stopPropagation()"
+          />
         </div>
 
-        <div *ngIf="filteredOptions.length === 0" class="dropdown-empty">
-          Nenhuma opção encontrada
+        <div class="dropdown-options">
+          @for (option of filteredOptions; track option.value) {
+            <div
+              class="dropdown-option"
+              [class.selected]="isSelected(option.value)"
+              [class.not-removable]="!isRemovable(option.value)"
+              role="option"
+              tabindex="0"
+              [attr.aria-selected]="isSelected(option.value)"
+              (click)="toggleOption(option)"
+              (keydown.enter)="toggleOption(option)"
+              (keydown.space)="toggleOption(option)"
+            >
+              <div class="option-checkbox">
+                <input
+                  type="checkbox"
+                  [checked]="isSelected(option.value)"
+                  [disabled]="!isRemovable(option.value) && isSelected(option.value)"
+                  (click)="$event.stopPropagation()"
+                  readonly
+                />
+              </div>
+              <span class="option-label">{{ option.label }}</span>
+            </div>
+          }
+
+          @if (filteredOptions.length === 0) {
+            <div class="dropdown-empty">
+              Nenhuma opção encontrada
+            </div>
+          }
         </div>
       </div>
-    </div>
+    }
   </div>
 
-  <div class="selected-items-container" *ngIf="selectedValues.length > 0">
-    <div
-      *ngFor="let value of selectedValues"
-      class="selected-item-tag"
-      [class.not-removable]="!isRemovable(value)"
-    >
-      <span class="tag-label">
-        {{ getLabelForValue(value) }}
-      </span>
-      <button
-        *ngIf="isRemovable(value) && !disabled"
-        type="button"
-        class="tag-remove"
-        (click)="removeSelectedItem(value, $event)"
-        tabindex="-1"
-      >
-        ×
-      </button>
+  @if (selectedValues.length > 0) {
+    <div class="selected-items-container">
+      @for (value of selectedValues; track value) {
+        <div class="selected-item-tag" [class.not-removable]="!isRemovable(value)">
+          <span class="tag-label">
+            {{ getLabelForValue(value) }}
+          </span>
+          @if (isRemovable(value) && !disabled) {
+            <button
+              type="button"
+              class="tag-remove"
+              (click)="removeSelectedItem(value, $event)"
+              tabindex="-1"
+            >
+              ×
+            </button>
+          }
+        </div>
+      }
     </div>
-  </div>
-  <div
-    class="d-flex justify-content-start"
-    *ngIf="control && control.errors && (control.dirty || control.touched)"
-  >
-    <div *ngFor="let error of getErrorMessages()">
-      <span class="is-invalid" [style.white-space]="'pre-line'">{{ error }}</span>
+  }
+
+  @if (control && control.errors && (control.dirty || control.touched)) {
+    <div class="d-flex justify-content-start">
+      @for (error of getErrorMessages(); track error) {
+        <span class="is-invalid" [style.white-space]="'pre-line'">{{ error }}</span>
+      }
     </div>
-  </div>
+  }
 </div>

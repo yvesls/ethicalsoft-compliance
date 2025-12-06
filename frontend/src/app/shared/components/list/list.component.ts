@@ -15,7 +15,7 @@ type ListStatus = 'loading' | 'loaded' | 'error';
 export class ListComponent {
   @Input() status: ListStatus = 'loading';
   @Input() error: string | null = null;
-  @Input() noItemsMessage: string = 'Nenhum item encontrado.';
-  @Input() bodyPadding: boolean = true;
-  @Input() itemCount: number = 0;
+  @Input() noItemsMessage = 'Nenhum item encontrado.';
+  @Input() bodyPadding = true;
+  @Input() itemCount = 0;
 }

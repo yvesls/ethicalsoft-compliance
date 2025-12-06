@@ -4,7 +4,8 @@
 </div>
 
 <div class="modal-body">
-  <div class="stages-container" *ngIf="!isLoading">
+  @if (!isLoading) {
+    <div class="stages-container">
     <form [formGroup]="form">
       <table class="stages-table">
         <thead>
@@ -22,12 +23,12 @@
           </tr>
         </thead>
         <tbody formArrayName="stages">
-          <tr
-            *ngFor="let stage of stagesFormArray.controls; let i = index"
-            [formGroupName]="i"
-            [class.selected]="stage.get('selected')?.value"
-            (click)="toggleSelection(i)"
-          >
+          @for (stage of stagesFormArray.controls; track stage; let i = $index) {
+            <tr
+              [formGroupName]="i"
+              [class.selected]="stage.get('selected')?.value"
+              (click)="toggleSelection(i)"
+            >
             <td class="checkbox-col">
               <input
                 type="checkbox"
@@ -38,15 +39,19 @@
             <td>{{ stage.get('name')?.value }}</td>
             <td class="text-center">{{ stage.get('weight')?.value }}</td>
             <td class="text-center">21/12/2024</td>
-          </tr>
+            </tr>
+          }
         </tbody>
       </table>
     </form>
-  </div>
+    </div>
+  }
 
-  <div class="loading" *ngIf="isLoading">
-    <p>Carregando etapas...</p>
-  </div>
+  @if (isLoading) {
+    <div class="loading">
+      <p>Carregando etapas...</p>
+    </div>
+  }
 </div>
 
 <div class="modal-actions">

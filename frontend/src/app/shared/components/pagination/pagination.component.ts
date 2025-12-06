@@ -20,10 +20,10 @@ import { CommonModule } from '@angular/common';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PaginationComponent implements OnChanges {
-  @Input({ required: true }) currentPage: number = 1;
-  @Input({ required: true }) totalItems: number = 0;
-  @Input({ required: true }) pageSize: number = 10;
-  @Input() pagesToShow: number = 5;
+  @Input({ required: true }) currentPage = 1;
+  @Input({ required: true }) totalItems = 0;
+  @Input({ required: true }) pageSize = 10;
+  @Input() pagesToShow = 5;
 
   @Output() pageChange = new EventEmitter<number>();
 
@@ -35,7 +35,7 @@ export class PaginationComponent implements OnChanges {
     const half = Math.floor(this.pagesToShow / 2);
 
     let start = Math.max(current - half, 1);
-    let end = Math.min(start + this.pagesToShow - 1, total);
+  const end = Math.min(start + this.pagesToShow - 1, total);
 
     if (end - start + 1 < this.pagesToShow) {
       start = Math.max(end - this.pagesToShow + 1, 1);
@@ -51,8 +51,7 @@ export class PaginationComponent implements OnChanges {
       pagesArray.unshift(1);
     }
     if (end < total) {
-      pagesArray.push('...');
-      pagesArray.push(total);
+      pagesArray.push('...', total);
     }
     return pagesArray;
   });

@@ -39,6 +39,10 @@ export class ModalService implements OnDestroy {
 		return this.modalClosedSubject.asObservable()
 	}
 
+	getActiveInstance<TInstance>(): TInstance | null {
+		return (this.modalRef?.instance as TInstance) ?? null
+	}
+
 	private handleNavigation(event: NavigationStart) {
 		const form = this.getModalForm()
 

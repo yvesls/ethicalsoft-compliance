@@ -1,8 +1,8 @@
 import { Component, inject, OnInit, OnDestroy, signal, WritableSignal, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray, FormsModule, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, FormsModule, Validators } from '@angular/forms';
 
-import { BasePageComponent } from '../../../../core/abstractions/base-page.component';
+import { BasePageComponent, RestoreParams } from '../../../../core/abstractions/base-page.component';
 import { ModalService } from '../../../../core/services/modal.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { ActionType } from '../../../../shared/enums/action-type.enum';
@@ -11,14 +11,20 @@ import { AccordionPanelComponent } from '../../../../shared/components/accordion
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
 import { Subscription } from 'rxjs';
+import { GenericParams, RouteParams } from '../../../../core/services/router.service';
 
-interface QuestionnaireFormData {
+interface IterativoQuestionnaireRouteParams extends GenericParams {
+  questionnaireIndex?: number;
+  sequence?: number | string;
   projectId?: string;
   projectName?: string;
   name?: string;
   weight?: number;
-  questions: QuestionData[];
+  iteration?: string;
+  questions?: QuestionData[];
 }
+
+type IterativoQuestionnaireRestoreParams = RestoreParams<IterativoQuestionnaireRouteParams>;
 
 @Component({
   selector: 'app-iterativo-questionnaire-form',
@@ -27,13 +33,13 @@ interface QuestionnaireFormData {
   templateUrl: './iterativo-questionnaire-form.component.html',
   styleUrls: ['./iterativo-questionnaire-form.component.scss']
 })
-export class IterativoQuestionnaireFormComponent extends BasePageComponent implements OnInit, OnDestroy {
+export class IterativoQuestionnaireFormComponent extends BasePageComponent<IterativoQuestionnaireRouteParams> implements OnInit, OnDestroy {
   private modalService = inject(ModalService);
   private fb = inject(FormBuilder);
   private cdr = inject(ChangeDetectorRef);
   private notificationService = inject(NotificationService);
   private questionnaireIndex: number | null = null;
-  private questionnaireMetadata: any = null;
+  private questionnaireMetadata: IterativoQuestionnaireRouteParams | null = null;
 
   form!: FormGroup;
   questions: WritableSignal<QuestionData[]> = signal([]);
@@ -68,10 +74,10 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent imple
     this.initializeForm();
   }
 
-  protected override loadParams(params: any): void {
+  protected override loadParams(params: RouteParams<IterativoQuestionnaireRouteParams>): void {
     if (!params) return;
 
-    const data = params.p || params;
+    const data = (params.p ?? params) as IterativoQuestionnaireRouteParams;
     console.log('Params recebidos:', data);
 
     this.questionnaireIndex = typeof data.questionnaireIndex === 'number' ? data.questionnaireIndex : null;
@@ -137,7 +143,7 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent imple
     });
 
     setTimeout(() => {
-      const modalInstance = (this.modalService as any).modalRef?.instance as QuestionModalComponent;
+      const modalInstance = this.modalService.getActiveInstance<QuestionModalComponent>();
       if (modalInstance) {
         this.questionModalSubscription = modalInstance.questionCreated.subscribe((questionData: QuestionData) => {
           const currentQuestions = this.questions();
@@ -156,7 +162,7 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent imple
     });
 
     setTimeout(() => {
-      const modalInstance = (this.modalService as any).modalRef?.instance as QuestionModalComponent;
+      const modalInstance = this.modalService.getActiveInstance<QuestionModalComponent>();
       if (modalInstance) {
         this.questionModalSubscription = modalInstance.questionUpdated.subscribe((updatedQuestion: QuestionData) => {
           const currentQuestions = this.questions();
@@ -180,25 +186,35 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent imple
     }
   }
 
-  protected override save(): any {
+  protected override save(): RouteParams<IterativoQuestionnaireRouteParams> {
     return {
       name: this.form.get('name')?.value,
       weight: this.form.get('weight')?.value,
       questions: this.questions()
-    };
+    } satisfies IterativoQuestionnaireRouteParams;
   }
 
-  protected override restore(restoreParameter: any): void {
-    if (restoreParameter) {
-      if (restoreParameter.questions) {
-        this.questions.set(restoreParameter.questions);
-      }
-      if (restoreParameter.name) {
-        this.form.patchValue({ name: restoreParameter.name });
-      }
-      if (restoreParameter.weight !== undefined) {
-        this.form.patchValue({ weight: restoreParameter.weight });
-      }
+  protected override restore(restoreParameter: IterativoQuestionnaireRestoreParams): void {
+    if (!restoreParameter?.hasParams) {
+      return;
+    }
+
+    const savedData = (restoreParameter.p ?? restoreParameter) as IterativoQuestionnaireRouteParams;
+
+    if (savedData.questions) {
+      this.questions.set(savedData.questions);
+    }
+
+  const patchValue: Partial<{ name: string; weight: number }> = {};
+    if (savedData.name !== undefined) {
+      patchValue.name = savedData.name;
+    }
+    if (savedData.weight !== undefined) {
+      patchValue.weight = savedData.weight;
+    }
+
+    if (Object.keys(patchValue).length) {
+      this.form.patchValue(patchValue);
     }
   }
 

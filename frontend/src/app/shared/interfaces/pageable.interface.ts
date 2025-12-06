@@ -13,7 +13,7 @@ export interface Pageable {
 }
 
 export interface Page<T> {
-  content: Array<T>;
+  content: T[];
   pageable: Pageable;
   size: number;
   totalElements: number;

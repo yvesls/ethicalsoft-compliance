@@ -8,7 +8,7 @@ import {
   DestroyRef,
   computed,
 } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import {
   ReactiveFormsModule,
   FormBuilder,
@@ -43,8 +43,15 @@ import { ListComponent } from '../../../../shared/components/list/list.component
 import { ListItemComponent } from '../../../../shared/components/list-item/list-item.component';
 import { ModalService } from '../../../../core/services/modal.service';
 
-const getEnumKeys = (e: object) =>
-  Object.keys(e).filter((k) => typeof (e as any)[k] === 'string');
+const getEnumKeys = (enumObject: Record<string, string | number>): string[] =>
+  Object.keys(enumObject).filter((key) => typeof enumObject[key] === 'string');
+
+interface ProjectFilterFormValue {
+  name: string;
+  type: ProjectType | null;
+  status: ProjectStatus | null;
+  code: string;
+}
 
 interface ProjectListState {
   projects: Project[];
@@ -198,32 +205,41 @@ export class ProjectListPageComponent implements OnInit {
   }
 
   onSearch(): void {
-    this.updateQueryParams(this.filterForm.value, 1);
+    this.updateQueryParams(this.getFilterFormValue(), 1);
   }
 
   onPageChange(page: number): void {
-    this.updateQueryParams(this.filterForm.value, page);
+    this.updateQueryParams(this.getFilterFormValue(), page);
   }
 
   goToCreateProject(): void {
     this.modalService.open(ProjectTypeSelectionComponent, 'small-card');
   }
 
-  private updateQueryParams(filters: any, page: number): void {
-    const queryParams: any = {
-      page: page,
+  private updateQueryParams(filters: ProjectFilterFormValue, page: number): void {
+    const queryParams: Record<string, string | number> = {
+      page,
     };
-    Object.keys(filters).forEach((key) => {
-      const value = filters[key];
+    for (const [key, value] of Object.entries(filters)) {
       if (value) {
         queryParams[key] = value;
       }
-    });
+    }
 
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams,
     });
+  }
+
+  private getFilterFormValue(): ProjectFilterFormValue {
+    const rawValue = this.filterForm.getRawValue() as ProjectFilterFormValue;
+    return {
+      name: rawValue.name ?? '',
+      code: rawValue.code ?? '',
+      type: rawValue.type ?? null,
+      status: rawValue.status ?? null,
+    };
   }
 
   trackByProjectId(index: number, project: Project): string {

@@ -1,13 +1,14 @@
 import { Component, Output, EventEmitter, inject, Input, ChangeDetectorRef, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { BasePageComponent } from '../../../../core/abstractions/base-page.component';
+import { BasePageComponent, RestoreParams } from '../../../../core/abstractions/base-page.component';
 import { ModalService } from '../../../../core/services/modal.service';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { MultiSelectComponent } from '../../../../shared/components/multi-select/multi-select.component';
 import { ActionType } from '../../../../shared/enums/action-type.enum';
 import { REPRESENTATIVE_ROLE_OPTIONS } from '../../../../shared/enums/representative-role.enum';
 import { capitalizeWords } from '../../../../core/utils/common-utils';
+import { GenericParams, RouteParams } from '../../../../core/services/router.service';
 
 export interface RepresentativeData {
   id?: string;
@@ -17,6 +18,22 @@ export interface RepresentativeData {
   weight: number;
   roles: string[];
 }
+
+interface RepresentativeFormValue {
+  firstName: string;
+  lastName: string;
+  email: string;
+  weight: number;
+  roles: string[];
+}
+
+type RepresentativeRouteState = RouteParams<GenericParams> & {
+  formValue: RepresentativeFormValue;
+  actionType: ActionType;
+  representativeData?: RepresentativeData;
+};
+
+type RepresentativeRestoreState = RestoreParams<GenericParams> & Partial<RepresentativeRouteState>;
 
 @Component({
   selector: 'app-representative-modal',
@@ -39,15 +56,15 @@ export class RepresentativeModalComponent extends BasePageComponent implements O
   form!: FormGroup;
   actionType: ActionType = ActionType.CREATE;
   representativeData?: RepresentativeData;
-  modalTitle: string = 'Criar novo representante';
+  modalTitle = 'Criar novo representante';
   roleOptions = REPRESENTATIVE_ROLE_OPTIONS;
 
   constructor() {
     super();
-    this.initializeForm();
   }
 
   override ngOnInit(): void {
+    this.initializeForm();
     super.ngOnInit();
 
     if (this.mode) {
@@ -69,18 +86,19 @@ export class RepresentativeModalComponent extends BasePageComponent implements O
     this.cdr.detectChanges();
   }
 
-  protected onInit(): void {
+  protected override onInit(): void {
+    return;
   }
 
-  protected save(): any {
+  protected override save(): RepresentativeRouteState {
     return {
-      formValue: this.form.value,
+      formValue: this.getFormValue(),
       actionType: this.actionType,
       representativeData: this.representativeData
     };
   }
 
-  protected restore(restoreParameter: any): void {
+  protected override restore(restoreParameter: RepresentativeRestoreState): void {
     if (restoreParameter?.hasParams && restoreParameter.formValue) {
       this.form.patchValue(restoreParameter.formValue, { emitEvent: false });
       this.actionType = restoreParameter.actionType || ActionType.CREATE;
@@ -90,13 +108,15 @@ export class RepresentativeModalComponent extends BasePageComponent implements O
     }
   }
 
-  protected loadParams(params: any): void {
-    if (params?.action) {
-      this.actionType = params.action;
+  protected override loadParams(params: RouteParams<GenericParams>): void {
+    const actionParam = params['action'];
+    if (actionParam) {
+      this.actionType = actionParam as ActionType;
     }
 
-    if (params?.data) {
-      this.representativeData = params.data;
+    const dataParam = params['data'];
+    if (dataParam) {
+      this.representativeData = dataParam as RepresentativeData;
       if (this.representativeData) {
         this.form.patchValue({
           firstName: capitalizeWords(this.representativeData.firstName),
@@ -134,12 +154,11 @@ export class RepresentativeModalComponent extends BasePageComponent implements O
       return;
     }
 
+    const formValue = this.getFormValue();
     const representativeFormData: RepresentativeData = {
-      firstName: capitalizeWords(this.form.value.firstName),
-      lastName: capitalizeWords(this.form.value.lastName),
-      email: this.form.value.email,
-      weight: this.form.value.weight,
-      roles: this.form.value.roles
+      ...formValue,
+      firstName: capitalizeWords(formValue.firstName),
+      lastName: capitalizeWords(formValue.lastName)
     };
 
     if (this.actionType === ActionType.EDIT && this.representativeData?.id) {
@@ -154,5 +173,9 @@ export class RepresentativeModalComponent extends BasePageComponent implements O
 
   cancel(): void {
     this.modalService.close();
+  }
+
+  private getFormValue(): RepresentativeFormValue {
+    return this.form.getRawValue() as RepresentativeFormValue;
   }
 }

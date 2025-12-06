@@ -60,9 +60,11 @@
           [class.error]="calculatedDateRange?.exceedsDeadline"
         >
           {{ getFormattedDateRange() }}
-          <span class="warning-text" *ngIf="calculatedDateRange?.exceedsDeadline">
-            Ultrapassa o prazo limite do projeto
-          </span>
+          @if (calculatedDateRange?.exceedsDeadline) {
+            <span class="warning-text">
+              Ultrapassa o prazo limite do projeto
+            </span>
+          }
         </div>
       </div>
     </div>

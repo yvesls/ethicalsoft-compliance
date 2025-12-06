@@ -45,60 +45,66 @@
       <p><strong>Nota:</strong> A duração é calculada automaticamente ao carregar o template, mas pode ser editada manualmente. As datas serão recalculadas automaticamente.</p>
     </div>
 
-    <div class="date-range-preview" *ngIf="calculatedDateRange && !calculatedDateRange.exceedsDeadline">
-      <h3>Faixa de Aplicação do Questionário</h3>
-      <div class="date-info">
-        <div class="date-item">
-          <span class="label">Data de Abertura (10%):</span>
-          <span class="value">{{ formatDateBR(calculatedDateRange.startDate) }}</span>
+    @if (calculatedDateRange && !calculatedDateRange.exceedsDeadline) {
+      <div class="date-range-preview">
+        <h3>Faixa de Aplicação do Questionário</h3>
+        <div class="date-info">
+          <div class="date-item">
+            <span class="label">Data de Abertura (10%):</span>
+            <span class="value">{{ formatDateBR(calculatedDateRange.startDate) }}</span>
+          </div>
+          <div class="date-item">
+            <span class="label">Data Limite de Resposta (90%):</span>
+            <span class="value">{{ formatDateBR(calculatedDateRange.endDate) }}</span>
+          </div>
         </div>
-        <div class="date-item">
-          <span class="label">Data Limite de Resposta (90%):</span>
-          <span class="value">{{ formatDateBR(calculatedDateRange.endDate) }}</span>
-        </div>
-      </div>
-      <p class="info-text">
-        <small>
-          * Calculado automaticamente baseado em dias úteis, excluindo fins de semana.
-          As datas consideram 10% e 90% do esforço da fase conforme BR08.
-        </small>
-      </p>
-    </div>
-
-    <div class="date-range-error" *ngIf="calculatedDateRange && calculatedDateRange.exceedsDeadline">
-      <h3>Faixa de Aplicação Ultrapassa o Prazo Limite</h3>
-      <div class="error-info">
-        <p>
-          A faixa de aplicação calculada para esta etapa ultrapassa o prazo limite do projeto.
-        </p>
-        <div class="date-item">
-          <span class="label">Data Limite de Resposta Calculada:</span>
-          <span class="value error">{{ formatDateBR(calculatedDateRange.endDate) }}</span>
-        </div>
-        <div class="date-item">
-          <span class="label">Prazo Limite do Projeto:</span>
-          <span class="value">{{ formatDateBR(projectDeadline!) }}</span>
-        </div>
-        <p class="error-text">
+        <p class="info-text">
           <small>
-            Para criar esta etapa, você precisa ajustar:
+            * Calculado automaticamente baseado em dias úteis, excluindo fins de semana.
+            As datas consideram 10% e 90% do esforço da fase conforme BR08.
           </small>
         </p>
-        <ul class="suggestions">
-          <li>Reduzir a duração da etapa</li>
-          <li>Estender o prazo limite do projeto</li>
-          <li>Ajustar a data de início do projeto</li>
-        </ul>
       </div>
-    </div>
+    }
 
-    <div class="date-range-warning" *ngIf="!calculatedDateRange && form.get('durationDays')?.value">
-      <p class="warning-text">
-        <small>
-          Informe a data de início do projeto para calcular a faixa de aplicação.
-        </small>
-      </p>
-    </div>
+    @if (calculatedDateRange && calculatedDateRange.exceedsDeadline) {
+      <div class="date-range-error">
+        <h3>Faixa de Aplicação Ultrapassa o Prazo Limite</h3>
+        <div class="error-info">
+          <p>
+            A faixa de aplicação calculada para esta etapa ultrapassa o prazo limite do projeto.
+          </p>
+          <div class="date-item">
+            <span class="label">Data Limite de Resposta Calculada:</span>
+            <span class="value error">{{ formatDateBR(calculatedDateRange.endDate) }}</span>
+          </div>
+          <div class="date-item">
+            <span class="label">Prazo Limite do Projeto:</span>
+            <span class="value">{{ formatDateBR(projectDeadline!) }}</span>
+          </div>
+          <p class="error-text">
+            <small>
+              Para criar esta etapa, você precisa ajustar:
+            </small>
+          </p>
+          <ul class="suggestions">
+            <li>Reduzir a duração da etapa</li>
+            <li>Estender o prazo limite do projeto</li>
+            <li>Ajustar a data de início do projeto</li>
+          </ul>
+        </div>
+      </div>
+    }
+
+    @if (!calculatedDateRange && form.get('durationDays')?.value) {
+      <div class="date-range-warning">
+        <p class="warning-text">
+          <small>
+            Informe a data de início do projeto para calcular a faixa de aplicação.
+          </small>
+        </p>
+      </div>
+    }
 
     <div class="panel-actions">
       <button

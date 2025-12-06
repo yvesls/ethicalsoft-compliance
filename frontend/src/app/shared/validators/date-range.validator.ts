@@ -23,8 +23,9 @@ export function dateRangeValidator(
     }
 
     if (startDateControl.hasError('dateOrder')) {
-      const { dateOrder, ...errors } = startDateControl.errors || {};
-      startDateControl.setErrors(Object.keys(errors).length > 0 ? errors : null);
+  const errors = startDateControl.errors ? { ...startDateControl.errors } : {};
+  delete errors['dateOrder'];
+  startDateControl.setErrors(Object.keys(errors).length > 0 ? errors : null);
     }
 
     const startDateStr = startDateControl.value;
@@ -44,10 +45,14 @@ export function dateRangeValidator(
     const deadlineDate = new Date(Number(endParts[0]), Number(endParts[1]) - 1, Number(endParts[2]));
 
     if (startDate > deadlineDate) {
+      const errorMessage = message || defaultMessage;
       startDateControl.setErrors({
         ...startDateControl.errors,
-        dateOrder: message || defaultMessage
+        dateOrder: errorMessage
       });
+      return {
+        dateOrder: errorMessage
+      } satisfies ValidationErrors;
     }
 
     return null;

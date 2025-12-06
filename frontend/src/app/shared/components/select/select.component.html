@@ -1,6 +1,9 @@
 <div class="form-group">
   <label [attr.for]="id" [class]="labelClasses">
-    {{ label }} <span *ngIf="required" class="text-red">*</span>
+    {{ label }}
+    @if (required) {
+      <span class="text-red">*</span>
+    }
   </label>
 
   <div class="select-wrapper">
@@ -11,27 +14,35 @@
       [class.is-open]="isOpen"
       [class.is-invalid-border]="control?.touched && control?.invalid"
       [class.disabled]="disabled"
-      (click)="toggleDropdown($event)"
+      (click)="toggleDropdown($any($event))"
+      (keydown.enter)="toggleDropdown($any($event))"
+      (keydown.space)="toggleDropdown($any($event))"
       (blur)="onBlur()"
 
       [attr.aria-label]="label"
       aria-haspopup="listbox"
       [attr.aria-expanded]="isOpen"
+      role="button"
     >
-      <span *ngIf="!selectedLabel" class="placeholder-text">{{ placeholder }}</span>
-      <span *ngIf="selectedLabel" class="selected-text">{{ selectedLabel }}</span>
+      @if (!selectedLabel) {
+        <span class="placeholder-text">{{ placeholder }}</span>
+      }
+      @if (selectedLabel) {
+        <span class="selected-text">{{ selectedLabel }}</span>
+      }
 
       <div class="icons-wrapper">
-        <button
-          *ngIf="allowClear && value !== null && !disabled"
-          type="button"
-          class="clear-btn"
-          (click)="clearSelection($event)"
-          tabindex="-1"
-          aria-label="Limpar seleção"
-        >
-          <img src="assets/icons/error.svg" alt="" />
-        </button>
+        @if (allowClear && value !== null && !disabled) {
+          <button
+            type="button"
+            class="clear-btn"
+            (click)="clearSelection($event)"
+            tabindex="-1"
+            aria-label="Limpar seleção"
+          >
+            <img src="assets/icons/error.svg" alt="" />
+          </button>
+        }
         <img
           class="chevron-icon"
           [class.is-open]="isOpen"
@@ -41,29 +52,33 @@
       </div>
     </div>
 
-    <div class="select-panel" *ngIf="isOpen">
-      <ul class="select-options-list" role="listbox">
-        <li
-          *ngFor="let option of options"
-          class="select-option"
-          role="option"
-          [class.is-selected]="option.value == value"
-          [attr.aria-selected]="option.value == value"
-          (click)="selectOption(option)"
-
-          [tabindex]="0"
-          (keydown.enter)="selectOption(option)"
-          (keydown.space)="selectOption(option)"
-        >
-          {{ option.label }}
-        </li>
-      </ul>
-    </div>
+    @if (isOpen) {
+      <div class="select-panel">
+        <ul class="select-options-list" role="listbox">
+          @for (option of options; track option.value) {
+            <li
+              class="select-option"
+              role="option"
+              [class.is-selected]="option.value === value"
+              [attr.aria-selected]="option.value === value"
+              (click)="selectOption(option)"
+              [tabindex]="0"
+              (keydown.enter)="selectOption(option)"
+              (keydown.space)="selectOption(option)"
+            >
+              {{ option.label }}
+            </li>
+          }
+        </ul>
+      </div>
+    }
   </div>
 
-  <div class="d-flex justify-content-start" *ngIf="control && control.errors && (control.dirty || control.touched)">
-    <div *ngFor="let error of getErrorMessages()">
-      <span class="is-invalid" [style.white-space]="'pre-line'">{{ error }}</span>
+  @if (control && control.errors && (control.dirty || control.touched)) {
+    <div class="d-flex justify-content-start">
+      @for (error of getErrorMessages(); track error) {
+        <span class="is-invalid" [style.white-space]="'pre-line'">{{ error }}</span>
+      }
     </div>
-  </div>
+  }
 </div>
