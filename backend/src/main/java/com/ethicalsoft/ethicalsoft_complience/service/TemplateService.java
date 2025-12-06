@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -34,14 +33,6 @@ public class TemplateService {
 		return template;
 	}
 
-	public ProjectTemplate getTemplateHeader(String templateMongoId) {
-		Long currentUserId = authService.getAuthenticatedUserId();
-		ProjectTemplate template = projectTemplateRepository.findHeaderById(templateMongoId)
-				.orElseThrow(() -> new EntityNotFoundException("Template não encontrado: " + templateMongoId));
-		checkAccess(template, currentUserId);
-		return template;
-	}
-
 	public List<TemplateListDTO> findAllTemplates() {
 		Long currentUserId = authService.getAuthenticatedUserId();
 		return projectTemplateRepository.findTemplateSummariesForUser(currentUserId).stream()
@@ -49,45 +40,10 @@ public class TemplateService {
 				.toList();
 	}
 
-	public List<TemplateStageDTO> findTemplateStages(String templateMongoId) {
-		Long currentUserId = authService.getAuthenticatedUserId();
-		ProjectTemplate template = projectTemplateRepository.findStagesById(templateMongoId)
-				.orElseThrow(() -> new EntityNotFoundException("Template não encontrado: " + templateMongoId));
-		checkAccess(template, currentUserId);
-		return Optional.ofNullable(template.getStages()).orElse(Collections.emptyList());
-	}
-
 	public ProjectTemplate createTemplateFromProject(Long projectId, CreateTemplateRequestDTO request) {
-		Long currentUserId = authService.getAuthenticatedUserId();
-		return this.createTemplateFromProject(projectId, request, currentUserId);
-	}
+        Long currentUserId = authService.getAuthenticatedUserId();
 
-	public List<TemplateIterationDTO> findTemplateIterations( String templateMongoId) {
-		Long currentUserId = authService.getAuthenticatedUserId();
-		ProjectTemplate template = projectTemplateRepository.findIterationsById(templateMongoId)
-				.orElseThrow(() -> new EntityNotFoundException("Template não encontrado: " + templateMongoId));
-		checkAccess(template, currentUserId);
-		return Optional.ofNullable(template.getIterations()).orElse(Collections.emptyList());
-	}
-
-	public List<TemplateQuestionnaireDTO> findTemplateQuestionnaires( String templateMongoId) {
-		Long currentUserId = authService.getAuthenticatedUserId();
-		ProjectTemplate template = projectTemplateRepository.findQuestionnairesById(templateMongoId)
-				.orElseThrow(() -> new EntityNotFoundException("Template não encontrado: " + templateMongoId));
-		checkAccess(template, currentUserId);
-		return Optional.ofNullable(template.getQuestionnaires()).orElse(Collections.emptyList());
-	}
-
-	public List<TemplateRepresentativeDTO> findTemplateRepresentatives( String templateMongoId) {
-		Long currentUserId = authService.getAuthenticatedUserId();
-		ProjectTemplate template = projectTemplateRepository.findRepresentativesById(templateMongoId)
-				.orElseThrow(() -> new EntityNotFoundException("Template não encontrado: " + templateMongoId));
-		checkAccess(template, currentUserId);
-		return Optional.ofNullable(template.getRepresentatives()).orElse(Collections.emptyList());
-	}
-
-	public ProjectTemplate createTemplateFromProject( Long projectId, CreateTemplateRequestDTO request, Long currentUserId) {
-		Project project = projectRepository.findById(projectId)
+        Project project = projectRepository.findById(projectId)
 				.orElseThrow(() -> new EntityNotFoundException("Projeto não encontrado: " + projectId));
 
 		ProjectTemplate template = new ProjectTemplate();
