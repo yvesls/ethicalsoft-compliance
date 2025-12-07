@@ -1,0 +1,15 @@
+<div class="confirm-modal">
+	@if (title) {
+		<h3 class="confirm-modal__title">{{ title }}</h3>
+	}
+	<p class="confirm-modal__message">{{ message }}</p>
+
+	<div class="confirm-modal__actions">
+		<button type="button" class="confirm-modal__btn confirm-modal__btn--cancel" (click)="onCancel()">
+			{{ cancelLabel }}
+		</button>
+		<button type="button" class="confirm-modal__btn confirm-modal__btn--confirm" (click)="onConfirm()">
+			{{ confirmLabel }}
+		</button>
+	</div>
+</div>
