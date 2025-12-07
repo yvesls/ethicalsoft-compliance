@@ -133,6 +133,7 @@ export class RouterService {
 		else if (removeVID) {
 			this.storageService.remHistVID(currentViewPage.vid)
 			this.storageService.remove(currentViewPage.vid)
+			this.removeTrailingEntriesByRoute(currentViewPage.route)
 		}
 		const previousViewPage = this.getStoredViewPageByHistory(inverseIndex)
 		if (previousViewPage?.obj?.route) {
@@ -221,6 +222,32 @@ export class RouterService {
 				if (!viewPageData || new Date(viewPageData.d) < expiredStorageDate) {
 					this.storageService.remove(vidKey)
 				}
+			}
+		}
+	}
+
+	private removeTrailingEntriesByRoute(route: string): void {
+		if (!route) {
+			return
+		}
+
+		const histVID = this.storageService.getHistVID()
+		const vidsToRemove: string[] = []
+
+		for (let i = histVID.length - 1; i >= 0; i--) {
+			const vid = histVID[i]
+			const viewData = this.getStoredPageViewParams(vid)
+			if (viewData?.obj?.route === route) {
+				vidsToRemove.push(vid)
+			} else {
+				break
+			}
+		}
+
+		if (vidsToRemove.length) {
+			this.storageService.remHistVID(...vidsToRemove)
+			for (const vid of vidsToRemove) {
+				this.storageService.remove(vid)
 			}
 		}
 	}

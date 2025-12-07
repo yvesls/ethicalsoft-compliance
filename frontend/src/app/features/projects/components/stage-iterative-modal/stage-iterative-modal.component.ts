@@ -1,29 +1,14 @@
-import { Component, Output, EventEmitter, inject, ChangeDetectorRef, ChangeDetectionStrategy, Input } from '@angular/core';
+import { Component, Output, EventEmitter, inject, ChangeDetectorRef, ChangeDetectionStrategy, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { BasePageComponent, RestoreParams } from '../../../../core/abstractions/base-page.component';
 import { ModalService } from '../../../../core/services/modal.service';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { ActionType } from '../../../../shared/enums/action-type.enum';
-import { GenericParams, RouteParams } from '../../../../core/services/router.service';
 
 export interface StageIterativeData {
   id?: string;
   name: string;
   weight: number;
-}
-
-interface StageIterativeFormValue {
-  name: string;
-  weight: number;
-}
-
-interface StageIterativeRouteParams extends GenericParams {
-  action?: ActionType;
-  data?: StageIterativeData;
-  formValue?: StageIterativeFormValue;
-  actionType?: ActionType;
-  stageData?: StageIterativeData;
 }
 
 @Component({
@@ -34,7 +19,7 @@ interface StageIterativeRouteParams extends GenericParams {
   styleUrls: ['./stage-iterative-modal.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class StageIterativeModalComponent extends BasePageComponent<StageIterativeRouteParams> {
+  export class StageIterativeModalComponent implements OnInit {
   @Input() editData?: StageIterativeData;
   @Input() mode: ActionType = ActionType.CREATE;
   @Output() stageCreated = new EventEmitter<StageIterativeData>();
@@ -50,11 +35,10 @@ export class StageIterativeModalComponent extends BasePageComponent<StageIterati
   modalTitle = 'Criar nova etapa';
 
   constructor() {
-    super();
     this.initializeForm();
   }
 
-  protected override onInit(): void {
+  ngOnInit(): void {
     this.actionType = this.mode ?? ActionType.CREATE;
 
     if (this.editData) {
@@ -63,54 +47,6 @@ export class StageIterativeModalComponent extends BasePageComponent<StageIterati
         {
           name: this.editData.name,
           weight: this.editData.weight,
-        },
-        { emitEvent: false }
-      );
-    }
-
-    this.updateModalTitle();
-    this.cdr.detectChanges();
-  }
-
-  protected override save(): RouteParams<StageIterativeRouteParams> {
-    const formValue = this.form.getRawValue() as StageIterativeFormValue;
-    return {
-      formValue,
-      actionType: this.actionType,
-      stageData: this.stageData,
-    };
-  }
-
-  protected override restore(restoreParameter: RestoreParams<StageIterativeRouteParams>): void {
-    if (!restoreParameter.hasParams) {
-      return;
-    }
-
-    const savedFormValue = restoreParameter['formValue'] as StageIterativeFormValue | undefined;
-    if (savedFormValue) {
-      this.form.patchValue(savedFormValue, { emitEvent: false });
-    }
-
-    const savedActionType = restoreParameter['actionType'] as ActionType | undefined;
-    this.actionType = savedActionType ?? ActionType.CREATE;
-    this.stageData = restoreParameter['stageData'] as StageIterativeData | undefined;
-    this.updateModalTitle();
-    this.cdr.detectChanges();
-  }
-
-  protected override loadParams(params: RouteParams<StageIterativeRouteParams>): void {
-    const routeAction = params?.['action'] as ActionType | undefined;
-    if (routeAction) {
-      this.actionType = routeAction;
-    }
-
-    const routeData = params?.['data'] as StageIterativeData | undefined;
-    if (routeData) {
-      this.stageData = routeData;
-      this.form.patchValue(
-        {
-          name: routeData.name,
-          weight: routeData.weight,
         },
         { emitEvent: false }
       );

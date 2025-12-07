@@ -16,6 +16,13 @@ import {
   FormArray,
 } from '@angular/forms';
 import { ProjectType } from '../../../../shared/enums/project-type.enum';
+import {
+  ProjectCreationPayload,
+  QuestionPayload,
+  QuestionnairePayload,
+  RepresentativePayload,
+  StagePayload,
+} from '../../../../shared/interfaces/project/project-creation.interface';
 import { AccordionPanelComponent } from '../../../../shared/components/accordion-panel/accordion-panel.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
@@ -30,6 +37,7 @@ import {
   RestoreParams,
 } from '../../../../core/abstractions/base-page.component';
 import { TemplateStore } from '../../../../shared/stores/template.store';
+import { ProjectStore } from '../../../../shared/stores/project.store';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ModalService } from '../../../../core/services/modal.service';
 import { NotificationService } from '../../../../core/services/notification.service';
@@ -37,6 +45,7 @@ import { GenericParams, RouteParams, RouterService } from '../../../../core/serv
 import { StageCascataModalComponent, StageCascataData } from '../stage-cascata-modal/stage-cascata-modal.component';
 import { RepresentativeModalComponent, RepresentativeData } from '../representative-modal/representative-modal.component';
 import { QuestionData } from '../question-modal/question-modal.component';
+import { ProjectCreationConfirmModalComponent } from '../project-creation-confirm-modal/project-creation-confirm-modal.component';
 import { ActionType } from '../../../../shared/enums/action-type.enum';
 import {
   ProjectTemplate,
@@ -45,13 +54,20 @@ import {
   TemplateRepresentativeDTO,
   TemplateStageDTO,
 } from '../../../../shared/interfaces/template/template.interface';
+import { finalize, switchMap, take } from 'rxjs/operators';
+import { RoleService } from '../../../../core/services/role.service';
+import { RoleSummary } from '../../../../shared/interfaces/role/role-summary.interface';
 
 export interface Representative {
+  id?: number | string | null;
   firstName: string;
   lastName: string;
   email: string;
   weight: number;
-  roles: string[];
+  roleIds: number[];
+  roleNames?: string[];
+  userId?: number | null;
+  projectId?: number | null;
 }
 
 export interface Questionnaire {
@@ -115,12 +131,15 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
   private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
   private templateStore = inject(TemplateStore);
+  private projectStore = inject(ProjectStore);
   private modalService = inject(ModalService);
   private notificationService = inject(NotificationService);
+  private roleService = inject(RoleService);
   public override routerService = inject(RouterService);
 
   public ProjectType = ProjectType;
   public projectForm!: FormGroup;
+  public isSubmitting = false;
   public panelStates: PanelStates = {
     project: true,
     steps: false,
@@ -132,6 +151,9 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
   public projectTypeOptions: SelectOption[] = [
     { value: ProjectType.Cascata, label: 'Cascata' },
   ];
+
+  public availableRoles: RoleSummary[] = [];
+  private roleNameById = new Map<number, string>();
 
   private hasRestoredSteps = false;
   private lastValidPanelIndex = 0;
@@ -188,6 +210,7 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
     this.loadTemplates();
     this.setupTemplateListener();
     this.setupDateListeners();
+    this.loadRoles();
   }
 
   protected override loadParams(
@@ -254,6 +277,134 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
           stepControl.updateValueAndValidity({ emitEvent: false });
         }
       });
+  }
+
+  private loadRoles(): void {
+    this.roleService
+      .getRoles()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (roles) => {
+          this.availableRoles = roles ?? [];
+          this.roleNameById = new Map(this.availableRoles.map((role) => [role.id, role.name]));
+          this.syncRepresentativesRoleIdsFromNames();
+          this.updateRepresentativeRoleDisplay();
+          this.cdr.markForCheck();
+        },
+        error: (error) => {
+          console.error('Erro ao carregar roles:', error);
+        }
+      });
+  }
+
+  private syncRepresentativesRoleIdsFromNames(): void {
+    if (!this.availableRoles.length || this.representativesFormArray.length === 0) {
+      return;
+    }
+
+    for (const control of this.representativesFormArray.controls) {
+      const group = control as FormGroup;
+      const ids = group.get('roleIds')?.value as number[] | undefined;
+      if (ids?.length) {
+        continue;
+      }
+
+      const storedNames = group.get('roleNames')?.value as string[] | undefined;
+      if (storedNames?.length) {
+        const mappedIds = this.mapRoleNamesToIds(storedNames);
+        if (mappedIds.length) {
+          group.patchValue({ roleIds: mappedIds }, { emitEvent: false });
+        }
+      }
+    }
+  }
+
+  private updateRepresentativeRoleDisplay(targetGroup?: FormGroup): void {
+    const applyDisplayNames = (group?: FormGroup | AbstractControl | null): void => {
+      if (!(group instanceof FormGroup)) {
+        return;
+      }
+
+      const roleIds = group.get('roleIds')?.value as number[] | undefined;
+      const namesFromIds = this.getRoleNamesFromIds(roleIds);
+      const storedNames = group.get('roleNames')?.value as string[] | undefined;
+      const finalNames = namesFromIds.length ? namesFromIds : storedNames ?? [];
+      group.patchValue({ roleNames: finalNames }, { emitEvent: false });
+    };
+
+    if (targetGroup) {
+      applyDisplayNames(targetGroup);
+      return;
+    }
+
+    for (const control of this.representativesFormArray.controls) {
+      applyDisplayNames(control);
+    }
+  }
+
+  private mapRoleNamesToIds(roleNames: string[] | undefined): number[] {
+    if (!roleNames?.length || !this.availableRoles.length) {
+      return [];
+    }
+
+    const normalized = roleNames
+      .map((name) => name?.trim().toLowerCase())
+      .filter(Boolean);
+
+    if (!normalized.length) {
+      return [];
+    }
+
+    const matchedIds: number[] = [];
+    for (const role of this.availableRoles) {
+      if (normalized.includes(role.name.trim().toLowerCase())) {
+        matchedIds.push(role.id);
+      }
+    }
+
+    return Array.from(new Set(matchedIds));
+  }
+
+  private mapRepresentativeRoleIds(rep: Representative): number[] {
+    if (rep.roleIds?.length) {
+      return rep.roleIds.map(Number).filter(Number.isFinite);
+    }
+
+    if (rep.roleNames?.length) {
+      return this.mapRoleNamesToIds(rep.roleNames);
+    }
+
+    return [];
+  }
+
+  private getRoleNamesFromIds(roleIds: number[] | undefined): string[] {
+    if (!roleIds?.length || this.roleNameById.size === 0) {
+      return [];
+    }
+
+    return roleIds
+      .map((id) => this.roleNameById.get(Number(id)))
+      .filter(Boolean) as string[];
+  }
+
+  private getRoleNamesFromFormGroup(repFormGroup: FormGroup): string[] {
+    const roleIds = repFormGroup.get('roleIds')?.value as number[] | undefined;
+    const mapped = this.getRoleNamesFromIds(roleIds);
+    if (mapped.length) {
+      return mapped;
+    }
+
+    const storedNames = repFormGroup.get('roleNames')?.value as string[] | undefined;
+    return storedNames ?? [];
+  }
+
+  public getRepresentativeRoleNames(repControl: AbstractControl | null): string {
+    if (!(repControl instanceof FormGroup)) {
+      return '-';
+    }
+
+    const roleNames = this.getRoleNamesFromFormGroup(repControl);
+    return roleNames.length ? roleNames.join(', ') : '-';
   }
 
   private recalculateAllStageRanges(): void {
@@ -342,11 +493,15 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
     const representativesData = data ?? [];
     const repGroups = representativesData.map((rep) => {
       return this.fb.group({
+        id: [rep.id ?? null],
+        userId: [rep.userId ?? null],
+        projectId: [rep.projectId ?? null],
         firstName: [rep.firstName, Validators.required],
         lastName: [rep.lastName, Validators.required],
         email: [rep.email, [Validators.required, Validators.email]],
         weight: [rep.weight, [Validators.required, Validators.min(1)]],
-        roles: [rep.roles, Validators.required],
+        roleIds: [this.mapRepresentativeRoleIds(rep), [Validators.required, Validators.minLength(1)]],
+        roleNames: [rep.roleNames ?? []],
       });
     });
     return this.fb.array(repGroups);
@@ -368,7 +523,7 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
       existingStages: existingStages
     });
 
-    const modalRef = this.getModalInstance<StageCascataModalComponent>();
+    const modalRef = this.modalService.getActiveInstance<StageCascataModalComponent>();
     if (!modalRef) {
       return;
     }
@@ -403,7 +558,7 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
       existingStages: existingStages
     });
 
-    const modalRef = this.getModalInstance<StageCascataModalComponent>();
+    const modalRef = this.modalService.getActiveInstance<StageCascataModalComponent>();
     if (!modalRef) {
       return;
     }
@@ -523,6 +678,9 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
       const startDate = stepControl.get('applicationStartDate')?.value || '';
       const endDate = stepControl.get('applicationEndDate')?.value || '';
       const cached = questionnaireByStage.get(stepName);
+      const initialQuestions = cached?.questions?.length
+        ? this.cloneQuestions(cached.questions, stepName)
+        : this.getTemplateQuestionsForStage(stepName);
 
       this.questionnairesFormArray.push(
         this.fb.group({
@@ -531,7 +689,7 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
           sequence: [stepInfo.sequence],
           applicationStartDate: [startDate],
           applicationEndDate: [endDate],
-          questions: [cached?.questions || []],
+          questions: [initialQuestions],
         })
       );
   }
@@ -544,20 +702,26 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
       mode: ActionType.CREATE
     });
 
-    const modalRef = this.getModalInstance<RepresentativeModalComponent>();
+    const modalRef = this.modalService.getActiveInstance<RepresentativeModalComponent>();
     if (!modalRef) {
+      console.warn('Representative modal instance not available after opening.');
       return;
     }
 
     const createdSubscription = modalRef.representativeCreated.subscribe((newRepresentative: RepresentativeData) => {
       const newRep = this.fb.group({
+        id: [newRepresentative.id ?? null],
+        userId: [newRepresentative.userId ?? null],
+        projectId: [newRepresentative.projectId ?? null],
         firstName: [newRepresentative.firstName, Validators.required],
         lastName: [newRepresentative.lastName, Validators.required],
         email: [newRepresentative.email, [Validators.required, Validators.email]],
         weight: [newRepresentative.weight, [Validators.required, Validators.min(1)]],
-        roles: [newRepresentative.roles, Validators.required],
+        roleIds: [newRepresentative.roleIds ?? [], [Validators.required, Validators.minLength(1)]],
+        roleNames: [newRepresentative.roleNames ?? []],
       });
       this.representativesFormArray.push(newRep);
+      this.updateRepresentativeRoleDisplay(newRep);
       createdSubscription.unsubscribe();
       this.cdr.detectChanges();
     });
@@ -569,28 +733,37 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
     this.modalService.open(RepresentativeModalComponent, 'medium-card', {
       mode: ActionType.EDIT,
       editData: {
-        id: String(index),
+        id: repFormGroup.get('id')?.value ?? null,
         firstName: repFormGroup.get('firstName')?.value,
         lastName: repFormGroup.get('lastName')?.value,
         email: repFormGroup.get('email')?.value,
         weight: repFormGroup.get('weight')?.value,
-        roles: repFormGroup.get('roles')?.value
+        roleIds: repFormGroup.get('roleIds')?.value || [],
+        roleNames: this.getRoleNamesFromFormGroup(repFormGroup),
+        userId: repFormGroup.get('userId')?.value ?? null,
+        projectId: repFormGroup.get('projectId')?.value ?? null,
       }
     });
 
-    const modalRef = this.getModalInstance<RepresentativeModalComponent>();
+    const modalRef = this.modalService.getActiveInstance<RepresentativeModalComponent>();
     if (!modalRef) {
+      console.warn('Representative modal instance not available after opening for edit.');
       return;
     }
 
     const updatedSubscription = modalRef.representativeUpdated.subscribe((updatedRepresentative: RepresentativeData) => {
       repFormGroup.patchValue({
+        id: updatedRepresentative.id ?? repFormGroup.get('id')?.value ?? null,
         firstName: updatedRepresentative.firstName,
         lastName: updatedRepresentative.lastName,
         email: updatedRepresentative.email,
         weight: updatedRepresentative.weight,
-        roles: updatedRepresentative.roles
+        roleIds: updatedRepresentative.roleIds ?? [],
+        roleNames: updatedRepresentative.roleNames ?? [],
+        userId: updatedRepresentative.userId ?? null,
+        projectId: updatedRepresentative.projectId ?? null,
       });
+      this.updateRepresentativeRoleDisplay(repFormGroup);
       updatedSubscription.unsubscribe();
       this.cdr.detectChanges();
     });
@@ -655,7 +828,8 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
     return templateQuestionnaire.questions.map((question: TemplateQuestionDTO, index: number) => ({
       id: `${Date.now()}-${index}`,
       value: question.value,
-      roleNames: Array.from(question.roleNames || [])
+      roleIds: this.extractRoleIds(question.roles, question.roleNames),
+      roleNames: this.extractRoleNames(question.roles, question.roleNames)
     }));
   }
 
@@ -871,6 +1045,8 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
               this.mapTemplateRepresentativeToForm(rep)
             );
             this.projectForm.setControl('representatives', this.buildRepresentativesForm(repsData));
+            this.syncRepresentativesRoleIdsFromNames();
+            this.updateRepresentativeRoleDisplay();
           }
         }
         break;
@@ -931,12 +1107,316 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
   onSubmit(): void {
     if (this.projectForm.invalid) {
       this.projectForm.markAllAsTouched();
+      this.notificationService.showWarning('Revise os campos obrigatórios antes de salvar.');
+      return;
     }
+
+    if (this.isSubmitting) {
+      return;
+    }
+
+    this.openProjectCreationConfirmModal();
   }
 
-  private getModalInstance<T>(): T | null {
-    const modalAccessor = this.modalService as unknown as { modalRef?: { instance: T } };
-    return modalAccessor.modalRef?.instance ?? null;
+  private openProjectCreationConfirmModal(): void {
+    this.modalService.open(ProjectCreationConfirmModalComponent, 'small-card');
+    const modalInstance = this.modalService.getActiveInstance<ProjectCreationConfirmModalComponent>();
+    if (!modalInstance) {
+      return;
+    }
+
+    modalInstance.confirmed.pipe(take(1)).subscribe(() => {
+      this.modalService.close();
+      this.createProjectWithTemplate();
+    });
+
+    modalInstance.canceled.pipe(take(1)).subscribe(() => {
+      this.modalService.close();
+    });
+  }
+
+  private createProjectWithTemplate(): void {
+    let payload: ProjectCreationPayload;
+    try {
+      payload = this.buildProjectCreationPayload();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Erro ao preparar os dados do projeto.';
+      this.notificationService.showError(message);
+      return;
+    }
+
+    this.isSubmitting = true;
+    this.cdr.markForCheck();
+
+    this.projectStore
+      .createProject(payload)
+      .pipe(
+        switchMap((project) => {
+          if (!project?.id) {
+            throw new Error('Não foi possível identificar o projeto criado.');
+          }
+
+          return this.templateStore.createTemplateFromProject(
+            project.id,
+            this.buildTemplateCloneRequest(payload.name)
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => {
+          this.isSubmitting = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe({
+        next: () => {
+          this.notificationService.showSuccess('Projeto criado e template gerado com sucesso.');
+          this.routerService.navigateTo('/projects');
+        },
+        error: (error) => {
+          this.notificationService.showError(error);
+        },
+      });
+  }
+
+  private buildProjectCreationPayload(): ProjectCreationPayload {
+    const formValue = this.projectForm.getRawValue() as CascataProjectFormValue;
+    const templateId = formValue.template;
+    const startDate = formValue.startDate;
+    const projectName = (formValue.name || '').trim();
+
+    if (!templateId) {
+      throw new Error('Selecione um template antes de salvar o projeto.');
+    }
+
+    if (!startDate) {
+      throw new Error('Informe a data de início do projeto.');
+    }
+
+    if (!projectName) {
+      throw new Error('Informe o nome do projeto.');
+    }
+
+    const stages = this.buildStagePayload();
+    const questionnaires = this.buildQuestionnairePayload();
+    const representatives = this.buildRepresentativePayload();
+
+    return {
+      name: projectName,
+      templateId,
+      type: ProjectType.Cascata,
+      startDate,
+      deadline: formValue.deadline || null,
+      status: 'ABERTO',
+      stages: stages.length ? stages : undefined,
+      questionnaires: questionnaires.length ? questionnaires : undefined,
+      representatives: representatives.length ? representatives : undefined,
+    };
+  }
+
+  private buildStagePayload(): StagePayload[] {
+    return this.stepsFormArray.controls
+      .map((control, index) => {
+        const duration = Number(control.get('durationDays')?.value ?? 0);
+        return {
+          name: control.get('name')?.value,
+          weight: Number(control.get('weight')?.value) || 0,
+          sequence: Number(control.get('sequence')?.value) || index + 1,
+          durationDays: duration > 0 ? duration : undefined,
+          applicationStartDate: control.get('applicationStartDate')?.value || null,
+          applicationEndDate: control.get('applicationEndDate')?.value || null,
+        };
+      })
+      .filter((stage) => Boolean(stage.name))
+      .sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0));
+  }
+
+  private buildQuestionnairePayload(): QuestionnairePayload[] {
+    return this.questionnairesFormArray.controls
+      .map((control, index) => {
+        const questions = control.get('questions')?.value as QuestionData[] | undefined;
+        const stageName = control.get('stageName')?.value || control.get('name')?.value;
+        const stageWeight = this.getStageWeightByName(stageName);
+        return {
+          name: control.get('name')?.value,
+          sequence: Number(control.get('sequence')?.value) || index + 1,
+          stageName,
+          applicationStartDate: control.get('applicationStartDate')?.value || null,
+          applicationEndDate: control.get('applicationEndDate')?.value || null,
+          weight: stageWeight,
+          questions: this.mapQuestions(questions),
+        };
+      })
+      .filter((questionnaire) => Boolean(questionnaire.name))
+      .sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0));
+  }
+
+  private getStageWeightByName(stageName?: string | null): number {
+    if (!stageName) {
+      return 0;
+    }
+
+    for (const control of this.stepsFormArray.controls) {
+      const group = control as FormGroup;
+      if (group.get('name')?.value === stageName) {
+        const parsedWeight = Number(group.get('weight')?.value);
+        return Number.isFinite(parsedWeight) ? parsedWeight : 0;
+      }
+    }
+
+    return 0;
+  }
+
+  private buildRepresentativePayload(): RepresentativePayload[] {
+    return this.representativesFormArray.controls
+      .map((control) => {
+        const roleIds = this.normalizeRoleIds(control.get('roleIds')?.value);
+        return {
+          ...(this.extractRepresentativeId(control.get('id'))),
+          firstName: (control.get('firstName')?.value || '').trim(),
+          lastName: (control.get('lastName')?.value || '').trim(),
+          email: (control.get('email')?.value || '').trim(),
+          userId: this.normalizeNullableNumber(control.get('userId')?.value),
+          projectId: this.normalizeNullableNumber(control.get('projectId')?.value),
+          weight: Number(control.get('weight')?.value) || 0,
+          roleIds,
+        } satisfies RepresentativePayload;
+      })
+      .filter((representative) => representative.roleIds.length > 0 && Boolean(representative.email));
+  }
+
+  private normalizeRoleIds(value: unknown): number[] {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    return Array.from(
+      new Set(
+        value
+          .map(Number)
+          .filter((id) => Number.isFinite(id) && id > 0)
+      )
+    );
+  }
+
+  private normalizeNullableNumber(value: unknown): number | null {
+    if (value === null || value === undefined || value === '') {
+      return null;
+    }
+
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  private extractRepresentativeId(control: AbstractControl | null): { id?: number | string | null } {
+    const rawValue = control?.value;
+
+    if (rawValue === null || rawValue === undefined || rawValue === '') {
+      return {};
+    }
+
+    return { id: rawValue };
+  }
+
+  private mapQuestions(questions: QuestionData[] | undefined): QuestionPayload[] {
+    if (!questions?.length) {
+      return [];
+    }
+
+    return questions.map((question) => {
+      const roleIds = this.resolveQuestionRoleIds(question);
+      const roleNames = this.resolveQuestionRoleNames(question, roleIds);
+      return {
+        value: question.value,
+        roleIds,
+        roleNames,
+      } satisfies QuestionPayload;
+    });
+  }
+
+  private resolveQuestionRoleIds(question: QuestionData | undefined): number[] {
+    if (!question) {
+      return [];
+    }
+
+    const normalized = this.normalizeRoleIds(question.roleIds);
+    if (normalized.length) {
+      return normalized;
+    }
+
+    if (Array.isArray(question.roleNames) && question.roleNames.length) {
+      return this.mapRoleNamesToIds(question.roleNames);
+    }
+
+    return [];
+  }
+
+  private resolveQuestionRoleNames(question: QuestionData | undefined, resolvedRoleIds: number[]): string[] {
+    if (!question) {
+      return [];
+    }
+
+    if (Array.isArray(question.roleNames) && question.roleNames.length) {
+      return [...question.roleNames];
+    }
+
+    if (resolvedRoleIds.length) {
+      return this.getRoleNamesFromIds(resolvedRoleIds);
+    }
+
+    return [];
+  }
+
+  private getTemplateQuestionsForStage(stageName?: string | null): QuestionData[] {
+    if (!stageName || !this.selectedTemplateData?.questionnaires?.length) {
+      return [];
+    }
+
+    const templateQuestionnaire = this.selectedTemplateData.questionnaires.find(
+      (questionnaire: TemplateQuestionnaireDTO) =>
+        questionnaire.stageName === stageName || questionnaire.name === stageName
+    );
+
+    if (!templateQuestionnaire?.questions?.length) {
+      return [];
+    }
+
+    return templateQuestionnaire.questions.map((question: TemplateQuestionDTO, index: number) => ({
+      id: this.generateQuestionId(stageName, index),
+      value: question.value,
+      roleIds: this.extractRoleIds(question.roles, question.roleNames),
+      roleNames: this.extractRoleNames(question.roles, question.roleNames),
+    }));
+  }
+
+  private cloneQuestions(questions: QuestionData[] | undefined, source?: string): QuestionData[] {
+    if (!questions?.length) {
+      return [];
+    }
+
+    return questions.map((question, index) => ({
+      ...question,
+      id: question.id ?? this.generateQuestionId(source, index),
+      roleIds: Array.isArray(question.roleIds) ? [...question.roleIds] : [],
+      roleNames: Array.isArray(question.roleNames) ? [...question.roleNames] : [],
+    }));
+  }
+
+  private generateQuestionId(prefix: string | undefined, index: number): string {
+    const randomPart = Math.random().toString(36).slice(2, 8);
+    return `${prefix ?? 'question'}-${index}-${Date.now().toString(36)}-${randomPart}`;
+  }
+
+  private buildTemplateCloneRequest(projectName: string): {
+    name: string;
+    description: string;
+    visibility: 'PUBLIC' | 'PRIVATE';
+  } {
+    const defaultDescription = `Template gerado automaticamente a partir do projeto ${projectName}.`;
+    return {
+      name: `${projectName} - Template`,
+      description: this.selectedTemplateData?.description || defaultDescription,
+      visibility: this.selectedTemplateData?.visibility ?? 'PRIVATE',
+    };
   }
 
   private mapStageTemplateToForm(stage: TemplateStageDTO): CascataStageFormValue {
@@ -952,13 +1432,44 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
   }
 
   private mapTemplateRepresentativeToForm(rep: TemplateRepresentativeDTO): Representative {
+    const roleIds = this.extractRoleIds(rep.roles, rep.roleNames);
+    const roleNames = this.extractRoleNames(rep.roles, rep.roleNames);
+
     return {
+      id: rep.id ?? null,
       firstName: capitalizeWords(rep.firstName),
       lastName: capitalizeWords(rep.lastName),
       email: rep.email,
       weight: rep.weight,
-      roles: rep.roleNames ?? [],
+      roleIds,
+      roleNames,
+      userId: null,
+      projectId: null,
     };
+  }
+
+  private extractRoleIds(roles?: RoleSummary[], fallbackNames?: string[]): number[] {
+    const idsFromRoles = Array.isArray(roles)
+      ? roles
+          .map((role) => Number(role.id))
+          .filter((id) => Number.isFinite(id) && id > 0)
+      : [];
+
+    if (idsFromRoles.length) {
+      return Array.from(new Set(idsFromRoles));
+    }
+
+    return this.mapRoleNamesToIds(fallbackNames ?? []);
+  }
+
+  private extractRoleNames(roles?: RoleSummary[], fallbackNames?: string[]): string[] {
+    if (roles?.length) {
+      return roles
+        .map((role) => role.name?.trim())
+        .filter((name): name is string => Boolean(name));
+    }
+
+    return Array.isArray(fallbackNames) ? [...fallbackNames] : [];
   }
 
   private applyRestoreFormValue(formValue?: CascataProjectFormValue): void {

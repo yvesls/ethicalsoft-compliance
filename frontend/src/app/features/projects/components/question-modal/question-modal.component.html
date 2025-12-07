@@ -13,14 +13,14 @@
     </div>
 
     <div class="form-group">
-      <label for="roleNames" class="mb-2 d-block fw-medium">Papéis *</label>
+      <label for="roleIds" class="mb-2 d-block fw-medium">Papéis *</label>
       <app-multi-select
-        id="roleNames"
+        id="roleIds"
         [options]="roleOptions"
-        formControlName="roleNames"
+        formControlName="roleIds"
         placeholder="Selecione os papéis"
       ></app-multi-select>
-      @if (form.get('roleNames')?.invalid && form.get('roleNames')?.touched) {
+      @if (form.get('roleIds')?.invalid && form.get('roleIds')?.touched) {
         <small class="error-message text-danger mt-1 d-block">
           Selecione pelo menos um papel
         </small>

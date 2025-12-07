@@ -1,6 +1,6 @@
 import { Injectable, PLATFORM_ID, inject } from '@angular/core'
 import { isPlatformBrowser } from '@angular/common'
-import { BehaviorSubject, catchError, map, Observable, of, tap } from 'rxjs'
+import { BehaviorSubject, catchError, map, Observable, of, Subscription, switchMap, tap, timer } from 'rxjs'
 import { JwtPayload, jwtDecode } from 'jwt-decode'
 import { AuthStore } from '../../shared/stores/auth.store'
 import { AuthTokenInterface } from '../../shared/interfaces/auth/auth-token.interface'
@@ -16,7 +16,7 @@ import { LoggerService } from './logger.service'
 export class AuthenticationService {
 	private _authToken: AuthTokenInterface | null = null
 	private _user: UserInterface | null = null
-	private refreshTimer: ReturnType<typeof setTimeout> | null = null
+	private refreshTimerSub: Subscription | null = null
 
 	private readonly SESSION_REFRESH_TOKEN_KEY = 'refresh_token_session'
 	private readonly KEEP_SESSION_KEY = 'keep_session'
@@ -151,10 +151,7 @@ export class AuthenticationService {
 			this.userRoles$.next([])
 			this.isLoggedIn$.next(false)
 
-			if (this.refreshTimer) {
-				clearTimeout(this.refreshTimer)
-				this.refreshTimer = null
-			}
+			this.cancelRefreshTimer()
 
 			if (refreshToken) {
 				this.authStore.logout(refreshToken).subscribe({
@@ -214,9 +211,7 @@ export class AuthenticationService {
 
 		this.userRoles$.next([])
 		this.isLoggedIn$.next(false)
-		if (this.refreshTimer) {
-			clearTimeout(this.refreshTimer)
-		}
+		this.cancelRefreshTimer()
 	}
 
 	private decodeUser(token: string): UserInterface {
@@ -239,9 +234,22 @@ export class AuthenticationService {
 		const timeUntilExpiration = expirationTime - Date.now()
 
 		if (timeUntilExpiration > 0) {
-			this.refreshTimer = setTimeout(() => {
-				this.refreshToken().subscribe()
-			}, Math.max(timeUntilExpiration - 60000, 0))
+			const delay = Math.max(timeUntilExpiration - 60000, 0)
+			this.scheduleTokenRefresh(delay)
+		}
+	}
+
+	private scheduleTokenRefresh(delayMs: number): void {
+		this.refreshTimerSub?.unsubscribe()
+		this.refreshTimerSub = timer(delayMs)
+			.pipe(switchMap(() => this.refreshToken()))
+			.subscribe()
+	}
+
+	private cancelRefreshTimer(): void {
+		if (this.refreshTimerSub) {
+			this.refreshTimerSub.unsubscribe()
+			this.refreshTimerSub = null
 		}
 	}
 

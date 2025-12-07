@@ -11,7 +11,9 @@ import { AccordionPanelComponent } from '../../../../shared/components/accordion
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
 import { Subscription } from 'rxjs';
+import { take } from 'rxjs/operators';
 import { GenericParams, RouteParams } from '../../../../core/services/router.service';
+import { RoleService } from '../../../../core/services/role.service';
 
 interface CascataQuestionnaireRouteParams extends GenericParams {
   questionnaireIndex?: number;
@@ -37,8 +39,10 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
   private fb = inject(FormBuilder);
   private cdr = inject(ChangeDetectorRef);
   private notificationService = inject(NotificationService);
+  private roleService = inject(RoleService);
   private questionnaireIndex: number | null = null;
   private questionnaireMetadata: CascataQuestionnaireRouteParams | null = null;
+  private skipStatePersistence = false;
 
   form!: FormGroup;
   questions: WritableSignal<QuestionData[]> = signal([]);
@@ -49,14 +53,7 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
   searchTerm = '';
   selectedRole = '';
 
-  roleFilterOptions: SelectOption[] = [
-    { value: 'Cliente', label: 'Cliente' },
-    { value: 'Desenvolvedor(a)', label: 'Desenvolvedor(a)' },
-    { value: 'Líder de Equipe', label: 'Líder de Equipe' },
-    { value: 'Analista de Qualidade', label: 'Analista de Qualidade' },
-    { value: 'Gerente de Projeto', label: 'Gerente de Projeto' },
-    { value: 'Arquiteto de Software', label: 'Arquiteto de Software' }
-  ];
+  roleFilterOptions: SelectOption[] = [];
 
   private questionModalSubscription?: Subscription;
 
@@ -66,6 +63,7 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
 
   protected override onInit(): void {
     this.initializeForm();
+    this.loadRoleFilterOptions();
   }
 
   private initializeForm(): void {
@@ -77,14 +75,30 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
     });
   }
 
+  private loadRoleFilterOptions(): void {
+    this.roleService
+      .getRoles()
+      .pipe(take(1))
+      .subscribe({
+        next: (roles) => {
+          this.roleFilterOptions = (roles ?? []).map((role) => ({
+            value: role.name,
+            label: role.name,
+          }));
+          this.cdr.markForCheck();
+        },
+        error: (error) => {
+          console.error('Falha ao carregar lista de papéis para filtro de questionário', error);
+        }
+      });
+  }
+
   protected override loadParams(params: RouteParams<CascataQuestionnaireRouteParams>): void {
     if (!params) return;
 
     const data = (params.p ?? params) as CascataQuestionnaireRouteParams;
     this.questionnaireIndex = typeof data.questionnaireIndex === 'number' ? data.questionnaireIndex : null;
     this.questionnaireMetadata = data;
-
-    console.log('Dados do Questionário Recebidos:', data);
 
     if (data.questions && Array.isArray(data.questions)) {
       this.questions.set(data.questions);
@@ -132,17 +146,15 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
       mode: ActionType.CREATE
     });
 
-    setTimeout(() => {
-      const modalInstance = this.modalService.getActiveInstance<QuestionModalComponent>();
-      if (modalInstance) {
-        this.questionModalSubscription = modalInstance.questionCreated.subscribe((newQuestion: QuestionData) => {
-          if (!newQuestion.id) newQuestion.id = Date.now().toString();
+    const modalInstance = this.modalService.getActiveInstance<QuestionModalComponent>();
+    if (modalInstance) {
+      this.questionModalSubscription = modalInstance.questionCreated.subscribe((newQuestion: QuestionData) => {
+        if (!newQuestion.id) newQuestion.id = Date.now().toString();
 
-          this.questions.update(qs => [...qs, newQuestion]);
-          this.cdr.detectChanges();
-        });
-      }
-    });
+        this.questions.update(qs => [...qs, newQuestion]);
+        this.cdr.detectChanges();
+      });
+    }
   }
 
   openEditQuestionModal(question: QuestionData): void {
@@ -151,15 +163,13 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
       editData: question
     });
 
-    setTimeout(() => {
-      const modalInstance = this.modalService.getActiveInstance<QuestionModalComponent>();
-      if (modalInstance) {
-        this.questionModalSubscription = modalInstance.questionUpdated.subscribe((updatedQuestion: QuestionData) => {
-          this.replaceQuestion(updatedQuestion);
-          this.cdr.detectChanges();
-        });
-      }
-    });
+    const modalInstance = this.modalService.getActiveInstance<QuestionModalComponent>();
+    if (modalInstance) {
+      this.questionModalSubscription = modalInstance.questionUpdated.subscribe((updatedQuestion: QuestionData) => {
+        this.replaceQuestion(updatedQuestion);
+        this.cdr.detectChanges();
+      });
+    }
   }
 
   deleteQuestion(question: QuestionData): void {
@@ -186,12 +196,16 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
       questions: this.questions()
     };
 
-    console.log('Salvando dados do Questionário:', finalData);
-    this.routerService.backToPrevious(0, true, { questionnaireUpdate: finalData });
+    this.navigateBack({ questionnaireUpdate: finalData });
   }
 
   onCancel(): void {
-    this.routerService.backToPrevious(0, true);
+    this.navigateBack();
+  }
+
+  private navigateBack(updatedParams?: GenericParams): void {
+    this.skipStatePersistence = true;
+    this.routerService.backToPrevious(0, true, updatedParams);
   }
 
   protected override save(): RouteParams<CascataQuestionnaireRouteParams> {
@@ -222,7 +236,9 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
   }
 
   override ngOnDestroy(): void {
-    super.ngOnDestroy();
+    if (!this.skipStatePersistence) {
+      super.ngOnDestroy();
+    }
     this.questionModalSubscription?.unsubscribe();
   }
 }

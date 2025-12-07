@@ -1,12 +1,10 @@
-import { Component, Output, EventEmitter, inject, Input, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Output, EventEmitter, inject, Input, ChangeDetectorRef, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { BasePageComponent, RestoreParams } from '../../../../core/abstractions/base-page.component';
 import { ModalService } from '../../../../core/services/modal.service';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { BusinessDaysUtils } from '../../../../core/utils/business-days-utils';
 import { ActionType } from '../../../../shared/enums/action-type.enum';
-import { GenericParams, RouteParams } from '../../../../core/services/router.service';
 
 export interface StageCascataData {
   id?: string;
@@ -24,22 +22,6 @@ interface DateRange {
   exceedsDeadline?: boolean;
 }
 
-interface StageCascataFormValue {
-  name: string;
-  weight: number;
-  sequence: number;
-  durationDays: number;
-}
-
-interface StageCascataRouteParams extends GenericParams {
-  action?: ActionType;
-  data?: StageCascataData;
-  formValue?: StageCascataFormValue;
-  actionType?: ActionType;
-  stageData?: StageCascataData;
-  calculatedDateRange?: DateRange | null;
-}
-
 @Component({
   selector: 'app-stage-cascata-modal',
   standalone: true,
@@ -48,7 +30,7 @@ interface StageCascataRouteParams extends GenericParams {
   styleUrls: ['./stage-cascata-modal.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class StageCascataModalComponent extends BasePageComponent<StageCascataRouteParams> {
+  export class StageCascataModalComponent implements OnInit {
   @Input() editData?: StageCascataData;
   @Input() mode: ActionType = ActionType.CREATE;
   @Output() stageCreated = new EventEmitter<StageCascataData>();
@@ -70,11 +52,10 @@ export class StageCascataModalComponent extends BasePageComponent<StageCascataRo
   modalTitle = 'Criar nova etapa - Cascata';
 
   constructor() {
-    super();
     this.initializeForm();
   }
 
-  protected override onInit(): void {
+  ngOnInit(): void {
     this.actionType = this.mode ?? ActionType.CREATE;
 
     if (this.editData) {
@@ -92,65 +73,6 @@ export class StageCascataModalComponent extends BasePageComponent<StageCascataRo
       this.calculatedDateRange = {
         startDate: this.editData.applicationStartDate,
         endDate: this.editData.applicationEndDate,
-      };
-    }
-
-    this.updateModalTitle();
-    this.cdr.detectChanges();
-  }
-
-  protected override save(): RouteParams<StageCascataRouteParams> {
-    const formValue = this.form.getRawValue() as StageCascataFormValue;
-    return {
-      formValue,
-      actionType: this.actionType,
-      stageData: this.stageData,
-      calculatedDateRange: this.calculatedDateRange,
-    };
-  }
-
-  protected override restore(restoreParameter: RestoreParams<StageCascataRouteParams>): void {
-    if (!restoreParameter.hasParams) {
-      return;
-    }
-
-    const savedFormValue = restoreParameter['formValue'] as StageCascataFormValue | undefined;
-    if (savedFormValue) {
-      this.form.patchValue(savedFormValue, { emitEvent: false });
-    }
-
-    const savedActionType = restoreParameter['actionType'] as ActionType | undefined;
-    this.actionType = savedActionType ?? ActionType.CREATE;
-    this.stageData = restoreParameter['stageData'] as StageCascataData | undefined;
-    this.calculatedDateRange = (restoreParameter['calculatedDateRange'] as DateRange | null | undefined) ?? null;
-    this.updateModalTitle();
-    this.cdr.detectChanges();
-  }
-
-  protected override loadParams(
-    params: RouteParams<StageCascataRouteParams>
-  ): void {
-    const routeAction = params?.['action'] as ActionType | undefined;
-    if (routeAction) {
-      this.actionType = routeAction;
-    }
-
-    const routeData = params?.['data'] as StageCascataData | undefined;
-    if (routeData) {
-      this.stageData = routeData;
-      this.form.patchValue(
-        {
-          name: routeData.name,
-          weight: routeData.weight,
-          sequence: routeData.sequence,
-          durationDays: routeData.durationDays,
-        },
-        { emitEvent: false }
-      );
-
-      this.calculatedDateRange = {
-        startDate: routeData.applicationStartDate,
-        endDate: routeData.applicationEndDate,
       };
     }
 

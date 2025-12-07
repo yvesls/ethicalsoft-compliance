@@ -11,7 +11,9 @@ import { AccordionPanelComponent } from '../../../../shared/components/accordion
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
 import { Subscription } from 'rxjs';
+import { take } from 'rxjs/operators';
 import { GenericParams, RouteParams } from '../../../../core/services/router.service';
+import { RoleService } from '../../../../core/services/role.service';
 
 interface IterativoQuestionnaireRouteParams extends GenericParams {
   questionnaireIndex?: number;
@@ -38,8 +40,10 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
   private fb = inject(FormBuilder);
   private cdr = inject(ChangeDetectorRef);
   private notificationService = inject(NotificationService);
+  private roleService = inject(RoleService);
   private questionnaireIndex: number | null = null;
   private questionnaireMetadata: IterativoQuestionnaireRouteParams | null = null;
+  private skipStatePersistence = false;
 
   form!: FormGroup;
   questions: WritableSignal<QuestionData[]> = signal([]);
@@ -51,14 +55,7 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
   searchTerm = '';
   selectedRole = '';
 
-  roleFilterOptions: SelectOption[] = [
-    { value: 'Cliente', label: 'Cliente' },
-    { value: 'Desenvolvedor(a)', label: 'Desenvolvedor(a)' },
-    { value: 'Líder de Equipe', label: 'Líder de Equipe' },
-    { value: 'Analista de Qualidade', label: 'Analista de Qualidade' },
-    { value: 'Gerente de Projeto', label: 'Gerente de Projeto' },
-    { value: 'Arquiteto de Software', label: 'Arquiteto de Software' }
-  ];
+  roleFilterOptions: SelectOption[] = [];
 
   private questionModalSubscription?: Subscription;
 
@@ -68,6 +65,7 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
 
   override ngOnInit(): void {
     super.ngOnInit();
+    this.loadRoleFilterOptions();
   }
 
   protected override onInit(): void {
@@ -78,7 +76,6 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
     if (!params) return;
 
     const data = (params.p ?? params) as IterativoQuestionnaireRouteParams;
-    console.log('Params recebidos:', data);
 
     this.questionnaireIndex = typeof data.questionnaireIndex === 'number' ? data.questionnaireIndex : null;
     this.questionnaireMetadata = data;
@@ -88,7 +85,6 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
     }
     if (data.questions && Array.isArray(data.questions)) {
       this.questions.set(data.questions);
-      console.log('Perguntas carregadas:', data.questions);
     }
 
     this.form.patchValue({
@@ -109,6 +105,24 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
       weight: ['', [Validators.required, Validators.min(0), Validators.max(100)]],
       questions: this.fb.array([])
     });
+  }
+
+  private loadRoleFilterOptions(): void {
+    this.roleService
+      .getRoles()
+      .pipe(take(1))
+      .subscribe({
+        next: (roles) => {
+          this.roleFilterOptions = (roles ?? []).map((role) => ({
+            value: role.name,
+            label: role.name,
+          }));
+          this.cdr.markForCheck();
+        },
+        error: (error) => {
+          console.error('Falha ao carregar roles para filtro de questionário iterativo', error);
+        }
+      });
   }
 
   toggleQuestionnaireDataAccordion(): void {
@@ -142,17 +156,15 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
       mode: ActionType.CREATE
     });
 
-    setTimeout(() => {
-      const modalInstance = this.modalService.getActiveInstance<QuestionModalComponent>();
-      if (modalInstance) {
-        this.questionModalSubscription = modalInstance.questionCreated.subscribe((questionData: QuestionData) => {
-          const currentQuestions = this.questions();
-          questionData.id = Date.now().toString();
-          this.questions.set([...currentQuestions, questionData]);
-          this.cdr.detectChanges();
-        });
-      }
-    });
+    const modalInstance = this.modalService.getActiveInstance<QuestionModalComponent>();
+    if (modalInstance) {
+      this.questionModalSubscription = modalInstance.questionCreated.subscribe((questionData: QuestionData) => {
+        const currentQuestions = this.questions();
+        questionData.id = Date.now().toString();
+        this.questions.set([...currentQuestions, questionData]);
+        this.cdr.detectChanges();
+      });
+    }
   }
 
   openEditQuestionModal(question: QuestionData): void {
@@ -161,20 +173,18 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
       editData: question
     });
 
-    setTimeout(() => {
-      const modalInstance = this.modalService.getActiveInstance<QuestionModalComponent>();
-      if (modalInstance) {
-        this.questionModalSubscription = modalInstance.questionUpdated.subscribe((updatedQuestion: QuestionData) => {
-          const currentQuestions = this.questions();
-          const index = currentQuestions.findIndex(q => q.id === updatedQuestion.id);
-          if (index !== -1) {
-            currentQuestions[index] = updatedQuestion;
-            this.questions.set([...currentQuestions]);
-            this.cdr.detectChanges();
-          }
-        });
-      }
-    });
+    const modalInstance = this.modalService.getActiveInstance<QuestionModalComponent>();
+    if (modalInstance) {
+      this.questionModalSubscription = modalInstance.questionUpdated.subscribe((updatedQuestion: QuestionData) => {
+        const currentQuestions = this.questions();
+        const index = currentQuestions.findIndex(q => q.id === updatedQuestion.id);
+        if (index !== -1) {
+          currentQuestions[index] = updatedQuestion;
+          this.questions.set([...currentQuestions]);
+          this.cdr.detectChanges();
+        }
+      });
+    }
   }
 
   deleteQuestion(question: QuestionData): void {
@@ -241,15 +251,22 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
       questions: this.questions()
     };
 
-    console.log('Salvando questionário iterativo:', finalData);
-    this.routerService.backToPrevious(0, true, { questionnaireUpdate: finalData });
+    this.navigateBack({ questionnaireUpdate: finalData });
   }
 
   onCancel(): void {
-    this.routerService.backToPrevious(0, true);
+    this.navigateBack();
+  }
+
+  private navigateBack(updatedParams?: GenericParams): void {
+    this.skipStatePersistence = true;
+    this.routerService.backToPrevious(0, true, updatedParams);
   }
 
   override ngOnDestroy(): void {
+    if (!this.skipStatePersistence) {
+      super.ngOnDestroy();
+    }
     this.questionModalSubscription?.unsubscribe();
   }
 }

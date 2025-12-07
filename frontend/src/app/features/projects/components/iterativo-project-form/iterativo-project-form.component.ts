@@ -17,6 +17,14 @@ import {
 } from '@angular/forms';
 
 import { ProjectType } from '../../../../shared/enums/project-type.enum';
+import {
+  IterationPayload,
+  ProjectCreationPayload,
+  QuestionPayload,
+  QuestionnairePayload,
+  RepresentativePayload,
+  StagePayload,
+} from '../../../../shared/interfaces/project/project-creation.interface';
 import { AccordionPanelComponent } from '../../../../shared/components/accordion-panel/accordion-panel.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
@@ -28,6 +36,7 @@ import {
   RestoreParams,
 } from '../../../../core/abstractions/base-page.component';
 import { TemplateStore } from '../../../../shared/stores/template.store';
+import { ProjectStore } from '../../../../shared/stores/project.store';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ModalService } from '../../../../core/services/modal.service';
 import { NotificationService } from '../../../../core/services/notification.service';
@@ -38,6 +47,7 @@ import { ActionType } from '../../../../shared/enums/action-type.enum';
 import { FormUtils } from '../../../../shared/utils/form-utils';
 import { Subscription } from 'rxjs';
 import { QuestionData } from '../question-modal/question-modal.component';
+import { ProjectCreationConfirmModalComponent } from '../project-creation-confirm-modal/project-creation-confirm-modal.component';
 import {
   ProjectTemplate,
   TemplateQuestionDTO,
@@ -45,13 +55,20 @@ import {
   TemplateRepresentativeDTO,
   TemplateStageDTO,
 } from '../../../../shared/interfaces/template/template.interface';
+import { finalize, switchMap, take } from 'rxjs/operators';
+import { RoleService } from '../../../../core/services/role.service';
+import { RoleSummary } from '../../../../shared/interfaces/role/role-summary.interface';
 
 export interface Representative {
+  id?: number | string | null;
   firstName: string;
   lastName: string;
   email: string;
   weight: number;
-  roles: string[];
+  roleIds: number[];
+  roleNames?: string[];
+  userId?: number | null;
+  projectId?: number | null;
 }
 
 export interface Questionnaire {
@@ -119,12 +136,15 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
   private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
   private templateStore = inject(TemplateStore);
+  private projectStore = inject(ProjectStore);
   private modalService = inject(ModalService);
   private notificationService = inject(NotificationService);
+  private roleService = inject(RoleService);
   public override routerService = inject(RouterService);
 
   public ProjectType = ProjectType;
   public projectForm!: FormGroup;
+  public isSubmitting = false;
   public panelStates: PanelStates = {
     project: true,
     stages: false,
@@ -136,6 +156,9 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
   public projectTypeOptions: SelectOption[] = [
     { value: ProjectType.Iterativo, label: 'Iterativo Incremental' },
   ];
+
+  public availableRoles: RoleSummary[] = [];
+  private roleNameById = new Map<number, string>();
 
   private selectedTemplateData: ProjectTemplate | null = null;
   private lastValidPanelIndex = 0;
@@ -181,6 +204,7 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
     this.setupTemplateListener();
     this.setupIterationCountCalculation();
     this.setupIterationListener();
+    this.loadRoles();
   }
 
   protected override loadParams(params: RouteParams<IterativoProjectRouteParams>): void {
@@ -285,6 +309,157 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
       .subscribe(regenerateIterations);
   }
 
+  private loadRoles(): void {
+    this.roleService
+      .getRoles()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (roles) => {
+          this.availableRoles = roles ?? [];
+          this.roleNameById = new Map(this.availableRoles.map((role) => [role.id, role.name]));
+          this.syncRepresentativesRoleIdsFromNames();
+          this.updateRepresentativeRoleDisplay();
+          this.cdr.markForCheck();
+        },
+        error: (error) => {
+          console.error('Erro ao carregar roles:', error);
+        }
+      });
+  }
+
+  private syncRepresentativesRoleIdsFromNames(): void {
+    if (!this.availableRoles.length || this.representativesFormArray.length === 0) {
+      return;
+    }
+
+    for (const control of this.representativesFormArray.controls) {
+      const group = control as FormGroup;
+      const roleIds = group.get('roleIds')?.value as number[] | undefined;
+      if (roleIds?.length) {
+        continue;
+      }
+
+      const roleNames = group.get('roleNames')?.value as string[] | undefined;
+      if (roleNames?.length) {
+        const mappedIds = this.mapRoleNamesToIds(roleNames);
+        if (mappedIds.length) {
+          group.patchValue({ roleIds: mappedIds }, { emitEvent: false });
+        }
+      }
+    }
+  }
+
+  private updateRepresentativeRoleDisplay(targetGroup?: FormGroup): void {
+    const applyDisplayNames = (group?: FormGroup | AbstractControl | null): void => {
+      if (!(group instanceof FormGroup)) {
+        return;
+      }
+
+      const roleIds = group.get('roleIds')?.value as number[] | undefined;
+      const namesFromIds = this.getRoleNamesFromIds(roleIds);
+      const storedNames = group.get('roleNames')?.value as string[] | undefined;
+      const finalNames = namesFromIds.length ? namesFromIds : storedNames ?? [];
+      group.patchValue({ roleNames: finalNames }, { emitEvent: false });
+    };
+
+    if (targetGroup) {
+      applyDisplayNames(targetGroup);
+      return;
+    }
+
+    for (const control of this.representativesFormArray.controls) {
+      applyDisplayNames(control);
+    }
+  }
+
+  private mapRoleNamesToIds(roleNames: string[] | undefined): number[] {
+    if (!roleNames?.length || !this.availableRoles.length) {
+      return [];
+    }
+
+    const normalized = roleNames
+      .map((name) => name?.trim().toLowerCase())
+      .filter(Boolean);
+
+    if (!normalized.length) {
+      return [];
+    }
+
+    const ids: number[] = [];
+    for (const role of this.availableRoles) {
+      if (normalized.includes(role.name.trim().toLowerCase())) {
+        ids.push(role.id);
+      }
+    }
+
+    return Array.from(new Set(ids));
+  }
+
+  private mapRepresentativeRoleIds(rep: Representative): number[] {
+    if (rep.roleIds?.length) {
+      return rep.roleIds.map(Number).filter(Number.isFinite);
+    }
+
+    if (rep.roleNames?.length) {
+      return this.mapRoleNamesToIds(rep.roleNames);
+    }
+
+    return [];
+  }
+
+  private getRoleNamesFromIds(roleIds: number[] | undefined): string[] {
+    if (!roleIds?.length || this.roleNameById.size === 0) {
+      return [];
+    }
+
+    return roleIds
+      .map((id) => this.roleNameById.get(Number(id)))
+      .filter(Boolean) as string[];
+  }
+
+  private getRoleNamesFromFormGroup(repFormGroup: FormGroup): string[] {
+    const ids = repFormGroup.get('roleIds')?.value as number[] | undefined;
+    const mapped = this.getRoleNamesFromIds(ids);
+    if (mapped.length) {
+      return mapped;
+    }
+
+    const storedNames = repFormGroup.get('roleNames')?.value as string[] | undefined;
+    return storedNames ?? [];
+  }
+
+  public getRepresentativeRoleNames(repControl: AbstractControl | null): string {
+    if (!(repControl instanceof FormGroup)) {
+      return '-';
+    }
+
+    const names = this.getRoleNamesFromFormGroup(repControl);
+    return names.length ? names.join(', ') : '-';
+  }
+
+  private normalizeRoleIds(value: unknown): number[] {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    return Array.from(
+      new Set(
+        value
+          .map(Number)
+          .filter((id) => Number.isFinite(id) && id > 0)
+      )
+    );
+  }
+
+  private normalizeNullableNumber(value: unknown): number | null {
+    if (value === null || value === undefined || value === '') {
+      return null;
+    }
+
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
   private loadTemplateData(templateId: string): void {
     this.templateStore.getFullTemplate(templateId)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -367,11 +542,15 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
     return this.fb.array(
       representativesData.map((rep) =>
         this.fb.group({
+          id: [rep.id ?? null],
+          userId: [rep.userId ?? null],
+          projectId: [rep.projectId ?? null],
           firstName: [rep.firstName, [Validators.required]],
           lastName: [rep.lastName, [Validators.required]],
           email: [rep.email, [Validators.required, Validators.email]],
           weight: [rep.weight, [Validators.required, Validators.min(1)]],
-          roles: [rep.roles, [Validators.required]],
+          roleIds: [this.mapRepresentativeRoleIds(rep), [Validators.required, Validators.minLength(1)]],
+          roleNames: [rep.roleNames ?? []],
         })
       )
     );
@@ -419,20 +598,26 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
       mode: ActionType.CREATE
     });
 
-    const modalRef = this.getModalInstance<RepresentativeModalComponent>();
+    const modalRef = this.modalService.getActiveInstance<RepresentativeModalComponent>();
     if (!modalRef) {
+      console.warn('Representative modal instance not available after opening.');
       return;
     }
 
     const createdSubscription = modalRef.representativeCreated.subscribe((newRepresentative: RepresentativeData) => {
       const newRep = this.fb.group({
+        id: [newRepresentative.id ?? null],
+        userId: [newRepresentative.userId ?? null],
+        projectId: [newRepresentative.projectId ?? null],
         firstName: [newRepresentative.firstName, [Validators.required]],
         lastName: [newRepresentative.lastName, [Validators.required]],
         email: [newRepresentative.email, [Validators.required, Validators.email]],
         weight: [newRepresentative.weight, [Validators.required, Validators.min(1)]],
-        roles: [newRepresentative.roles, [Validators.required]],
+        roleIds: [newRepresentative.roleIds ?? [], [Validators.required, Validators.minLength(1)]],
+        roleNames: [newRepresentative.roleNames ?? []],
       });
       this.representativesFormArray.push(newRep);
+      this.updateRepresentativeRoleDisplay(newRep);
       createdSubscription.unsubscribe();
       this.cdr.detectChanges();
     });
@@ -444,28 +629,37 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
     this.modalService.open(RepresentativeModalComponent, 'medium-card', {
       mode: ActionType.EDIT,
       editData: {
-        id: String(index),
+        id: repFormGroup.get('id')?.value ?? null,
         firstName: repFormGroup.get('firstName')?.value,
         lastName: repFormGroup.get('lastName')?.value,
         email: repFormGroup.get('email')?.value,
         weight: repFormGroup.get('weight')?.value,
-        roles: repFormGroup.get('roles')?.value
+        roleIds: repFormGroup.get('roleIds')?.value || [],
+        roleNames: this.getRoleNamesFromFormGroup(repFormGroup),
+        userId: repFormGroup.get('userId')?.value ?? null,
+        projectId: repFormGroup.get('projectId')?.value ?? null,
       }
     });
 
-    const modalRef = this.getModalInstance<RepresentativeModalComponent>();
+    const modalRef = this.modalService.getActiveInstance<RepresentativeModalComponent>();
     if (!modalRef) {
+      console.warn('Representative modal instance not available after opening for edit.');
       return;
     }
 
     const updatedSubscription = modalRef.representativeUpdated.subscribe((updatedRepresentative: RepresentativeData) => {
       repFormGroup.patchValue({
+        id: updatedRepresentative.id ?? repFormGroup.get('id')?.value ?? null,
         firstName: updatedRepresentative.firstName,
         lastName: updatedRepresentative.lastName,
         email: updatedRepresentative.email,
         weight: updatedRepresentative.weight,
-        roles: updatedRepresentative.roles
+        roleIds: updatedRepresentative.roleIds ?? [],
+        roleNames: updatedRepresentative.roleNames ?? [],
+        userId: updatedRepresentative.userId ?? null,
+        projectId: updatedRepresentative.projectId ?? null,
       });
+      this.updateRepresentativeRoleDisplay(repFormGroup);
       updatedSubscription.unsubscribe();
       this.cdr.detectChanges();
     });
@@ -524,7 +718,8 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
     return templateQuestionnaire.questions.map((question: TemplateQuestionDTO, index: number) => ({
       id: `${Date.now()}-${index}`,
       value: question.value,
-      roleNames: Array.from(question.roleNames || [])
+      roleIds: this.extractRoleIds(question.roles, question.roleNames),
+      roleNames: this.extractRoleNames(question.roles, question.roleNames)
     }));
   }
 
@@ -565,7 +760,7 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
 
   private openCreateStageModal(): void {
     this.modalService.open(StageIterativeModalComponent, 'small-card');
-    const modalRef = this.getModalInstance<StageIterativeModalComponent>();
+    const modalRef = this.modalService.getActiveInstance<StageIterativeModalComponent>();
     if (!modalRef) {
       return;
     }
@@ -588,7 +783,7 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
       }
     });
 
-    const modalRef = this.getModalInstance<StageIterativeModalComponent>();
+    const modalRef = this.modalService.getActiveInstance<StageIterativeModalComponent>();
     if (!modalRef) {
       return;
     }
@@ -630,7 +825,257 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
   onSubmit(): void {
     if (this.projectForm.invalid) {
       this.projectForm.markAllAsTouched();
+      this.notificationService.showWarning('Revise os campos obrigatórios antes de salvar.');
+      return;
     }
+
+    if (this.isSubmitting) {
+      return;
+    }
+
+    this.openProjectCreationConfirmModal();
+  }
+
+  private openProjectCreationConfirmModal(): void {
+    this.modalService.open(ProjectCreationConfirmModalComponent, 'small-card');
+    const modalInstance = this.modalService.getActiveInstance<ProjectCreationConfirmModalComponent>();
+    if (!modalInstance) {
+      return;
+    }
+
+    modalInstance.confirmed.pipe(take(1)).subscribe(() => {
+      this.modalService.close();
+      this.createProjectWithTemplate();
+    });
+
+    modalInstance.canceled.pipe(take(1)).subscribe(() => {
+      this.modalService.close();
+    });
+  }
+
+  private createProjectWithTemplate(): void {
+    let payload: ProjectCreationPayload;
+    try {
+      payload = this.buildProjectCreationPayload();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Erro ao preparar os dados do projeto.';
+      this.notificationService.showError(message);
+      return;
+    }
+
+    this.isSubmitting = true;
+    this.cdr.markForCheck();
+
+    this.projectStore
+      .createProject(payload)
+      .pipe(
+        switchMap((project) => {
+          if (!project?.id) {
+            throw new Error('Não foi possível identificar o projeto criado.');
+          }
+
+          return this.templateStore.createTemplateFromProject(
+            project.id,
+            this.buildTemplateCloneRequest(payload.name)
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => {
+          this.isSubmitting = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe({
+        next: () => {
+          this.notificationService.showSuccess('Projeto criado e template gerado com sucesso.');
+          this.routerService.navigateTo('/projects');
+        },
+        error: (error) => {
+          this.notificationService.showError(error);
+        },
+      });
+  }
+
+  private buildProjectCreationPayload(): ProjectCreationPayload {
+    const formValue = this.projectForm.getRawValue() as IterativoProjectFormValue;
+    const templateId = formValue.template;
+    const startDate = formValue.startDate;
+    const projectName = (formValue.name || '').trim();
+    const iterationDuration = Number(formValue.iterationDuration);
+    const iterationCount = Number(formValue.iterationCount ?? 0);
+
+    if (!templateId) {
+      throw new Error('Selecione um template antes de salvar o projeto.');
+    }
+
+    if (!startDate) {
+      throw new Error('Informe a data de início do projeto.');
+    }
+
+    if (!projectName) {
+      throw new Error('Informe o nome do projeto.');
+    }
+
+    if (!iterationDuration || iterationDuration <= 0) {
+      throw new Error('Informe uma duração válida para as iterações.');
+    }
+
+    if (!iterationCount || iterationCount <= 0) {
+      throw new Error('Não foi possível calcular a quantidade de iterações.');
+    }
+
+    const stages = this.buildStagePayload();
+    const iterations = this.buildIterationPayload();
+    const questionnaires = this.buildQuestionnairePayload();
+    const representatives = this.buildRepresentativePayload();
+
+    return {
+      name: projectName,
+      templateId,
+      type: ProjectType.Iterativo,
+      startDate,
+      deadline: formValue.deadline || null,
+      status: 'ABERTO',
+      iterationDuration,
+      iterationCount,
+      stages: stages.length ? stages : undefined,
+      iterations: iterations.length ? iterations : undefined,
+      questionnaires: questionnaires.length ? questionnaires : undefined,
+      representatives: representatives.length ? representatives : undefined,
+    };
+  }
+
+  private buildStagePayload(): StagePayload[] {
+    return this.stagesFormArray.controls
+      .map((control, index) => ({
+        name: control.get('name')?.value,
+        weight: Number(control.get('weight')?.value) || 0,
+        sequence: index + 1,
+      }))
+      .filter((stage) => Boolean(stage.name));
+  }
+
+  private buildIterationPayload(): IterationPayload[] {
+    return this.iterationsFormArray.controls
+      .map((control, index) => ({
+        name: control.get('name')?.value || `Iteração ${index + 1}`,
+        order: index + 1,
+        applicationStartDate: control.get('applicationStartDate')?.value,
+        applicationEndDate: control.get('applicationEndDate')?.value,
+      }))
+      .filter((iteration) => Boolean(iteration.applicationStartDate && iteration.applicationEndDate));
+  }
+
+  private buildQuestionnairePayload(): QuestionnairePayload[] {
+    return this.questionnairesFormArray.controls
+      .map((control, index) => {
+        const questions = control.get('questions')?.value as QuestionData[] | undefined;
+        const iterationName = control.get('iteration')?.value || control.get('name')?.value;
+        const iterationControl = this.iterationsFormArray.controls.find(
+          (iterControl) => (iterControl as FormGroup).get('name')?.value === iterationName
+        ) as FormGroup | undefined;
+
+        return {
+          name: control.get('name')?.value,
+          sequence: index + 1,
+          iterationName: iterationName || null,
+          weight: Number(control.get('weight')?.value) || 0,
+          applicationStartDate: iterationControl?.get('applicationStartDate')?.value || null,
+          applicationEndDate: iterationControl?.get('applicationEndDate')?.value || null,
+          questions: this.mapQuestions(questions),
+        };
+      })
+      .filter((questionnaire) => Boolean(questionnaire.name));
+  }
+
+  private buildRepresentativePayload(): RepresentativePayload[] {
+    return this.representativesFormArray.controls
+      .map((control) => {
+        const roleIds = this.normalizeRoleIds(control.get('roleIds')?.value);
+        return {
+          ...(this.extractRepresentativeId(control.get('id'))),
+          firstName: (control.get('firstName')?.value || '').trim(),
+          lastName: (control.get('lastName')?.value || '').trim(),
+          email: (control.get('email')?.value || '').trim(),
+          userId: this.normalizeNullableNumber(control.get('userId')?.value),
+          projectId: this.normalizeNullableNumber(control.get('projectId')?.value),
+          weight: Number(control.get('weight')?.value) || 0,
+          roleIds,
+        } satisfies RepresentativePayload;
+      })
+      .filter((representative) => representative.roleIds.length > 0 && Boolean(representative.email));
+  }
+
+  private extractRepresentativeId(control: AbstractControl | null): { id?: number | string | null } {
+    const rawValue = control?.value;
+
+    if (rawValue === null || rawValue === undefined || rawValue === '') {
+      return {};
+    }
+
+    return { id: rawValue };
+  }
+
+  private mapQuestions(questions: QuestionData[] | undefined): QuestionPayload[] {
+    if (!questions?.length) {
+      return [];
+    }
+
+    return questions.map((question) => {
+      const roleIds = this.resolveQuestionRoleIds(question);
+      const roleNames = this.resolveQuestionRoleNames(question, roleIds);
+      return {
+        value: question.value,
+        roleIds,
+        roleNames,
+      } satisfies QuestionPayload;
+    });
+  }
+
+  private resolveQuestionRoleIds(question: QuestionData | undefined): number[] {
+    if (!question) {
+      return [];
+    }
+
+    const normalized = this.normalizeRoleIds(question.roleIds);
+    if (normalized.length) {
+      return normalized;
+    }
+
+    if (Array.isArray(question.roleNames) && question.roleNames.length) {
+      return this.mapRoleNamesToIds(question.roleNames);
+    }
+
+    return [];
+  }
+
+  private resolveQuestionRoleNames(question: QuestionData | undefined, resolvedRoleIds: number[]): string[] {
+    if (!question) {
+      return [];
+    }
+
+    if (Array.isArray(question.roleNames) && question.roleNames.length) {
+      return [...question.roleNames];
+    }
+
+    if (resolvedRoleIds.length) {
+      return this.getRoleNamesFromIds(resolvedRoleIds);
+    }
+
+    return [];
+  }
+
+  private buildTemplateCloneRequest(projectName: string): {
+    name: string;
+    description: string;
+    visibility: 'PUBLIC' | 'PRIVATE';
+  } {
+    const defaultDescription = `Template gerado automaticamente a partir do projeto ${projectName}.`;
+    return {
+      name: `${projectName} - Template`,
+      description: this.selectedTemplateData?.description || defaultDescription,
+      visibility: this.selectedTemplateData?.visibility ?? 'PRIVATE',
+    };
   }
 
   continueToNextPanel(currentPanelKey: PanelKey): void {
@@ -733,6 +1178,8 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
               this.mapTemplateRepresentativeToForm(rep)
             );
             this.projectForm.setControl('representatives', this.buildRepresentativesForm(repsData));
+            this.syncRepresentativesRoleIdsFromNames();
+            this.updateRepresentativeRoleDisplay();
           }
         }
         break;
@@ -831,6 +1278,9 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
 
       const dateRange = `${FormUtils.formatDateBR(FormUtils.formatDateISO(questionnaireStartDate))} - ${FormUtils.formatDateBR(FormUtils.formatDateISO(questionnaireEndDate))}`;
       const cached = cacheByIteration.get(iterationName);
+      const initialQuestions = cached?.questions?.length
+        ? this.cloneQuestions(cached.questions, iterationName)
+        : this.getTemplateQuestionsForIteration(iterationName);
 
       questionnairesArray.push(
         this.fb.group({
@@ -838,7 +1288,7 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
           iteration: [iterationName, [Validators.required]],
           weight: [cached?.weight ?? 1, [Validators.required, Validators.min(0)]],
           dateRange: [cached?.dateRange || dateRange],
-          questions: [cached?.questions || []],
+          questions: [initialQuestions],
         })
       );
     }
@@ -882,11 +1332,6 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
     }
   }
 
-  private getModalInstance<T>(): T | null {
-    const modalAccessor = this.modalService as unknown as { modalRef?: { instance: T } };
-    return modalAccessor.modalRef?.instance ?? null;
-  }
-
   private mapTemplateStageToForm(stage: TemplateStageDTO): Stage {
     return {
       name: stage.name,
@@ -895,12 +1340,83 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
   }
 
   private mapTemplateRepresentativeToForm(rep: TemplateRepresentativeDTO): Representative {
+    const roleIds = this.extractRoleIds(rep.roles, rep.roleNames);
+    const roleNames = this.extractRoleNames(rep.roles, rep.roleNames);
+
     return {
+      id: rep.id ?? null,
       firstName: capitalizeWords(rep.firstName),
       lastName: capitalizeWords(rep.lastName),
       email: rep.email,
       weight: rep.weight,
-      roles: rep.roleNames ?? [],
+      roleIds,
+      roleNames,
+      userId: null,
+      projectId: null,
     };
+  }
+
+  private getTemplateQuestionsForIteration(iterationName?: string | null): QuestionData[] {
+    if (!iterationName || !this.selectedTemplateData?.questionnaires?.length) {
+      return [];
+    }
+
+    const templateQuestionnaire = this.selectedTemplateData.questionnaires.find(
+      (questionnaire: TemplateQuestionnaireDTO) =>
+        questionnaire.iterationRefName === iterationName || questionnaire.name === iterationName
+    );
+
+    if (!templateQuestionnaire?.questions?.length) {
+      return [];
+    }
+
+    return templateQuestionnaire.questions.map((question: TemplateQuestionDTO, index: number) => ({
+      id: this.generateQuestionId(iterationName, index),
+      value: question.value,
+      roleIds: this.extractRoleIds(question.roles, question.roleNames),
+      roleNames: this.extractRoleNames(question.roles, question.roleNames),
+    }));
+  }
+
+  private cloneQuestions(questions: QuestionData[] | undefined, source?: string): QuestionData[] {
+    if (!questions?.length) {
+      return [];
+    }
+
+    return questions.map((question, index) => ({
+      ...question,
+      id: question.id ?? this.generateQuestionId(source, index),
+      roleIds: Array.isArray(question.roleIds) ? [...question.roleIds] : [],
+      roleNames: Array.isArray(question.roleNames) ? [...question.roleNames] : [],
+    }));
+  }
+
+  private generateQuestionId(prefix: string | undefined, index: number): string {
+    const randomPart = Math.random().toString(36).slice(2, 8);
+    return `${prefix ?? 'question'}-${index}-${Date.now().toString(36)}-${randomPart}`;
+  }
+
+  private extractRoleIds(roles?: RoleSummary[], fallbackNames?: string[]): number[] {
+    const idsFromRoles = Array.isArray(roles)
+      ? roles
+          .map((role) => Number(role.id))
+          .filter((id) => Number.isFinite(id) && id > 0)
+      : [];
+
+    if (idsFromRoles.length) {
+      return Array.from(new Set(idsFromRoles));
+    }
+
+    return this.mapRoleNamesToIds(fallbackNames ?? []);
+  }
+
+  private extractRoleNames(roles?: RoleSummary[], fallbackNames?: string[]): string[] {
+    if (roles?.length) {
+      return roles
+        .map((role) => role.name?.trim())
+        .filter((name): name is string => Boolean(name));
+    }
+
+    return Array.isArray(fallbackNames) ? [...fallbackNames] : [];
   }
 }

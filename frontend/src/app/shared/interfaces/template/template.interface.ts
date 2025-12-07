@@ -1,4 +1,5 @@
 import { ProjectType } from '../../enums/project-type.enum';
+import { RoleSummary } from '../role/role-summary.interface';
 
 export interface TemplateListDTO {
   id: string;
@@ -20,17 +21,20 @@ export interface TemplateIterationDTO {
 }
 
 export interface TemplateRepresentativeDTO {
+  id?: number | string | null;
   email: string;
   firstName: string;
   lastName: string;
   weight: number;
-  roleNames: string[];
+  roles?: RoleSummary[];
+  roleNames?: string[];
 }
 
 export interface TemplateQuestionDTO {
   value: string;
   stageName?: string;
-  roleNames: string[];
+  roles?: RoleSummary[];
+  roleNames?: string[];
 }
 
 export interface TemplateQuestionnaireDTO {

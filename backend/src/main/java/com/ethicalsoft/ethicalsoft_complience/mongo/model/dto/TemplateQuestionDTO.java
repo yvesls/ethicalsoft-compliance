@@ -1,5 +1,6 @@
 package com.ethicalsoft.ethicalsoft_complience.mongo.model.dto;
 
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.response.RoleSummaryResponseDTO;
 import lombok.Data;
 
 import java.util.Set;
@@ -8,5 +9,5 @@ import java.util.Set;
 public class TemplateQuestionDTO {
 	private String value;
 	private String stageName;
-	private Set<String> roleNames;
+	private Set<RoleSummaryResponseDTO> roles;
 }

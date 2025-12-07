@@ -5,6 +5,7 @@ import com.ethicalsoft.ethicalsoft_complience.mongo.model.dto.*;
 import com.ethicalsoft.ethicalsoft_complience.mongo.repository.ProjectTemplateRepository;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.*;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.CreateTemplateRequestDTO;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.response.RoleSummaryResponseDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.TemplateVisibilityEnum;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.ProjectRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -106,9 +107,9 @@ public class TemplateService {
 				dto.setLastName(rep.getUser().getLastName());
 			}
 			if (rep.getRoles() != null) {
-				dto.setRoleNames(rep.getRoles().stream()
-						.map( Role::getName)
-						.collect( Collectors.toSet()));
+				dto.setRoles(rep.getRoles().stream()
+						.map(role -> new RoleSummaryResponseDTO(role.getId(), role.getName()))
+						.collect(Collectors.toSet()));
 			}
 			return dto;
 		}).toList();
@@ -139,8 +140,8 @@ public class TemplateService {
 				pDto.setStageName(question.getStage().getName());
 			}
 			if (question.getRoles() != null) {
-				pDto.setRoleNames(question.getRoles().stream()
-						.map(Role::getName)
+				pDto.setRoles(question.getRoles().stream()
+						.map(role -> new RoleSummaryResponseDTO(role.getId(), role.getName()))
 						.collect(Collectors.toSet()));
 			}
 			return pDto;

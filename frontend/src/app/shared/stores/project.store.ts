@@ -5,13 +5,18 @@ import { ProjectFilters } from '../interfaces/project/project-filters.interface'
 import { Project } from '../interfaces/project/project.interface';
 import { RequestInputOptions } from '../../core/interfaces/request-input-options.interface';
 import { Page } from '../interfaces/pageable.interface';
+import {
+  ProjectCreationPayload,
+  ProjectCreationResponse,
+} from '../interfaces/project/project-creation.interface';
+import { RoleSummary } from '../interfaces/role/role-summary.interface';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ProjectStore extends BaseStore {
   constructor() {
-    super('projects');
+    super('api/projects');
   }
 
   getProjects(filters: ProjectFilters): Observable<Page<Project>> {
@@ -28,5 +33,42 @@ export class ProjectStore extends BaseStore {
       url,
       options
     );
+  }
+
+  createProject(payload: ProjectCreationPayload): Observable<ProjectCreationResponse> {
+    const normalizedPayload: ProjectCreationPayload = {
+      ...payload,
+      templateId: this.normalizeTemplateId(payload.templateId)
+    };
+
+    return this.requestService.makePost<ProjectCreationResponse>(this.getUrl(''), {
+      useAuth: true,
+      data: normalizedPayload,
+    });
+  }
+
+  listRoles(): Observable<RoleSummary[]> {
+    return this.requestService.makeGet<RoleSummary[]>(this.getUrl('roles'), {
+      useAuth: true,
+    });
+  }
+
+  private normalizeTemplateId(templateId: ProjectCreationPayload['templateId']): number | null {
+    if (typeof templateId === 'number' && Number.isFinite(templateId)) {
+      return templateId;
+    }
+
+    if (typeof templateId === 'string') {
+      const parsed = Number(templateId);
+
+      if (Number.isFinite(parsed)) {
+        return parsed;
+      }
+
+      console.warn('[ProjectStore] templateId recebido não é numérico e será enviado como null.', templateId);
+      return null;
+    }
+
+    return null;
   }
 }

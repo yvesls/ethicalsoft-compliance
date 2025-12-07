@@ -4,19 +4,24 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { BasePageComponent, RestoreParams } from '../../../../core/abstractions/base-page.component';
 import { ModalService } from '../../../../core/services/modal.service';
 import { InputComponent } from '../../../../shared/components/input/input.component';
-import { MultiSelectComponent } from '../../../../shared/components/multi-select/multi-select.component';
+import { MultiSelectComponent, MultiSelectOption } from '../../../../shared/components/multi-select/multi-select.component';
 import { ActionType } from '../../../../shared/enums/action-type.enum';
-import { REPRESENTATIVE_ROLE_OPTIONS } from '../../../../shared/enums/representative-role.enum';
 import { capitalizeWords } from '../../../../core/utils/common-utils';
 import { GenericParams, RouteParams } from '../../../../core/services/router.service';
+import { RoleService } from '../../../../core/services/role.service';
+import { RoleSummary } from '../../../../shared/interfaces/role/role-summary.interface';
+import { take } from 'rxjs/operators';
 
 export interface RepresentativeData {
-  id?: string;
+  id?: number | string | null;
   firstName: string;
   lastName: string;
   email: string;
   weight: number;
-  roles: string[];
+  roleIds: number[];
+  roleNames?: string[];
+  userId?: number | null;
+  projectId?: number | null;
 }
 
 interface RepresentativeFormValue {
@@ -24,7 +29,7 @@ interface RepresentativeFormValue {
   lastName: string;
   email: string;
   weight: number;
-  roles: string[];
+  roleIds: number[];
 }
 
 type RepresentativeRouteState = RouteParams<GenericParams> & {
@@ -52,12 +57,14 @@ export class RepresentativeModalComponent extends BasePageComponent implements O
   private modalService = inject(ModalService);
   private fb = inject(FormBuilder);
   private cdr = inject(ChangeDetectorRef);
+  private roleService = inject(RoleService);
 
   form!: FormGroup;
   actionType: ActionType = ActionType.CREATE;
   representativeData?: RepresentativeData;
   modalTitle = 'Criar novo representante';
-  roleOptions = REPRESENTATIVE_ROLE_OPTIONS;
+  roleOptions: MultiSelectOption[] = [];
+  private rolesLookup = new Map<number, string>();
 
   constructor() {
     super();
@@ -67,19 +74,15 @@ export class RepresentativeModalComponent extends BasePageComponent implements O
     this.initializeForm();
     super.ngOnInit();
 
+    this.loadRoleOptions();
+
     if (this.mode) {
       this.actionType = this.mode;
     }
 
     if (this.editData) {
       this.representativeData = this.editData;
-      this.form.patchValue({
-        firstName: capitalizeWords(this.editData.firstName),
-        lastName: capitalizeWords(this.editData.lastName),
-        email: this.editData.email,
-        weight: this.editData.weight,
-        roles: this.editData.roles
-      }, { emitEvent: false });
+      this.patchFormWithRepresentative(this.editData);
     }
 
     this.updateModalTitle();
@@ -117,15 +120,7 @@ export class RepresentativeModalComponent extends BasePageComponent implements O
     const dataParam = params['data'];
     if (dataParam) {
       this.representativeData = dataParam as RepresentativeData;
-      if (this.representativeData) {
-        this.form.patchValue({
-          firstName: capitalizeWords(this.representativeData.firstName),
-          lastName: capitalizeWords(this.representativeData.lastName),
-          email: this.representativeData.email,
-          weight: this.representativeData.weight,
-          roles: this.representativeData.roles
-        }, { emitEvent: false });
-      }
+      this.patchFormWithRepresentative(this.representativeData);
     }
 
     this.updateModalTitle();
@@ -138,8 +133,112 @@ export class RepresentativeModalComponent extends BasePageComponent implements O
       lastName: ['', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
       weight: [1, [Validators.required, Validators.min(1)]],
-      roles: [[], [Validators.required, Validators.minLength(1)]]
+      roleIds: [[], [Validators.required, Validators.minLength(1)]]
     });
+  }
+
+  private loadRoleOptions(): void {
+    this.roleService
+      .getRoles()
+      .pipe(take(1))
+      .subscribe({
+        next: (roles) => {
+          const resolvedRoles = roles ?? [];
+          this.roleOptions = resolvedRoles.map(this.mapRoleToOption);
+          this.rolesLookup = new Map(resolvedRoles.map((role) => [role.id, role.name]));
+          this.applyPendingRoleNameConversion();
+          this.cdr.markForCheck();
+        },
+        error: (error) => {
+          console.error('Falha ao carregar roles', error);
+        }
+      });
+  }
+
+  private mapRoleToOption(role: RoleSummary): MultiSelectOption {
+    return {
+      value: role.id,
+      label: role.name,
+    };
+  }
+
+  private patchFormWithRepresentative(data: RepresentativeData): void {
+    const roleIds = this.ensureRoleIds(data);
+    this.form.patchValue({
+      firstName: capitalizeWords(data.firstName),
+      lastName: capitalizeWords(data.lastName),
+      email: data.email,
+      weight: data.weight,
+      roleIds,
+    }, { emitEvent: false });
+  }
+
+  private pendingRoleNames?: string[];
+
+  private ensureRoleIds(data: RepresentativeData): number[] {
+    if (Array.isArray(data.roleIds) && data.roleIds.length > 0) {
+      return data.roleIds
+        .map(Number)
+        .filter((id) => Number.isFinite(id) && id > 0);
+    }
+
+    if (data.roleNames?.length) {
+      const ids = this.mapRoleNamesToIds(data.roleNames);
+      if (ids.length) {
+        data.roleIds = ids;
+        return ids;
+      }
+
+      this.pendingRoleNames = data.roleNames;
+    }
+
+    return [];
+  }
+
+  private applyPendingRoleNameConversion(): void {
+    if (!this.pendingRoleNames?.length) {
+      return;
+    }
+
+    const roleIds = this.mapRoleNamesToIds(this.pendingRoleNames);
+    if (roleIds.length) {
+      this.form.patchValue({ roleIds }, { emitEvent: false });
+      if (this.representativeData) {
+        this.representativeData.roleIds = roleIds;
+      }
+    }
+    this.pendingRoleNames = undefined;
+  }
+
+  private mapRoleNamesToIds(roleNames: string[]): number[] {
+    if (!roleNames?.length || this.roleOptions.length === 0) {
+      return [];
+    }
+
+    const normalizedNames = roleNames.map((name) => name?.trim().toLowerCase()).filter(Boolean);
+    if (!normalizedNames.length) {
+      return [];
+    }
+
+    const ids: number[] = [];
+    for (const option of this.roleOptions) {
+      const optionLabel = option.label?.toLowerCase();
+      if (normalizedNames.includes(optionLabel)) {
+        ids.push(Number(option.value));
+      }
+    }
+
+    return Array.from(new Set(ids));
+  }
+
+  private mapRoleIdsToNames(roleIds: number[]): string[] {
+    if (!roleIds?.length || this.rolesLookup.size === 0) {
+      return [];
+    }
+
+    return roleIds
+      .map((id) => this.rolesLookup.get(Number(id)))
+      .filter(Boolean) as string[];
   }
 
   private updateModalTitle(): void {
@@ -158,11 +257,15 @@ export class RepresentativeModalComponent extends BasePageComponent implements O
     const representativeFormData: RepresentativeData = {
       ...formValue,
       firstName: capitalizeWords(formValue.firstName),
-      lastName: capitalizeWords(formValue.lastName)
+      lastName: capitalizeWords(formValue.lastName),
+      userId: this.representativeData?.userId ?? null,
+      projectId: this.representativeData?.projectId ?? null,
     };
 
-    if (this.actionType === ActionType.EDIT && this.representativeData?.id) {
-      representativeFormData.id = this.representativeData.id;
+    representativeFormData.roleNames = this.mapRoleIdsToNames(representativeFormData.roleIds);
+
+    if (this.actionType === ActionType.EDIT) {
+      representativeFormData.id = this.representativeData?.id ?? representativeFormData.id ?? null;
       this.representativeUpdated.emit(representativeFormData);
     } else {
       this.representativeCreated.emit(representativeFormData);

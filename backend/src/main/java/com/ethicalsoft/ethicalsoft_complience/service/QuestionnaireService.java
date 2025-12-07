@@ -68,8 +68,8 @@ public class QuestionnaireService {
 				question.setStage( stageMap.get( dto.getCategoryStageName() ) );
 			}
 
-			if ( dto.getRoles() != null ) {
-				Set<Role> targetRoles = dto.getRoles().stream().map( roleMap::get ).filter( Objects::nonNull ).collect( Collectors.toSet() );
+			if ( dto.getRoleIds() != null ) {
+				Set<Role> targetRoles = dto.getRoleIds().stream().map( roleMap::get ).filter( Objects::nonNull ).collect( Collectors.toSet() );
 				question.setRoles( targetRoles );
 			}
 

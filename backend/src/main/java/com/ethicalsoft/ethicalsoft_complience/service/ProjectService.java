@@ -5,6 +5,7 @@ import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.RepresentativeD
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.ProjectCreationRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.ProjectSearchRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.response.ProjectSummaryResponseDTO;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.response.RoleSummaryResponseDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.ProjectTypeEnum;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.ProjectRepository;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.RepresentativeRepository;
@@ -16,15 +17,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +37,8 @@ public class ProjectService {
 	private final RepresentativeRepository representativeRepository;
 	private final UserRepository userRepository;
 	private final RoleRepository roleRepository;
+	private final PasswordEncoder passwordEncoder;
+	private final EmailService emailService;
 
 	@Transactional
 	public Project createProjectShell( ProjectCreationRequestDTO request ) {
@@ -49,17 +54,12 @@ public class ProjectService {
 	@Transactional(readOnly = true)
 	public Page<ProjectSummaryResponseDTO> getAllProjectSummaries( ProjectSearchRequestDTO filters, Pageable pageable) {
 
-		// 1. Cria a query dinâmica (Specification) a partir dos filtros
 		Specification<Project> spec = ProjectSpecification.findByCriteria(filters);
 
-		// 2. Chama o NOVO método do repositório
-		// Este método agora executa a query dinâmica (spec)
-		// e o EntityGraph (para evitar N+1)
 		Page<Project> projectPage = projectRepository.findAll(spec, pageable);
 
 		LocalDate now = LocalDate.now();
 
-		// O resto da lógica de mapeamento permanece idêntica
 		return projectPage.map(project -> {
 			String currentStage = null;
 			Integer currentIteration = null;
@@ -120,30 +120,95 @@ public class ProjectService {
 		return null;
 	}
 
-
 	@Transactional
 	public Set<Representative> createRepresentatives( Project project, Set<RepresentativeDTO> repDTOs ) {
 		if ( repDTOs == null || repDTOs.isEmpty() ) {
 			return new HashSet<>();
 		}
 
-		Set<Representative> representatives = repDTOs.stream().map( dto -> {
-			User user = userRepository.findById( dto.getUserId() ).orElseThrow( () -> new EntityNotFoundException( "Usuário não encontrado: " + dto.getUserId() ) );
+		Set<Long> requestedRoleIds = repDTOs.stream()
+				.filter( dto -> dto.getRoleIds() != null )
+				.flatMap( dto -> dto.getRoleIds().stream() )
+				.collect( Collectors.toSet() );
 
-			Set<Role> roles = new HashSet<>( roleRepository.findAllById( dto.getRoleIds() ) );
-			if ( roles.size() != dto.getRoleIds().size() ) {
-				throw new EntityNotFoundException( "Um ou mais papéis (Roles) não foram encontrados." );
-			}
+		Map<Long, Role> resolvedRoles = requestedRoleIds.isEmpty()
+				? Map.of()
+				: roleRepository.findAllById( requestedRoleIds ).stream()
+				.collect( Collectors.toMap( Role::getId, Function.identity() ) );
+
+		if ( resolvedRoles.size() != requestedRoleIds.size() ) {
+			throw new EntityNotFoundException( "Um ou mais papéis (Roles) não foram encontrados." );
+		}
+
+		Set<Representative> representatives = repDTOs.stream().map( dto -> {
+			UserResolutionResult resolution = resolveOrCreateUser( dto );
+			Set<Role> roles = mapRoles( dto.getRoleIds(), resolvedRoles );
 
 			Representative rep = new Representative();
 			rep.setProject( project );
-			rep.setUser( user );
+			rep.setUser( resolution.user() );
 			rep.setRoles( roles );
 			rep.setWeight( dto.getWeight() );
 			rep.setCreationDate( LocalDate.now() );
+
+			resolution.temporaryPassword().ifPresent( tempPassword ->
+				emailService.sendNewUserCredentialsEmail(
+						rep.getUser().getEmail(),
+						rep.getUser().getFirstName(),
+						tempPassword
+				)
+			);
+
 			return rep;
 		} ).collect( Collectors.toSet() );
 
 		return new HashSet<>( representativeRepository.saveAll( representatives ) );
 	}
+
+	private UserResolutionResult resolveOrCreateUser( RepresentativeDTO dto ) {
+		if ( StringUtils.hasText( dto.getEmail() ) ) {
+			return userRepository.findByEmail( dto.getEmail() )
+					.map( user -> new UserResolutionResult( user, Optional.empty() ) )
+					.orElseGet( () -> createUserFromDto( dto ) );
+		}
+
+		throw new IllegalArgumentException( "Representante precisa informar userId ou email." );
+	}
+
+	private UserResolutionResult createUserFromDto( RepresentativeDTO dto ) {
+		if ( !StringUtils.hasText( dto.getEmail() ) || !StringUtils.hasText( dto.getFirstName() ) || !StringUtils.hasText( dto.getLastName() ) ) {
+			throw new IllegalArgumentException( "Dados insuficientes para criar um usuário." );
+		}
+
+		User user = new User();
+		user.setFirstName( dto.getFirstName() );
+		user.setLastName( dto.getLastName() );
+		user.setEmail( dto.getEmail() );
+		user.setPassword( passwordEncoder.encode( UUID.randomUUID().toString() ) );
+		user.setFirstAccess( true );
+		user.setAcceptedTerms( false );
+
+		user = userRepository.save( user );
+
+		return new UserResolutionResult( user, Optional.of( user.getPassword() ) );
+	}
+
+	private Set<Role> mapRoles( Set<Long> desiredRoleIds, Map<Long, Role> resolvedRoles ) {
+		if ( desiredRoleIds == null || desiredRoleIds.isEmpty() ) {
+			return Set.of();
+		}
+
+		return desiredRoleIds.stream()
+				.map( resolvedRoles::get )
+				.collect( Collectors.toSet() );
+	}
+
+	@Transactional(readOnly = true)
+	public List<RoleSummaryResponseDTO> listRoleSummaries() {
+		return roleRepository.findAll().stream()
+				.map(role -> new RoleSummaryResponseDTO(role.getId(), role.getName()))
+				.collect(toList());
+	}
+
+	record UserResolutionResult( User user, Optional<String> temporaryPassword ) {}
 }

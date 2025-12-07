@@ -57,7 +57,6 @@
       </app-input>
     </div>
 
-    <!-- Validation Errors -->
     @if (projectForm.errors && (projectForm.errors['deadlineTooEarly'] || projectForm.errors['startDateTooLate'] || projectForm.errors['stageExceedsDeadline'])) {
       <div class="validation-errors">
         @if (projectForm.errors['deadlineTooEarly']) {
@@ -98,7 +97,7 @@
         <thead>
           <tr>
             <th>Sequência</th>
-            <th>Nome da etapa</th>
+            <th class="text-start">Nome da etapa</th>
             <th class="text-start">Faixa de aplicação</th>
             <th>Peso</th>
             <th>Ação</th>
@@ -195,7 +194,7 @@
               <td class="cell-name">{{ rep.get('lastName')?.value }}</td>
               <td class="cell-name">{{ rep.get('email')?.value }}</td>
               <td class="cell-weight">{{ rep.get('weight')?.value }}</td>
-              <td class="cell-name">{{ rep.get('roles')?.value?.join(', ') || '-' }}</td>
+              <td class="cell-name">{{ getRepresentativeRoleNames(rep) }}</td>
               <td class="cell-actions">
                 <button
                   type="button"
@@ -302,9 +301,9 @@
     <button
       type="submit"
       class="btn btn-primary"
-      [disabled]="projectForm.invalid"
+      [disabled]="projectForm.invalid || isSubmitting"
     >
-      Salvar projeto
+      {{ isSubmitting ? 'Salvando...' : 'Salvar projeto' }}
     </button>
   </div>
 </form>

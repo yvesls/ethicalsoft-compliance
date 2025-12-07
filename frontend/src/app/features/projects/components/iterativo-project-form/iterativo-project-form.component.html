@@ -165,7 +165,7 @@
               <td class="cell-name">{{ rep.get('lastName')?.value }}</td>
               <td class="cell-name">{{ rep.get('email')?.value }}</td>
               <td class="cell-weight">{{ rep.get('weight')?.value }}</td>
-              <td class="cell-name">{{ rep.get('roles')?.value?.join(', ') || '-' }}</td>
+              <td class="cell-name">{{ getRepresentativeRoleNames(rep) }}</td>
               <td class="cell-actions">
                 <button
                   type="button"
@@ -255,9 +255,9 @@
     <button
       type="submit"
       class="btn btn-primary"
-      [disabled]="projectForm.invalid"
+      [disabled]="projectForm.invalid || isSubmitting"
     >
-      Salvar projeto
+      {{ isSubmitting ? 'Salvando...' : 'Salvar projeto' }}
     </button>
   </div>
 </form>

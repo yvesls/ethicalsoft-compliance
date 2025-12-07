@@ -7,7 +7,7 @@ import java.util.Set;
 @Data
 public class QuestionDTO {
 	private String value;
-	private Set<String> roles;
+	private Set<Long> roleIds;
 	private StageDTO stage;
 	private String categoryStageName;
 }

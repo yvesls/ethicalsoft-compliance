@@ -7,8 +7,11 @@ import java.util.Set;
 
 @Data
 public class RepresentativeDTO {
-	private Long userId;
-	private Set<Long> roleIds;
-	private BigDecimal weight;
-	private Long projectId;
+    private String firstName;
+    private String lastName;
+    private String email;
+    private Long userId;
+    private Set<Long> roleIds;
+    private BigDecimal weight;
+    private Long projectId;
 }
