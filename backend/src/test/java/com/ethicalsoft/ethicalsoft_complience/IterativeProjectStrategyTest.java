@@ -78,7 +78,7 @@ class IterativeProjectStrategyTest {
 		when( stageRepository.saveAll( any( List.class ) ) ).thenReturn( List.of( savedStage ) );
 
 		Iteration savedIter = new Iteration();
-		savedIter.setId( 1L );
+		savedIter.setId( 1 );
 		savedIter.setName( "Sprint 1" );
 		when( iterationRepository.saveAll( any( List.class ) ) ).thenReturn( List.of( savedIter ) );
 

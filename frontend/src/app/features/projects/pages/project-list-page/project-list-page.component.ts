@@ -42,6 +42,8 @@ import { FilterBarComponent } from '../../../../shared/components/filter-bar/fil
 import { ListComponent } from '../../../../shared/components/list/list.component';
 import { ListItemComponent } from '../../../../shared/components/list-item/list-item.component';
 import { ModalService } from '../../../../core/services/modal.service';
+import { AuthenticationService } from '../../../../core/services/authentication.service';
+import { RoleEnum } from '../../../../shared/enums/role.enum';
 
 const getEnumKeys = (enumObject: Record<string, string | number>): string[] =>
   Object.keys(enumObject).filter((key) => typeof enumObject[key] === 'string');
@@ -90,6 +92,7 @@ export class ProjectListPageComponent implements OnInit {
   private projectStore = inject(ProjectStore);
   private spinner = inject(NgxSpinnerService);
   private modalService = inject(ModalService);
+  private authService = inject(AuthenticationService);
 
   projectTypes = getEnumKeys(ProjectType);
   projectStatuses = getEnumKeys(ProjectStatus);
@@ -112,6 +115,9 @@ export class ProjectListPageComponent implements OnInit {
   pagination = computed(() => this.state().pagination);
   status = computed(() => this.state().status);
   error = computed(() => this.state().error);
+
+  private readonly userRoles = signal<string[]>([]);
+  readonly isAdmin = computed(() => this.userRoles().includes(RoleEnum.ADMIN));
 
   statusIconMap = {
     [ProjectStatus.Aberto]: 'assets/icons/status-aberto.svg',
@@ -140,7 +146,14 @@ export class ProjectListPageComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.listenToUserRoles();
     this.listenToQueryChanges();
+  }
+
+  private listenToUserRoles(): void {
+    this.authService.userRoles$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((roles) => this.userRoles.set(roles ?? []));
   }
 
   private listenToQueryChanges(): void {
@@ -213,6 +226,9 @@ export class ProjectListPageComponent implements OnInit {
   }
 
   goToCreateProject(): void {
+    if (!this.isAdmin()) {
+      return;
+    }
     this.modalService.open(ProjectTypeSelectionComponent, 'small-card');
   }
 

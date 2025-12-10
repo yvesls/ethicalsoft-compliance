@@ -43,9 +43,9 @@ public class Questionnaire {
 	@JoinColumn(name = "project_id")
 	private Project project;
 
-	@OneToMany(mappedBy = "questionnaire")
-	private Set<Question> questions;
-
+    @OneToMany(mappedBy = "questionnaire")
+    private Set<Question> questions;
+    
 	@ManyToOne
 	@JoinColumn(name = "stage_id")
 	private Stage stage;

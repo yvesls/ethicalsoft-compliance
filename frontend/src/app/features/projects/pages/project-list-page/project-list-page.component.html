@@ -43,7 +43,11 @@
     </button>
 
     <div actions>
-      <button type="button" class="btn btn-secundary" (click)="goToCreateProject()">Criar novo projeto</button>
+      @if (isAdmin()) {
+        <button type="button" class="btn btn-secundary" (click)="goToCreateProject()">
+          Criar novo projeto
+        </button>
+      }
     </div>
   </app-filter-bar>
 

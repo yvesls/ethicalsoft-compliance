@@ -21,7 +21,7 @@ public class Iteration {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "iteration_id")
-	private Long id;
+	private Integer id;
 
 	@ManyToOne
 	@JoinColumn(name = "project_id", nullable = false)

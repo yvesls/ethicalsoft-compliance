@@ -10,6 +10,11 @@ import {
   ProjectCreationResponse,
 } from '../interfaces/project/project-creation.interface';
 import { RoleSummary } from '../interfaces/role/role-summary.interface';
+import {
+  ProjectQuestionnaireFilters,
+  ProjectQuestionnaireSummary,
+} from '../interfaces/project/project-questionnaire.interface';
+import { UrlParameter } from '../../core/interfaces/url-parameter.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -51,6 +56,44 @@ export class ProjectStore extends BaseStore {
     return this.requestService.makeGet<RoleSummary[]>(this.getUrl('roles'), {
       useAuth: true,
     });
+  }
+
+  getProjectById(projectId: string): Observable<Project> {
+    return this.requestService.makeGet<Project>(this.getUrl(projectId), {
+      useAuth: true,
+    });
+  }
+
+  getProjectQuestionnaires(
+    projectId: string,
+    filters: ProjectQuestionnaireFilters
+  ): Observable<Page<ProjectQuestionnaireSummary>> {
+    const params: UrlParameter[] = [
+      { key: 'page', value: filters.page },
+      { key: 'size', value: filters.size },
+    ];
+
+    if (filters.search) {
+      params.push({ key: 'search', value: filters.search });
+    }
+
+    if (filters.stage) {
+      params.push({ key: 'stage', value: filters.stage });
+    }
+
+    if (filters.iteration) {
+      params.push({ key: 'iteration', value: filters.iteration });
+    }
+
+    if (filters.status) {
+      params.push({ key: 'status', value: filters.status });
+    }
+
+    return this.requestService.makeGet<Page<ProjectQuestionnaireSummary>>(
+      this.getUrl(`${projectId}/questionnaires`),
+      { useAuth: true },
+      ...params
+    );
   }
 
   private normalizeTemplateId(templateId: ProjectCreationPayload['templateId']): number | null {

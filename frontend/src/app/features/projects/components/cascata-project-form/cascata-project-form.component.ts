@@ -1158,7 +1158,7 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
 
           return this.templateStore.createTemplateFromProject(
             project.id,
-            this.buildTemplateCloneRequest(payload.name)
+            this.buildTemplateCloneRequest(payload.name),
           );
         }),
         takeUntilDestroyed(this.destroyRef),
@@ -1415,7 +1415,7 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
     return {
       name: `${projectName} - Template`,
       description: this.selectedTemplateData?.description || defaultDescription,
-      visibility: this.selectedTemplateData?.visibility ?? 'PRIVATE',
+      visibility: 'PRIVATE',
     };
   }
 

@@ -1,8 +1,9 @@
-import { Component, ChangeDetectionStrategy, Input, HostBinding } from '@angular/core';
+import { Component, ChangeDetectionStrategy, Input, HostBinding, HostListener, inject } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { Project } from '../../interfaces/project/project.interface';
 import { ProjectStatus } from '../../enums/project-status.enum';
 import { ProjectType } from '../../enums/project-type.enum';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-list-item',
@@ -15,11 +16,20 @@ import { ProjectType } from '../../enums/project-type.enum';
 export class ListItemComponent {
   @Input({ required: true }) item!: Project;
   @Input() navigateTo: string[] | null = null;
+  private readonly router = inject(Router);
 
   public ProjectType = ProjectType;
 
   @HostBinding('class.clickable') get clickable() {
     return !!this.navigateTo;
+  }
+
+  @HostBinding('attr.tabindex') get tabIndex(): number {
+    return this.navigateTo ? 0 : -1;
+  }
+
+  @HostBinding('attr.role') get role(): string | null {
+    return this.navigateTo ? 'button' : null;
   }
 
   statusIconMap: Record<string, string> = {
@@ -62,5 +72,25 @@ export class ListItemComponent {
     }
 
     return this.item.situation || '---';
+  }
+
+  @HostListener('click', ['$event'])
+  onClick(event: Event): void {
+    this.navigateFromEvent(event);
+  }
+
+  @HostListener('keydown.enter', ['$event'])
+  @HostListener('keydown.space', ['$event'])
+  onKeydown(event: Event): void {
+    this.navigateFromEvent(event);
+  }
+
+  private navigateFromEvent(event: Event): void {
+    if (!this.navigateTo) {
+      return;
+    }
+
+    event.preventDefault();
+    this.router.navigate(this.navigateTo);
   }
 }

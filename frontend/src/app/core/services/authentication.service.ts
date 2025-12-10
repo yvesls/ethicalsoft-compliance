@@ -29,6 +29,7 @@ export class AuthenticationService {
 
 	userRoles$ = new BehaviorSubject<string[]>([])
 	isLoggedIn$ = new BehaviorSubject<boolean>(false)
+	currentUser$ = new BehaviorSubject<UserInterface | null>(null)
 
 	constructor() {
 		this.loadStoredToken()
@@ -94,8 +95,7 @@ export class AuthenticationService {
 				}
 				this._user = this.decodeUser(token)
 				this.startSessionMonitor()
-				this.isLoggedIn$.next(true)
-				this.userRoles$.next(this._user?.roles || [])
+				this.emitUserState()
 			} else {
 				LoggerService.warn('AuthenticationService: Token not found in storage.')
 			}
@@ -106,7 +106,8 @@ export class AuthenticationService {
 		this.authStore.token(credentials).subscribe({
 			next: (tokenData: AuthTokenInterface) => {
 				this.setAuthToken(tokenData, keepSession)
-				this.routerService.navigateTo('/home')
+				const redirectUrl = this.shouldForcePasswordReset() ? '/settings/reset-password' : '/home'
+				this.routerService.navigateTo(redirectUrl)
 			},
 			error: (error: unknown) => {
 				LoggerService.error('AuthenticationService: Error during login', error)
@@ -148,8 +149,7 @@ export class AuthenticationService {
 
 			this._authToken = null
 			this._user = null
-			this.userRoles$.next([])
-			this.isLoggedIn$.next(false)
+		this.emitUserState()
 
 			this.cancelRefreshTimer()
 
@@ -195,8 +195,7 @@ export class AuthenticationService {
 
 		this._user = this.decodeUser(tokenData.accessToken)
 
-		this.userRoles$.next(this._user?.roles || [])
-		this.isLoggedIn$.next(!!this._user)
+		this.emitUserState()
 		this.startSessionMonitor()
 	}
 
@@ -209,9 +208,14 @@ export class AuthenticationService {
 			sessionStorage.removeItem(this.SESSION_REFRESH_TOKEN_KEY)
 		}
 
-		this.userRoles$.next([])
-		this.isLoggedIn$.next(false)
+		this.emitUserState()
 		this.cancelRefreshTimer()
+	}
+
+	private emitUserState(): void {
+		this.userRoles$.next(this._user?.roles || [])
+		this.isLoggedIn$.next(!!this._user)
+		this.currentUser$.next(this._user)
 	}
 
 	private decodeUser(token: string): UserInterface {
@@ -255,6 +259,26 @@ export class AuthenticationService {
 
 	getUserRoles(): string[] {
 		return this._user?.roles || []
+	}
+
+	getCurrentUser(): UserInterface | null {
+		return this._user
+	}
+
+	isFirstAccessPending(): boolean {
+		return this._user?.isFirstAccess ?? false
+	}
+
+	markFirstAccessCompleted(): void {
+		if (!this._user) {
+			return
+		}
+		this._user = { ...this._user, isFirstAccess: false }
+		this.emitUserState()
+	}
+
+	private shouldForcePasswordReset(): boolean {
+		return this.isFirstAccessPending()
 	}
 
 	private isBrowser(): boolean {

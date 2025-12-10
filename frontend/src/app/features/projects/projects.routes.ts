@@ -22,8 +22,11 @@ export const PROJECTS_ROUTES: Routes = [
     path: 'questionnaire/iterativo',
     component: IterativoQuestionnaireFormComponent,
   },
-  // {
-  //   path: ':id',
-  //   loadComponent: () => import('./pages/project-detail-page/project-detail-page.component')...
-  // },
+  {
+    path: ':id',
+    loadComponent: () =>
+      import('./pages/project-detail-page/project-detail-page.component').then(
+        (m) => m.ProjectDetailPageComponent
+      ),
+  },
 ];

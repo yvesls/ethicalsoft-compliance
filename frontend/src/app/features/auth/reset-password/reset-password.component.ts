@@ -8,7 +8,6 @@ import {
 	ReactiveFormsModule,
 	ValidationErrors,
 	Validators,
-	ValidatorFn,
 } from '@angular/forms'
 import { Params } from '@angular/router'
 import { BasePageComponent, RestoreParams } from '../../../core/abstractions/base-page.component'
@@ -47,6 +46,18 @@ export class ResetPasswordComponent extends BasePageComponent<ResetPasswordRoute
 	private readonly formBuilder = inject(FormBuilder)
 	private readonly authStore = inject(AuthStore)
 	private readonly notificationService = inject(NotificationService)
+
+	readonly passwordValidationMessages = {
+		required: 'Senha é obrigatória',
+		minlength: 'A senha deve ter pelo menos 8 caracteres',
+		weakPassword:
+			'A senha precisa ter letras maiúsculas, minúsculas, números e caracteres especiais',
+	}
+
+	readonly confirmPasswordValidationMessages = {
+		required: 'Confirmação de senha é obrigatória',
+		passwordsMismatch: 'As senhas não coincidem',
+	}
 
 	protected override onInit(): void {
 		this._initForm()
@@ -96,16 +107,36 @@ export class ResetPasswordComponent extends BasePageComponent<ResetPasswordRoute
 	private _initForm(): void {
 		this.form = this.formBuilder.nonNullable.group(
 			{
-				password: this.formBuilder.nonNullable.control('', [Validators.required, Validators.minLength(6)]),
+				password: this.formBuilder.nonNullable.control('', [
+					Validators.required,
+					Validators.minLength(8),
+					(control) => this.passwordStrengthValidator(control),
+				]),
 				confirmPassword: this.formBuilder.nonNullable.control('', [Validators.required]),
 			},
 			{
-				validators: this.passwordsMatchValidator,
+				validators: (group) => this.passwordsMatchValidator(group),
 			}
 		)
 	}
 
-	private readonly passwordsMatchValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+	private passwordStrengthValidator(control: AbstractControl): ValidationErrors | null {
+		const value = control.value as string
+		if (!value) {
+			return null
+		}
+
+		const hasUpperCase = /[A-Z]/.test(value)
+		const hasLowerCase = /[a-z]/.test(value)
+		const hasNumber = /\d/.test(value)
+		const hasSpecial = /[^A-Za-z0-9]/.test(value)
+
+		return hasUpperCase && hasLowerCase && hasNumber && hasSpecial
+			? null
+			: { weakPassword: true }
+	}
+
+	private passwordsMatchValidator(control: AbstractControl): ValidationErrors | null {
 		if (!(control instanceof FormGroup)) {
 			return null
 		}

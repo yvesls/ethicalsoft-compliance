@@ -7,7 +7,7 @@ import java.time.LocalDate;
 
 @Data
 @Builder
-public class ProjectResponse {
+public class ProjectResponseDTO {
 	private Long id;
 	private String name;
 	private String type;

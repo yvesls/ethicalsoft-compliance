@@ -581,16 +581,16 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
     return this.getControl('iterations') as FormArray;
   }
 
+  get questionnairesFormArray(): FormArray {
+    return this.getControl('questionnaires') as FormArray;
+  }
+
   get stagesFormArray(): FormArray {
     return this.getControl('stages') as FormArray;
   }
 
   get representativesFormArray(): FormArray {
     return this.getControl('representatives') as FormArray;
-  }
-
-  get questionnairesFormArray(): FormArray {
-    return this.getControl('questionnaires') as FormArray;
   }
 
   addRepresentative(): void {
@@ -956,14 +956,74 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
   }
 
   private buildIterationPayload(): IterationPayload[] {
+    const questionnaireWeights = this.getQuestionnaireWeightMap();
+
     return this.iterationsFormArray.controls
-      .map((control, index) => ({
-        name: control.get('name')?.value || `Iteração ${index + 1}`,
-        order: index + 1,
-        applicationStartDate: control.get('applicationStartDate')?.value,
-        applicationEndDate: control.get('applicationEndDate')?.value,
-      }))
-      .filter((iteration) => Boolean(iteration.applicationStartDate && iteration.applicationEndDate));
+      .map((control, index) => {
+        const iterationName = control.get('name')?.value || `Iteração ${index + 1}`;
+        const weight = this.resolveIterationWeight(iterationName, questionnaireWeights);
+        const applicationStartDate = control.get('applicationStartDate')?.value;
+        const applicationEndDate = control.get('applicationEndDate')?.value;
+
+        return {
+          name: iterationName,
+          weight,
+          order: index + 1,
+          applicationStartDate,
+          applicationEndDate,
+        } satisfies IterationPayload;
+      })
+      .filter((iteration) =>
+        Boolean(iteration.applicationStartDate && iteration.applicationEndDate && Number.isFinite(iteration.weight))
+      );
+  }
+
+  private getQuestionnaireWeightMap(): Map<string, number> {
+    const map = new Map<string, number>();
+
+    for (const control of this.questionnairesFormArray.controls) {
+      const iterationKey = control.get('iteration')?.value || control.get('name')?.value;
+      if (!iterationKey) {
+        continue;
+      }
+
+      const weightValue = Number(control.get('weight')?.value);
+      if (Number.isFinite(weightValue)) {
+        map.set(iterationKey, weightValue);
+      }
+    }
+
+    return map;
+  }
+
+  private resolveIterationWeight(iterationName: string | undefined, weightMap: Map<string, number>): number {
+    if (iterationName && weightMap.has(iterationName)) {
+      return weightMap.get(iterationName) as number;
+    }
+
+    const questionnaireControl = this.questionnairesFormArray.controls.find((control) => {
+      const iterationRef = control.get('iteration')?.value || control.get('name')?.value;
+      return iterationRef === iterationName;
+    });
+
+    const fallbackWeight = Number(questionnaireControl?.get('weight')?.value);
+    if (Number.isFinite(fallbackWeight) && fallbackWeight > 0) {
+      weightMap.set(iterationName ?? '', fallbackWeight);
+      return fallbackWeight;
+    }
+
+    const iterationIndex = this.iterationsFormArray.controls.findIndex((control) => {
+      const name = control.get('name')?.value;
+      return name === iterationName;
+    });
+
+    if (iterationIndex >= 0) {
+      const defaultWeight = iterationIndex + 1;
+      weightMap.set(iterationName ?? '', defaultWeight);
+      return defaultWeight;
+    }
+
+    return 1;
   }
 
   private buildQuestionnairePayload(): QuestionnairePayload[] {
@@ -1074,7 +1134,7 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
     return {
       name: `${projectName} - Template`,
       description: this.selectedTemplateData?.description || defaultDescription,
-      visibility: this.selectedTemplateData?.visibility ?? 'PRIVATE',
+      visibility: 'PRIVATE',
     };
   }
 
@@ -1242,7 +1302,7 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
 
   private generateQuestionnaires(): void {
     const iterationsArray = this.iterationsFormArray;
-    const questionnairesArray = this.projectForm.get('questionnaires') as FormArray;
+  const questionnairesArray = this.questionnairesFormArray;
 
     const previousValues = questionnairesArray.getRawValue() as Questionnaire[];
     const cacheByIteration = new Map(

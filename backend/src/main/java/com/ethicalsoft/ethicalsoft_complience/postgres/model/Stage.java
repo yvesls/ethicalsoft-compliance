@@ -37,7 +37,4 @@ public class Stage {
 
 	@OneToMany(mappedBy = "stage")
 	private Set<Questionnaire> questionnaires;
-
-	@OneToMany(mappedBy = "stage")
-	private Set<Question> questions;
 }

@@ -18,4 +18,6 @@ public class PasswordResetDTO {
 
 	@RequiredField( label = "newPassword" )
 	private String newPassword;
+
+	private boolean firstAccessFlow = false;
 }

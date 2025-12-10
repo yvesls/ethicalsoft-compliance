@@ -1,9 +1,11 @@
 package com.ethicalsoft.ethicalsoft_complience.service;
 
+import com.ethicalsoft.ethicalsoft_complience.mongo.model.QuestionnaireResponseDocument;
+import com.ethicalsoft.ethicalsoft_complience.mongo.repository.QuestionnaireResponseRepository;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.*;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.QuestionDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.QuestionnaireDTO;
-import com.ethicalsoft.ethicalsoft_complience.postgres.repository.QuestionRepository;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.QuestionnaireResponseStatus;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.QuestionnaireRepository;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.RoleRepository;
 import com.ethicalsoft.ethicalsoft_complience.util.ModelMapperUtils;
@@ -12,10 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,8 +23,8 @@ import java.util.stream.Collectors;
 public class QuestionnaireService {
 
 	private final QuestionnaireRepository questionnaireRepository;
-	private final QuestionRepository questionRepository;
 	private final RoleRepository roleRepository;
+	private final QuestionnaireResponseRepository questionnaireResponseRepository;
 
 	@Transactional( propagation = Propagation.MANDATORY )
 	public void createQuestionnaires( Project project, Set<QuestionnaireDTO> questionnaireDTOs, Map<String, Stage> stageMap, Map<String, Iteration> iterationMap ) {
@@ -33,7 +33,8 @@ public class QuestionnaireService {
 			return;
 		}
 
-		Map<String, Role> roleMap = roleRepository.findAll().stream().collect( Collectors.toMap( Role::getName, role -> role, ( r1, r2 ) -> r1 ) );
+		Map<Long, Role> rolesById = roleRepository.findAll().stream()
+				.collect( Collectors.toMap( Role::getId, role -> role ) );
 
 		for ( QuestionnaireDTO qnDto : questionnaireDTOs ) {
 
@@ -49,31 +50,84 @@ public class QuestionnaireService {
 
 			Questionnaire savedQuestionnaire = questionnaireRepository.save( questionnaire );
 
-			if ( qnDto.getQuestions() != null && !qnDto.getQuestions().isEmpty() ) {
-				List<Question> questions = createQuestionsForQuestionnaire( qnDto.getQuestions(), savedQuestionnaire, stageMap, roleMap );
-				questionRepository.saveAll( questions );
-			}
+			List<QuestionnaireResponseDocument.AnswerDocument> answerTemplate = buildAnswerTemplate( qnDto.getQuestions(), stageMap, rolesById );
+
+			createInitialResponses( project, savedQuestionnaire, answerTemplate );
 		}
 	}
 
-	private List<Question> createQuestionsForQuestionnaire( Set<QuestionDTO> questionDTOs, Questionnaire parentQuestionnaire, Map<String, Stage> stageMap, Map<String, Role> roleMap ) {
+	private List<QuestionnaireResponseDocument.AnswerDocument> buildAnswerTemplate( Set<QuestionDTO> questionDTOs,
+			Map<String, Stage> stageMap,
+			Map<Long, Role> rolesById ) {
+		if ( questionDTOs == null || questionDTOs.isEmpty() ) {
+			return Collections.emptyList();
+		}
+
+		AtomicLong questionCounter = new AtomicLong( 1L );
 
 		return questionDTOs.stream().map( dto -> {
-			Question question = new Question();
-			question.setValue( dto.getValue() );
-
-			question.setQuestionnaire( parentQuestionnaire );
+			QuestionnaireResponseDocument.AnswerDocument answer = new QuestionnaireResponseDocument.AnswerDocument();
+			answer.setQuestionId( questionCounter.getAndIncrement() );
+			answer.setQuestionText( dto.getValue() );
 
 			if ( dto.getCategoryStageName() != null ) {
-				question.setStage( stageMap.get( dto.getCategoryStageName() ) );
+				Stage stage = stageMap.get( dto.getCategoryStageName() );
+				answer.setStageId( stage != null ? stage.getId() : null );
 			}
 
 			if ( dto.getRoleIds() != null ) {
-				Set<Role> targetRoles = dto.getRoleIds().stream().map( roleMap::get ).filter( Objects::nonNull ).collect( Collectors.toSet() );
-				question.setRoles( targetRoles );
+				List<Long> validRoleIds = dto.getRoleIds().stream()
+						.map( rolesById::get )
+						.filter( Objects::nonNull )
+						.map( Role::getId )
+						.collect( Collectors.toList() );
+				answer.setRoleIds( validRoleIds );
 			}
 
-			return question;
+			return answer;
 		} ).collect( Collectors.toList() );
+	}
+
+	private void createInitialResponses( Project project,
+			Questionnaire questionnaire,
+			List<QuestionnaireResponseDocument.AnswerDocument> answerTemplate ) {
+
+		Set<Representative> representatives = Optional.ofNullable( project.getRepresentatives() ).orElse( Collections.emptySet() );
+
+		if ( representatives.isEmpty() ) {
+			return;
+		}
+
+		List<QuestionnaireResponseDocument> responseDocuments = representatives.stream().map( rep -> {
+			QuestionnaireResponseDocument response = new QuestionnaireResponseDocument();
+			response.setProjectId( project.getId() );
+			response.setQuestionnaireId( questionnaire.getId() );
+			response.setRepresentativeId( rep.getId() );
+			response.setStageId( questionnaire.getStage() != null ? questionnaire.getStage().getId() : null );
+			response.setStatus( QuestionnaireResponseStatus.PENDING );
+			response.setAnswers( cloneAnswerTemplate( answerTemplate ) );
+			return response;
+		} ).collect( Collectors.toList() );
+
+		questionnaireResponseRepository.saveAll( responseDocuments );
+	}
+
+	private List<QuestionnaireResponseDocument.AnswerDocument> cloneAnswerTemplate( List<QuestionnaireResponseDocument.AnswerDocument> template ) {
+		if ( template == null || template.isEmpty() ) {
+			return Collections.emptyList();
+		}
+
+		List<QuestionnaireResponseDocument.AnswerDocument> clones = new ArrayList<>();
+		for ( QuestionnaireResponseDocument.AnswerDocument original : template ) {
+			QuestionnaireResponseDocument.AnswerDocument copy = new QuestionnaireResponseDocument.AnswerDocument();
+			copy.setQuestionId( original.getQuestionId() );
+			copy.setQuestionText( original.getQuestionText() );
+			copy.setStageId( original.getStageId() );
+			copy.setRoleIds( new ArrayList<>( Optional.ofNullable( original.getRoleIds() ).orElse( Collections.emptyList() ) ) );
+			copy.setResponse( null );
+			copy.setJustification( null );
+			clones.add( copy );
+		}
+		return clones;
 	}
 }

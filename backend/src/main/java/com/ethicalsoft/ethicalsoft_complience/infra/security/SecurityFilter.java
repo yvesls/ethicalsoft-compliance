@@ -62,14 +62,13 @@ public class SecurityFilter extends OncePerRequestFilter {
 		}
 
 		if ( Objects.nonNull( projectId ) ) {
-			representativeRepository.findByUserEmailAndProjectId( user.getEmail(), projectId ).
-					ifPresent( rep ->
-					authorities.addAll( rep.getRoles().stream()
-							.map( role ->
-									new SimpleGrantedAuthority( "ROLE_" + role.getName().toUpperCase() ) )
-							.toList()
-					)
-			);
+			representativeRepository.findByUserEmailAndProjectId( user.getEmail(), projectId )
+					.ifPresentOrElse( rep -> authorities.addAll( rep.getRoles().stream()
+									.map( role -> new SimpleGrantedAuthority( "ROLE_" + role.getName().toUpperCase() ) )
+									.toList()
+							),
+							() -> logger.debug("Usuário {} não é representante no projeto {} ou não há roles associadas")
+					);
 		}
 
 		return authorities;

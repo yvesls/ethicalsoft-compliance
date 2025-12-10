@@ -54,6 +54,11 @@ public class PasswordRecoveryService {
 		}
 
 		user.setPassword( passwordEncoder.encode( passwordResetDTO.getNewPassword() ) );
+
+		if ( passwordResetDTO.isFirstAccessFlow() ) {
+			user.setFirstAccess( false );
+		}
+
 		userRepository.save( user );
 	}
 }
