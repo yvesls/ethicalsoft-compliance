@@ -73,8 +73,8 @@ export class ProjectStore extends BaseStore {
       { key: 'size', value: filters.size },
     ];
 
-    if (filters.search) {
-      params.push({ key: 'search', value: filters.search });
+    if (filters.name) {
+      params.push({ key: 'name', value: filters.name });
     }
 
     if (filters.stage) {

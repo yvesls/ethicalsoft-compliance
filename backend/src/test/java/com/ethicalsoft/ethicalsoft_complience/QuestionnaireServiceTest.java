@@ -58,7 +58,7 @@ class QuestionnaireServiceTest {
 		stage.setId( 1 );
 		stage.setName( "Requirements" );
 		iteration = new Iteration();
-		iteration.setId( 1L );
+		iteration.setId( 1 );
 		iteration.setName( "Sprint 1" );
 		role = new Role();
 		role.setId( 1L );
@@ -70,7 +70,7 @@ class QuestionnaireServiceTest {
 		questionDTO = new QuestionDTO();
 		questionDTO.setValue( "Is the code clean?" );
 		questionDTO.setCategoryStageName( "Requirements" );
-		questionDTO.setRoles( Set.of( "Developer" ) );
+		questionDTO.setRoleIds( Set.of( role.getId() ) );
 
 		questionnaireDTO = new QuestionnaireDTO();
 		questionnaireDTO.setName( "Sprint 1 Questionnaire" );
@@ -135,8 +135,8 @@ class QuestionnaireServiceTest {
 		when( questionnaireRepository.save( any( Questionnaire.class ) ) ).thenAnswer( invocation -> invocation.getArgument( 0 ) );
 
 		questionDTO.setCategoryStageName( "NonExistentStage" );
-		questionDTO.setRoles( Set.of( "NonExistentRole" ) );
 		questionnaireDTO.setIterationName( "NonExistentIteration" );
+		questionDTO.setRoleIds( Set.of( 999L ) );
 
 		questionnaireService.createQuestionnaires( project, Set.of( questionnaireDTO ), Collections.emptyMap(), Collections.emptyMap() );
 

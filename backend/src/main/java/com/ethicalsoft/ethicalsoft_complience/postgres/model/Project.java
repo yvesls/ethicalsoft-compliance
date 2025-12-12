@@ -2,6 +2,7 @@ package com.ethicalsoft.ethicalsoft_complience.postgres.model;
 
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.ProjectStatusEnum;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.ProjectTypeEnum;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.TimelineStatusEnum;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -46,6 +47,10 @@ public class Project {
 	@Enumerated(EnumType.STRING)
 	private ProjectStatusEnum status;
 
+	@Column(name = "timeline_status", nullable = false, length = 20)
+	@Enumerated(EnumType.STRING)
+	private TimelineStatusEnum timelineStatus;
+
 	@Column(name = "closing_date")
 	@Temporal(TemporalType.DATE)
 	private LocalDate closingDate;
@@ -64,4 +69,11 @@ public class Project {
 
 	@OneToMany(mappedBy = "project")
 	private Set<Iteration> iterations;
+
+	@Column(name = "current_situation", length = 100)
+	private String currentSituation;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "owner_id", nullable = false)
+	private User owner;
 }

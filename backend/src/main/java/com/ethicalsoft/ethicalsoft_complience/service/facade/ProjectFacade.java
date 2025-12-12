@@ -46,6 +46,18 @@ public class ProjectFacade {
 
 		Set<Representative> representatives = projectService.createRepresentatives( project, request.getRepresentatives() );
 
-		return ProjectResponseDTO.builder().id( project.getId() ).name( project.getName() ).type( project.getType().name() ).startDate( project.getStartDate() ).representativeCount( representatives.size() ).stageCount( request.getStages() != null ? request.getStages().size() : 0 ).iterationCount( request.getIterations() != null ? request.getIterations().size() : 0 ).build();
+		Project refreshed = projectService.refreshTimelineStatus( project.getId() );
+
+		return ProjectResponseDTO.builder()
+				.id( refreshed.getId() )
+				.name( refreshed.getName() )
+				.type( refreshed.getType().name() )
+				.startDate( refreshed.getStartDate() )
+				.timelineStatus( refreshed.getTimelineStatus() )
+				.currentSituation( refreshed.getCurrentSituation() )
+				.representativeCount( representatives.size() )
+				.stageCount( request.getStages() != null ? request.getStages().size() : 0 )
+				.iterationCount( request.getIterations() != null ? request.getIterations().size() : 0 )
+				.build();
 	}
 }

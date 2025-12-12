@@ -1,6 +1,7 @@
 package com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.response;
 
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.ProjectStatusEnum;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.TimelineStatusEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,6 +20,8 @@ public class ProjectSummaryResponseDTO {
 	private LocalDate startDate;
 	private LocalDate deadline;
 	private ProjectStatusEnum status;
+	private TimelineStatusEnum timelineStatus;
+	private String currentSituation;
 	private int representativeCount;
 	private int stageCount;
 	private int iterationCount;

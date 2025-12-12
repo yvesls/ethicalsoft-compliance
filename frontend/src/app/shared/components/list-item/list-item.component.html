@@ -44,8 +44,8 @@
     <div class="column-encerramento">
       <span class="data-label">Encerramento</span>
       <span class="data-value">
-        @if (item.endDate) {
-          {{ item.endDate | date: 'dd/MM/yyyy' }}
+        @if (item.deadline) {
+          {{ item.deadline | date: 'dd/MM/yyyy' }}
         } @else {
           ---/--/----
         }

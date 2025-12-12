@@ -3,6 +3,7 @@ package com.ethicalsoft.ethicalsoft_complience.controller;
 import com.ethicalsoft.ethicalsoft_complience.infra.security.ProjectRoleAuthorizationEvaluator;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.ProjectCreationRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.ProjectSearchRequestDTO;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.QuestionnaireSearchFilter;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.response.*;
 import com.ethicalsoft.ethicalsoft_complience.service.ProjectService;
 import com.ethicalsoft.ethicalsoft_complience.service.facade.ProjectFacade;
@@ -51,7 +52,11 @@ public class ProjectController {
 	@PreAuthorize("@projectRoleAuthorizationEvaluator.canAccess(authentication)")
 	public Page<QuestionnaireSummaryResponseDTO> listProjectQuestionnaires(
 			@PathVariable Long projectId,
+			@RequestParam(name = "name", required = false) String questionnaireName,
+			@RequestParam(name = "stage", required = false) String stageName,
+			@RequestParam(name = "iteration", required = false) String iterationName,
 			@PageableDefault(page = 0, size = 10) Pageable pageable) {
-		return projectService.listQuestionnaires(projectId, pageable);
+		QuestionnaireSearchFilter filter = new QuestionnaireSearchFilter(questionnaireName, stageName, iterationName);
+		return projectService.listQuestionnaires(projectId, pageable, filter);
 	}
 }

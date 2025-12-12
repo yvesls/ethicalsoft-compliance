@@ -1,6 +1,7 @@
 package com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.response;
 
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.QuestionnaireResponseStatus;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.TimelineStatusEnum;
 import lombok.Builder;
 import lombok.Value;
 
@@ -22,5 +23,6 @@ public class QuestionnaireSummaryResponseDTO {
     Integer pendingRespondents;
     LocalDateTime lastResponseAt;
     QuestionnaireResponseStatus progressStatus;
+    TimelineStatusEnum status;
     List<RespondentStatusDTO> respondents;
 }

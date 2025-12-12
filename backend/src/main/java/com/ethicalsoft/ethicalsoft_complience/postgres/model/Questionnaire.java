@@ -1,5 +1,6 @@
 package com.ethicalsoft.ethicalsoft_complience.postgres.model;
 
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.TimelineStatusEnum;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -53,4 +54,8 @@ public class Questionnaire {
 	@ManyToOne
 	@JoinColumn(name = "iteration_id")
 	private Iteration iterationRef;
+
+	@Column(name = "status", nullable = false, length = 20)
+	@Enumerated(EnumType.STRING)
+	private TimelineStatusEnum status = TimelineStatusEnum.PENDENTE;
 }

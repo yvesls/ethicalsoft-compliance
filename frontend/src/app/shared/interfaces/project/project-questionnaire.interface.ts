@@ -1,4 +1,5 @@
 import { QuestionnaireResponseStatus } from '../../enums/questionnaire-response-status.enum';
+import { TimelineStatus } from '../../enums/timeline-status.enum';
 
 export interface QuestionnaireRespondentStatus {
   representativeId: number;
@@ -20,11 +21,12 @@ export interface ProjectQuestionnaireSummary {
   pendingRespondents: number;
   lastResponseAt?: string | Date | null;
   progressStatus: QuestionnaireResponseStatus;
+  status: TimelineStatus | string;
   respondents: QuestionnaireRespondentStatus[];
 }
 
 export interface ProjectQuestionnaireFilters {
-  search?: string | null;
+  name?: string | null;
   stage?: string | null;
   iteration?: string | null;
   status?: QuestionnaireResponseStatus | null;

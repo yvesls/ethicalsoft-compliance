@@ -32,6 +32,7 @@ import {
 } from '../../../../shared/interfaces/project/project-questionnaire.interface';
 import { ProjectType } from '../../../../shared/enums/project-type.enum';
 import { ProjectStatus } from '../../../../shared/enums/project-status.enum';
+import { TimelineStatus } from '../../../../shared/enums/timeline-status.enum';
 import { Page } from '../../../../shared/interfaces/pageable.interface';
 import { AuthenticationService } from '../../../../core/services/authentication.service';
 import { RoleEnum } from '../../../../shared/enums/role.enum';
@@ -79,7 +80,7 @@ export class ProjectDetailPageComponent implements OnInit {
   private readonly authService = inject(AuthenticationService);
   private readonly projectContext = inject(ProjectContextService);
 
-  private readonly questionnairesPageSize = 10;
+  private readonly questionnairesPageSize = 5;
   private currentProjectId: string | null = null;
 
   private readonly userRoles = signal<string[]>([]);
@@ -105,7 +106,7 @@ export class ProjectDetailPageComponent implements OnInit {
   });
 
   readonly filterForm: FormGroup = this.fb.group({
-    search: [''],
+    name: [''],
     stage: [''],
     iteration: [''],
   });
@@ -124,7 +125,14 @@ export class ProjectDetailPageComponent implements OnInit {
     ARQUIVADO: ProjectStatus.Arquivado,
   };
 
-  private readonly questionnaireStatusLabelMap: Record<
+  private readonly timelineStatusLabelMap: Record<TimelineStatus, string> = {
+    [TimelineStatus.Pendente]: 'Pendente',
+    [TimelineStatus.EmAndamento]: 'Em andamento',
+    [TimelineStatus.Concluido]: 'Concluído',
+    [TimelineStatus.Atrasado]: 'Atrasado',
+  };
+
+  private readonly respondentStatusLabelMap: Record<
     QuestionnaireResponseStatus,
     string
   > = {
@@ -143,7 +151,7 @@ export class ProjectDetailPageComponent implements OnInit {
   }
 
   onResetFilters(): void {
-    this.filterForm.reset({ search: '', stage: '', iteration: '' });
+    this.filterForm.reset({ name: '', stage: '', iteration: '' });
     this.loadQuestionnaires(1);
   }
 
@@ -201,26 +209,24 @@ export class ProjectDetailPageComponent implements OnInit {
     );
   }
 
-  getQuestionnaireStatusLabel(
-    status: QuestionnaireResponseStatus | null | undefined
-  ): string {
+  getTimelineStatusLabel(status: TimelineStatus | string | null | undefined): string {
     if (!status) {
       return 'Sem status';
     }
 
-    return this.questionnaireStatusLabelMap[status] ?? status;
+    const normalizedStatus = status as TimelineStatus;
+    return this.timelineStatusLabelMap[normalizedStatus] ?? status;
   }
 
-  getQuestionnaireStatusClass(
-    status: QuestionnaireResponseStatus | null | undefined
-  ): string {
+  getTimelineStatusClass(status: TimelineStatus | string | null | undefined): string {
     switch (status) {
-      case QuestionnaireResponseStatus.Completed:
+      case TimelineStatus.Concluido:
         return 'status-chip--success';
-      case QuestionnaireResponseStatus.InProgress:
+      case TimelineStatus.EmAndamento:
         return 'status-chip--warning';
-      case QuestionnaireResponseStatus.Pending:
+      case TimelineStatus.Atrasado:
         return 'status-chip--neutral';
+      case TimelineStatus.Pendente:
       default:
         return 'status-chip--neutral';
     }
@@ -233,7 +239,7 @@ export class ProjectDetailPageComponent implements OnInit {
       return 'Pendente';
     }
 
-    return this.questionnaireStatusLabelMap[status] ?? status;
+    return this.respondentStatusLabelMap[status] ?? status;
   }
 
   getRespondentStatusClass(
@@ -280,6 +286,10 @@ export class ProjectDetailPageComponent implements OnInit {
       return '---';
     }
 
+    if (project.currentSituation) {
+      return project.currentSituation;
+    }
+
     if (
       project.type === ProjectType.Iterativo &&
       project.currentIteration &&
@@ -292,7 +302,7 @@ export class ProjectDetailPageComponent implements OnInit {
       return project.currentStage;
     }
 
-    return project.situation || '---';
+    return '---';
   }
 
   private listenToUserRoles(): void {
@@ -310,7 +320,7 @@ export class ProjectDetailPageComponent implements OnInit {
         tap((id) => {
           this.currentProjectId = id;
           this.projectContext.setCurrentProjectId(id);
-          this.filterForm.reset({ search: '', stage: '', iteration: '' });
+          this.filterForm.reset({ name: '', stage: '', iteration: '' });
           this.loadProject(id);
           this.loadQuestionnaires(1);
         }),
@@ -388,13 +398,13 @@ export class ProjectDetailPageComponent implements OnInit {
 
   private getQuestionnaireFilters(page: number): ProjectQuestionnaireFilters {
     const rawValue = this.filterForm.getRawValue();
-    const search = rawValue.search?.trim();
+    const name = rawValue.name?.trim();
     const stage = rawValue.stage?.trim();
     const iteration = rawValue.iteration?.trim();
     const projectType = this.projectState().data?.type;
 
     return {
-      search: search || null,
+      name: name || null,
       stage: projectType === ProjectType.Cascata ? stage || null : null,
       iteration: projectType === ProjectType.Iterativo ? iteration || null : null,
       status: null,

@@ -21,6 +21,11 @@
               <span class="status-chip">
                 {{ getProjectStatusLabel(project.status) }}
               </span>
+              @if (project.timelineStatus) {
+                <span class="status-chip" [ngClass]="getTimelineStatusClass(project.timelineStatus)">
+                  {{ getTimelineStatusLabel(project.timelineStatus) }}
+                </span>
+              }
               <span class="status-chip status-chip--neutral">
                 {{ projectTypeLabelMap[project.type] || project.type }}
               </span>
@@ -52,8 +57,18 @@
           <div class="info-card">
             <span class="info-label">Encerramento</span>
             <span class="info-value">
-              @if (project.endDate) {
-                {{ project.endDate | date: 'dd/MM/yyyy' }}
+              @if (project.deadline) {
+                {{ project.deadline | date: 'dd/MM/yyyy' }}
+              } @else {
+                ---/--/----
+              }
+            </span>
+          </div>
+          <div class="info-card">
+            <span class="info-label">Fechamento real</span>
+            <span class="info-value">
+              @if (project.closingDate) {
+                {{ project.closingDate | date: 'dd/MM/yyyy' }}
               } @else {
                 ---/--/----
               }
@@ -92,10 +107,10 @@
           >
             <app-input
               filters
-              formControlName="search"
+              formControlName="name"
               label="Nome do questionário"
               placeholder="Buscar por nome"
-              [control]="filterForm.get('search')"
+              [control]="filterForm.get('name')"
             ></app-input>
 
             @if (isCascata) {
@@ -147,8 +162,8 @@
                         </p>
                       </div>
 
-                      <span class="status-chip" [ngClass]="getQuestionnaireStatusClass(questionnaire.progressStatus)">
-                        {{ getQuestionnaireStatusLabel(questionnaire.progressStatus) }}
+                      <span class="status-chip" [ngClass]="getTimelineStatusClass(questionnaire.status)">
+                        {{ getTimelineStatusLabel(questionnaire.status) }}
                       </span>
                     </header>
 
@@ -182,12 +197,6 @@
                           {{ questionnaire.stageName || 'Não definida' }}
                         </span>
                       </div>
-                      <div>
-                        <span class="meta-label">Etapa</span>
-                        <span class="meta-value">
-                          {{ questionnaire.stageName || 'Não definida' }}
-                        </span>
-                      </div>
                     </div>
 
                     <div class="questionnaire-card__progress">
@@ -202,7 +211,7 @@
                       </span>
                     </div>
 
-                    @if (questionnaire.respondents?.length) {
+                    @if (questionnaire.respondents.length) {
                       <div class="questionnaire-card__respondents">
                         <div class="respondent-list__header">
                           <span>Status por representante</span>
@@ -245,7 +254,6 @@
                 }
               } @else if (project.type === ProjectTypeEnum.Iterativo) {
                 @for (questionnaire of questionnairesState().items; track trackByQuestionnaireId($index, questionnaire)) {
-                  <span>{{ questionnaire | json }}</span>
                   <article class="questionnaire-card">
                     <header class="questionnaire-card__header">
                       <div>
@@ -255,8 +263,8 @@
                         </p>
                       </div>
 
-                      <span class="status-chip" [ngClass]="getQuestionnaireStatusClass(questionnaire.progressStatus)">
-                        {{ getQuestionnaireStatusLabel(questionnaire.progressStatus) }}
+                      <span class="status-chip" [ngClass]="getTimelineStatusClass(questionnaire.status)">
+                        {{ getTimelineStatusLabel(questionnaire.status) }}
                       </span>
                     </header>
 
@@ -290,12 +298,6 @@
                           {{ questionnaire.iterationName || 'Não definida' }}
                         </span>
                       </div>
-                      <div>
-                        <span class="meta-label">Iteração</span>
-                        <span class="meta-value">
-                          {{ questionnaire.iterationName || 'Não definida' }}
-                        </span>
-                      </div>
                     </div>
 
                     <div class="questionnaire-card__progress">
@@ -310,7 +312,7 @@
                       </span>
                     </div>
 
-                    @if (questionnaire.respondents?.length) {
+                    @if (questionnaire.respondents.length) {
                       <div class="questionnaire-card__respondents">
                         <div class="respondent-list__header">
                           <span>Status por representante</span>
@@ -362,8 +364,8 @@
                         </p>
                       </div>
 
-                      <span class="status-chip" [ngClass]="getQuestionnaireStatusClass(questionnaire.progressStatus)">
-                        {{ getQuestionnaireStatusLabel(questionnaire.progressStatus) }}
+                      <span class="status-chip" [ngClass]="getTimelineStatusClass(questionnaire.status)">
+                        {{ getTimelineStatusLabel(questionnaire.status) }}
                       </span>
                     </header>
 
@@ -411,7 +413,7 @@
                       </span>
                     </div>
 
-                    @if (questionnaire.respondents?.length) {
+                    @if (questionnaire.respondents.length) {
                       <div class="questionnaire-card__respondents">
                         <div class="respondent-list__header">
                           <span>Status por representante</span>

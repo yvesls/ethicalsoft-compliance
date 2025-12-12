@@ -6,10 +6,9 @@ import com.ethicalsoft.ethicalsoft_complience.postgres.model.*;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.RepresentativeDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.ProjectCreationRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.ProjectSearchRequestDTO;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.QuestionnaireSearchFilter;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.response.*;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.ProjectTypeEnum;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.QuestionnaireResponseStatus;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.UserRoleEnum;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.*;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.*;
 import com.ethicalsoft.ethicalsoft_complience.util.ModelMapperUtils;
 import jakarta.persistence.EntityNotFoundException;
@@ -46,15 +45,22 @@ public class ProjectService {
 	private final AuthService authService;
 	private final EmailService emailService;
 	private final QuestionnaireResponseRepository questionnaireResponseRepository;
+	private final TimelineStatusService timelineStatusService;
 
 	@Transactional
 	public Project createProjectShell( ProjectCreationRequestDTO request ) {
 		Project project = ModelMapperUtils.map( request, Project.class );
+		project.setOwner( authService.getAuthenticatedUser() );
 		project.setType( ProjectTypeEnum.fromValue( request.getType() ) );
 		project.setStages( new HashSet<>() );
 		project.setIterations( new HashSet<>() );
 		project.setRepresentatives( new HashSet<>() );
 		project.setQuestionnaires( new HashSet<>() );
+		if ( project.getStatus() == null ) {
+			project.setStatus( ProjectStatusEnum.RASCUNHO );
+		}
+		project.setTimelineStatus( TimelineStatusEnum.PENDENTE );
+		project.setCurrentSituation( null );
 		return projectRepository.save( project );
 	}
 
@@ -82,6 +88,7 @@ public class ProjectService {
 					.name(project.getName())
 					.type(project.getType().name())
 					.status(project.getStatus())
+					.timelineStatus(project.getTimelineStatus())
 					.deadline( project.getDeadline() )
 					.startDate(project.getStartDate())
 					.representativeCount(project.getRepresentatives() != null ? project.getRepresentatives().size() : 0)
@@ -89,8 +96,19 @@ public class ProjectService {
 					.iterationCount(project.getIterations() != null ? project.getIterations().size() : 0)
 					.currentStage(currentStage)
 					.currentIteration(currentIteration)
+					.currentSituation(project.getCurrentSituation())
 					.build();
 		});
+	}
+
+	private String buildCurrentSituation(Project project, String currentStage, Integer currentIteration) {
+		if (project.getType() == ProjectTypeEnum.CASCATA) {
+			return currentStage;
+		}
+		if (project.getType() == ProjectTypeEnum.ITERATIVO && currentIteration != null && project.getIterationCount() != null) {
+			return "Sprint " + currentIteration + "/" + project.getIterationCount();
+		}
+		return null;
 	}
 
 	private String findCurrentStageName(Set<Questionnaire> questionnaires, LocalDate now) {
@@ -244,6 +262,8 @@ public class ProjectService {
             currentIteration = findCurrentIterationNumber(project.getIterations(), now);
         }
 
+        project.setCurrentSituation( buildCurrentSituation( project, currentStage, currentIteration) );
+
         return ProjectDetailResponseDTO.builder()
                 .id(project.getId())
                 .name(project.getName())
@@ -252,6 +272,7 @@ public class ProjectService {
                 .deadline(project.getDeadline())
                 .closingDate(project.getClosingDate())
                 .status(project.getStatus())
+				.timelineStatus(project.getTimelineStatus())
                 .iterationDuration(project.getIterationDuration())
                 .configuredIterationCount(project.getIterationCount())
                 .representativeCount(representativeCount)
@@ -259,6 +280,7 @@ public class ProjectService {
                 .iterationCount(iterationCount)
                 .currentStage(currentStage)
                 .currentIteration(currentIteration)
+				.currentSituation(project.getCurrentSituation())
                 .build();
     }
 
@@ -270,18 +292,31 @@ public class ProjectService {
     }
 
     @Transactional(readOnly = true)
-    public Page<QuestionnaireSummaryResponseDTO> listQuestionnaires(Long projectId, Pageable pageable) {
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new EntityNotFoundException("Projeto não encontrado: " + projectId));
-        assertUserCanAccessProject(project);
+    public Page<QuestionnaireSummaryResponseDTO> listQuestionnaires(Long projectId, Pageable pageable, QuestionnaireSearchFilter filter) {
+		Project project = projectRepository.findById(projectId)
+				.orElseThrow(() -> new EntityNotFoundException("Projeto não encontrado: " + projectId));
+		assertUserCanAccessProject(project);
 
-        Set<Representative> projectRepresentatives = Optional.ofNullable(project.getRepresentatives()).orElse(Set.of());
-        Map<Long, Representative> representativesById = projectRepresentatives.stream()
-                .collect(Collectors.toMap(Representative::getId, rep -> rep));
+		Set<Representative> projectRepresentatives = Optional.ofNullable(project.getRepresentatives()).orElse(Set.of());
+		Map<Long, Representative> representativesById = projectRepresentatives.stream()
+				.collect(Collectors.toMap(Representative::getId, rep -> rep));
 
-        return questionnaireRepository.findByProjectId(projectId, pageable)
-                .map(questionnaire -> buildQuestionnaireSummary(questionnaire, representativesById));
-    }
+		Specification<Questionnaire> spec = Specification.where((root, query, cb) -> cb.equal(root.get("project").get("id"), projectId));
+		if (filter != null) {
+			if (StringUtils.hasText(filter.name())) {
+				spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("name")), "%" + filter.name().toLowerCase() + "%"));
+			}
+			if (StringUtils.hasText(filter.stageName())) {
+				spec = spec.and((root, query, cb) -> cb.equal(cb.lower(root.get("stage").get("name")), filter.stageName().toLowerCase()));
+			}
+			if (StringUtils.hasText(filter.iterationName())) {
+				spec = spec.and((root, query, cb) -> cb.equal(cb.lower(root.get("iterationRef").get("name")), filter.iterationName().toLowerCase()));
+			}
+		}
+
+		return questionnaireRepository.findAll(spec, pageable)
+				.map(questionnaire -> buildQuestionnaireSummary(questionnaire, representativesById));
+	}
 
     private QuestionnaireSummaryResponseDTO buildQuestionnaireSummary(Questionnaire questionnaire,
                                                                       Map<Long, Representative> representativesById) {
@@ -337,9 +372,18 @@ public class ProjectService {
                 .pendingRespondents(pending)
                 .lastResponseAt(lastResponseAt.get())
                 .progressStatus(progressStatus)
-                .respondents(respondentStatus)
+				.status(questionnaire.getStatus())
+				.respondents(respondentStatus)
                 .build();
     }
 
 	record UserResolutionResult( User user, Optional<String> temporaryPassword ) {}
+
+	@Transactional
+	public Project refreshTimelineStatus( Long projectId ) {
+		Project project = projectRepository.findById( projectId )
+				.orElseThrow( () -> new EntityNotFoundException( "Projeto não encontrado: " + projectId ) );
+		timelineStatusService.updateProjectTimeline( project );
+		return projectRepository.save( project );
+	}
 }

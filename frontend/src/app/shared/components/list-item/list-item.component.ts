@@ -57,21 +57,24 @@ export class ListItemComponent {
   get formattedSituation(): string {
     if (!this.item) return '---';
 
+    if (this.item.currentSituation) {
+      return this.item.currentSituation;
+    }
+
     if (this.item.type === ProjectType.Iterativo) {
       if (this.item.currentIteration && this.item.iterationCount) {
         return `Sprint ${this.item.currentIteration}/${this.item.iterationCount}`;
       }
-      return this.item.situation || '---';
+      return this.item.currentStage || '---';
     }
 
     if (this.item.type === ProjectType.Cascata) {
       if (this.item.currentStage) {
         return this.item.currentStage;
       }
-      return this.item.situation || '---';
     }
 
-    return this.item.situation || '---';
+    return '---';
   }
 
   @HostListener('click', ['$event'])

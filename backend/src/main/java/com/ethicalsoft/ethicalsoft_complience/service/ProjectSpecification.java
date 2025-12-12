@@ -43,10 +43,17 @@ public class ProjectSpecification {
 				}
 			}
 
-			if (currentUser != null && !UserRoleEnum.ADMIN.equals(currentUser.getRole())) {
-                Join<Object, Object> representativeJoin = root.join("representatives", JoinType.LEFT);
-                predicates.add(cb.equal(representativeJoin.get("user").get("id"), currentUser.getId()));
-            }
+			if (currentUser != null) {
+				Join<Object, Object> representativeJoin = root.join("representatives", JoinType.LEFT);
+				if (UserRoleEnum.ADMIN.equals(currentUser.getRole())) {
+					predicates.add(cb.or(
+						cb.equal(root.get("owner").get("id"), currentUser.getId()),
+						cb.equal(representativeJoin.get("user").get("id"), currentUser.getId())
+					));
+				} else {
+					predicates.add(cb.equal(representativeJoin.get("user").get("id"), currentUser.getId()));
+				}
+			}
 
 			return cb.and(predicates.toArray(new Predicate[0]));
 		};
