@@ -225,7 +225,7 @@ export class ProjectDetailPageComponent implements OnInit {
       case TimelineStatus.EmAndamento:
         return 'status-chip--warning';
       case TimelineStatus.Atrasado:
-        return 'status-chip--neutral';
+        return 'status-chip--error';
       case TimelineStatus.Pendente:
       default:
         return 'status-chip--neutral';
