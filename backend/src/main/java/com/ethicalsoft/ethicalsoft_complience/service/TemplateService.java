@@ -10,6 +10,7 @@ import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.TemplateVisib
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.ProjectRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TemplateService {
 
 	private final ProjectTemplateRepository projectTemplateRepository;
@@ -27,45 +29,68 @@ public class TemplateService {
 	private final AuthService authService;
 
 	public ProjectTemplate findFullTemplateById(String templateMongoId) {
-		Long currentUserId = authService.getAuthenticatedUserId();
-		ProjectTemplate template = projectTemplateRepository.findById(templateMongoId)
-				.orElseThrow(() -> new EntityNotFoundException("Template não encontrado: " + templateMongoId));
-		checkAccess(template, currentUserId);
-		return template;
+		try {
+			Long currentUserId = authService.getAuthenticatedUserId();
+			log.info("[template] Buscando template completo id={} para usuário {}", templateMongoId, currentUserId);
+			ProjectTemplate template = projectTemplateRepository.findById(templateMongoId)
+					.orElseThrow(() -> new EntityNotFoundException("Template não encontrado: " + templateMongoId));
+			checkAccess(template, currentUserId);
+			log.info("[template] Template {} carregado", templateMongoId);
+			return template;
+		} catch ( Exception ex ) {
+			log.error("[template] Falha ao buscar template id={}", templateMongoId, ex);
+			throw ex;
+		}
 	}
 
 	public List<TemplateListDTO> findAllTemplates() {
-		Long currentUserId = authService.getAuthenticatedUserId();
-		return projectTemplateRepository.findTemplateSummariesForUser(currentUserId).stream()
-				.map(t -> new TemplateListDTO(t.getId(), t.getName(), t.getDescription(), t.getType()))
-				.toList();
+		try {
+			Long currentUserId = authService.getAuthenticatedUserId();
+			log.info("[template] Listando templates para usuário {}", currentUserId);
+			List<TemplateListDTO> templates = projectTemplateRepository.findTemplateSummariesForUser(currentUserId).stream()
+					.map(t -> new TemplateListDTO(t.getId(), t.getName(), t.getDescription(), t.getType()))
+					.toList();
+			log.info("[template] {} templates retornados", templates.size());
+			return templates;
+		} catch ( Exception ex ) {
+			log.error("[template] Falha ao listar templates", ex);
+			throw ex;
+		}
 	}
 
 	public ProjectTemplate createTemplateFromProject(Long projectId, CreateTemplateRequestDTO request) {
-        Long currentUserId = authService.getAuthenticatedUserId();
+        try {
+            Long currentUserId = authService.getAuthenticatedUserId();
+            log.info("[template] Criando template a partir do projeto {} para usuário {}", projectId, currentUserId);
 
-        Project project = projectRepository.findById(projectId)
-				.orElseThrow(() -> new EntityNotFoundException("Projeto não encontrado: " + projectId));
+            Project project = projectRepository.findById(projectId)
+                    .orElseThrow(() -> new EntityNotFoundException("Projeto não encontrado: " + projectId));
 
-		ProjectTemplate template = new ProjectTemplate();
+            ProjectTemplate template = new ProjectTemplate();
 
-		template.setName(request.getName());
-		template.setDescription(request.getDescription());
-		template.setVisibility(request.getVisibility());
-		if (request.getVisibility() == TemplateVisibilityEnum.PRIVATE) {
-			template.setUserId(currentUserId);
-		}
-		template.setType(project.getType());
-		template.setDefaultIterationCount(project.getIterationCount());
-		template.setDefaultIterationDuration(project.getIterationDuration());
+            template.setName(request.getName());
+            template.setDescription(request.getDescription());
+            template.setVisibility(request.getVisibility());
+            if (request.getVisibility() == TemplateVisibilityEnum.PRIVATE) {
+                template.setUserId(currentUserId);
+            }
+            template.setType(project.getType());
+            template.setDefaultIterationCount(project.getIterationCount());
+            template.setDefaultIterationDuration(project.getIterationDuration());
 
-		template.setStages(mapStages(project.getStages()));
-		template.setIterations(mapIterations(project.getIterations()));
-		template.setRepresentatives(mapRepresentatives(project.getRepresentatives()));
-		template.setQuestionnaires(mapQuestionnaires(project.getQuestionnaires()));
+            template.setStages(mapStages(project.getStages()));
+            template.setIterations(mapIterations(project.getIterations()));
+            template.setRepresentatives(mapRepresentatives(project.getRepresentatives()));
+            template.setQuestionnaires(mapQuestionnaires(project.getQuestionnaires()));
 
-		return projectTemplateRepository.save(template);
-	}
+            ProjectTemplate saved = projectTemplateRepository.save(template);
+            log.info("[template] Template {} criado para projeto {}", saved.getId(), projectId);
+            return saved;
+        } catch ( Exception ex ) {
+            log.error("[template] Falha ao criar template a partir do projeto {}", projectId, ex);
+            throw ex;
+        }
+    }
 
 	private void checkAccess(ProjectTemplate template, Long currentUserId) {
 		if (template.getVisibility() == TemplateVisibilityEnum.PRIVATE) {
@@ -136,9 +161,6 @@ public class TemplateService {
 		return questions.stream().map(question -> {
 			TemplateQuestionDTO pDto = new TemplateQuestionDTO();
 			pDto.setValue(question.getValue());
-			if (question.getStage() != null) {
-				pDto.setStageName(question.getStage().getName());
-			}
 			if (question.getRoles() != null) {
 				pDto.setRoles(question.getRoles().stream()
 						.map(role -> new RoleSummaryResponseDTO(role.getId(), role.getName()))

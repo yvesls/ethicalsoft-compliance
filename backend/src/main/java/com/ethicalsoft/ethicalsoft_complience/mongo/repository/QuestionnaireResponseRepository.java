@@ -1,17 +1,20 @@
 package com.ethicalsoft.ethicalsoft_complience.mongo.repository;
 
-import com.ethicalsoft.ethicalsoft_complience.mongo.model.QuestionnaireResponseDocument;
+import com.ethicalsoft.ethicalsoft_complience.mongo.model.QuestionnaireResponse;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface QuestionnaireResponseRepository extends MongoRepository<QuestionnaireResponseDocument, String> {
+public interface QuestionnaireResponseRepository extends MongoRepository<QuestionnaireResponse, String> {
 
-    Optional<QuestionnaireResponseDocument> findByQuestionnaireIdAndRepresentativeId(Integer questionnaireId, Long representativeId);
+    Optional<QuestionnaireResponse> findByQuestionnaireIdAndRepresentativeId(Integer questionnaireId, Long representativeId);
 
-    List<QuestionnaireResponseDocument> findByQuestionnaireId(Integer questionnaireId);
+    List<QuestionnaireResponse> findByQuestionnaireId(Integer questionnaireId);
 
-    List<QuestionnaireResponseDocument> findByProjectIdAndQuestionnaireId(Long projectId, Integer questionnaireId);
+    List<QuestionnaireResponse> findByProjectIdAndQuestionnaireId(Long projectId, Integer questionnaireId);
+
+    @Query(value = "{ 'projectId' : ?0, 'questionnaireId' : ?1, 'status' : 'PENDING' }", fields = "{ 'representativeId': 1 }")
+    List<QuestionnaireResponse> findPendingResponses(Long projectId, Integer questionnaireId);
 }
-

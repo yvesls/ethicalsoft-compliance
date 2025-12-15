@@ -2,11 +2,14 @@ package com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
+@Setter
+@NoArgsConstructor
 @AllArgsConstructor
 public class RoleSummaryResponseDTO {
-	private final Long id;
-	private final String name;
+    private Long id;
+    private String name;
 }
-

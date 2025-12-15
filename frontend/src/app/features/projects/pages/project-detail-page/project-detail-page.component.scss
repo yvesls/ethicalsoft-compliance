@@ -1,3 +1,4 @@
+@use 'sass:color';
 @use '../../../../../assets/scss/base/vars' as *;
 
 :host {
@@ -138,6 +139,11 @@
   flex-direction: column;
   gap: 0.5rem;
 
+  &--pinned {
+    box-shadow: $box-shadow-secundary;
+    transform: translateY(-0.125rem);
+  }
+
   &__header {
     display: flex;
     justify-content: space-between;
@@ -151,16 +157,66 @@
     }
   }
 
+  &__title {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  &__title-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  &__status-chip {
+    margin-left: auto;
+    white-space: nowrap;
+  }
+
   &__subtitle {
     margin: 0.35rem 0 0;
     color: $gray-secundary;
     font-size: $text-sm;
   }
 
+  &__pin {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+
+    img {
+      width: 0.9rem;
+      height: 0.9rem;
+    }
+  }
+
+  &__application {
+    margin: 0.4rem 0 0;
+    color: $gray-secundary;
+    font-size: $text-sm;
+
+    strong {
+      color: $text-color;
+      font-weight: 600;
+    }
+  }
+
+  &__info-grid {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
   &__meta {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 1rem;
+    flex: 1 1 280px;
 
     .meta-label {
       display: block;
@@ -187,6 +243,60 @@
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+  }
+
+  &__respondents--restricted {
+    align-items: center;
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 200px;
+    background-color: $gray-tertiary;
+    border-radius: $radius-default;
+    padding: 0.75rem 1rem;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+  }
+
+  &__actions-label {
+    font-size: $text-xsm;
+    text-transform: uppercase;
+    color: $gray-secundary;
+    letter-spacing: 0.05em;
+  }
+
+  &__action-button {
+    background-color: $white;
+    color: $blue-primary;
+    border: 1px solid rgba($blue-primary, 0.4);
+    border-radius: $radius-default;
+    padding: 0.4rem 0.75rem;
+    font-weight: 600;
+    font-size: $text-sm;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background-color: rgba($blue-primary, 0.08);
+    }
+
+    &--primary {
+      background-color: $blue-primary;
+      color: $white;
+      border-color: transparent;
+
+      &:hover {
+        background-color: color.adjust($blue-primary, $lightness: -5%);
+      }
+
+      &:disabled {
+        background-color: $gray-secundary;
+        cursor: not-allowed;
+        opacity: 0.7;
+      }
+    }
   }
 }
 
@@ -242,6 +352,29 @@
 .respondent-list__hint {
   font-size: $text-xsm;
   color: $gray-secundary;
+}
+
+.respondent-list__restricted {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: $gray-secundary;
+
+  img {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  strong {
+    display: block;
+    margin-bottom: 0.2rem;
+    color: $text-color;
+  }
+
+  p {
+    margin: 0;
+    font-size: $text-sm;
+  }
 }
 
 .progress-track {

@@ -15,6 +15,21 @@ export interface QuestionData {
   value: string;
   roleIds: number[];
   roleNames: string[];
+  stageNames?: string[];
+  stageName?: string | null;
+  categoryStageName?: string | null;
+}
+
+export interface QuestionStageConfig {
+  options: MultiSelectOption[];
+  required?: boolean;
+  allowMultiple?: boolean;
+  maxSelectedItems?: number;
+  lockedValues?: (string | number)[];
+  disabled?: boolean;
+  defaultStageNames?: string[];
+  label?: string;
+  placeholder?: string;
 }
 
 @Component({
@@ -28,6 +43,7 @@ export interface QuestionData {
 export class QuestionModalComponent implements OnInit {
   @Input() editData?: QuestionData;
   @Input() mode: ActionType = ActionType.CREATE;
+  @Input() stageConfig?: QuestionStageConfig;
   @Output() questionCreated = new EventEmitter<QuestionData>();
   @Output() questionUpdated = new EventEmitter<QuestionData>();
 
@@ -41,12 +57,19 @@ export class QuestionModalComponent implements OnInit {
   roleOptions: MultiSelectOption[] = [];
   private rolesLookup = new Map<number, string>();
   private pendingRoleNames?: string[];
+  showStageSelector = false;
+  stageOptions: MultiSelectOption[] = [];
+  stageLabel = 'Etapas relacionadas';
+  stagePlaceholder = 'Selecione as etapas';
+  stageMaxSelectedItems?: number;
+  stageLockedValues: (string | number)[] = [];
 
   constructor() {
     this.initializeForm();
   }
 
   ngOnInit(): void {
+    this.configureStageSelector();
     this.loadRoleOptions();
 
     if (this.editData && this.mode === ActionType.EDIT) {
@@ -55,6 +78,7 @@ export class QuestionModalComponent implements OnInit {
       this.populateForm(this.editData);
     } else {
       this.actionType = ActionType.CREATE;
+      this.applyDefaultStageSelection();
     }
   }
 
@@ -62,6 +86,7 @@ export class QuestionModalComponent implements OnInit {
     this.form = this.fb.group({
       value: ['', [Validators.required, Validators.minLength(10)]],
       roleIds: [[], [Validators.required, Validators.minLength(1)]],
+      stageNames: [[]],
     });
   }
 
@@ -94,6 +119,7 @@ export class QuestionModalComponent implements OnInit {
     this.form.patchValue({
       value: data.value,
       roleIds,
+      stageNames: this.ensureStageNames(data),
     });
   }
 
@@ -112,6 +138,22 @@ export class QuestionModalComponent implements OnInit {
       }
 
       this.pendingRoleNames = data.roleNames;
+    }
+
+    return [];
+  }
+
+  private ensureStageNames(data: QuestionData | undefined): string[] {
+    if (!data) {
+      return [];
+    }
+
+    if (Array.isArray(data.stageNames) && data.stageNames.length) {
+      return this.normalizeStageNames(data.stageNames);
+    }
+
+    if (typeof data.stageName === 'string' && data.stageName.trim().length) {
+      return [data.stageName.trim()];
     }
 
     return [];
@@ -166,15 +208,76 @@ export class QuestionModalComponent implements OnInit {
       .filter(Boolean) as string[];
   }
 
+  private configureStageSelector(): void {
+    const stageControl = this.form?.get('stageNames');
+    if (!stageControl) {
+      return;
+    }
+
+    const config = this.stageConfig;
+    if (!config || !Array.isArray(config.options) || config.options.length === 0) {
+      stageControl.clearValidators();
+      stageControl.enable({ emitEvent: false });
+      stageControl.updateValueAndValidity({ emitEvent: false });
+      this.showStageSelector = false;
+      this.stageOptions = [];
+      this.stageLockedValues = [];
+      this.stageMaxSelectedItems = undefined;
+      return;
+    }
+
+    this.showStageSelector = true;
+    this.stageOptions = config.options;
+    this.stageLabel = config.label ?? 'Etapas relacionadas';
+    this.stagePlaceholder = config.placeholder ?? 'Selecione as etapas';
+    this.stageMaxSelectedItems = config.maxSelectedItems ?? (config.allowMultiple === false ? 1 : undefined);
+    this.stageLockedValues = config.lockedValues ?? [];
+
+    if (config.required) {
+      stageControl.setValidators([Validators.required, Validators.minLength(1)]);
+    } else {
+      stageControl.clearValidators();
+    }
+
+    if (config.disabled) {
+      stageControl.disable({ emitEvent: false });
+    } else {
+      stageControl.enable({ emitEvent: false });
+    }
+
+    stageControl.updateValueAndValidity({ emitEvent: false });
+  }
+
+  private applyDefaultStageSelection(): void {
+    if (!this.showStageSelector || !this.stageConfig?.defaultStageNames?.length) {
+      return;
+    }
+
+    const stageControl = this.form.get('stageNames');
+    const normalized = this.normalizeStageNames(this.stageConfig.defaultStageNames);
+    if (!stageControl || !normalized.length) {
+      return;
+    }
+
+    stageControl.setValue(normalized, { emitEvent: false });
+    stageControl.markAsPristine();
+    stageControl.markAsUntouched();
+  }
+
   onSubmit(): void {
     if (this.form.valid) {
       const formValue = this.form.value;
       const roleIds = formValue.roleIds ?? [];
+      const stageNames = this.normalizeStageNames(formValue.stageNames);
+      const categoryStageName = this.resolveCategoryStageName(stageNames);
       const questionData: QuestionData = {
         id: this.editData?.id,
         value: formValue.value,
         roleIds,
-        roleNames: this.mapRoleIdsToNames(roleIds)
+        roleNames: this.mapRoleIdsToNames(roleIds),
+        stageNames,
+        stageName: stageNames[0] ?? null,
+        categoryStageName,
       };
 
       if (this.actionType === ActionType.EDIT) {
@@ -191,5 +294,38 @@ export class QuestionModalComponent implements OnInit {
 
   close(): void {
     this.modalService.close();
+  }
+
+  private normalizeStageNames(value: unknown): string[] {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    return Array.from(
+      new Set(
+        value
+          .map((stage) => (typeof stage === 'string' ? stage.trim() : ''))
+          .filter((stage) => stage.length > 0)
+      )
+    );
+  }
+
+  private resolveCategoryStageName(stageNames: string[]): string | null {
+    if (stageNames.length === 1) {
+      return stageNames[0];
+    }
+
+    const singleSelection = Boolean(
+      this.stageConfig && (this.stageConfig.allowMultiple === false || this.stageConfig.maxSelectedItems === 1)
+    );
+    if (singleSelection) {
+      return stageNames[0] ?? this.editData?.categoryStageName ?? null;
+    }
+
+    if (typeof this.editData?.categoryStageName === 'string' && this.editData.categoryStageName.trim().length) {
+      return this.editData.categoryStageName.trim();
+    }
+
+    return null;
   }
 }

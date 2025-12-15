@@ -77,8 +77,9 @@
           <table class="custom-table">
             <thead>
               <tr>
-                <th class="w-50 text-start">Pergunta</th>
-                <th class="w-30 text-start">Papéis</th>
+                <th class="w-40 text-start">Pergunta</th>
+                <th class="w-20 text-start">Etapas</th>
+                <th class="w-20 text-start">Papéis</th>
                 <th class="w-20 text-center">Ação</th>
               </tr>
             </thead>
@@ -86,6 +87,18 @@
               @for (question of filteredQuestions; track question.id) {
                 <tr>
                   <td class="text-start">{{ question.value }}</td>
+                  <td>
+                    @let stageLabels = getStageLabels(question);
+                    <div class="d-flex flex-wrap gap-1">
+                      @if (stageLabels.length) {
+                        @for (stage of stageLabels; track stage) {
+                          <span class="badge">{{ stage }}</span>
+                        }
+                      } @else {
+                        <span class="text-muted">Sem etapa</span>
+                      }
+                    </div>
+                  </td>
                   <td>
                     <div class="d-flex flex-wrap gap-1">
                       @for (role of question.roleNames; track role) {

@@ -61,19 +61,19 @@
       <div class="validation-errors">
         @if (projectForm.errors['deadlineTooEarly']) {
           <div class="error-message">
-            <img src="assets/icons/alert-triangle.svg" alt="Erro" class="error-icon" />
+            <img src="assets/icons/exclamation.svg" alt="Erro" class="error-icon" />
             <span>{{ getDeadlineErrorMessage() }}</span>
           </div>
         }
         @if (projectForm.errors['startDateTooLate']) {
           <div class="error-message">
-            <img src="assets/icons/alert-triangle.svg" alt="Erro" class="error-icon" />
+            <img src="assets/icons/exclamation.svg" alt="Erro" class="error-icon" />
             <span>{{ getStartDateErrorMessage() }}</span>
           </div>
         }
         @if (projectForm.errors['stageExceedsDeadline']) {
           <div class="error-message">
-            <img src="assets/icons/alert-triangle.svg" alt="Erro" class="error-icon" />
+            <img src="assets/icons/exclamation.svg" alt="Erro" class="error-icon" />
             <span>{{ getStageExceedsDeadlineMessage() }}</span>
           </div>
         }
@@ -139,7 +139,7 @@
       @if (hasStagesExceedDeadlineError()) {
         <div class="validation-errors">
           <div class="error-message">
-            <img src="assets/icons/alert-triangle.svg" alt="Erro" class="error-icon" />
+            <img src="assets/icons/exclamation.svg" alt="Erro" class="error-icon" />
             <span>{{ getStagesExceedDeadlineMessage() }}</span>
           </div>
         </div>
@@ -287,12 +287,19 @@
                   </button>
                 </td>
               </tr>
+              @if (shouldDisplayQuestionnaireQuestionError(i)) {
+                <tr class="questionnaire-error-row">
+                  <td colspan="5">
+                    <div class="questionnaire-error-message">
+                      <img src="assets/icons/exclamation.svg" alt="Erro" class="error-icon" />
+                      <span>{{ getQuestionnaireQuestionErrorMessage(i) }}</span>
+                    </div>
+                  </td>
+                </tr>
+              }
             }
           </tbody>
         </table>
-      </div>
-      <div class="panel-actions">
-        <button type="button" class="btn btn-primary" (click)="continueToNextPanel('questionnaires')">Continuar</button>
       </div>
     </div>
   </app-accordion-panel>

@@ -33,3 +33,7 @@ export interface ProjectQuestionnaireFilters {
   page: number;
   size: number;
 }
+
+export interface QuestionnaireReminderRequest {
+  emails: string[];
+}

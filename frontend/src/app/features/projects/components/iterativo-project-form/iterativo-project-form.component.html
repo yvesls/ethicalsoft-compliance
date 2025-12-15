@@ -241,12 +241,19 @@
                   </button>
                 </td>
               </tr>
+              @if (shouldDisplayQuestionnaireQuestionError(i)) {
+                <tr class="questionnaire-error-row">
+                  <td colspan="5">
+                    <div class="questionnaire-error-message">
+                      <img src="assets/icons/exclamation.svg" alt="Erro" class="error-icon" />
+                      <span>{{ getQuestionnaireQuestionErrorMessage(i) }}</span>
+                    </div>
+                  </td>
+                </tr>
+              }
             }
           </tbody>
         </table>
-      </div>
-      <div class="panel-actions">
-        <button type="button" class="btn btn-primary" (click)="continueToNextPanel('questionnaires')">Continuar</button>
       </div>
     </div>
   </app-accordion-panel>

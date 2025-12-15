@@ -9,6 +9,7 @@ import com.ethicalsoft.ethicalsoft_complience.postgres.repository.StageRepositor
 import com.ethicalsoft.ethicalsoft_complience.service.QuestionnaireService;
 import com.ethicalsoft.ethicalsoft_complience.service.strategy.ProjectCreationStrategy;
 import com.ethicalsoft.ethicalsoft_complience.util.ModelMapperUtils;
+import com.ethicalsoft.ethicalsoft_complience.util.ObjectUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -32,7 +33,7 @@ public class WaterfallProjectStrategy implements ProjectCreationStrategy {
 
 	@Override
 	public void createStructure( Project project, ProjectCreationRequestDTO request ) {
-		if ( request.getStages() == null || request.getStages().isEmpty() ) {
+		if (ObjectUtil.isNullOrEmpty(request.getStages())) {
 			throw new IllegalArgumentException( "Projetos Cascata devem ter etapas definidas." );
 		}
 

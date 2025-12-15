@@ -9,6 +9,7 @@ import com.ethicalsoft.ethicalsoft_complience.postgres.repository.RecoveryCodeRe
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PasswordRecoveryService {
 
 	private final UserRepository userRepository;
@@ -27,38 +29,59 @@ public class PasswordRecoveryService {
 
 	@Transactional( rollbackOn = Exception.class )
 	public void requestRecovery( PasswordRecoveryDTO passwordRecoveryDTO ) {
-		userRepository.findByEmail( passwordRecoveryDTO.getEmail() ).orElseThrow( () -> new UsernameNotFoundException( "User not found" ) );
+		try {
+			log.info("[password-recovery] Solicitação de recuperação para email={}", passwordRecoveryDTO != null ? passwordRecoveryDTO.getEmail() : null);
+			userRepository.findByEmail( passwordRecoveryDTO.getEmail() ).orElseThrow( () -> new UsernameNotFoundException( "User not found" ) );
 
-		String code = UUID.randomUUID().toString().substring( 0, 6 );
-		RecoveryCode recoveryCode = new RecoveryCode( passwordRecoveryDTO.getEmail(), code, LocalDateTime.now().plusMinutes( 10 ) );
+			String code = UUID.randomUUID().toString().substring( 0, 6 );
+			RecoveryCode recoveryCode = new RecoveryCode( passwordRecoveryDTO.getEmail(), code, LocalDateTime.now().plusMinutes( 10 ) );
 
-		recoveryCodeRepository.save( recoveryCode );
-		emailService.sendRecoveryEmail( passwordRecoveryDTO.getEmail(), code );
+			recoveryCodeRepository.save( recoveryCode );
+			emailService.sendRecoveryEmail( passwordRecoveryDTO.getEmail(), code );
+			log.info("[password-recovery] Código de recuperação gerado e email enviado para {}", passwordRecoveryDTO.getEmail());
+		} catch ( Exception ex ) {
+			log.error("[password-recovery] Falha ao solicitar recuperação para {}", passwordRecoveryDTO != null ? passwordRecoveryDTO.getEmail() : null, ex);
+			throw ex;
+		}
 	}
 
 	@Transactional( rollbackOn = Exception.class )
 	public void validateCode( CodeValidationDTO codeValidationDTO ) {
-		recoveryCodeRepository.findByEmailAndCodeAndExpirationAfter( codeValidationDTO.getEmail(), codeValidationDTO.getCode(), LocalDateTime.now() ).orElseThrow( () -> new IllegalArgumentException( "Invalid or expired code." ) );
+		try {
+			log.info("[password-recovery] Validando código para email={}", codeValidationDTO != null ? codeValidationDTO.getEmail() : null);
+			recoveryCodeRepository.findByEmailAndCodeAndExpirationAfter( codeValidationDTO.getEmail(), codeValidationDTO.getCode(), LocalDateTime.now() ).orElseThrow( () -> new IllegalArgumentException( "Invalid or expired code." ) );
 
-		recoveryCodeRepository.deleteAllByEmail( codeValidationDTO.getEmail() );
+			recoveryCodeRepository.deleteAllByEmail( codeValidationDTO.getEmail() );
+			log.info("[password-recovery] Código validado e removido para {}", codeValidationDTO.getEmail());
+		} catch ( Exception ex ) {
+			log.error("[password-recovery] Falha ao validar código para {}", codeValidationDTO != null ? codeValidationDTO.getEmail() : null, ex);
+			throw ex;
+		}
 	}
 
 	@Transactional( rollbackOn = Exception.class )
 	public void resetPassword( PasswordResetDTO passwordResetDTO ) {
-		var user = userRepository.findByEmail( passwordResetDTO.getEmail() ).orElseThrow(
-				() -> new UserNotFoundException( "User not found" )
-		);
+		try {
+			log.info("[password-recovery] Alterando senha para email={}", passwordResetDTO != null ? passwordResetDTO.getEmail() : null);
+			var user = userRepository.findByEmail( passwordResetDTO.getEmail() ).orElseThrow(
+					() -> new UserNotFoundException( "User not found" )
+			);
 
-		if ( passwordEncoder.matches( passwordResetDTO.getNewPassword(), user.getPassword() ) ) {
-			throw new IllegalArgumentException( "New password cannot be the same as the old password." );
+			if ( passwordEncoder.matches( passwordResetDTO.getNewPassword(), user.getPassword() ) ) {
+				throw new IllegalArgumentException( "New password cannot be the same as the old password." );
+			}
+
+			user.setPassword( passwordEncoder.encode( passwordResetDTO.getNewPassword() ) );
+
+			if ( passwordResetDTO.isFirstAccessFlow() ) {
+				user.setFirstAccess( false );
+			}
+
+			userRepository.save( user );
+			log.info("[password-recovery] Senha redefinida para usuário id={}", user.getId());
+		} catch ( Exception ex ) {
+			log.error("[password-recovery] Falha ao redefinir senha para {}", passwordResetDTO != null ? passwordResetDTO.getEmail() : null, ex);
+			throw ex;
 		}
-
-		user.setPassword( passwordEncoder.encode( passwordResetDTO.getNewPassword() ) );
-
-		if ( passwordResetDTO.isFirstAccessFlow() ) {
-			user.setFirstAccess( false );
-		}
-
-		userRepository.save( user );
 	}
 }

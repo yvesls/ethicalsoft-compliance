@@ -9,6 +9,6 @@ public class TemplateQuestionnaireDTO {
 	private String name;
 	private String stageName;
 	private String iterationRefName;
-
+	private List<String> stageNames;
 	private List<TemplateQuestionDTO> questions;
 }

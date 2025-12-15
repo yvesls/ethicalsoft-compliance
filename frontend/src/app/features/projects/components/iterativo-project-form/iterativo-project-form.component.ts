@@ -50,6 +50,7 @@ import { QuestionData } from '../question-modal/question-modal.component';
 import { ProjectCreationConfirmModalComponent } from '../project-creation-confirm-modal/project-creation-confirm-modal.component';
 import {
   ProjectTemplate,
+  TemplateIterationDTO,
   TemplateQuestionDTO,
   TemplateQuestionnaireDTO,
   TemplateRepresentativeDTO,
@@ -145,12 +146,14 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
   public ProjectType = ProjectType;
   public projectForm!: FormGroup;
   public isSubmitting = false;
+  public showQuestionnaireQuestionErrors = false;
   public panelStates: PanelStates = {
     project: true,
     stages: false,
     representatives: false,
     questionnaires: false,
   };
+  private questionnaireQuestionErrors = new Set<number>();
 
   public templateOptions: SelectOption[] = [];
   public projectTypeOptions: SelectOption[] = [
@@ -593,6 +596,62 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
     return this.getControl('representatives') as FormArray;
   }
 
+  shouldDisplayQuestionnaireQuestionError(index: number): boolean {
+    return this.showQuestionnaireQuestionErrors && this.questionnaireQuestionErrors.has(index);
+  }
+
+  getQuestionnaireQuestionErrorMessage(index: number): string {
+    const control = this.questionnairesFormArray.at(index) as FormGroup | null;
+    const name = (control?.get('name')?.value ?? '').toString().trim();
+    if (name) {
+      return `Adicione pelo menos uma pergunta ao questionário "${name}".`;
+    }
+    return 'Adicione pelo menos uma pergunta a este questionário.';
+  }
+
+  private validateQuestionnairesHaveQuestions(): boolean {
+    this.questionnaireQuestionErrors.clear();
+
+    this.questionnairesFormArray.controls.forEach((control, index) => {
+      const questions = control.get('questions')?.value as QuestionData[] | undefined;
+      if (!questions || questions.length === 0) {
+        this.questionnaireQuestionErrors.add(index);
+      }
+    });
+
+    const hasErrors = this.questionnaireQuestionErrors.size > 0;
+    this.showQuestionnaireQuestionErrors = hasErrors;
+
+    if (hasErrors) {
+      this.notificationService.showWarning('Adicione pelo menos uma pergunta para cada questionário antes de salvar.');
+    }
+
+    this.cdr.markForCheck();
+    return !hasErrors;
+  }
+
+  private handleQuestionnaireQuestionUpdate(index: number, questions: QuestionData[] | undefined): void {
+    if (!this.showQuestionnaireQuestionErrors && this.questionnaireQuestionErrors.size === 0) {
+      return;
+    }
+
+    if (questions?.length) {
+      const removed = this.questionnaireQuestionErrors.delete(index);
+      if (removed && this.questionnaireQuestionErrors.size === 0) {
+        this.showQuestionnaireQuestionErrors = false;
+      }
+      if (removed) {
+        this.cdr.markForCheck();
+      }
+      return;
+    }
+
+    if (this.showQuestionnaireQuestionErrors) {
+      this.questionnaireQuestionErrors.add(index);
+      this.cdr.markForCheck();
+    }
+  }
+
   addRepresentative(): void {
     this.modalService.open(RepresentativeModalComponent, 'medium-card', {
       mode: ActionType.CREATE
@@ -691,7 +750,8 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
           name: questionnaire.name,
           weight: questionnaire.weight,
           iteration: questionnaire.iteration,
-          questions: questions
+          questions: questions,
+          stages: this.getAvailableStageNames(),
         }
       }
     });
@@ -715,12 +775,18 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
       return [];
     }
 
-    return templateQuestionnaire.questions.map((question: TemplateQuestionDTO, index: number) => ({
-      id: `${Date.now()}-${index}`,
-      value: question.value,
-      roleIds: this.extractRoleIds(question.roles, question.roleNames),
-      roleNames: this.extractRoleNames(question.roles, question.roleNames)
-    }));
+    return templateQuestionnaire.questions.map((question: TemplateQuestionDTO, index: number) => {
+      const stageNames = this.getTemplateQuestionStageNames(question);
+      return {
+        id: `${Date.now()}-${index}`,
+        value: question.value,
+        roleIds: this.extractRoleIds(question.roles, question.roleNames),
+        roleNames: this.extractRoleNames(question.roles, question.roleNames),
+        stageNames,
+        stageName: stageNames[0] ?? null,
+        categoryStageName: stageNames[0] ?? null,
+      } satisfies QuestionData;
+    });
   }
 
   private applyQuestionnaireUpdate(update: QuestionnaireUpdatePayload | undefined): void {
@@ -743,12 +809,15 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
       { emitEvent: false }
     );
 
+    const updatedQuestions = update.questions ?? [];
     const questionsControl = questionnaireGroup.get('questions');
     if (questionsControl) {
-      questionsControl.setValue(update.questions ?? []);
+      questionsControl.setValue(updatedQuestions);
     } else {
-      questionnaireGroup.addControl('questions', this.fb.control(update.questions ?? []));
+      questionnaireGroup.addControl('questions', this.fb.control(updatedQuestions));
     }
+
+    this.handleQuestionnaireQuestionUpdate(update.questionnaireIndex, updatedQuestions);
 
     questionnaireGroup.markAsDirty();
     this.cdr.markForCheck();
@@ -826,6 +895,10 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
     if (this.projectForm.invalid) {
       this.projectForm.markAllAsTouched();
       this.notificationService.showWarning('Revise os campos obrigatórios antes de salvar.');
+      return;
+    }
+
+    if (!this.validateQuestionnairesHaveQuestions()) {
       return;
     }
 
@@ -953,6 +1026,17 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
         sequence: index + 1,
       }))
       .filter((stage) => Boolean(stage.name));
+  }
+
+  private getAvailableStageNames(): string[] {
+    return Array.from(
+      new Set(
+        this.stagesFormArray.controls
+          .map((control) => (control as FormGroup).get('name')?.value)
+          .filter((name): name is string => typeof name === 'string' && name.trim().length > 0)
+          .map((name) => name.trim())
+      )
+    );
   }
 
   private buildIterationPayload(): IterationPayload[] {
@@ -1084,10 +1168,14 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
     return questions.map((question) => {
       const roleIds = this.resolveQuestionRoleIds(question);
       const roleNames = this.resolveQuestionRoleNames(question, roleIds);
+      const stageNames = this.resolveQuestionStageNames(question);
       return {
         value: question.value,
         roleIds,
         roleNames,
+        stageNames: stageNames.length ? stageNames : undefined,
+        stageName: stageNames[0] ?? null,
+        categoryStageName: this.resolveCategoryStageName(question, stageNames),
       } satisfies QuestionPayload;
     });
   }
@@ -1123,6 +1211,47 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
     }
 
     return [];
+  }
+
+  private resolveQuestionStageNames(question: QuestionData | undefined): string[] {
+    if (!question) {
+      return [];
+    }
+
+    const normalized = Array.isArray(question.stageNames)
+      ? question.stageNames
+          .map((stage) => (typeof stage === 'string' ? stage.trim() : ''))
+          .filter((stage) => stage.length > 0)
+      : [];
+
+    if (normalized.length) {
+      return Array.from(new Set(normalized));
+    }
+
+    if (typeof question.stageName === 'string' && question.stageName.trim().length) {
+      return [question.stageName.trim()];
+    }
+
+    return [];
+  }
+
+  private resolveCategoryStageName(question: QuestionData | undefined, stageNames: string[]): string | null {
+    if (typeof question?.categoryStageName === 'string') {
+      const normalized = question.categoryStageName.trim();
+      if (normalized.length) {
+        return normalized;
+      }
+    }
+
+    if (stageNames.length === 1) {
+      return stageNames[0];
+    }
+
+    if (typeof question?.stageName === 'string' && question.stageName.trim().length) {
+      return question.stageName.trim();
+    }
+
+    return null;
   }
 
   private buildTemplateCloneRequest(projectName: string): {
@@ -1266,10 +1395,12 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
     const iterationsData: Iteration[] = [];
     let currentStartDate = new Date(startDateValue);
 
-    for (let i = 1; i <= iterationCount; i++) {
+    for (let index = 0; index < iterationCount; index++) {
       const iterationEndDate = FormUtils.addBusinessDays(new Date(currentStartDate), Math.max(iterationDuration - 1, 0));
+      const iterationName = this.getTemplateIterationName(index) ?? `Iteração ${index + 1}`;
+
       iterationsData.push({
-        name: `Iteração ${i}`,
+        name: iterationName,
         weight: 0,
         applicationStartDate: FormUtils.formatDateISO(currentStartDate),
         applicationEndDate: FormUtils.formatDateISO(iterationEndDate)
@@ -1318,7 +1449,8 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
 
     for (const [index, control] of iterationsArray.controls.entries()) {
       const iterationControl = control as FormGroup;
-      const iterationName = iterationControl.get('name')?.value || `Iteração ${index + 1}`;
+      const defaultIterationName = this.getTemplateIterationName(index) ?? `Iteração ${index + 1}`;
+      const iterationName = iterationControl.get('name')?.value || defaultIterationName;
       const iterationStartValue = iterationControl.get('applicationStartDate')?.value;
       const iterationEndValue = iterationControl.get('applicationEndDate')?.value;
 
@@ -1416,6 +1548,16 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
     };
   }
 
+  private getTemplateIterationName(index: number): string | null {
+    if (!this.selectedTemplateData?.iterations?.length) {
+      return null;
+    }
+
+    const templateIteration = this.selectedTemplateData.iterations[index] as TemplateIterationDTO | undefined;
+    const trimmedName = templateIteration?.name?.trim();
+    return trimmedName?.length ? trimmedName : null;
+  }
+
   private getTemplateQuestionsForIteration(iterationName?: string | null): QuestionData[] {
     if (!iterationName || !this.selectedTemplateData?.questionnaires?.length) {
       return [];
@@ -1435,6 +1577,9 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
       value: question.value,
       roleIds: this.extractRoleIds(question.roles, question.roleNames),
       roleNames: this.extractRoleNames(question.roles, question.roleNames),
+      stageNames: this.getTemplateQuestionStageNames(question),
+      stageName: question.stageName ?? null,
+      categoryStageName: question.stageName ?? null,
     }));
   }
 
@@ -1448,7 +1593,19 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
       id: question.id ?? this.generateQuestionId(source, index),
       roleIds: Array.isArray(question.roleIds) ? [...question.roleIds] : [],
       roleNames: Array.isArray(question.roleNames) ? [...question.roleNames] : [],
+      stageNames: Array.isArray(question.stageNames)
+        ? [...question.stageNames]
+        : question.stageName
+          ? [question.stageName]
+          : [],
+      stageName: question.stageNames?.[0] ?? question.stageName ?? null,
+      categoryStageName: question.categoryStageName ?? question.stageNames?.[0] ?? question.stageName ?? null,
     }));
+  }
+
+  private getTemplateQuestionStageNames(question: TemplateQuestionDTO): string[] {
+    const stageName = question.stageName?.trim();
+    return stageName?.length ? [stageName] : [];
   }
 
   private generateQuestionId(prefix: string | undefined, index: number): string {

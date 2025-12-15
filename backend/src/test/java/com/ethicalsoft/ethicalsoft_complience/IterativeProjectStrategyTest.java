@@ -19,6 +19,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -57,6 +58,8 @@ class IterativeProjectStrategyTest {
 	void setUp() {
 		project = new Project();
 		project.setId( 1L );
+		project.setStages( new HashSet<>() );
+		project.setIterations( new HashSet<>() );
 
 		StageDTO stageDTO = new StageDTO();
 		stageDTO.setName( "CategoryStage" );

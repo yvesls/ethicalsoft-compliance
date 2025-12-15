@@ -19,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -55,6 +56,7 @@ class WaterfallProjectStrategyTest {
 	void setUp() {
 		project = new Project();
 		project.setId( 1L );
+		project.setStages( new HashSet<>() );
 
 		StageDTO stageDTO = new StageDTO();
 		stageDTO.setName( "Requirements" );

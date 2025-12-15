@@ -168,26 +168,26 @@ export class RequestService {
 
 	private formatHttpError(error: unknown): ApiError {
 		if (error instanceof HttpErrorResponse) {
+			const fallbackMessage = getErrorMessage(error.status)
 			const baseError: ApiError = {
 				status: error.status,
 				errorType: 'ERROR',
-				message: error.message || getErrorMessage(error.status),
+				message: fallbackMessage,
 			}
 
-			if (typeof error.error === 'string' && error.error.trim()) {
-				try {
-					const parsed = JSON.parse(error.error) as Partial<ApiError>
-					return {
-						status: parsed.status ?? baseError.status,
-						errorType: parsed.errorType ?? baseError.errorType,
-						message: parsed.message ?? baseError.message,
-					}
-				} catch (parseError) {
-					LoggerService.warn('RequestService: Unable to parse error response JSON', parseError)
+			const serverError = this.extractServerErrorPayload(error.error)
+			if (serverError) {
+				return {
+					status: serverError.status ?? baseError.status,
+					errorType: serverError.errorType ?? baseError.errorType,
+					message: this.resolveBestMessage(serverError.message, fallbackMessage, error.message),
 				}
 			}
 
-			return baseError
+			return {
+				...baseError,
+				message: this.resolveBestMessage(undefined, fallbackMessage, error.message),
+			}
 		}
 
 		if (typeof error === 'string') {
@@ -211,6 +211,76 @@ export class RequestService {
 			errorType: 'ERROR',
 			message: getErrorMessage(0),
 		}
+	}
+
+	private extractServerErrorPayload(payload: unknown): Partial<ApiError> | null {
+		if (!payload) {
+			return null
+		}
+
+		if (typeof payload === 'string') {
+			return this.parseErrorString(payload)
+		}
+
+		if (typeof payload === 'object') {
+			return this.parseErrorObject(payload as Record<string, unknown>)
+		}
+
+		return null
+	}
+
+	private parseErrorString(payload: string): Partial<ApiError> | null {
+		const trimmed = payload.trim()
+		if (!trimmed) {
+			return null
+		}
+
+		try {
+			return JSON.parse(trimmed) as Partial<ApiError>
+		} catch (parseError) {
+			LoggerService.warn('RequestService: Unable to parse error response JSON string', parseError)
+			return { message: trimmed }
+		}
+	}
+
+	private parseErrorObject(payload: Record<string, unknown>): Partial<ApiError> | null {
+		const rawStatus = payload['status']
+		const status = typeof rawStatus === 'number' ? rawStatus : undefined
+		const errorType = this.resolveErrorType(payload)
+		const rawMessage = payload['message']
+		const message = typeof rawMessage === 'string' && rawMessage.trim() ? rawMessage : undefined
+
+		if (status === undefined && !errorType && !message) {
+			return null
+		}
+
+		return { status, errorType, message }
+	}
+
+	private resolveErrorType(payload: Record<string, unknown>): string | undefined {
+		const rawErrorType = payload['errorType']
+		if (typeof rawErrorType === 'string' && rawErrorType.trim()) {
+			return rawErrorType
+		}
+
+		const rawError = payload['error']
+		if (typeof rawError === 'string' && rawError.trim()) {
+			return rawError
+		}
+
+		return undefined
+	}
+
+	private resolveBestMessage(serverMessage: string | undefined, fallbackMessage: string, httpMessage?: string): string {
+		if (serverMessage && serverMessage.trim()) {
+			return serverMessage.trim()
+		}
+
+		if (fallbackMessage) {
+			return fallbackMessage
+		}
+
+		return httpMessage || getErrorMessage(0)
 	}
 }
 

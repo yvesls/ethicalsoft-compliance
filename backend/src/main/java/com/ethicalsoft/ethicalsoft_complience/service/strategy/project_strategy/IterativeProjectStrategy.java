@@ -10,6 +10,7 @@ import com.ethicalsoft.ethicalsoft_complience.postgres.repository.StageRepositor
 import com.ethicalsoft.ethicalsoft_complience.service.QuestionnaireService;
 import com.ethicalsoft.ethicalsoft_complience.service.strategy.ProjectCreationStrategy;
 import com.ethicalsoft.ethicalsoft_complience.util.ModelMapperUtils;
+import com.ethicalsoft.ethicalsoft_complience.util.ObjectUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -35,18 +36,23 @@ public class IterativeProjectStrategy implements ProjectCreationStrategy {
 	@Override
 	public void createStructure( Project project, ProjectCreationRequestDTO request ) {
 		Map<String, Stage> stageMap = Collections.emptyMap();
-		if ( request.getStages() != null && !request.getStages().isEmpty() ) {
+
+		if (ObjectUtil.isNotNullAndNotEmpty(request.getStages()) ) {
 			List<Stage> stages = ModelMapperUtils.mapAll( request.getStages(), Stage.class );
+
 			stages.forEach( stage -> stage.setProject( project ) );
 			List<Stage> savedStages = stageRepository.saveAll( stages );
+
 			stageMap = savedStages.stream().collect( Collectors.toMap( Stage::getName, Function.identity() ) );
 		}
 
-		if ( request.getIterations() == null || request.getIterations().isEmpty() ) {
+		if ( ObjectUtil.isNullOrEmpty(request.getIterations()) ) {
 			throw new IllegalArgumentException( "Projetos Iterativos devem ter iterações definidas." );
 		}
+
 		List<Iteration> iterations = ModelMapperUtils.mapAll( request.getIterations(), Iteration.class );
 		iterations.forEach( iteration -> iteration.setProject( project ) );
+
 		List<Iteration> savedIterations = iterationRepository.saveAll( iterations );
 
 		Map<String, Iteration> iterationMap = savedIterations.stream().collect( Collectors.toMap( Iteration::getName, Function.identity() ) );

@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Getter
@@ -15,25 +16,32 @@ import java.util.Set;
 @Entity
 @Table(name = "question")
 public class Question {
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "question_id")
-	private Integer id;
 
-	@Column(name = "text", nullable = false)
-	private String value;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "question_id")
+    private Integer id;
 
-	@ManyToOne
-	@JoinColumn(name = "questionnaire_id")
-	private Questionnaire questionnaire;
+    @Column(name = "text", nullable = false, length = 500)
+    private String value;
 
-	@ManyToMany
-	@JoinTable(name = "question_role",
-			joinColumns = @JoinColumn(name = "question_id"),
-			inverseJoinColumns = @JoinColumn(name = "role_id"))
-	private Set<Role> roles;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "questionnaire_id", nullable = false)
+    private Questionnaire questionnaire;
 
-	@ManyToOne
-	@JoinColumn(name = "stage_id")
-	private Stage stage;
+    @ManyToMany
+    @JoinTable(
+            name = "question_role",
+            joinColumns = @JoinColumn(name = "question_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private Set<Role> roles = new HashSet<>();
+
+    @ManyToMany
+    @JoinTable(
+            name = "question_stage",
+            joinColumns = @JoinColumn(name = "question_id"),
+            inverseJoinColumns = @JoinColumn(name = "stage_id")
+    )
+    private Set<Stage> stages = new HashSet<>();
 }

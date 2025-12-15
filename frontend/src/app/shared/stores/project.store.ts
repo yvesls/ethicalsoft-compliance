@@ -13,6 +13,7 @@ import { RoleSummary } from '../interfaces/role/role-summary.interface';
 import {
   ProjectQuestionnaireFilters,
   ProjectQuestionnaireSummary,
+  QuestionnaireReminderRequest,
 } from '../interfaces/project/project-questionnaire.interface';
 import { UrlParameter } from '../../core/interfaces/url-parameter.interface';
 
@@ -93,6 +94,20 @@ export class ProjectStore extends BaseStore {
       this.getUrl(`${projectId}/questionnaires`),
       { useAuth: true },
       ...params
+    );
+  }
+
+  sendQuestionnaireReminder(
+    projectId: string,
+    questionnaireId: number,
+    payload: QuestionnaireReminderRequest
+  ): Observable<void> {
+    return this.requestService.makePost<void>(
+      this.getUrl(`${projectId}/questionnaires/${questionnaireId}/reminders`),
+      {
+        useAuth: true,
+        data: payload,
+      }
     );
   }
 

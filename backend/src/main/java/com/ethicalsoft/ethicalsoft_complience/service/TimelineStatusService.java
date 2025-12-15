@@ -5,6 +5,7 @@ import com.ethicalsoft.ethicalsoft_complience.postgres.model.Project;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.Stage;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.ProjectTypeEnum;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.TimelineStatusEnum;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -12,33 +13,51 @@ import java.util.Comparator;
 import java.util.Set;
 
 @Service
+@Slf4j
 public class TimelineStatusService {
 
 	public void updateProjectTimeline(Project project) {
-		LocalDate today = LocalDate.now();
+		try {
+			if (project == null) {
+				log.warn("[timeline] Projeto nulo recebido na atualização de status");
+				return;
+			}
+			log.info("[timeline] Atualizando status do projeto id={} tipo={} deadline={}",
+					project.getId(), project.getType(), project.getDeadline());
 
-		String currentStage = null;
-		Integer currentIterationIndex = null;
+			LocalDate today = LocalDate.now();
 
-		if (project.getType() == ProjectTypeEnum.CASCATA) {
-			currentStage = determineCurrentStage(project.getStages(), today);
-		} else if (project.getType() == ProjectTypeEnum.ITERATIVO) {
-			currentIterationIndex = determineCurrentIterationIndex(project.getIterations(), today);
-		}
+			String currentStage = null;
+			Integer currentIterationIndex = null;
 
-		project.setCurrentSituation(buildCurrentSituation(project, currentStage, currentIterationIndex));
-		project.setTimelineStatus(resolveTimelineStatus(project.getStartDate(), project.getDeadline(), today, project.getTimelineStatus()));
+			if (project.getType() == ProjectTypeEnum.CASCATA) {
+				currentStage = determineCurrentStage(project.getStages(), today);
+				log.debug("[timeline] Projeto {} em etapa atual {}", project.getId(), currentStage);
+			} else if (project.getType() == ProjectTypeEnum.ITERATIVO) {
+				currentIterationIndex = determineCurrentIterationIndex(project.getIterations(), today);
+				log.debug("[timeline] Projeto {} iteracao corrente {}", project.getId(), currentIterationIndex);
+			}
 
-		if (project.getStages() != null) {
-			project.getStages().forEach(stage -> stage.setStatus(resolveTimelineStatus(stage.getApplicationStartDate(), stage.getApplicationEndDate(), today, stage.getStatus())));
-		}
+			project.setCurrentSituation(buildCurrentSituation(project, currentStage, currentIterationIndex));
+			project.setTimelineStatus(resolveTimelineStatus(project.getStartDate(), project.getDeadline(), today, project.getTimelineStatus()));
 
-		if (project.getIterations() != null) {
-			project.getIterations().forEach(iteration -> iteration.setStatus(resolveTimelineStatus(iteration.getApplicationStartDate(), iteration.getApplicationEndDate(), today, iteration.getStatus())));
-		}
+			if (project.getStages() != null) {
+				project.getStages().forEach(stage -> stage.setStatus(resolveTimelineStatus(stage.getApplicationStartDate(), stage.getApplicationEndDate(), today, stage.getStatus())));
+			}
 
-		if (project.getQuestionnaires() != null) {
-			project.getQuestionnaires().forEach(qn -> qn.setStatus(resolveTimelineStatus(qn.getApplicationStartDate(), qn.getApplicationEndDate(), today, qn.getStatus())));
+			if (project.getIterations() != null) {
+				project.getIterations().forEach(iteration -> iteration.setStatus(resolveTimelineStatus(iteration.getApplicationStartDate(), iteration.getApplicationEndDate(), today, iteration.getStatus())));
+			}
+
+			if (project.getQuestionnaires() != null) {
+				project.getQuestionnaires().forEach(qn -> qn.setStatus(resolveTimelineStatus(qn.getApplicationStartDate(), qn.getApplicationEndDate(), today, qn.getStatus())));
+			}
+
+			log.info("[timeline] Projeto {} atualizado com status {} e situacao {}", project.getId(), project.getTimelineStatus(), project.getCurrentSituation());
+		} catch (Exception ex) {
+			log.error("[timeline] Falha ao atualizar status do projeto id={}",
+					project != null ? project.getId() : null, ex);
+			throw ex;
 		}
 	}
 
@@ -104,4 +123,3 @@ public class TimelineStatusService {
 		return !date.isBefore(start) && !date.isAfter(end);
 	}
 }
-

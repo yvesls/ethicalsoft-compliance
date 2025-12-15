@@ -140,12 +140,14 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
   public ProjectType = ProjectType;
   public projectForm!: FormGroup;
   public isSubmitting = false;
+  public showQuestionnaireQuestionErrors = false;
   public panelStates: PanelStates = {
     project: true,
     steps: false,
     representatives: false,
     questionnaires: false,
   };
+  private questionnaireQuestionErrors = new Set<number>();
 
   public templateOptions: SelectOption[] = [];
   public projectTypeOptions: SelectOption[] = [
@@ -825,12 +827,18 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
     }
 
     // Mapear as perguntas do template para o formato esperado pelo componente
-    return templateQuestionnaire.questions.map((question: TemplateQuestionDTO, index: number) => ({
-      id: `${Date.now()}-${index}`,
-      value: question.value,
-      roleIds: this.extractRoleIds(question.roles, question.roleNames),
-      roleNames: this.extractRoleNames(question.roles, question.roleNames)
-    }));
+    return templateQuestionnaire.questions.map((question: TemplateQuestionDTO, index: number) => {
+      const stageNames = this.getTemplateQuestionStageNames(question);
+      return {
+        id: `${Date.now()}-${index}`,
+        value: question.value,
+        roleIds: this.extractRoleIds(question.roles, question.roleNames),
+        roleNames: this.extractRoleNames(question.roles, question.roleNames),
+        stageNames,
+        stageName: stageNames[0] ?? questionnaire.stageName ?? null,
+        categoryStageName: stageNames[0] ?? questionnaire.stageName ?? null,
+      } satisfies QuestionData;
+    });
   }
 
   private applyQuestionnaireUpdate(update: QuestionnaireUpdatePayload | undefined): void {
@@ -854,12 +862,15 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
       { emitEvent: false }
     );
 
+    const updatedQuestions = update.questions || [];
     const questionsControl = questionnaireGroup.get('questions');
     if (questionsControl) {
-      questionsControl.setValue(update.questions || []);
+      questionsControl.setValue(updatedQuestions);
     } else {
-      questionnaireGroup.addControl('questions', this.fb.control(update.questions || []));
+      questionnaireGroup.addControl('questions', this.fb.control(updatedQuestions));
     }
+
+    this.handleQuestionnaireQuestionUpdate(update.questionnaireIndex, updatedQuestions);
 
     questionnaireGroup.markAsDirty();
     this.cdr.detectChanges();
@@ -912,6 +923,62 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
 
   get representativesFormArray(): FormArray {
     return this.getControl('representatives') as FormArray;
+  }
+
+  shouldDisplayQuestionnaireQuestionError(index: number): boolean {
+    return this.showQuestionnaireQuestionErrors && this.questionnaireQuestionErrors.has(index);
+  }
+
+  getQuestionnaireQuestionErrorMessage(index: number): string {
+    const control = this.questionnairesFormArray.at(index) as FormGroup | null;
+    const name = (control?.get('name')?.value ?? '').toString().trim();
+    if (name) {
+      return `Adicione pelo menos uma pergunta ao questionário "${name}".`;
+    }
+    return 'Adicione pelo menos uma pergunta a este questionário.';
+  }
+
+  private validateQuestionnairesHaveQuestions(): boolean {
+    this.questionnaireQuestionErrors.clear();
+
+    this.questionnairesFormArray.controls.forEach((control, index) => {
+      const questions = control.get('questions')?.value as QuestionData[] | undefined;
+      if (!questions || questions.length === 0) {
+        this.questionnaireQuestionErrors.add(index);
+      }
+    });
+
+    const hasErrors = this.questionnaireQuestionErrors.size > 0;
+    this.showQuestionnaireQuestionErrors = hasErrors;
+
+    if (hasErrors) {
+      this.notificationService.showWarning('Adicione pelo menos uma pergunta para cada questionário antes de salvar.');
+    }
+
+    this.cdr.markForCheck();
+    return !hasErrors;
+  }
+
+  private handleQuestionnaireQuestionUpdate(index: number, questions: QuestionData[] | undefined): void {
+    if (!this.showQuestionnaireQuestionErrors && this.questionnaireQuestionErrors.size === 0) {
+      return;
+    }
+
+    if (questions?.length) {
+      const removed = this.questionnaireQuestionErrors.delete(index);
+      if (removed && this.questionnaireQuestionErrors.size === 0) {
+        this.showQuestionnaireQuestionErrors = false;
+      }
+      if (removed) {
+        this.cdr.markForCheck();
+      }
+      return;
+    }
+
+    if (this.showQuestionnaireQuestionErrors) {
+      this.questionnaireQuestionErrors.add(index);
+      this.cdr.markForCheck();
+    }
   }
 
   get questionnairesFormArray(): FormArray {
@@ -1108,6 +1175,10 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
     if (this.projectForm.invalid) {
       this.projectForm.markAllAsTouched();
       this.notificationService.showWarning('Revise os campos obrigatórios antes de salvar.');
+      return;
+    }
+
+    if (!this.validateQuestionnairesHaveQuestions()) {
       return;
     }
 
@@ -1325,10 +1396,14 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
     return questions.map((question) => {
       const roleIds = this.resolveQuestionRoleIds(question);
       const roleNames = this.resolveQuestionRoleNames(question, roleIds);
+      const stageNames = this.resolveQuestionStageNames(question);
       return {
         value: question.value,
         roleIds,
         roleNames,
+        stageNames: stageNames.length ? stageNames : undefined,
+        stageName: stageNames[0] ?? null,
+        categoryStageName: this.resolveCategoryStageName(question, stageNames),
       } satisfies QuestionPayload;
     });
   }
@@ -1366,6 +1441,47 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
     return [];
   }
 
+  private resolveQuestionStageNames(question: QuestionData | undefined): string[] {
+    if (!question) {
+      return [];
+    }
+
+    const normalized = Array.isArray(question.stageNames)
+      ? question.stageNames
+          .map((stage) => (typeof stage === 'string' ? stage.trim() : ''))
+          .filter((stage) => stage.length > 0)
+      : [];
+
+    if (normalized.length) {
+      return Array.from(new Set(normalized));
+    }
+
+    if (typeof question.stageName === 'string' && question.stageName.trim().length) {
+      return [question.stageName.trim()];
+    }
+
+    return [];
+  }
+
+  private resolveCategoryStageName(question: QuestionData | undefined, stageNames: string[]): string | null {
+    if (typeof question?.categoryStageName === 'string') {
+      const normalized = question.categoryStageName.trim();
+      if (normalized.length) {
+        return normalized;
+      }
+    }
+
+    if (stageNames.length === 1) {
+      return stageNames[0];
+    }
+
+    if (typeof question?.stageName === 'string' && question.stageName.trim().length) {
+      return question.stageName.trim();
+    }
+
+    return null;
+  }
+
   private getTemplateQuestionsForStage(stageName?: string | null): QuestionData[] {
     if (!stageName || !this.selectedTemplateData?.questionnaires?.length) {
       return [];
@@ -1385,6 +1501,9 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
       value: question.value,
       roleIds: this.extractRoleIds(question.roles, question.roleNames),
       roleNames: this.extractRoleNames(question.roles, question.roleNames),
+      stageNames: this.getTemplateQuestionStageNames(question),
+      stageName: question.stageName ?? stageName ?? null,
+      categoryStageName: question.stageName ?? stageName ?? null,
     }));
   }
 
@@ -1398,7 +1517,19 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
       id: question.id ?? this.generateQuestionId(source, index),
       roleIds: Array.isArray(question.roleIds) ? [...question.roleIds] : [],
       roleNames: Array.isArray(question.roleNames) ? [...question.roleNames] : [],
+      stageNames: Array.isArray(question.stageNames)
+        ? [...question.stageNames]
+        : question.stageName
+          ? [question.stageName]
+          : [],
+      stageName: question.stageNames?.[0] ?? question.stageName ?? null,
+      categoryStageName: question.categoryStageName ?? question.stageNames?.[0] ?? question.stageName ?? null,
     }));
+  }
+
+  private getTemplateQuestionStageNames(question: TemplateQuestionDTO): string[] {
+    const stageName = question.stageName?.trim();
+    return stageName?.length ? [stageName] : [];
   }
 
   private generateQuestionId(prefix: string | undefined, index: number): string {

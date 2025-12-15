@@ -5,6 +5,7 @@ import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.QuestionnaireDT
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.RepresentativeDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.StageDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.ProjectStatusEnum;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -14,6 +15,7 @@ import java.util.Set;
 @Data
 public class ProjectCreationRequestDTO {
 	private String name;
+    @NotEmpty
 	private String type;
 	private LocalDate startDate;
 	private LocalDate deadline;

@@ -3,10 +3,13 @@ package com.ethicalsoft.ethicalsoft_complience.controller;
 import com.ethicalsoft.ethicalsoft_complience.infra.security.ProjectRoleAuthorizationEvaluator;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.ProjectCreationRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.ProjectSearchRequestDTO;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.QuestionnaireReminderRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.QuestionnaireSearchFilter;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.response.*;
 import com.ethicalsoft.ethicalsoft_complience.service.ProjectService;
+import com.ethicalsoft.ethicalsoft_complience.service.QuestionnaireReminderService;
 import com.ethicalsoft.ethicalsoft_complience.service.facade.ProjectFacade;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,6 +27,7 @@ public class ProjectController {
 	private final ProjectFacade projectFacade;
 	private final ProjectService projectService;
 	private final ProjectRoleAuthorizationEvaluator projectRoleAuthorizationEvaluator;
+	private final QuestionnaireReminderService questionnaireReminderService;
 
 	@GetMapping("/roles")
 	public List<RoleSummaryResponseDTO> listRoles() {
@@ -31,7 +35,7 @@ public class ProjectController {
 	}
 
 	@PostMapping
-	public ProjectResponseDTO createProject(@RequestBody ProjectCreationRequestDTO request ) {
+	public ProjectResponseDTO createProject( @Valid @RequestBody ProjectCreationRequestDTO request ) {
 		return projectFacade.createProject( request );
 	}
 
@@ -58,5 +62,13 @@ public class ProjectController {
 			@PageableDefault(page = 0, size = 10) Pageable pageable) {
 		QuestionnaireSearchFilter filter = new QuestionnaireSearchFilter(questionnaireName, stageName, iterationName);
 		return projectService.listQuestionnaires(projectId, pageable, filter);
+	}
+
+	@PostMapping("/{projectId}/questionnaires/{questionnaireId}/reminders")
+	@PreAuthorize("@projectRoleAuthorizationEvaluator.canAccess(authentication)")
+	public void sendQuestionnaireReminder(@PathVariable Long projectId,
+	                                      @PathVariable Integer questionnaireId,
+	                                      @Valid @RequestBody QuestionnaireReminderRequestDTO requestDTO) {
+		questionnaireReminderService.sendReminder(projectId, questionnaireId, requestDTO);
 	}
 }

@@ -1,3 +1,4 @@
+@use 'sass:color';
 @use '../../../../assets/scss/base/vars' as *;
 
 .multi-select-wrapper {
@@ -142,7 +143,7 @@
     border-radius: 4px;
 
     &:hover {
-      background: darken($gray-primary, 10%);
+      background: color.adjust($gray-primary, $lightness: -10%);
     }
   }
 }

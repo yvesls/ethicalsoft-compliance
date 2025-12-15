@@ -43,6 +43,7 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
   private questionnaireIndex: number | null = null;
   private questionnaireMetadata: CascataQuestionnaireRouteParams | null = null;
   private skipStatePersistence = false;
+  private currentStageName: string | null = null;
 
   form!: FormGroup;
   questions: WritableSignal<QuestionData[]> = signal([]);
@@ -99,9 +100,10 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
     const data = (params.p ?? params) as CascataQuestionnaireRouteParams;
     this.questionnaireIndex = typeof data.questionnaireIndex === 'number' ? data.questionnaireIndex : null;
     this.questionnaireMetadata = data;
+    this.currentStageName = data.stageName ?? data.name ?? null;
 
     if (data.questions && Array.isArray(data.questions)) {
-      this.questions.set(data.questions);
+      this.questions.set(this.annotateQuestionsWithStage(data.questions));
     }
 
     this.form.patchValue({
@@ -133,6 +135,10 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
     return filtered;
   }
 
+  getStageLabels(question: QuestionData): string[] {
+    return this.resolveQuestionStageNames(question);
+  }
+
   toggleQuestionnaireDataAccordion(): void {
     this.questionnaireDataAccordionOpen = !this.questionnaireDataAccordionOpen;
   }
@@ -150,8 +156,8 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
     if (modalInstance) {
       this.questionModalSubscription = modalInstance.questionCreated.subscribe((newQuestion: QuestionData) => {
         if (!newQuestion.id) newQuestion.id = Date.now().toString();
-
-        this.questions.update(qs => [...qs, newQuestion]);
+        const enriched = this.assignStageMetadata({ ...newQuestion });
+        this.questions.update(qs => [...qs, enriched]);
         this.cdr.detectChanges();
       });
     }
@@ -187,6 +193,12 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
       return;
     }
 
+    const hasStageMismatch = this.questions().some((question) => !this.hasStageMetadata(question));
+    if (hasStageMismatch) {
+      this.notificationService.showWarning('Todas as perguntas precisam estar vinculadas à etapa atual.');
+      return;
+    }
+
     const formData = this.form.getRawValue();
 
     const finalData = {
@@ -208,6 +220,72 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
     this.routerService.backToPrevious(0, true, updatedParams);
   }
 
+  private annotateQuestionsWithStage(questions?: QuestionData[]): QuestionData[] {
+    if (!questions?.length) {
+      return [];
+    }
+
+    return questions.map((question) => this.assignStageMetadata({ ...question }));
+  }
+
+  private assignStageMetadata(question: QuestionData): QuestionData {
+    const stageName = this.getEffectiveStageName();
+    const normalizedStageName = stageName?.trim();
+
+    if (normalizedStageName?.length) {
+      question.stageNames = [normalizedStageName];
+      question.stageName = normalizedStageName;
+      question.categoryStageName = normalizedStageName;
+      return question;
+    }
+
+    const stageNames = this.resolveQuestionStageNames(question);
+    question.stageNames = stageNames;
+    question.stageName = stageNames[0] ?? null;
+    question.categoryStageName = stageNames.length === 1 ? stageNames[0] : question.categoryStageName ?? null;
+    return question;
+  }
+
+  private getEffectiveStageName(): string | null {
+    if (this.questionnaireMetadata?.stageName) {
+      return this.questionnaireMetadata.stageName;
+    }
+
+    if (this.currentStageName) {
+      return this.currentStageName;
+    }
+
+    const nameControlValue = this.form.get('name')?.value;
+    return typeof nameControlValue === 'string' ? nameControlValue : null;
+  }
+
+  private resolveQuestionStageNames(question: QuestionData | undefined): string[] {
+    if (!question) {
+      return [];
+    }
+
+    const normalized = Array.isArray(question.stageNames)
+      ? question.stageNames
+          .map((stage) => (typeof stage === 'string' ? stage.trim() : ''))
+          .filter((stage) => stage.length > 0)
+      : [];
+
+    if (normalized.length) {
+      return Array.from(new Set(normalized));
+    }
+
+    if (typeof question.stageName === 'string' && question.stageName.trim().length) {
+      return [question.stageName.trim()];
+    }
+
+    const fallbackStage = this.getEffectiveStageName();
+    return fallbackStage ? [fallbackStage.trim()] : [];
+  }
+
+  private hasStageMetadata(question: QuestionData | undefined): boolean {
+    return this.resolveQuestionStageNames(question).length > 0;
+  }
+
   protected override save(): RouteParams<CascataQuestionnaireRouteParams> {
     return {
       formValue: this.form.getRawValue(),
@@ -223,16 +301,22 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
     const formValue = restoreParameter['formValue'];
     if (formValue) {
       this.form.patchValue(formValue);
+      const castFormValue = formValue as { stageName?: string; name?: string };
+      const restoredName = castFormValue.stageName ?? castFormValue.name;
+      if (typeof restoredName === 'string') {
+        this.currentStageName = restoredName;
+      }
     }
 
     const savedQuestions = (restoreParameter['questions'] ?? restoreParameter.p?.['questions']) as QuestionData[] | undefined;
     if (savedQuestions) {
-      this.questions.set(savedQuestions);
+      this.questions.set(this.annotateQuestionsWithStage(savedQuestions));
     }
   }
 
   private replaceQuestion(updatedQuestion: QuestionData): void {
-    this.questions.update((qs) => qs.map((q) => (q.id === updatedQuestion.id ? updatedQuestion : q)));
+    const annotated = this.assignStageMetadata({ ...updatedQuestion });
+    this.questions.update((qs) => qs.map((q) => (q.id === annotated.id ? annotated : q)));
   }
 
   override ngOnDestroy(): void {

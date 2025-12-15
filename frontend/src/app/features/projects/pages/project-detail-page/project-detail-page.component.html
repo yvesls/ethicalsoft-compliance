@@ -21,11 +21,6 @@
               <span class="status-chip">
                 {{ getProjectStatusLabel(project.status) }}
               </span>
-              @if (project.timelineStatus) {
-                <span class="status-chip" [ngClass]="getTimelineStatusClass(project.timelineStatus)">
-                  {{ getTimelineStatusLabel(project.timelineStatus) }}
-                </span>
-              }
               <span class="status-chip status-chip--neutral">
                 {{ projectTypeLabelMap[project.type] || project.type }}
               </span>
@@ -33,7 +28,6 @@
           </div>
           @if (isAdmin()) {
             <button type="button" class="btn btn-secundary" (click)="onEditProject()">
-              <img src="assets/icons/pen-edit.svg" alt="Editar" />
               Editar projeto
             </button>
           }
@@ -151,22 +145,39 @@
             noItemsMessage="Nenhum questionário encontrado para este projeto."
           >
             <div listBody>
-              @if (project.type === ProjectTypeEnum.Cascata) {
-                @for (questionnaire of questionnairesState().items; track trackByQuestionnaireId($index, questionnaire)) {
-                  <article class="questionnaire-card">
-                    <header class="questionnaire-card__header">
-                      <div>
+              @for (questionnaire of questionnairesState().items; track trackByQuestionnaireId($index, questionnaire)) {
+                <article
+                  class="questionnaire-card"
+                  [class.questionnaire-card--pinned]="isQuestionnairePinned(questionnaire)"
+                >
+                  <header class="questionnaire-card__header">
+                    <div class="questionnaire-card__title">
+                      <div class="questionnaire-card__title-row">
                         <h3>{{ questionnaire.name }}</h3>
-                        <p class="questionnaire-card__subtitle">
-                          Etapa vinculada: {{ questionnaire.stageName || 'Não definida' }}
-                        </p>
+                        @if (isQuestionnairePinned(questionnaire)) {
+                          <span class="questionnaire-card__pin" title="Questionário em andamento">
+                            <img src="assets/icons/pin.svg" alt="Questionário em andamento" />
+                          </span>
+                        }
                       </div>
+                      <p class="questionnaire-card__subtitle">
+                        {{ getReferenceLabelTitle(project.type) }}:
+                        {{ getQuestionnaireReferenceLabel(questionnaire, project.type) }}
+                      </p>
+                      <p class="questionnaire-card__application">
+                        Período de aplicação: <strong>{{ getApplicationRange(questionnaire) }}</strong>
+                      </p>
+                    </div>
 
-                      <span class="status-chip" [ngClass]="getTimelineStatusClass(questionnaire.status)">
-                        {{ getTimelineStatusLabel(questionnaire.status) }}
-                      </span>
-                    </header>
+                    <span
+                      class="status-chip questionnaire-card__status-chip"
+                      [ngClass]="getTimelineStatusClass(questionnaire.status)"
+                    >
+                      {{ getTimelineStatusLabel(questionnaire.status) }}
+                    </span>
+                  </header>
 
+                  <div class="questionnaire-card__info-grid">
                     <div class="questionnaire-card__meta">
                       <div>
                         <span class="meta-label">Respondentes</span>
@@ -192,268 +203,112 @@
                         </span>
                       </div>
                       <div>
-                        <span class="meta-label">Etapa</span>
+                        <span class="meta-label">{{ getReferenceLabelTitle(project.type) }}</span>
                         <span class="meta-value">
-                          {{ questionnaire.stageName || 'Não definida' }}
+                          {{ getQuestionnaireReferenceLabel(questionnaire, project.type) }}
+                        </span>
+                      </div>
+                      <div>
+                        <span class="meta-label">Período de aplicação</span>
+                        <span class="meta-value">
+                          {{ getApplicationRange(questionnaire) }}
                         </span>
                       </div>
                     </div>
 
-                    <div class="questionnaire-card__progress">
-                      <div class="progress-track">
-                        <div
-                          class="progress-fill"
-                          [style.width.%]="getQuestionnaireProgress(questionnaire)"
-                        ></div>
-                      </div>
-                      <span class="progress-label">
-                        {{ getQuestionnaireProgress(questionnaire) }}% dos representantes responderam
-                      </span>
-                    </div>
-
-                    @if (questionnaire.respondents.length) {
-                      <div class="questionnaire-card__respondents">
-                        <div class="respondent-list__header">
-                          <span>Status por representante</span>
-                          <small>{{ questionnaire.respondents.length }} pessoas</small>
-                        </div>
-                        <ul class="respondent-list">
-                          @for (
-                            respondent of questionnaire.respondents | slice: 0:5;
-                            track trackByRespondentId($index, respondent)
-                          ) {
-                            <li class="respondent-list__item">
-                              <div class="respondent-list__info">
-                                <strong>{{ respondent.name }}</strong>
-                                <small>{{ respondent.email }}</small>
-                              </div>
-                              <div class="respondent-list__status">
-                                <span
-                                  class="status-chip"
-                                  [ngClass]="getRespondentStatusClass(respondent.status)"
-                                >
-                                  {{ getRespondentStatusLabel(respondent.status) }}
-                                </span>
-                                @if (respondent.completedAt) {
-                                  <small>
-                                    {{ respondent.completedAt | date: 'dd/MM HH:mm' }}
-                                  </small>
-                                }
-                              </div>
-                            </li>
-                          }
-                        </ul>
-                        @if (questionnaire.respondents.length > 5) {
-                          <span class="respondent-list__hint">
-                            +{{ questionnaire.respondents.length - 5 }} representantes adicionais
-                          </span>
+                    @if (isAdmin()) {
+                      <div class="questionnaire-card__actions" aria-label="Ações do questionário">
+                        <span class="questionnaire-card__actions-label">Ações</span>
+                        <button
+                          type="button"
+                          class="questionnaire-card__action-button"
+                          (click)="copyQuestionnaireLink(questionnaire)"
+                        >
+                          Copiar link
+                        </button>
+                        @if (
+                          isQuestionnaireInProgress(questionnaire) &&
+                          questionnaire.pendingRespondents > 0
+                        ) {
+                          <button
+                            type="button"
+                            class="questionnaire-card__action-button questionnaire-card__action-button--primary"
+                            [disabled]="isReminderInProgress(questionnaire.id)"
+                            (click)="onSendReminder(questionnaire)"
+                          >
+                            @if (isReminderInProgress(questionnaire.id)) {
+                              Enviando lembrete...
+                            } @else {
+                              Enviar lembrete
+                            }
+                          </button>
                         }
                       </div>
                     }
-                  </article>
-                }
-              } @else if (project.type === ProjectTypeEnum.Iterativo) {
-                @for (questionnaire of questionnairesState().items; track trackByQuestionnaireId($index, questionnaire)) {
-                  <article class="questionnaire-card">
-                    <header class="questionnaire-card__header">
-                      <div>
-                        <h3>{{ questionnaire.name }}</h3>
-                        <p class="questionnaire-card__subtitle">
-                          Iteração vinculada: {{ questionnaire.iterationName || 'Não definida' }}
-                        </p>
-                      </div>
+                  </div>
 
-                      <span class="status-chip" [ngClass]="getTimelineStatusClass(questionnaire.status)">
-                        {{ getTimelineStatusLabel(questionnaire.status) }}
-                      </span>
-                    </header>
-
-                    <div class="questionnaire-card__meta">
-                      <div>
-                        <span class="meta-label">Respondentes</span>
-                        <span class="meta-value">
-                          {{ questionnaire.respondedRespondents }} /
-                          {{ questionnaire.totalRespondents }}
-                        </span>
-                      </div>
-                      <div>
-                        <span class="meta-label">Pendentes</span>
-                        <span class="meta-value">
-                          {{ questionnaire.pendingRespondents }}
-                        </span>
-                      </div>
-                      <div>
-                        <span class="meta-label">Última resposta</span>
-                        <span class="meta-value">
-                          @if (questionnaire.lastResponseAt) {
-                            {{ questionnaire.lastResponseAt | date: 'dd/MM/yyyy HH:mm' }}
-                          } @else {
-                            ---
-                          }
-                        </span>
-                      </div>
-                      <div>
-                        <span class="meta-label">Iteração</span>
-                        <span class="meta-value">
-                          {{ questionnaire.iterationName || 'Não definida' }}
-                        </span>
-                      </div>
+                  <div class="questionnaire-card__progress">
+                    <div class="progress-track">
+                      <div
+                        class="progress-fill"
+                        [style.width.%]="getQuestionnaireProgress(questionnaire)"
+                      ></div>
                     </div>
+                    <span class="progress-label">
+                      {{ getQuestionnaireProgress(questionnaire) }}% dos representantes responderam
+                    </span>
+                  </div>
 
-                    <div class="questionnaire-card__progress">
-                      <div class="progress-track">
-                        <div
-                          class="progress-fill"
-                          [style.width.%]="getQuestionnaireProgress(questionnaire)"
-                        ></div>
+                  @if (questionnaire.respondents.length && canDisplayRespondents()) {
+                    <div class="questionnaire-card__respondents">
+                      <div class="respondent-list__header">
+                        <span>Status por representante</span>
+                        <small>{{ questionnaire.respondents.length }} pessoas</small>
                       </div>
-                      <span class="progress-label">
-                        {{ getQuestionnaireProgress(questionnaire) }}% dos representantes responderam
-                      </span>
-                    </div>
-
-                    @if (questionnaire.respondents.length) {
-                      <div class="questionnaire-card__respondents">
-                        <div class="respondent-list__header">
-                          <span>Status por representante</span>
-                          <small>{{ questionnaire.respondents.length }} pessoas</small>
-                        </div>
-                        <ul class="respondent-list">
-                          @for (
-                            respondent of questionnaire.respondents | slice: 0:5;
-                            track trackByRespondentId($index, respondent)
-                          ) {
-                            <li class="respondent-list__item">
-                              <div class="respondent-list__info">
-                                <strong>{{ respondent.name }}</strong>
-                                <small>{{ respondent.email }}</small>
-                              </div>
-                              <div class="respondent-list__status">
-                                <span
-                                  class="status-chip"
-                                  [ngClass]="getRespondentStatusClass(respondent.status)"
-                                >
-                                  {{ getRespondentStatusLabel(respondent.status) }}
-                                </span>
-                                @if (respondent.completedAt) {
-                                  <small>
-                                    {{ respondent.completedAt | date: 'dd/MM HH:mm' }}
-                                  </small>
-                                }
-                              </div>
-                            </li>
-                          }
-                        </ul>
-                        @if (questionnaire.respondents.length > 5) {
-                          <span class="respondent-list__hint">
-                            +{{ questionnaire.respondents.length - 5 }} representantes adicionais
-                          </span>
+                      <ul class="respondent-list">
+                        @for (
+                          respondent of questionnaire.respondents | slice: 0:5;
+                          track trackByRespondentId($index, respondent)
+                        ) {
+                          <li class="respondent-list__item">
+                            <div class="respondent-list__info">
+                              <strong>{{ respondent.name }}</strong>
+                              <small>{{ respondent.email }}</small>
+                            </div>
+                            <div class="respondent-list__status">
+                              <span
+                                class="status-chip"
+                                [ngClass]="getRespondentStatusClass(respondent.status)"
+                              >
+                                {{ getRespondentStatusLabel(respondent.status) }}
+                              </span>
+                              @if (respondent.completedAt) {
+                                <small>
+                                  {{ respondent.completedAt | date: 'dd/MM HH:mm' }}
+                                </small>
+                              }
+                            </div>
+                          </li>
                         }
-                      </div>
-                    }
-                  </article>
-                }
-              } @else {
-                @for (questionnaire of questionnairesState().items; track trackByQuestionnaireId($index, questionnaire)) {
-                  <article class="questionnaire-card">
-                    <header class="questionnaire-card__header">
-                      <div>
-                        <h3>{{ questionnaire.name }}</h3>
-                        <p class="questionnaire-card__subtitle">
-                          {{ questionnaire.stageName || questionnaire.iterationName || 'Sem referência' }}
-                        </p>
-                      </div>
-
-                      <span class="status-chip" [ngClass]="getTimelineStatusClass(questionnaire.status)">
-                        {{ getTimelineStatusLabel(questionnaire.status) }}
-                      </span>
-                    </header>
-
-                    <div class="questionnaire-card__meta">
-                      <div>
-                        <span class="meta-label">Respondentes</span>
-                        <span class="meta-value">
-                          {{ questionnaire.respondedRespondents }} /
-                          {{ questionnaire.totalRespondents }}
+                      </ul>
+                      @if (questionnaire.respondents.length > 5) {
+                        <span class="respondent-list__hint">
+                          +{{ questionnaire.respondents.length - 5 }} representantes adicionais
                         </span>
-                      </div>
-                      <div>
-                        <span class="meta-label">Pendentes</span>
-                        <span class="meta-value">
-                          {{ questionnaire.pendingRespondents }}
-                        </span>
-                      </div>
-                      <div>
-                        <span class="meta-label">Última resposta</span>
-                        <span class="meta-value">
-                          @if (questionnaire.lastResponseAt) {
-                            {{ questionnaire.lastResponseAt | date: 'dd/MM/yyyy HH:mm' }}
-                          } @else {
-                            ---
-                          }
-                        </span>
-                      </div>
-                      <div>
-                        <span class="meta-label">Referência</span>
-                        <span class="meta-value">
-                          {{ questionnaire.stageName || questionnaire.iterationName || 'Sem referência' }}
-                        </span>
-                      </div>
+                      }
                     </div>
-
-                    <div class="questionnaire-card__progress">
-                      <div class="progress-track">
-                        <div
-                          class="progress-fill"
-                          [style.width.%]="getQuestionnaireProgress(questionnaire)"
-                        ></div>
-                      </div>
-                      <span class="progress-label">
-                        {{ getQuestionnaireProgress(questionnaire) }}% dos representantes responderam
-                      </span>
-                    </div>
-
-                    @if (questionnaire.respondents.length) {
-                      <div class="questionnaire-card__respondents">
-                        <div class="respondent-list__header">
-                          <span>Status por representante</span>
-                          <small>{{ questionnaire.respondents.length }} pessoas</small>
+                  } @else if (questionnaire.respondents.length && !canDisplayRespondents()) {
+                    <div class="questionnaire-card__respondents questionnaire-card__respondents--restricted">
+                      <div class="respondent-list__restricted">
+                        <img src="assets/icons/eye-slash.svg" alt="Visualização restrita" />
+                        <div>
+                          <strong>Informações restritas</strong>
+                          <p>Apenas administradores podem consultar o status individual dos respondentes.</p>
                         </div>
-                        <ul class="respondent-list">
-                          @for (
-                            respondent of questionnaire.respondents | slice: 0:5;
-                            track trackByRespondentId($index, respondent)
-                          ) {
-                            <li class="respondent-list__item">
-                              <div class="respondent-list__info">
-                                <strong>{{ respondent.name }}</strong>
-                                <small>{{ respondent.email }}</small>
-                              </div>
-                              <div class="respondent-list__status">
-                                <span
-                                  class="status-chip"
-                                  [ngClass]="getRespondentStatusClass(respondent.status)"
-                                >
-                                  {{ getRespondentStatusLabel(respondent.status) }}
-                                </span>
-                                @if (respondent.completedAt) {
-                                  <small>
-                                    {{ respondent.completedAt | date: 'dd/MM HH:mm' }}
-                                  </small>
-                                }
-                              </div>
-                            </li>
-                          }
-                        </ul>
-                        @if (questionnaire.respondents.length > 5) {
-                          <span class="respondent-list__hint">
-                            +{{ questionnaire.respondents.length - 5 }} representantes adicionais
-                          </span>
-                        }
                       </div>
-                    }
-                  </article>
-                }
+                    </div>
+                  }
+                </article>
               }
             </div>
 

@@ -9,6 +9,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,6 +24,7 @@ import java.util.Objects;
 
 @RequiredArgsConstructor
 @Component
+@Slf4j
 public class SecurityFilter extends OncePerRequestFilter {
 
 	private final TokenService tokenService;
@@ -35,10 +37,13 @@ public class SecurityFilter extends OncePerRequestFilter {
 			var token = extractToken( request );
 			if ( Objects.nonNull( token ) ) {
 				var username = tokenService.validateToken( token );
-				userRepository.findByEmail( username ).ifPresent( user -> authenticateUser( request, user ) );
+				userRepository.findByEmail( username ).ifPresentOrElse(
+						user -> authenticateUser( request, user ),
+						() -> log.warn("[security-filter] Usuário {} não encontrado ao validar token", username)
+				);
 			}
 		} catch ( Exception ex ) {
-			logger.warn( "JWT inválido ou expirado", ex );
+			log.warn( "[security-filter] JWT inválido ou expirado: {}", ex.getMessage() );
 			response.sendError( HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized" );
 			return;
 		}
@@ -51,6 +56,7 @@ public class SecurityFilter extends OncePerRequestFilter {
 
 		var authentication = new UsernamePasswordAuthenticationToken( user, null, authorities );
 		SecurityContextHolder.getContext().setAuthentication( authentication );
+		log.debug("[security-filter] Usuário {} autenticado com roles {}", user.getEmail(), authorities);
 	}
 
 	private List<SimpleGrantedAuthority> getAuthorities( User user, Long projectId ) {
@@ -64,10 +70,10 @@ public class SecurityFilter extends OncePerRequestFilter {
 		if ( Objects.nonNull( projectId ) ) {
 			representativeRepository.findByUserEmailAndProjectId( user.getEmail(), projectId )
 					.ifPresentOrElse( rep -> authorities.addAll( rep.getRoles().stream()
-									.map( role -> new SimpleGrantedAuthority( "ROLE_" + role.getName().toUpperCase() ) )
-									.toList()
-							),
-							() -> logger.debug("Usuário {} não é representante no projeto {} ou não há roles associadas")
+							.map( role -> new SimpleGrantedAuthority( "ROLE_" + role.getName().toUpperCase() ) )
+							.toList()
+						),
+						() -> log.debug("[security-filter] Usuário {} não é representante no projeto {} ou não há roles associadas", user.getEmail(), projectId)
 					);
 		}
 

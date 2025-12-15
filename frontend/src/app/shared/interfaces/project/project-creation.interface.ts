@@ -23,6 +23,9 @@ export interface QuestionPayload {
 	value: string;
 	roleIds: number[];
 	roleNames: string[];
+	stageNames?: string[];
+	stageName?: string | null;
+	categoryStageName?: string | null;
 }
 
 export interface QuestionnairePayload {
