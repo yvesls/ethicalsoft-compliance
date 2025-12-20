@@ -1,7 +1,7 @@
 package com.ethicalsoft.ethicalsoft_complience.controller;
 
+import com.ethicalsoft.ethicalsoft_complience.application.usecase.GetProjectQuestionnaireSummaryUseCase;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.response.ProjectQuestionnaireSummaryDTO;
-import com.ethicalsoft.ethicalsoft_complience.service.ProjectService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,14 +14,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class ProjectQuestionnaireController {
 
-    private final ProjectService projectService;
+    private final GetProjectQuestionnaireSummaryUseCase getProjectQuestionnaireSummaryUseCase;
 
     @GetMapping
     @PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")
     public ProjectQuestionnaireSummaryDTO getQuestionnaireSummary(@PathVariable Long projectId,
                                                                   @PathVariable Integer questionnaireId) {
-        return projectService.getProjectQuestionnaireSummary(projectId, questionnaireId);
+        return getProjectQuestionnaireSummaryUseCase.execute(projectId, questionnaireId);
     }
 }
-
-

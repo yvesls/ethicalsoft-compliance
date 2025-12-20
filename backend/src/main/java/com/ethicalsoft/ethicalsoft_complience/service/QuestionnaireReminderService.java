@@ -1,5 +1,6 @@
 package com.ethicalsoft.ethicalsoft_complience.service;
 
+import com.ethicalsoft.ethicalsoft_complience.application.port.QuestionnaireReminderPort;
 import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
 import com.ethicalsoft.ethicalsoft_complience.mongo.model.QuestionnaireResponse;
 import com.ethicalsoft.ethicalsoft_complience.mongo.repository.QuestionnaireResponseRepository;
@@ -23,13 +24,14 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class QuestionnaireReminderService {
+public class QuestionnaireReminderService implements QuestionnaireReminderPort {
 
     private final ProjectRepository projectRepository;
     private final QuestionnaireRepository questionnaireRepository;
     private final QuestionnaireResponseRepository questionnaireResponseRepository;
     private final EmailService emailService;
 
+    @Override
     @Transactional(readOnly = true)
     public void sendReminder(Long projectId, Integer questionnaireId, QuestionnaireReminderRequestDTO request) {
         try {

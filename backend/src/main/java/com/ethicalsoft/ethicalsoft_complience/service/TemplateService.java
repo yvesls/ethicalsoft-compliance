@@ -1,5 +1,7 @@
 package com.ethicalsoft.ethicalsoft_complience.service;
 
+import com.ethicalsoft.ethicalsoft_complience.application.port.TemplateCommandPort;
+import com.ethicalsoft.ethicalsoft_complience.application.port.TemplateQueryPort;
 import com.ethicalsoft.ethicalsoft_complience.mongo.model.ProjectTemplate;
 import com.ethicalsoft.ethicalsoft_complience.mongo.model.dto.*;
 import com.ethicalsoft.ethicalsoft_complience.mongo.repository.ProjectTemplateRepository;
@@ -22,12 +24,13 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class TemplateService {
+public class TemplateService implements TemplateQueryPort, TemplateCommandPort {
 
 	private final ProjectTemplateRepository projectTemplateRepository;
 	private final ProjectRepository projectRepository;
 	private final AuthService authService;
 
+    @Override
 	public ProjectTemplate findFullTemplateById(String templateMongoId) {
 		try {
 			Long currentUserId = authService.getAuthenticatedUserId();
@@ -43,6 +46,7 @@ public class TemplateService {
 		}
 	}
 
+    @Override
 	public List<TemplateListDTO> findAllTemplates() {
 		try {
 			Long currentUserId = authService.getAuthenticatedUserId();
@@ -58,6 +62,7 @@ public class TemplateService {
 		}
 	}
 
+    @Override
 	public ProjectTemplate createTemplateFromProject(Long projectId, CreateTemplateRequestDTO request) {
         try {
             Long currentUserId = authService.getAuthenticatedUserId();

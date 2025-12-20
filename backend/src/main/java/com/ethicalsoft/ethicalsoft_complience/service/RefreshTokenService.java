@@ -57,6 +57,10 @@ public class RefreshTokenService {
 		}
 	}
 
+	public String validateRefreshToken( RefreshTokenDTO refreshTokenDTO ) {
+        return validateRefreshToken(refreshTokenDTO != null ? refreshTokenDTO.getRefreshToken() : null);
+    }
+
 	public String validateRefreshToken( String token ) {
 		try {
 			log.info("[refresh-token] Validando refresh token recebido");

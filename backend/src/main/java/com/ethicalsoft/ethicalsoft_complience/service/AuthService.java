@@ -89,4 +89,13 @@ public class AuthService {
 		return getAuthenticatedUser().getId();
 	}
 
+    public User loadUserByEmail(String email) {
+        try {
+            return userRepository.findByEmail(email)
+                    .orElseThrow(() -> new BusinessException(ErrorTypeEnum.INFO, "User not found"));
+        } catch (Exception ex) {
+            log.error("[auth] Falha ao carregar usuário por email {}", email, ex);
+            throw ex;
+        }
+    }
 }

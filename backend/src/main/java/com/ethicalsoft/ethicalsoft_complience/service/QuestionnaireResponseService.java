@@ -1,23 +1,22 @@
 package com.ethicalsoft.ethicalsoft_complience.service;
 
+import com.ethicalsoft.ethicalsoft_complience.application.port.QuestionnaireResponsePort;
+import com.ethicalsoft.ethicalsoft_complience.domain.repository.QuestionRepositoryPort;
+import com.ethicalsoft.ethicalsoft_complience.domain.repository.QuestionnaireRepositoryPort;
+import com.ethicalsoft.ethicalsoft_complience.domain.repository.QuestionnaireResponseRepositoryPort;
+import com.ethicalsoft.ethicalsoft_complience.domain.service.*;
 import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
 import com.ethicalsoft.ethicalsoft_complience.mongo.model.QuestionnaireResponse;
-import com.ethicalsoft.ethicalsoft_complience.mongo.repository.QuestionnaireResponseRepository;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.*;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.LinkDTO;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.Question;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.Questionnaire;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.Role;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.Stage;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.QuestionnaireAnswerPageRequestDTO;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.QuestionnaireAnswerRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.response.QuestionnaireAnswerPageResponseDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.response.QuestionnaireAnswerResponseDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.response.QuestionnaireQuestionResponseDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.response.QuestionnaireResponseSummaryDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.QuestionnaireResponseStatus;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.UserRoleEnum;
-import com.ethicalsoft.ethicalsoft_complience.postgres.repository.ProjectRepository;
-import com.ethicalsoft.ethicalsoft_complience.postgres.repository.QuestionRepository;
-import com.ethicalsoft.ethicalsoft_complience.postgres.repository.QuestionnaireRepository;
-import com.ethicalsoft.ethicalsoft_complience.postgres.repository.RepresentativeRepository;
-import com.ethicalsoft.ethicalsoft_complience.util.ObjectUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -34,23 +33,26 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class QuestionnaireResponseService {
+public class QuestionnaireResponseService implements QuestionnaireResponsePort {
 
-    private final QuestionnaireRepository questionnaireRepository;
-    private final QuestionRepository questionRepository;
-    private final ProjectRepository projectRepository;
-    private final QuestionnaireResponseRepository questionnaireResponseRepository;
-    private final RepresentativeRepository representativeRepository;
-    private final AuthService authService;
+    private final QuestionRepositoryPort questionRepository;
+    private final QuestionnaireRepositoryPort questionnaireRepository;
+    private final QuestionnaireResponseRepositoryPort questionnaireResponseRepository;
+    private final QuestionnaireAnswerPolicy answerPolicy;
+    private final QuestionnaireStatusCalculator statusCalculator;
+    private final PageSliceResolver pageSliceResolver;
+    private final LinkMapper linkMapper;
+    private final RepresentativeAccessPolicy representativeAccessPolicy;
 
+    @Override
     public Page<QuestionnaireQuestionResponseDTO> listQuestions(Long projectId,
                                                                 Integer questionnaireId,
                                                                 Pageable pageable) {
         try {
             log.info("[questionnaire-response] Listando perguntas projeto={} questionario={} pagina={}", projectId, questionnaireId, pageable.getPageNumber());
             Questionnaire questionnaire = loadQuestionnaire(projectId, questionnaireId);
-            Long effectiveRepresentativeId = resolveRepresentativeId(projectId);
-            ensureRepresentativeBelongsToProject(effectiveRepresentativeId, questionnaire.getProject());
+            Long effectiveRepresentativeId = representativeAccessPolicy.resolveRepresentativeId(projectId);
+            representativeAccessPolicy.ensureRepresentativeBelongsToProject(effectiveRepresentativeId, questionnaire.getProject());
 
             Page<Question> pageResult = questionRepository.findByQuestionnaireIdOrderByIdAsc(questionnaireId, pageable);
             List<QuestionnaireQuestionResponseDTO> content = pageResult.stream()
@@ -63,12 +65,13 @@ public class QuestionnaireResponseService {
         }
     }
 
+    @Override
     public QuestionnaireAnswerPageResponseDTO getAnswerPage(Long projectId,
                                                             Integer questionnaireId,
                                                             Pageable pageable) {
         try {
             log.info("[questionnaire-response] Buscando respostas paginadas projeto={} questionario={} pagina={}", projectId, questionnaireId, pageable.getPageNumber());
-            Long effectiveRepresentativeId = resolveRepresentativeId(projectId);
+            Long effectiveRepresentativeId = representativeAccessPolicy.resolveRepresentativeId(projectId);
 
             QuestionnaireResponse response = loadResponse(projectId, questionnaireId, effectiveRepresentativeId);
             List<QuestionnaireResponse.AnswerDocument> answers = Optional.ofNullable(response.getAnswers()).orElseGet(List::of);
@@ -83,8 +86,8 @@ public class QuestionnaireResponseService {
             }
 
             int total = answers.size();
-            PageSlice slice = resolveSlice(pageable.getPageNumber(), pageable.getPageSize(), total);
-            List<QuestionnaireAnswerResponseDTO> pageAnswers = answers.subList(slice.fromIndex, slice.toIndex).stream()
+            PageSliceResolver.PageSlice slice = pageSliceResolver.resolve(pageable.getPageNumber(), pageable.getPageSize(), total);
+            List<QuestionnaireAnswerResponseDTO> pageAnswers = answers.subList(slice.fromIndex(), slice.toIndex()).stream()
                     .map(this::toAnswerResponse)
                     .toList();
 
@@ -92,7 +95,7 @@ public class QuestionnaireResponseService {
             return QuestionnaireAnswerPageResponseDTO.builder()
                     .pageNumber(pageable.getPageNumber())
                     .pageSize(pageable.getPageSize())
-                    .totalPages(slice.totalPages)
+                    .totalPages(slice.totalPages())
                     .completed(completed)
                     .answers(pageAnswers)
                     .build();
@@ -102,21 +105,22 @@ public class QuestionnaireResponseService {
         }
     }
 
+    @Override
     public QuestionnaireAnswerPageResponseDTO submitAnswerPage(Long projectId,
                                                                Integer questionnaireId,
                                                                QuestionnaireAnswerPageRequestDTO request) {
         try {
             log.info("[questionnaire-response] Recebendo respostas projeto={} questionario={} pagina={}", projectId, questionnaireId, request.getPageNumber());
             Questionnaire questionnaire = loadQuestionnaire(projectId, questionnaireId);
-            Long effectiveRepresentativeId = resolveRepresentativeId(projectId);
+            Long effectiveRepresentativeId = representativeAccessPolicy.resolveRepresentativeId(projectId);
             QuestionnaireResponse response = loadResponse(projectId, questionnaireId, effectiveRepresentativeId);
-            PageSlice slice = resolveSlice(request.getPageNumber(), request.getPageSize(), response.getAnswers().size());
+            PageSliceResolver.PageSlice slice = pageSliceResolver.resolve(request.getPageNumber(), request.getPageSize(), response.getAnswers().size());
             Map<Long, QuestionnaireResponse.AnswerDocument> answerMap = response.getAnswers().stream()
                     .collect(Collectors.toMap(QuestionnaireResponse.AnswerDocument::getQuestionId, ans -> ans));
 
-            request.getAnswers().forEach(dto -> applyAnswer(dto, answerMap));
+            request.getAnswers().forEach(dto -> answerPolicy.applyAnswer(dto, answerMap));
 
-            QuestionnaireResponseStatus status = resolveStatus(response.getAnswers());
+            QuestionnaireResponseStatus status = statusCalculator.calculateStatus(response.getAnswers());
             response.setStatus(status);
             response.setSubmissionDate(status == QuestionnaireResponseStatus.COMPLETED ? LocalDateTime.now() : null);
             questionnaireResponseRepository.save(response);
@@ -129,6 +133,7 @@ public class QuestionnaireResponseService {
         }
     }
 
+    @Override
     public List<QuestionnaireResponseSummaryDTO> listSummaries(Long projectId, Integer questionnaireId) {
         try {
             log.info("[questionnaire-response] Listando resumos projeto={} questionario={}", projectId, questionnaireId);
@@ -173,44 +178,12 @@ public class QuestionnaireResponseService {
         return QuestionnaireAnswerResponseDTO.builder()
                 .questionId(answer.getQuestionId())
                 .response(answer.getResponse())
-                .justification(toLinkDTO(answer.getJustification()))
-                .evidence(toLinkDTO(answer.getEvidence()))
+                .justification(linkMapper.toDto(answer.getJustification()))
+                .evidence(linkMapper.toDto(answer.getEvidence()))
                 .attachments(Optional.ofNullable(answer.getAttachments())
-                        .map(list -> list.stream().map(this::toLinkDTO).toList())
+                        .map(list -> list.stream().map(linkMapper::toDto).toList())
                         .orElseGet(List::of))
                 .build();
-    }
-
-    private void applyAnswer(QuestionnaireAnswerRequestDTO dto,
-                              Map<Long, QuestionnaireResponse.AnswerDocument> answerMap) {
-        QuestionnaireResponse.AnswerDocument answer = answerMap.get(dto.getQuestionId());
-
-        if (answer == null) {
-            throw new BusinessException("Questão inválida para este questionário");
-        }
-
-        if (Boolean.FALSE.equals(dto.getResponse()) && (ObjectUtil.isNullOrEmpty(dto.getJustification() ))) {
-            throw new BusinessException("Justificativa é obrigatória quando a resposta é 'Não'.");
-        }
-
-        answer.setResponse(dto.getResponse());
-        answer.setJustification(toLinkDocument(dto.getJustification()));
-        answer.setEvidence(toLinkDocument(dto.getEvidence()));
-        answer.setAttachments(Optional.ofNullable(dto.getAttachments())
-                .map(list -> list.stream()
-                        .flatMap(link -> Optional.ofNullable(toLinkDocument(link)).stream())
-                        .toList())
-                .orElseGet(List::of));
-    }
-
-    private QuestionnaireResponseStatus resolveStatus(List<QuestionnaireResponse.AnswerDocument> answers) {
-        boolean hasAny = answers.stream().anyMatch(ans -> ans.getResponse() != null);
-        boolean allAnswered = hasAny && answers.stream().allMatch(ans -> ans.getResponse() != null);
-
-        if (!hasAny) {
-            return QuestionnaireResponseStatus.PENDING;
-        }
-        return allAnswered ? QuestionnaireResponseStatus.COMPLETED : QuestionnaireResponseStatus.IN_PROGRESS;
     }
 
     private Questionnaire loadQuestionnaire(Long projectId, Integer questionnaireId) {
@@ -232,57 +205,4 @@ public class QuestionnaireResponseService {
                 .findByProjectIdAndQuestionnaireIdAndRepresentativeId(projectId, questionnaireId, representativeId)
                 .orElseThrow(() -> new BusinessException("Registro de respostas não encontrado"));
     }
-
-    private Long resolveRepresentativeId(Long projectId) {
-        User authenticated = authService.getAuthenticatedUser();
-        if (UserRoleEnum.ADMIN.equals(authenticated.getRole()) || projectRepository.existsByIdAndOwnerId(projectId, authenticated.getId())) {
-            return null;
-        }
-        Representative representative = representativeRepository.findByUserIdAndProjectId(authenticated.getId(), projectId)
-                .orElseThrow(() -> new BusinessException("Usuário autenticado não possui representante vinculado ao projeto"));
-        return representative.getId();
-    }
-
-    private void ensureRepresentativeBelongsToProject(Long representativeId, Project project) {
-        Representative representative = representativeRepository.findById(representativeId)
-                .orElseThrow(() -> new BusinessException("Representante não encontrado"));
-        if (!Objects.equals(representative.getProject().getId(), project.getId())) {
-            throw new BusinessException("Representante não pertence ao projeto informado");
-        }
-    }
-
-    private LinkDTO toLinkDTO(QuestionnaireResponse.LinkDocument doc) {
-        if (doc == null) {
-            return null;
-        }
-        LinkDTO dto = new LinkDTO();
-        dto.setDescricao(doc.getDescricao());
-        dto.setUrl(doc.getUrl());
-        return dto;
-    }
-
-    private QuestionnaireResponse.LinkDocument toLinkDocument(LinkDTO dto) {
-        if (dto == null) {
-            return null;
-        }
-        QuestionnaireResponse.LinkDocument doc = new QuestionnaireResponse.LinkDocument();
-        doc.setDescricao(dto.getDescricao());
-        doc.setUrl(dto.getUrl());
-        return doc;
-    }
-
-    private PageSlice resolveSlice(int page, int size, int totalElements) {
-        if (size <= 0) {
-            throw new BusinessException("Tamanho de página inválido");
-        }
-        int totalPages = (int) Math.ceil((double) totalElements / size);
-        if (page < 0 || (totalPages > 0 && page >= totalPages)) {
-            throw new BusinessException("Página solicitada está fora do intervalo disponível");
-        }
-        int fromIndex = page * size;
-        int toIndex = Math.min(fromIndex + size, totalElements);
-        return new PageSlice(fromIndex, toIndex, totalPages == 0 ? 1 : totalPages);
-    }
-
-    private record PageSlice(int fromIndex, int toIndex, int totalPages) {}
 }

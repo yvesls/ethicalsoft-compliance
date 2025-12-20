@@ -1,5 +1,7 @@
 package com.ethicalsoft.ethicalsoft_complience.service;
 
+import com.ethicalsoft.ethicalsoft_complience.application.port.ProjectQuestionnaireQueryPort;
+import com.ethicalsoft.ethicalsoft_complience.domain.service.*;
 import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
 import com.ethicalsoft.ethicalsoft_complience.mongo.model.QuestionnaireResponse;
 import com.ethicalsoft.ethicalsoft_complience.mongo.repository.QuestionnaireResponseRepository;
@@ -9,8 +11,14 @@ import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.Project
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.ProjectSearchRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.QuestionnaireSearchFilter;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.response.*;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.*;
-import com.ethicalsoft.ethicalsoft_complience.postgres.repository.*;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.ProjectStatusEnum;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.ProjectTypeEnum;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.QuestionnaireResponseStatus;
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.TimelineStatusEnum;
+import com.ethicalsoft.ethicalsoft_complience.postgres.repository.ProjectRepository;
+import com.ethicalsoft.ethicalsoft_complience.postgres.repository.QuestionnaireRepository;
+import com.ethicalsoft.ethicalsoft_complience.postgres.repository.RepresentativeRepository;
+import com.ethicalsoft.ethicalsoft_complience.postgres.repository.RoleRepository;
 import com.ethicalsoft.ethicalsoft_complience.util.ModelMapperUtils;
 import com.ethicalsoft.ethicalsoft_complience.util.ObjectUtil;
 import jakarta.persistence.EntityNotFoundException;
@@ -19,8 +27,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -38,275 +44,81 @@ import static java.util.stream.Collectors.toList;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class ProjectService {
+public class ProjectService implements ProjectQuestionnaireQueryPort {
 
-	private final ProjectRepository projectRepository;
-	private final RepresentativeRepository representativeRepository;
-	private final UserRepository userRepository;
-	private final RoleRepository roleRepository;
-	private final PasswordEncoder passwordEncoder;
-	private final QuestionnaireRepository questionnaireRepository;
-	private final AuthService authService;
-	private final EmailService emailService;
-	private final QuestionnaireResponseRepository questionnaireResponseRepository;
-	private final TimelineStatusService timelineStatusService;
-	private final QuestionnaireService questionnaireService;
+    private final ProjectRepository projectRepository;
+    private final RepresentativeRepository representativeRepository;
+    private final RoleRepository roleRepository;
+    private final QuestionnaireRepository questionnaireRepository;
+    private final AuthService authService;
+    private final EmailService emailService;
+    private final QuestionnaireResponseRepository questionnaireResponseRepository;
+    private final TimelineStatusService timelineStatusService;
+    private final QuestionnaireService questionnaireService;
+    private final ProjectCurrentStagePolicy projectCurrentStagePolicy;
+    private final ProjectCurrentIterationPolicy projectCurrentIterationPolicy;
+    private final ProjectSituationPolicy projectSituationPolicy;
+    private final UserResolutionPolicy userResolutionPolicy;
+    private final RoleMappingPolicy roleMappingPolicy;
 
-	@Transactional
-	public Project createProjectShell( ProjectCreationRequestDTO request ) {
-		try {
-			log.info("[project] Criando casca de projeto nome={} deadline={}",
-					request != null ? request.getName() : null,
-					request != null ? request.getDeadline() : null);
+    @Transactional
+    public Project createProjectShell( ProjectCreationRequestDTO request ) {
+        try {
+            log.info("[project] Criando casca de projeto nome={} deadline={}",
+                    request != null ? request.getName() : null,
+                    request != null ? request.getDeadline() : null);
 
-			Project project = ModelMapperUtils.map( request, Project.class );
-			project.setOwner( authService.getAuthenticatedUser() );
+            Project project = ModelMapperUtils.map( request, Project.class );
+            project.setOwner( authService.getAuthenticatedUser() );
 
-			project.setType( ProjectTypeEnum.fromValue(request != null ? request.getType() : null) );
-			project.setStages( new HashSet<>() );
-			project.setIterations( new HashSet<>() );
-			project.setRepresentatives( new HashSet<>() );
-			project.setQuestionnaires( new HashSet<>() );
-			if ( project.getStatus() == null ) {
-				project.setStatus( ProjectStatusEnum.RASCUNHO );
-			}
-			project.setTimelineStatus( TimelineStatusEnum.PENDENTE );
-			project.setCurrentSituation( null );
-			Project saved = projectRepository.save( project );
-			log.info("[project] Projeto criado id={} status={}", saved.getId(), saved.getStatus());
-			return saved;
-		} catch ( Exception ex ) {
-			log.error("[project] Falha ao criar casca de projeto nome={}", request != null ? request.getName() : null, ex);
-			throw ex;
-		}
-	}
-
-	@Transactional(readOnly = true)
-	public Page<ProjectSummaryResponseDTO> getAllProjectSummaries( ProjectSearchRequestDTO filters, Pageable pageable) {
-
-        Specification<Project> spec = ProjectSpecification.findByCriteria(filters, authService.getAuthenticatedUser());
-
-        Page<Project> projectPage = projectRepository.findAll(spec, pageable);
-
-        LocalDate now = LocalDate.now();
-
-        return projectPage.map(project -> {
-			String currentStage = null;
-			Integer currentIteration = null;
-
-			if (project.getType() == ProjectTypeEnum.CASCATA) {
-				currentStage = findCurrentStageName(project.getQuestionnaires(), now);
-			} else if (project.getType() == ProjectTypeEnum.ITERATIVO) {
-				currentIteration = findCurrentIterationNumber(project.getIterations(), now);
-			}
-
-			return ProjectSummaryResponseDTO.builder()
-					.id(project.getId())
-					.name(project.getName())
-					.type(project.getType().name())
-					.status(project.getStatus())
-					.timelineStatus(project.getTimelineStatus())
-					.deadline( project.getDeadline() )
-					.startDate(project.getStartDate())
-					.representativeCount(project.getRepresentatives() != null ? project.getRepresentatives().size() : 0)
-					.stageCount(project.getStages() != null ? project.getStages().size() : 0)
-					.iterationCount(project.getIterations() != null ? project.getIterations().size() : 0)
-					.currentStage(currentStage)
-					.currentIteration(currentIteration)
-					.currentSituation(project.getCurrentSituation())
-					.build();
-		});
-	}
-
-	private String buildCurrentSituation(Project project, String currentStage, Integer currentIteration) {
-		if (project.getType() == ProjectTypeEnum.CASCATA) {
-			return currentStage;
-		}
-		if (project.getType() == ProjectTypeEnum.ITERATIVO && currentIteration != null && project.getIterationCount() != null) {
-			return "Sprint " + currentIteration + "/" + project.getIterationCount();
-		}
-		return null;
-	}
-
-	private String findCurrentStageName(Set<Questionnaire> questionnaires, LocalDate now) {
-		if (questionnaires == null || questionnaires.isEmpty()) {
-			return null;
-		}
-		return questionnaires.stream()
-				.filter(q -> q.getApplicationStartDate() != null && q.getApplicationEndDate() != null &&
-						!now.isBefore(q.getApplicationStartDate()) && !now.isAfter(q.getApplicationEndDate()))
-				.map(Questionnaire::getStage)
-				.filter( Objects::nonNull)
-				.map(Stage::getName)
-				.findFirst()
-				.orElse(null);
-	}
-
-	private Integer findCurrentIterationNumber(Set<Iteration> iterations, LocalDate now) {
-		if (iterations == null || iterations.isEmpty()) {
-			return null;
-		}
-
-		var sortedIterations = iterations.stream()
-				.filter(it -> it.getApplicationStartDate() != null)
-				.sorted( Comparator.comparing(Iteration::getApplicationStartDate))
-				.toList();
-
-		for (int i = 0; i < sortedIterations.size(); i++) {
-			Iteration it = sortedIterations.get(i);
-			if (it.getApplicationEndDate() != null &&
-					!now.isBefore(it.getApplicationStartDate()) && !now.isAfter(it.getApplicationEndDate())) {
-				return i + 1;
-			}
-		}
-		return null;
-	}
-
-	@Transactional
-	public Set<Representative> createRepresentatives( Project project, Set<RepresentativeDTO> repDTOs ) {
-		try {
-			log.info("[project] Criando representantes para projeto id={} quantidade={}", project != null ? project.getId() : null, repDTOs != null ? repDTOs.size() : 0);
-			if (ObjectUtil.isNullOrEmpty( repDTOs ) ) {
-				return new HashSet<>();
-			}
-
-            if ( ObjectUtil.isNullOrEmpty( project ) ) {
-                throw new BusinessException("Projeto inválido para criação de representantes.");
+            project.setType( ProjectTypeEnum.fromValue(request != null ? request.getType() : null) );
+            project.setStages( new HashSet<>() );
+            project.setIterations( new HashSet<>() );
+            project.setRepresentatives( new HashSet<>() );
+            project.setQuestionnaires( new HashSet<>() );
+            if ( project.getStatus() == null ) {
+                project.setStatus( ProjectStatusEnum.RASCUNHO );
             }
-
-			Set<Long> requestedRoleIds = repDTOs.stream()
-					.filter( dto -> dto.getRoleIds() != null )
-					.flatMap( dto -> dto.getRoleIds().stream() )
-					.collect( Collectors.toSet() );
-
-			Map<Long, Role> resolvedRoles = requestedRoleIds.isEmpty()
-					? Map.of()
-					: roleRepository.findAllById( requestedRoleIds ).stream()
-					.collect( Collectors.toMap( Role::getId, Function.identity() ) );
-
-			if ( resolvedRoles.size() != requestedRoleIds.size() ) {
-				throw new EntityNotFoundException( "Um ou mais papéis (Roles) não foram encontrados." );
-			}
-
-			User currentAdmin = authService.getAuthenticatedUser();
-
-			Set<Representative> representatives = repDTOs.stream().map( dto -> {
-				UserResolutionResult resolution = resolveOrCreateUser( dto );
-				Set<Role> roles = mapRoles( dto.getRoleIds(), resolvedRoles );
-
-				Representative rep = new Representative();
-				rep.setProject( project );
-				rep.setUser( resolution.user() );
-				rep.setRoles( roles );
-				rep.setWeight( dto.getWeight() );
-				rep.setCreationDate( LocalDate.now() );
-
-				representativeRepository.save( rep );
-				questionnaireService.createResponsesForRepresentative( project, rep );
-
-				resolution.temporaryPassword().ifPresent( tempPassword ->
-					emailService.sendNewUserCredentialsEmail(
-							rep.getUser().getEmail(),
-							rep.getUser().getFirstName(),
-							tempPassword,
-							rep.getProject().getName(),
-							currentAdmin.getFirstName() + " " + currentAdmin.getLastName()
-					)
-				);
-
-				emailService.sendProjectAssignmentEmail(
-						rep.getUser().getEmail(),
-						rep.getUser().getFirstName(),
-						project.getName(),
-						project.getId(),
-						currentAdmin.getFirstName() + " " + currentAdmin.getLastName(),
-						currentAdmin.getEmail(),
-						rep.getRoles().stream().map( Role::getName ).toList(),
-						project.getCurrentSituation(),
-						project.getStartDate(),
-						project.getDeadline(),
-						findNextQuestionnaireDate( project )
-				);
-
-				return rep;
-			} ).collect( Collectors.toSet() );
-
-			log.info("[project] {} representantes vinculados ao projeto id={} ", representatives.size(), project.getId());
-			return representatives;
-		} catch ( Exception ex ) {
-			log.error("[project] Falha ao criar representantes para projeto id={}", project != null ? project.getId() : null, ex);
-			throw ex;
-		}
-	}
-
-	private UserResolutionResult resolveOrCreateUser( RepresentativeDTO dto ) {
-		if ( StringUtils.hasText( dto.getEmail() ) ) {
-			return userRepository.findByEmail( dto.getEmail() )
-					.map( user -> new UserResolutionResult( user, Optional.empty() ) )
-					.orElseGet( () -> createUserFromDto( dto ) );
-		}
-
-		throw new IllegalArgumentException( "Representante precisa informar userId ou email." );
-	}
-
-	private UserResolutionResult createUserFromDto( RepresentativeDTO dto ) {
-		if ( !StringUtils.hasText( dto.getEmail() ) || !StringUtils.hasText( dto.getFirstName() ) || !StringUtils.hasText( dto.getLastName() ) ) {
-			throw new IllegalArgumentException( "Dados insuficientes para criar um usuário." );
-		}
-
-		String tempPassword = generateTempPassword();
-
-		User user = new User();
-        user.setRole(UserRoleEnum.USER);
-		user.setFirstName( dto.getFirstName() );
-		user.setLastName( dto.getLastName() );
-		user.setEmail( dto.getEmail() );
-		user.setPassword( passwordEncoder.encode( tempPassword ) );
-		user.setFirstAccess( true );
-		user.setAcceptedTerms( false );
-
-		user = userRepository.save( user );
-
-		return new UserResolutionResult( user, Optional.of( tempPassword ) );
-	}
-
-	private String generateTempPassword() {
-        return UUID.randomUUID().toString().replace( "-", "" ).substring( 0, 12 );
+            project.setTimelineStatus( TimelineStatusEnum.PENDENTE );
+            project.setCurrentSituation( null );
+            Project saved = projectRepository.save( project );
+            log.info("[project] Projeto criado id={} status={}", saved.getId(), saved.getStatus());
+            return saved;
+        } catch ( Exception ex ) {
+            log.error("[project] Falha ao criar casca de projeto nome={}", request != null ? request.getName() : null, ex);
+            throw ex;
+        }
     }
 
-	private Set<Role> mapRoles( Set<Long> desiredRoleIds, Map<Long, Role> resolvedRoles ) {
-		if ( desiredRoleIds == null || desiredRoleIds.isEmpty() ) {
-			return Set.of();
-		}
+    @Transactional(readOnly = true)
+    public List<RoleSummaryResponseDTO> listRoleSummaries() {
+        throw new UnsupportedOperationException("Use RoleQueryPort/RoleQueryAdapter instead of ProjectService.listRoleSummaries");
+    }
 
-		return desiredRoleIds.stream()
-				.map( resolvedRoles::get )
-				.collect( Collectors.toSet() );
-	}
 
-	@Transactional(readOnly = true)
-	public List<RoleSummaryResponseDTO> listRoleSummaries() {
-		try {
-			log.debug("[project] Listando roles cadastros");
-			List<RoleSummaryResponseDTO> roles = roleRepository.findAll().stream()
-					.map(role -> new RoleSummaryResponseDTO(role.getId(), role.getName()))
-					.collect(toList());
-			log.info("[project] {} roles retornados", roles.size());
-			return roles;
-		} catch ( Exception ex ) {
-			log.error("[project] Falha ao listar roles", ex);
-			throw ex;
-		}
-	}
+    @Transactional(readOnly = true)
+    public Page<ProjectSummaryResponseDTO> getAllProjectSummaries( ProjectSearchRequestDTO filters, Pageable pageable) {
+        throw new UnsupportedOperationException("Use ProjectQueryPort/ProjectQueryAdapter via use cases");
+    }
 
-	@Transactional(readOnly = true)
-	public ProjectDetailResponseDTO getProjectById(Long projectId) {
+    private String findCurrentStageName(Set<Questionnaire> questionnaires, LocalDate now) {
+        return projectCurrentStagePolicy.findCurrentStageName(questionnaires, now);
+    }
+
+    private Integer findCurrentIterationNumber(Set<Iteration> iterations, LocalDate now) {
+        return projectCurrentIterationPolicy.findCurrentIterationNumber(iterations, now);
+    }
+
+    private String buildCurrentSituation(Project project, String currentStage, Integer currentIteration) {
+        return projectSituationPolicy.buildCurrentSituation(project, currentStage, currentIteration);
+    }
+
+    @Transactional(readOnly = true)
+    public ProjectDetailResponseDTO getProjectById(Long projectId) {
         try {
             log.info("[project] Buscando detalhes do projeto id={}", projectId);
             Project project = projectRepository.findById(projectId)
                     .orElseThrow(() -> new EntityNotFoundException("Projeto não encontrado: " + projectId));
-
-            assertUserCanAccessProject(project);
 
             int representativeCount = project.getRepresentatives() != null ? project.getRepresentatives().size() : 0;
             int stageCount = project.getStages() != null ? project.getStages().size() : 0;
@@ -347,20 +159,12 @@ public class ProjectService {
         }
     }
 
-    private void assertUserCanAccessProject(Project project) {
-        User currentUser = authService.getAuthenticatedUser();
-        if (!UserRoleEnum.ADMIN.equals(currentUser.getRole()) && project.getRepresentatives().stream().noneMatch(rep -> rep.getUser().getId().equals(currentUser.getId()))) {
-            throw new AccessDeniedException("Usuário não possui acesso ao projeto " + project.getId());
-        }
-    }
-
     @Transactional(readOnly = true)
     public Page<QuestionnaireSummaryResponseDTO> listQuestionnaires(Long projectId, Pageable pageable, QuestionnaireSearchFilter filter) {
 		try {
 			log.info("[project] Listando questionários do projeto id={} filtroNome={}", projectId, filter != null ? filter.name() : null);
 			Project project = projectRepository.findById(projectId)
 					.orElseThrow(() -> new EntityNotFoundException("Projeto não encontrado: " + projectId));
-			assertUserCanAccessProject(project);
 
 			Set<Representative> projectRepresentatives = Optional.ofNullable(project.getRepresentatives()).orElse(Set.of());
 			Map<Long, Representative> representativesById = projectRepresentatives.stream()
@@ -448,8 +252,6 @@ public class ProjectService {
                 .build();
     }
 
-	record UserResolutionResult( User user, Optional<String> temporaryPassword ) {}
-
 	@Transactional(readOnly = true)
 	public Project reloadProjectAggregate( Long projectId ) {
 		try {
@@ -478,13 +280,7 @@ public class ProjectService {
 	}
 
 	private LocalDate findNextQuestionnaireDate( Project project ) {
-		return project.getQuestionnaires().stream()
-				.map( Questionnaire::getApplicationStartDate )
-				.filter( Objects::nonNull )
-				.filter( date -> !date.isBefore( LocalDate.now() ) )
-				.sorted()
-				.findFirst()
-				.orElse( project.getStartDate() );
+		return projectCurrentStagePolicy.findNextQuestionnaireDate(project);
 	}
 
 	@Transactional
@@ -496,8 +292,6 @@ public class ProjectService {
 					.orElseThrow(() -> new EntityNotFoundException("Projeto não encontrado: " + projectId));
 			Questionnaire questionnaire = questionnaireRepository.findById(questionnaireId.intValue())
 					.orElseThrow(() -> new EntityNotFoundException("Questionário não encontrado: " + questionnaireId));
-
-			assertUserCanAccessProject(project);
 
 			// Agrupar respostas por representante
 			Map<Long, List<QuestionnaireResponse>> responsesByRepresentative = responses.stream()
@@ -543,8 +337,6 @@ public class ProjectService {
 			Questionnaire questionnaire = questionnaireRepository.findById(questionnaireId.intValue())
 					.orElseThrow(() -> new EntityNotFoundException("Questionário não encontrado: " + questionnaireId));
 
-			assertUserCanAccessProject(project);
-
 			return questionnaireResponseRepository.findByProjectIdAndQuestionnaireId(projectId, questionnaireId.intValue());
 		} catch (Exception ex) {
 			log.error("[project] Falha ao buscar respostas do questionário id={} para o projeto id={}", questionnaireId, projectId, ex);
@@ -552,18 +344,15 @@ public class ProjectService {
 		}
 	}
 
+    @Override
     public ProjectQuestionnaireSummaryDTO getProjectQuestionnaireSummary(Long projectId, Integer questionnaireId) {
         try {
             log.info("[project] Resumindo questionário id={} do projeto {}", questionnaireId, projectId);
             Project project = projectRepository.findById(projectId)
                     .orElseThrow(() -> new EntityNotFoundException("Projeto não encontrado: " + projectId));
-            assertUserCanAccessProject(project);
 
             Questionnaire questionnaire = questionnaireRepository.findById(questionnaireId)
                     .orElseThrow(() -> new EntityNotFoundException("Questionário não encontrado: " + questionnaireId));
-            if (!Objects.equals(questionnaire.getProject().getId(), projectId)) {
-                throw new BusinessException("Questionário não pertence ao projeto informado");
-            }
 
             Set<Representative> projectRepresentatives = Optional.ofNullable(project.getRepresentatives()).orElse(Set.of());
             Map<Long, Representative> representativesById = projectRepresentatives.stream()
@@ -587,6 +376,83 @@ public class ProjectService {
                     .build();
         } catch (Exception ex) {
             log.error("[project] Falha ao resumir questionário id={} projeto={}", questionnaireId, projectId, ex);
+            throw ex;
+        }
+    }
+
+    @Transactional
+    public Set<Representative> createRepresentatives( Project project, Set<RepresentativeDTO> repDTOs ) {
+        try {
+            log.info("[project] Criando representantes para projeto id={} quantidade={}", project != null ? project.getId() : null, repDTOs != null ? repDTOs.size() : 0);
+            if (ObjectUtil.isNullOrEmpty( repDTOs ) ) {
+                return new HashSet<>();
+            }
+
+            if ( ObjectUtil.isNullOrEmpty( project ) ) {
+                throw new BusinessException("Projeto inválido para criação de representantes.");
+            }
+
+            Set<Long> requestedRoleIds = repDTOs.stream()
+                    .filter( dto -> dto.getRoleIds() != null )
+                    .flatMap( dto -> dto.getRoleIds().stream() )
+                    .collect( Collectors.toSet() );
+
+            Map<Long, Role> resolvedRoles = requestedRoleIds.isEmpty()
+                    ? Map.of()
+                    : roleRepository.findAllById( requestedRoleIds ).stream()
+                    .collect( Collectors.toMap( Role::getId, Function.identity() ) );
+
+            if ( resolvedRoles.size() != requestedRoleIds.size() ) {
+                throw new EntityNotFoundException( "Um ou mais papéis (Roles) não foram encontrados." );
+            }
+
+            User currentAdmin = authService.getAuthenticatedUser();
+
+            Set<Representative> representatives = repDTOs.stream().map( dto -> {
+                UserResolutionPolicy.UserResolutionResult resolution = userResolutionPolicy.resolveOrCreateUser( dto );
+                Set<Role> roles = roleMappingPolicy.mapRoles( dto.getRoleIds(), resolvedRoles );
+
+                Representative rep = new Representative();
+                rep.setProject( project );
+                rep.setUser( resolution.user() );
+                rep.setRoles( roles );
+                rep.setWeight( dto.getWeight() );
+                rep.setCreationDate( LocalDate.now() );
+
+                representativeRepository.save( rep );
+                questionnaireService.createResponsesForRepresentative( project, rep );
+
+                resolution.temporaryPassword().ifPresent( tempPassword ->
+                    emailService.sendNewUserCredentialsEmail(
+                            rep.getUser().getEmail(),
+                            rep.getUser().getFirstName(),
+                            tempPassword,
+                            rep.getProject().getName(),
+                            currentAdmin.getFirstName() + " " + currentAdmin.getLastName()
+                    )
+                );
+
+                emailService.sendProjectAssignmentEmail(
+                        rep.getUser().getEmail(),
+                        rep.getUser().getFirstName(),
+                        project.getName(),
+                        project.getId(),
+                        currentAdmin.getFirstName() + " " + currentAdmin.getLastName(),
+                        currentAdmin.getEmail(),
+                        rep.getRoles().stream().map( Role::getName ).toList(),
+                        project.getCurrentSituation(),
+                        project.getStartDate(),
+                        project.getDeadline(),
+                        findNextQuestionnaireDate( project )
+                );
+
+                return rep;
+            } ).collect( Collectors.toSet() );
+
+            log.info("[project] {} representantes vinculados ao projeto id={} ", representatives.size(), project.getId());
+            return representatives;
+        } catch ( Exception ex ) {
+            log.error("[project] Falha ao criar representantes para projeto id={}", project != null ? project.getId() : null, ex);
             throw ex;
         }
     }

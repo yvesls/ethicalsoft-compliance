@@ -1,10 +1,13 @@
 package com.ethicalsoft.ethicalsoft_complience.controller;
 
+import com.ethicalsoft.ethicalsoft_complience.application.usecase.GetQuestionnaireAnswersPageUseCase;
+import com.ethicalsoft.ethicalsoft_complience.application.usecase.ListQuestionnaireQuestionsUseCase;
+import com.ethicalsoft.ethicalsoft_complience.application.usecase.ListQuestionnaireSummariesUseCase;
+import com.ethicalsoft.ethicalsoft_complience.application.usecase.SubmitQuestionnaireAnswersPageUseCase;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.QuestionnaireAnswerPageRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.response.QuestionnaireAnswerPageResponseDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.response.QuestionnaireQuestionResponseDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.response.QuestionnaireResponseSummaryDTO;
-import com.ethicalsoft.ethicalsoft_complience.service.QuestionnaireResponseService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,14 +25,19 @@ import java.util.List;
 @Slf4j
 public class QuestionnaireResponseController {
 
-    private final QuestionnaireResponseService questionnaireResponseService;
+    private final ListQuestionnaireQuestionsUseCase listQuestionnaireQuestionsUseCase;
+    private final GetQuestionnaireAnswersPageUseCase getQuestionnaireAnswersPageUseCase;
+    private final SubmitQuestionnaireAnswersPageUseCase submitQuestionnaireAnswersPageUseCase;
+    private final ListQuestionnaireSummariesUseCase listQuestionnaireSummariesUseCase;
 
     @GetMapping("/questions")
     @PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")
     public Page<QuestionnaireQuestionResponseDTO> listQuestions(@PathVariable Long projectId,
                                                                 @PathVariable Integer questionnaireId,
-                                                                @PageableDefault(size = 10) Pageable pageable) {
-        return questionnaireResponseService.listQuestions(projectId, questionnaireId, pageable);
+                                                                @PageableDefault(size = 10) Pageable pageable,
+                                                                @RequestParam(required = false) String questionText,
+                                                                @RequestParam(required = false) String roleName) {
+        return listQuestionnaireQuestionsUseCase.execute(questionnaireId, pageable, questionText, roleName);
     }
 
     @GetMapping("/responses/page")
@@ -37,7 +45,7 @@ public class QuestionnaireResponseController {
     public QuestionnaireAnswerPageResponseDTO getAnswersPage(@PathVariable Long projectId,
                                                              @PathVariable Integer questionnaireId,
                                                              @PageableDefault(size = 10) Pageable pageable) {
-        return questionnaireResponseService.getAnswerPage(projectId, questionnaireId, pageable);
+        return getQuestionnaireAnswersPageUseCase.execute(projectId, questionnaireId, pageable);
     }
 
     @PostMapping("/responses/page")
@@ -45,13 +53,13 @@ public class QuestionnaireResponseController {
     public QuestionnaireAnswerPageResponseDTO submitAnswerPage(@PathVariable Long projectId,
                                                                @PathVariable Integer questionnaireId,
                                                                @Valid @RequestBody QuestionnaireAnswerPageRequestDTO request) {
-        return questionnaireResponseService.submitAnswerPage(projectId, questionnaireId, request);
+        return submitQuestionnaireAnswersPageUseCase.execute(projectId, questionnaireId, request);
     }
 
     @GetMapping("/responses/summaries")
     @PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")
     public List<QuestionnaireResponseSummaryDTO> listSummaries(@PathVariable Long projectId,
-                                                              @PathVariable Integer questionnaireId) {
-        return questionnaireResponseService.listSummaries(projectId, questionnaireId);
+                                                               @PathVariable Integer questionnaireId) {
+        return listQuestionnaireSummariesUseCase.execute(projectId, questionnaireId);
     }
 }

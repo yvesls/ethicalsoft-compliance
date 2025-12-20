@@ -1,5 +1,6 @@
 package com.ethicalsoft.ethicalsoft_complience.service.facade;
 
+import com.ethicalsoft.ethicalsoft_complience.application.port.ProjectCommandPort;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.Project;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.Representative;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.ProjectCreationRequestDTO;
@@ -19,7 +20,7 @@ import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
-public class ProjectFacade {
+public class ProjectFacade implements ProjectCommandPort {
 
 	private final ProjectService projectService;
 	private final List<ProjectCreationStrategy> creationStrategies;
@@ -30,6 +31,7 @@ public class ProjectFacade {
 		creationStrategies.forEach( strategy -> strategyMap.put( strategy.getType(), strategy ) );
 	}
 
+	@Override
 	@Transactional
 	public ProjectResponseDTO createProject(ProjectCreationRequestDTO request ) {
 
