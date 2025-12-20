@@ -14,9 +14,16 @@ import { Subscription } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { GenericParams, RouteParams } from '../../../../core/services/router.service';
 import { RoleService } from '../../../../core/services/role.service';
+import { QuestionnaireQueryStore } from '../../../../shared/stores/questionnaire-query.store';
+import { QuestionnaireQuestionResponse, QuestionnaireRawResponse } from '../../../../shared/interfaces/questionnaire/questionnaire-query.interface';
+import { Page } from '../../../../shared/interfaces/pageable.interface';
+import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
 
 interface CascataQuestionnaireRouteParams extends GenericParams {
   questionnaireIndex?: number;
+  projectId?: string;
+  questionnaireId?: number;
+  mode?: ActionType;
   stageName?: string;
   sequence?: number | string;
   name?: string;
@@ -30,7 +37,7 @@ type CascataQuestionnaireRestoreParams = RestoreParams<CascataQuestionnaireRoute
 @Component({
   selector: 'app-cascata-questionnaire-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, AccordionPanelComponent, InputComponent, SelectComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, AccordionPanelComponent, InputComponent, SelectComponent, PaginationComponent],
   templateUrl: './cascata-questionnaire-form.component.html',
   styleUrls: ['./cascata-questionnaire-form.component.scss']
 })
@@ -40,10 +47,20 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
   private cdr = inject(ChangeDetectorRef);
   private notificationService = inject(NotificationService);
   private roleService = inject(RoleService);
+  private questionnaireQueryStore = inject(QuestionnaireQueryStore);
   private questionnaireIndex: number | null = null;
   private questionnaireMetadata: CascataQuestionnaireRouteParams | null = null;
   private skipStatePersistence = false;
   private currentStageName: string | null = null;
+
+  readonly mode = signal<ActionType>(ActionType.EDIT);
+  readonly isViewMode = signal(false);
+  readonly isLoadingQuestions = signal(false);
+  readonly viewProjectId = signal<string | null>(null);
+  readonly viewQuestionnaireId = signal<number | null>(null);
+  readonly pagination = signal<Page<unknown> | null>(null);
+  readonly currentPage = signal(0);
+  readonly pageSize = signal(10);
 
   form!: FormGroup;
   questions: WritableSignal<QuestionData[]> = signal([]);
@@ -98,6 +115,13 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
     if (!params) return;
 
     const data = (params.p ?? params) as CascataQuestionnaireRouteParams;
+
+    const incomingMode = data.mode ?? ActionType.EDIT;
+    this.mode.set(incomingMode);
+    this.isViewMode.set(incomingMode === ActionType.VIEW);
+    this.viewProjectId.set(typeof data.projectId === 'string' ? data.projectId : null);
+    this.viewQuestionnaireId.set(typeof data.questionnaireId === 'number' ? data.questionnaireId : null);
+
     this.questionnaireIndex = typeof data.questionnaireIndex === 'number' ? data.questionnaireIndex : null;
     this.questionnaireMetadata = data;
     this.currentStageName = data.stageName ?? data.name ?? null;
@@ -112,7 +136,92 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
       applicationStartDate: data.applicationStartDate,
       applicationEndDate: data.applicationEndDate
     });
+
+    if (this.isViewMode()) {
+      this.applyReadOnlyState();
+      this.loadViewData();
+    }
     this.cdr.detectChanges();
+  }
+
+  private applyReadOnlyState(): void {
+    this.form.disable({ emitEvent: false });
+  }
+
+  private loadViewData(): void {
+    const projectId = this.viewProjectId();
+    const questionnaireId = this.viewQuestionnaireId();
+
+    if (!projectId || questionnaireId === null) {
+      return;
+    }
+
+    this.isLoadingQuestions.set(true);
+    this.questionnaireQueryStore
+      .getQuestionnaireRaw(projectId, questionnaireId)
+      .pipe(take(1))
+      .subscribe({
+        next: (raw: QuestionnaireRawResponse) => {
+          this.form.patchValue(
+            {
+              sequence: raw.id,
+              name: raw.name,
+              applicationStartDate: raw.applicationStartDate,
+              applicationEndDate: raw.applicationEndDate,
+            },
+            { emitEvent: false }
+          );
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.notificationService.showError('Não foi possível carregar os dados do questionário.');
+        },
+      });
+
+    this.fetchQuestionsPage(0);
+  }
+
+  private fetchQuestionsPage(page: number): void {
+    const projectId = this.viewProjectId();
+    const questionnaireId = this.viewQuestionnaireId();
+
+    if (!projectId || questionnaireId === null) {
+      this.isLoadingQuestions.set(false);
+      return;
+    }
+
+    this.currentPage.set(page);
+    this.isLoadingQuestions.set(true);
+
+    this.questionnaireQueryStore
+      .searchQuestions(projectId, questionnaireId, null, page, this.pageSize())
+      .pipe(take(1))
+      .subscribe({
+        next: (result) => {
+          this.pagination.set(result as unknown as Page<unknown>);
+          const questions = (result.content ?? []).map((q: QuestionnaireQuestionResponse) => {
+            return this.assignStageMetadata({
+              id: String(q.id),
+              value: q.text,
+              roleIds: q.roleIds ?? [],
+              roleNames: [],
+              stageNames: q.stageNames ?? [],
+            } as unknown as QuestionData);
+          });
+          this.questions.set(questions);
+          this.isLoadingQuestions.set(false);
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.isLoadingQuestions.set(false);
+          this.notificationService.showError('Não foi possível carregar as perguntas do questionário.');
+        },
+      });
+  }
+
+  onPageChange(page: number): void {
+    const targetPage = Math.max(0, page - 1);
+    this.fetchQuestionsPage(targetPage);
   }
 
   getControl(controlName: string) {
@@ -148,6 +257,9 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
   }
 
   openAddQuestionModal(): void {
+    if (this.isViewMode()) {
+      return;
+    }
     this.modalService.open(QuestionModalComponent, 'medium-card', {
       mode: ActionType.CREATE
     });
@@ -164,6 +276,9 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
   }
 
   openEditQuestionModal(question: QuestionData): void {
+    if (this.isViewMode()) {
+      return;
+    }
     this.modalService.open(QuestionModalComponent, 'medium-card', {
       mode: ActionType.EDIT,
       editData: question
@@ -179,10 +294,16 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
   }
 
   deleteQuestion(question: QuestionData): void {
+    if (this.isViewMode()) {
+        return;
+    }
     this.questions.update(qs => qs.filter(q => q.id !== question.id));
   }
 
   onSave(): void {
+    if (this.isViewMode()) {
+      return;
+    }
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;

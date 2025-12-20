@@ -12,6 +12,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -23,6 +25,9 @@ public class User implements UserDetails {
 
 	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
 	private List<Representative> representatives;
+
+	@OneToMany(mappedBy = "owner", fetch = FetchType.LAZY)
+	private Set<Project> projects;
 
 	@Id
 	@GeneratedValue( strategy = GenerationType.IDENTITY )
@@ -67,5 +72,9 @@ public class User implements UserDetails {
 		return email;
 	}
 
+	public Long getRepresentativeId() {
+		return Optional.ofNullable(representatives)
+			.map(reps -> reps.stream().findFirst().map(Representative::getId).orElse(null))
+			.orElse(null);
+	}
 }
-

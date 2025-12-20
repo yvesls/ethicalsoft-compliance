@@ -1,12 +1,14 @@
 package com.ethicalsoft.ethicalsoft_complience.infra.security;
 
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.UserRoleEnum;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ProjectRoleAuthorizationEvaluator {
+@RequiredArgsConstructor
+public class ProjectAccessAuthorizationEvaluator {
 
     public boolean canAccess(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -29,4 +31,3 @@ public class ProjectRoleAuthorizationEvaluator {
         return name.startsWith("ROLE_");
     }
 }
-

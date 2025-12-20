@@ -108,6 +108,7 @@
                   </td>
                   <td class="text-center">
                     <div class="d-flex justify-content-center gap-2">
+                      @if (!isViewMode()) {
                       <button
                         type="button"
                         class="btn-icon"
@@ -124,6 +125,9 @@
                       >
                         <img src="assets/icons/trash.svg" alt="Excluir" />
                       </button>
+                      } @else {
+                        <span class="text-muted">-</span>
+                      }
                     </div>
                   </td>
                 </tr>
@@ -133,7 +137,19 @@
         </div>
       }
 
+      @if (isViewMode() && pagination(); as pg) {
+        <div class="pagination-wrapper mt-3" aria-label="Paginação das perguntas">
+          <app-pagination
+            [currentPage]="currentPage() + 1"
+            [totalItems]="pg.totalElements"
+            [pageSize]="pg.size"
+            (pageChange)="onPageChange($event)"
+          ></app-pagination>
+        </div>
+      }
+
       <div class="d-flex justify-content-end mt-3 gap-2">
+        @if (!isViewMode()) {
         <button
           type="button"
           class="btn btn-secundary"
@@ -141,11 +157,14 @@
         >
           Adicionar pergunta
         </button>
+        }
       </div>
 
       <div class="panel-actions mt-4 pt-3 border-top">
         <button type="button" class="btn btn-secondary me-2" (click)="onCancel()">Voltar</button>
-        <button type="button" class="btn btn-primary" (click)="onSave()">Salvar</button>
+        @if (!isViewMode()) {
+          <button type="button" class="btn btn-primary" (click)="onSave()">Salvar</button>
+        }
       </div>
     </div>
   </app-accordion-panel>

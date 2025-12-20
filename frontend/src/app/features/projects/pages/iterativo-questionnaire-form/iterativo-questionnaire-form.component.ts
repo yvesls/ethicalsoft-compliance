@@ -14,11 +14,17 @@ import { Subscription } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { GenericParams, RouteParams } from '../../../../core/services/router.service';
 import { RoleService } from '../../../../core/services/role.service';
+import { QuestionnaireQueryStore } from '../../../../shared/stores/questionnaire-query.store';
+import { QuestionnaireQuestionResponse, QuestionnaireRawResponse } from '../../../../shared/interfaces/questionnaire/questionnaire-query.interface';
+import { Page } from '../../../../shared/interfaces/pageable.interface';
+import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
 
 interface IterativoQuestionnaireRouteParams extends GenericParams {
   questionnaireIndex?: number;
   sequence?: number | string;
   projectId?: string;
+  questionnaireId?: number;
+  mode?: ActionType;
   projectName?: string;
   name?: string;
   weight?: number;
@@ -32,20 +38,31 @@ type IterativoQuestionnaireRestoreParams = RestoreParams<IterativoQuestionnaireR
 @Component({
   selector: 'app-iterativo-questionnaire-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, AccordionPanelComponent, InputComponent, SelectComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, AccordionPanelComponent, InputComponent, SelectComponent, PaginationComponent],
   templateUrl: './iterativo-questionnaire-form.component.html',
   styleUrls: ['./iterativo-questionnaire-form.component.scss']
 })
 export class IterativoQuestionnaireFormComponent extends BasePageComponent<IterativoQuestionnaireRouteParams> implements OnInit, OnDestroy {
+  private static readonly _paginationComponent = PaginationComponent;
   private modalService = inject(ModalService);
   private fb = inject(FormBuilder);
   private cdr = inject(ChangeDetectorRef);
   private notificationService = inject(NotificationService);
   private roleService = inject(RoleService);
+  private questionnaireQueryStore = inject(QuestionnaireQueryStore);
   private questionnaireIndex: number | null = null;
   private questionnaireMetadata: IterativoQuestionnaireRouteParams | null = null;
   private skipStatePersistence = false;
   private stageSelectionConfig?: QuestionStageConfig;
+
+  readonly mode = signal<ActionType>(ActionType.EDIT);
+  readonly isViewMode = signal(false);
+  readonly isLoadingQuestions = signal(false);
+  readonly viewProjectId = signal<string | null>(null);
+  readonly viewQuestionnaireId = signal<number | null>(null);
+  readonly pagination = signal<Page<unknown> | null>(null);
+  readonly currentPage = signal(0);
+  readonly pageSize = signal(10);
 
   form!: FormGroup;
   questions: WritableSignal<QuestionData[]> = signal([]);
@@ -79,10 +96,16 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
 
     const data = (params.p ?? params) as IterativoQuestionnaireRouteParams;
 
+    const incomingMode = data.mode ?? ActionType.EDIT;
+    this.mode.set(incomingMode);
+    this.isViewMode.set(incomingMode === ActionType.VIEW);
+    this.viewProjectId.set(typeof data.projectId === 'string' ? data.projectId : null);
+    this.viewQuestionnaireId.set(typeof data.questionnaireId === 'number' ? data.questionnaireId : null);
+
     this.questionnaireIndex = typeof data.questionnaireIndex === 'number' ? data.questionnaireIndex : null;
     this.questionnaireMetadata = data;
-  const stageNames = this.normalizeStageNamesList(data.stages);
-  this.stageSelectionConfig = this.buildStageSelectionConfig(stageNames);
+    const stageNames = this.normalizeStageNamesList(data.stages);
+    this.stageSelectionConfig = this.buildStageSelectionConfig(stageNames);
 
     if (data.projectName) {
       this.projectName.set(data.projectName);
@@ -98,7 +121,95 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
       weight: data.weight
     }, { emitEvent: false });
 
+    if (this.isViewMode()) {
+      this.applyReadOnlyState();
+      this.loadViewData();
+    }
+
     this.cdr.detectChanges();
+  }
+
+  private applyReadOnlyState(): void {
+    this.form.disable({ emitEvent: false });
+  }
+
+  private loadViewData(): void {
+    const projectId = this.viewProjectId();
+    const questionnaireId = this.viewQuestionnaireId();
+
+    if (!projectId || questionnaireId === null) {
+      return;
+    }
+
+    this.isLoadingQuestions.set(true);
+    this.questionnaireQueryStore
+      .getQuestionnaireRaw(projectId, questionnaireId)
+      .pipe(take(1))
+      .subscribe({
+        next: (raw: QuestionnaireRawResponse) => {
+          this.form.patchValue(
+            {
+              sequence: raw.id,
+              name: raw.name,
+              weight: raw.weight,
+            },
+            { emitEvent: false }
+          );
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.notificationService.showError('Não foi possível carregar os dados do questionário.');
+        },
+      });
+
+    this.fetchQuestionsPage(0);
+  }
+
+  private fetchQuestionsPage(page: number): void {
+    const projectId = this.viewProjectId();
+    const questionnaireId = this.viewQuestionnaireId();
+
+    if (!projectId || questionnaireId === null) {
+      this.isLoadingQuestions.set(false);
+      return;
+    }
+
+    this.currentPage.set(page);
+    this.isLoadingQuestions.set(true);
+
+    this.questionnaireQueryStore
+      .searchQuestions(projectId, questionnaireId, null, page, this.pageSize())
+      .pipe(take(1))
+      .subscribe({
+        next: (result) => {
+          this.pagination.set(result as unknown as Page<unknown>);
+          const stageConfigNames = this.normalizeStageNamesList(this.questionnaireMetadata?.stages ?? []);
+          const stageConfig = this.buildStageSelectionConfig(stageConfigNames);
+          this.stageSelectionConfig = stageConfig;
+
+          const questions = (result.content ?? []).map((q: QuestionnaireQuestionResponse) => {
+            return this.enrichQuestionStageMetadata({
+              id: String(q.id),
+              value: q.text,
+              roleIds: q.roleIds ?? [],
+              roleNames: [],
+              stageNames: q.stageNames ?? [],
+            } as unknown as QuestionData);
+          });
+          this.questions.set(questions);
+          this.isLoadingQuestions.set(false);
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.isLoadingQuestions.set(false);
+          this.notificationService.showError('Não foi possível carregar as perguntas do questionário.');
+        },
+      });
+  }
+
+  onPageChange(page: number): void {
+    const targetPage = Math.max(0, page - 1);
+    this.fetchQuestionsPage(targetPage);
   }
 
   private initializeForm(): void {
@@ -160,6 +271,9 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
   }
 
   openAddQuestionModal(): void {
+    if (this.isViewMode()) {
+      return;
+    }
     if (!this.stageSelectionConfig) {
       this.notificationService.showWarning('Cadastre ao menos uma etapa antes de adicionar perguntas.');
       return;
@@ -183,6 +297,9 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
   }
 
   openEditQuestionModal(question: QuestionData): void {
+    if (this.isViewMode()) {
+      return;
+    }
     this.modalService.open(QuestionModalComponent, 'medium-card', {
       mode: ActionType.EDIT,
       editData: question,
@@ -204,6 +321,9 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
   }
 
   deleteQuestion(question: QuestionData): void {
+    if (this.isViewMode()) {
+      return;
+    }
     if (confirm(`Tem certeza que deseja excluir a pergunta: "${question.value}"?`)) {
       const currentQuestions = this.questions();
       const filtered = currentQuestions.filter(q => q.id !== question.id);

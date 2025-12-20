@@ -1,0 +1,81 @@
+<div class="attachment-modal">
+  <header class="attachment-modal__header">
+    <h2>{{ title }}</h2>
+    <p>Inclua detalhes e links que ajudem a justificar a resposta selecionada.</p>
+  </header>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="attachment-modal__form">
+    <div class="form-group form-group--textarea">
+      <label for="description">{{ descriptionLabel }}</label>
+      <div class="textarea-wrapper">
+        <textarea
+          id="description"
+          class="description-input"
+          formControlName="note"
+          rows="4"
+          [attr.maxLength]="descriptionMaxLength"
+          placeholder="Adicione observações relevantes"
+        ></textarea>
+        <div class="textarea-footer">
+          <span class="textarea-hint">Conte o contexto necessário para entender a resposta.</span>
+          <span class="char-counter">
+            {{ form.get('note')?.value?.length || 0 }}/{{ descriptionMaxLength }}
+          </span>
+        </div>
+      </div>
+      @if (form.get('note')?.invalid && form.get('note')?.touched) {
+        <small class="error">Informe pelo menos 5 caracteres.</small>
+      }
+    </div>
+
+    <div class="form-group">
+      <div class="form-group__label">
+        <span class="field-label">{{ attachmentsLabel }}</span>
+        <button type="button" class="link-btn link-btn--add" (click)="addAttachment()">
+          <span class="link-btn__icon">+</span>
+          Adicionar link
+        </button>
+      </div>
+
+      <div class="attachment-list" formArrayName="attachments">
+        @for (control of attachments.controls; track control; let i = $index) {
+          <div class="attachment-list__item" [formGroup]="control">
+            <div class="attachment-list__content">
+              <div class="attachment-fields">
+                <app-input
+                  formControlName="descricao"
+                  [label]="'Descrição do link ' + (i + 1)"
+                  [placeholder]="'Ex.: Plano de ação ' + (i + 1)"
+                  type="text"
+                  [control]="control.get('descricao')"
+                  [required]="true"
+                  [validationMessages]="descriptionValidationMessages"
+                ></app-input>
+                <app-input
+                  formControlName="url"
+                  [label]="'URL ' + (i + 1)"
+                  [placeholder]="'https://exemplo.com/prova/' + (i + 1)"
+                  type="text"
+                  [control]="control.get('url')"
+                  [required]="true"
+                  [validationMessages]="linkValidationMessages"
+                ></app-input>
+              </div>
+              <small class="input-hint">Links devem começar com http:// ou https://</small>
+            </div>
+            <button type="button" class="link-btn link-btn--remove" (click)="removeAttachment(i)">Remover</button>
+          </div>
+        }
+      </div>
+
+      @if (attachments.invalid && (attachments.touched || attachments.dirty || form.touched)) {
+        <small class="error">Adicione pelo menos um link válido.</small>
+      }
+    </div>
+
+    <footer class="attachment-modal__actions">
+      <button type="button" class="btn btn-secundary" (click)="cancel()">Cancelar</button>
+      <button type="submit" class="btn btn-primary">Salvar</button>
+    </footer>
+  </form>
+</div>

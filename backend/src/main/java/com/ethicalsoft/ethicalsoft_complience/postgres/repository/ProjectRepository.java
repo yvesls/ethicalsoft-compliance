@@ -51,4 +51,6 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 	})
 	@Query("select p from Project p where p.id = :id")
 	Optional<Project> findByIdWithDetails( Long id );
+
+	boolean existsByIdAndOwnerId(Long projectId, Long ownerId);
 }

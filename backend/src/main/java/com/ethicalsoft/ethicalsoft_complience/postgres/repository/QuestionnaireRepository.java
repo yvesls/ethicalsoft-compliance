@@ -25,4 +25,6 @@ public interface QuestionnaireRepository extends JpaRepository<Questionnaire, In
 
 	@Query("select q from Questionnaire q where q.applicationStartDate = :today and q.status <> 'CONCLUIDO'")
 	List<Questionnaire> findQuestionnairesStartingToday(LocalDate today);
+
+	java.util.Optional<Questionnaire> findByIdAndProjectId(Integer questionnaireId, Long projectId);
 }

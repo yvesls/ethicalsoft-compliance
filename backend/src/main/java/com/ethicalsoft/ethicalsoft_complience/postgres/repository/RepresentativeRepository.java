@@ -11,4 +11,9 @@ public interface RepresentativeRepository extends JpaRepository<Representative, 
 	@EntityGraph(attributePaths = "roles")
 	Optional<Representative> findByUserEmailAndProjectId( String email, Long projectId );
 
+	@EntityGraph(attributePaths = {"roles", "project"})
+	Optional<Representative> findByUserIdAndProjectId(Long userId, Long projectId);
+
+	boolean existsByUserIdAndProjectId(Long userId, Long projectId);
+
 }

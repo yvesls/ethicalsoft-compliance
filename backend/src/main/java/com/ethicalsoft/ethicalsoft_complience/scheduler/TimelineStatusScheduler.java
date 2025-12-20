@@ -2,7 +2,7 @@ package com.ethicalsoft.ethicalsoft_complience.scheduler;
 
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.ProjectRepository;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.QuestionnaireRepository;
-import com.ethicalsoft.ethicalsoft_complience.service.QuestionnaireService;
+import com.ethicalsoft.ethicalsoft_complience.service.QuestionnaireReminderService;
 import com.ethicalsoft.ethicalsoft_complience.service.TimelineStatusService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +19,7 @@ public class TimelineStatusScheduler {
 	private final ProjectRepository projectRepository;
 	private final TimelineStatusService timelineStatusService;
 	private final QuestionnaireRepository questionnaireRepository;
-	private final QuestionnaireService questionnaireService;
+	private final QuestionnaireReminderService questionnaireService;
 
 	@Scheduled(cron = "0 0 0 * * *")
 	public void refreshTimelineStatuses() {

@@ -97,6 +97,16 @@ export class ProjectStore extends BaseStore {
     );
   }
 
+  getQuestionnaireSummary(
+    projectId: string,
+    questionnaireId: number
+  ): Observable<ProjectQuestionnaireSummary> {
+    return this.requestService.makeGet<ProjectQuestionnaireSummary>(
+      this.getUrl(`${projectId}/questionnaires/${questionnaireId}`),
+      { useAuth: true }
+    );
+  }
+
   sendQuestionnaireReminder(
     projectId: string,
     questionnaireId: number,

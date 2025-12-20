@@ -34,7 +34,7 @@ import { ProjectType } from '../../../../shared/enums/project-type.enum';
 import { ProjectStatus } from '../../../../shared/enums/project-status.enum';
 import { TimelineStatus } from '../../../../shared/enums/timeline-status.enum';
 import { Page } from '../../../../shared/interfaces/pageable.interface';
-import { AuthenticationService } from '../../../../core/services/authentication.service';
+import { AuthenticationService, UserInterface } from '../../../../core/services/authentication.service';
 import { RoleEnum } from '../../../../shared/enums/role.enum';
 import { ProjectContextService } from '../../../../core/services/project-context.service';
 import { QuestionnaireResponseStatus } from '../../../../shared/enums/questionnaire-response-status.enum';
@@ -57,6 +57,10 @@ interface QuestionnaireListState {
     pageSize: number;
   };
 }
+
+type NullableDateLike = string | Date | null | undefined;
+
+type QuestionnaireActionMode = 'respond' | 'view';
 
 @Component({
   selector: 'app-project-detail-page',
@@ -88,6 +92,7 @@ export class ProjectDetailPageComponent implements OnInit {
   private readonly sendingReminderIds = signal<Set<number>>(new Set());
 
   private readonly userRoles = signal<string[]>([]);
+  private readonly currentUser = signal<UserInterface | null>(null);
   readonly isAdmin = computed(() =>
     this.userRoles().includes(RoleEnum.ADMIN)
   );
@@ -215,7 +220,7 @@ export class ProjectDetailPageComponent implements OnInit {
     const isProgressInProgress =
       questionnaire.progressStatus === QuestionnaireResponseStatus.InProgress;
 
-    const normalizedStatus = (questionnaire.status as TimelineStatus | string) ?? '';
+    const normalizedStatus = questionnaire.status ?? '';
     const isTimelineInProgress =
       normalizedStatus === TimelineStatus.EmAndamento || normalizedStatus === 'IN_PROGRESS';
 
@@ -266,6 +271,135 @@ export class ProjectDetailPageComponent implements OnInit {
     }
 
     return start ? `A partir de ${start}` : `Até ${end}`;
+  }
+
+  navigateToQuestionnaire(
+    questionnaire: ProjectQuestionnaireSummary,
+    mode: QuestionnaireActionMode = 'respond'
+  ): void {
+    const projectId = this.currentProjectId ?? this.projectState().data?.id;
+
+    if (!projectId) {
+      return;
+    }
+
+    if (this.isAdmin()) {
+      const viewUrl = this.router.createUrlTree([
+        '/projects',
+        projectId,
+        'questionnaires',
+        questionnaire.id,
+        'view',
+      ]);
+
+      void this.router.navigateByUrl(viewUrl);
+      return;
+    }
+
+    const url = this.router.createUrlTree([
+      '/projects',
+      projectId,
+      'questionnaires',
+      questionnaire.id,
+    ]);
+
+    void this.router.navigateByUrl(url, {
+      state: { mode },
+    });
+  }
+
+  canDisplayRepresentativeActions(questionnaire: ProjectQuestionnaireSummary): boolean {
+    return this.isAdmin() || this.isCurrentUserRespondent(questionnaire);
+  }
+
+  canCurrentUserRespond(questionnaire: ProjectQuestionnaireSummary): boolean {
+    if (!this.isQuestionnaireInProgress(questionnaire)) {
+      return false;
+    }
+
+    if (this.isAdmin()) {
+      return false;
+    }
+
+    if (!this.canDisplayRepresentativeActions(questionnaire)) {
+      return false;
+    }
+
+    const respondent = this.getCurrentRespondent(questionnaire);
+    if (!respondent) {
+      return false;
+    }
+
+    return (
+      respondent.status === QuestionnaireResponseStatus.Pending ||
+      respondent.status === QuestionnaireResponseStatus.InProgress
+    );
+  }
+
+  canCurrentUserView(questionnaire: ProjectQuestionnaireSummary): boolean {
+    if (this.isAdmin()) {
+      return true;
+    }
+
+    const respondent = this.getCurrentRespondent(questionnaire);
+    if (!respondent) {
+      return false;
+    }
+
+    return respondent.status === QuestionnaireResponseStatus.Completed;
+  }
+
+  shouldDisplayQuestionnaireActions(questionnaire: ProjectQuestionnaireSummary): boolean {
+    if (this.isAdmin()) {
+      return true;
+    }
+
+    return (
+      this.canCurrentUserRespond(questionnaire) ||
+      this.canCurrentUserView(questionnaire)
+    );
+  }
+
+  getParticipantActionMessage(questionnaire: ProjectQuestionnaireSummary): string {
+    if (this.isAdmin()) {
+      return 'Você está visualizando este questionário em modo administrativo.';
+    }
+
+    const respondent = this.getCurrentRespondent(questionnaire);
+    if (!respondent) {
+      return '';
+    }
+
+    if (
+      respondent.status === QuestionnaireResponseStatus.Pending ||
+      respondent.status === QuestionnaireResponseStatus.InProgress
+    ) {
+      return 'Você foi indicado como representante responsável por responder este questionário.';
+    }
+
+    if (respondent.status === QuestionnaireResponseStatus.Completed) {
+      return 'Você já enviou suas respostas e pode revisá-las quando desejar.';
+    }
+
+    return '';
+  }
+
+  private isCurrentUserRespondent(questionnaire: ProjectQuestionnaireSummary): boolean {
+    return !!this.getCurrentRespondent(questionnaire);
+  }
+
+  private getCurrentRespondent(
+    questionnaire: ProjectQuestionnaireSummary
+  ): QuestionnaireRespondentStatus | undefined {
+    const currentEmail = this.currentUser()?.email?.toLowerCase();
+
+    if (!currentEmail) {
+      return undefined;
+    }
+
+    return questionnaire.respondents.find(
+      (respondent) => respondent.email?.toLowerCase() === currentEmail
+    );
   }
 
   canDisplayRespondents(): boolean {
@@ -486,6 +620,10 @@ export class ProjectDetailPageComponent implements OnInit {
     this.authService.userRoles$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((roles) => this.userRoles.set(roles ?? []));
+
+    this.authService.currentUser$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((user) => this.currentUser.set(user));
   }
 
   private listenToRouteChanges(): void {
@@ -548,7 +686,26 @@ export class ProjectDetailPageComponent implements OnInit {
       .pipe(take(1))
       .subscribe({
         next: (result: Page<ProjectQuestionnaireSummary>) => {
-          const sortedItems = this.sortQuestionnaires(result.content);
+          console.debug('[ProjectDetailPage] getProjectQuestionnaires result', result);
+          const normalizedItems = (result.content ?? []).map((item) => {
+            const applicationStartDate = item.applicationStartDate
+              ? new Date(item.applicationStartDate as unknown as string)
+              : null;
+            const applicationEndDate = item.applicationEndDate
+              ? new Date(item.applicationEndDate as unknown as string)
+              : null;
+            const lastResponseAt = item.lastResponseAt ? new Date(item.lastResponseAt as unknown as string) : null;
+
+            return {
+              ...item,
+              applicationStartDate: Number.isNaN(applicationStartDate?.getTime?.()) ? item.applicationStartDate : applicationStartDate,
+              applicationEndDate: Number.isNaN(applicationEndDate?.getTime?.()) ? item.applicationEndDate : applicationEndDate,
+              lastResponseAt: Number.isNaN(lastResponseAt?.getTime?.()) ? item.lastResponseAt : lastResponseAt,
+            };
+          });
+
+          const sortedItems = this.sortQuestionnaires(normalizedItems);
+          console.debug('[ProjectDetailPage] sortedItems', sortedItems);
           this.questionnairesState.set({
             items: sortedItems,
             status: 'loaded',
@@ -611,8 +768,8 @@ export class ProjectDetailPageComponent implements OnInit {
   }
 
   private compareDates(
-    first: string | Date | null | undefined,
-    second: string | Date | null | undefined
+    first: NullableDateLike,
+    second: NullableDateLike
   ): number {
     const firstTime = this.getDateValue(first);
     const secondTime = this.getDateValue(second);
@@ -664,7 +821,7 @@ export class ProjectDetailPageComponent implements OnInit {
 
   private getQuestionnairePublicLink(questionnaire: ProjectQuestionnaireSummary): string {
     const sanitizedDomain = environment.domain?.replace(/\/$/, '') ?? '';
-    const fallback = typeof window !== 'undefined' ? window.location.origin : '';
+    const fallback = globalThis.window?.location?.origin ?? '';
     const base = sanitizedDomain || fallback;
     return `${base}/projects/${this.currentProjectId}/questionnaires/${questionnaire.id}`;
   }
@@ -687,30 +844,9 @@ export class ProjectDetailPageComponent implements OnInit {
   }
 
   private fallbackCopy(value: string, successMessage: string): void {
-    if (typeof document === 'undefined') {
-      this.notification.showError('Não foi possível copiar o conteúdo no ambiente atual.');
-      return;
-    }
-
-    const textarea = document.createElement('textarea');
-    textarea.value = value;
-    textarea.style.position = 'fixed';
-    textarea.style.opacity = '0';
-    document.body.appendChild(textarea);
-    textarea.focus();
-    textarea.select();
-
-    try {
-      const successful = document.execCommand('copy');
-      if (successful) {
-        this.notification.showSuccess(successMessage);
-      } else {
-        throw new Error('execCommand falhou');
-      }
-    } catch {
-      this.notification.showError('Não foi possível copiar o conteúdo.');
-    } finally {
-      document.body.removeChild(textarea);
+    const result = globalThis.prompt('Copie o conteúdo abaixo:', value);
+    if (result !== null) {
+      this.notification.showSuccess(successMessage);
     }
   }
 }

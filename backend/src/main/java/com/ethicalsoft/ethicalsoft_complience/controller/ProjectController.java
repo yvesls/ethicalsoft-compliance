@@ -1,6 +1,5 @@
 package com.ethicalsoft.ethicalsoft_complience.controller;
 
-import com.ethicalsoft.ethicalsoft_complience.infra.security.ProjectRoleAuthorizationEvaluator;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.ProjectCreationRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.ProjectSearchRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.QuestionnaireReminderRequestDTO;
@@ -26,7 +25,6 @@ public class ProjectController {
 
 	private final ProjectFacade projectFacade;
 	private final ProjectService projectService;
-	private final ProjectRoleAuthorizationEvaluator projectRoleAuthorizationEvaluator;
 	private final QuestionnaireReminderService questionnaireReminderService;
 
 	@GetMapping("/roles")
@@ -47,13 +45,13 @@ public class ProjectController {
 	}
 
 	@GetMapping("/{projectId}")
-	@PreAuthorize("@projectRoleAuthorizationEvaluator.canAccess(authentication)")
+	@PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")
 	public ProjectDetailResponseDTO getProjectById(@PathVariable Long projectId) {
 		return projectService.getProjectById(projectId);
 	}
 
 	@GetMapping("/{projectId}/questionnaires")
-	@PreAuthorize("@projectRoleAuthorizationEvaluator.canAccess(authentication)")
+	@PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")
 	public Page<QuestionnaireSummaryResponseDTO> listProjectQuestionnaires(
 			@PathVariable Long projectId,
 			@RequestParam(name = "name", required = false) String questionnaireName,
@@ -65,7 +63,7 @@ public class ProjectController {
 	}
 
 	@PostMapping("/{projectId}/questionnaires/{questionnaireId}/reminders")
-	@PreAuthorize("@projectRoleAuthorizationEvaluator.canAccess(authentication)")
+	@PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")
 	public void sendQuestionnaireReminder(@PathVariable Long projectId,
 	                                      @PathVariable Integer questionnaireId,
 	                                      @Valid @RequestBody QuestionnaireReminderRequestDTO requestDTO) {

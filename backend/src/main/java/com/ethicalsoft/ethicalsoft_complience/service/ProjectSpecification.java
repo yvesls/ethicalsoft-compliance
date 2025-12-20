@@ -27,20 +27,13 @@ public class ProjectSpecification {
 			}
 
 			if (StringUtils.hasText(filters.getType())) {
-				try {
-					ProjectTypeEnum typeEnum = ProjectTypeEnum.valueOf(filters.getType().toUpperCase());
-					predicates.add(cb.equal(root.get("type"), typeEnum));
-				} catch (IllegalArgumentException e) {
-
-				}
+                ProjectTypeEnum typeEnum = ProjectTypeEnum.valueOf(filters.getType().toUpperCase());
+                predicates.add(cb.equal(root.get("type"), typeEnum));
 			}
 
 			if ( StringUtils.hasText(filters.getStatus())) {
-				try {
-					ProjectStatusEnum statusEnum = ProjectStatusEnum.valueOf(filters.getStatus().toUpperCase());
-					predicates.add(cb.equal(root.get("status"), statusEnum));
-				} catch (IllegalArgumentException e) {
-				}
+                ProjectStatusEnum statusEnum = ProjectStatusEnum.valueOf(filters.getStatus().toUpperCase());
+                predicates.add(cb.equal(root.get("status"), statusEnum));
 			}
 
 			if (currentUser != null) {

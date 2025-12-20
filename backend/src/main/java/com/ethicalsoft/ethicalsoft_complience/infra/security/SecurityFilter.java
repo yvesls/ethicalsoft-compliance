@@ -1,7 +1,9 @@
 package com.ethicalsoft.ethicalsoft_complience.infra.security;
 
+import com.ethicalsoft.ethicalsoft_complience.postgres.model.Representative;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.User;
 import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.UserRoleEnum;
+import com.ethicalsoft.ethicalsoft_complience.postgres.repository.ProjectRepository;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.RepresentativeRepository;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.UserRepository;
 import jakarta.servlet.FilterChain;
@@ -30,6 +32,7 @@ public class SecurityFilter extends OncePerRequestFilter {
 	private final TokenService tokenService;
 	private final UserRepository userRepository;
 	private final RepresentativeRepository representativeRepository;
+	private final ProjectRepository projectRepository;
 
 	@Override
 	protected void doFilterInternal( HttpServletRequest request, HttpServletResponse response, FilterChain filterChain ) throws ServletException, IOException {
@@ -37,9 +40,9 @@ public class SecurityFilter extends OncePerRequestFilter {
 			var token = extractToken( request );
 			if ( Objects.nonNull( token ) ) {
 				var username = tokenService.validateToken( token );
-				userRepository.findByEmail( username ).ifPresentOrElse(
-						user -> authenticateUser( request, user ),
-						() -> log.warn("[security-filter] Usuário {} não encontrado ao validar token", username)
+				userRepository.findWithRepresentativesByEmail( username ).ifPresentOrElse(
+					user -> authenticateUser( request, user ),
+					() -> log.warn("[security-filter] Usuário {} não encontrado ao validar token", username)
 				);
 			}
 		} catch ( Exception ex ) {
@@ -65,19 +68,31 @@ public class SecurityFilter extends OncePerRequestFilter {
 
 		if ( UserRoleEnum.ADMIN.equals( user.getRole() ) ) {
 			authorities.add( new SimpleGrantedAuthority( UserRoleEnum.ADMIN.name() ) );
+			return authorities;
 		}
 
 		if ( Objects.nonNull( projectId ) ) {
-			representativeRepository.findByUserEmailAndProjectId( user.getEmail(), projectId )
-					.ifPresentOrElse( rep -> authorities.addAll( rep.getRoles().stream()
-							.map( role -> new SimpleGrantedAuthority( "ROLE_" + role.getName().toUpperCase() ) )
-							.toList()
-						),
-						() -> log.debug("[security-filter] Usuário {} não é representante no projeto {} ou não há roles associadas", user.getEmail(), projectId)
-					);
+			if ( projectRepository.existsByIdAndOwnerId(projectId, user.getId()) ) {
+				authorities.add(new SimpleGrantedAuthority(UserRoleEnum.ADMIN.name()));
+				return authorities;
+			}
+
+			representativeRepository.findByUserIdAndProjectId( user.getId(), projectId )
+				.ifPresent(rep -> appendRepresentativeAuthorities(authorities, rep));
 		}
 
 		return authorities;
+	}
+
+	private void appendRepresentativeAuthorities(List<SimpleGrantedAuthority> authorities, Representative representative) {
+		representative.getRoles().forEach(role -> authorities.add(new SimpleGrantedAuthority("ROLE_" + normalizeRoleName(role.getName()))));
+	}
+
+	private String normalizeRoleName(String rawName) {
+		if (rawName == null) {
+			return "";
+		}
+		return rawName.trim().toUpperCase().replaceAll("\\s+", "_");
 	}
 
 	private String extractToken( HttpServletRequest request ) {

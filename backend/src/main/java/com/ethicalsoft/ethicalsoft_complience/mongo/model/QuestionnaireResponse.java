@@ -37,7 +37,17 @@ public class QuestionnaireResponse {
 		private List<Integer> stageIds;
 		private List<Long> roleIds;
 		private Boolean response;
-		private String justification;
-		private List<String> attachments;
+		private LinkDocument justification;
+		private LinkDocument evidence;
+		private List<LinkDocument> attachments;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class LinkDocument {
+		private String descricao;
+		private String url;
 	}
 }

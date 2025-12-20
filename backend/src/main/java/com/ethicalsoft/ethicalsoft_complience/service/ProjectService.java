@@ -486,4 +486,108 @@ public class ProjectService {
 				.findFirst()
 				.orElse( project.getStartDate() );
 	}
+
+	@Transactional
+	public void updateQuestionnaireResponses(Long projectId, Long questionnaireId, List<QuestionnaireResponse> responses) {
+		try {
+			log.info("[project] Atualizando respostas do questionário id={} para o projeto id={}", questionnaireId, projectId);
+
+			Project project = projectRepository.findById(projectId)
+					.orElseThrow(() -> new EntityNotFoundException("Projeto não encontrado: " + projectId));
+			Questionnaire questionnaire = questionnaireRepository.findById(questionnaireId.intValue())
+					.orElseThrow(() -> new EntityNotFoundException("Questionário não encontrado: " + questionnaireId));
+
+			assertUserCanAccessProject(project);
+
+			// Agrupar respostas por representante
+			Map<Long, List<QuestionnaireResponse>> responsesByRepresentative = responses.stream()
+					.filter(response -> response.getRepresentativeId() != null)
+					.collect(Collectors.groupingBy(QuestionnaireResponse::getRepresentativeId));
+
+			Set<Representative> projectRepresentatives = Optional.ofNullable(project.getRepresentatives()).orElse(Set.of());
+			Map<Long, Representative> representativesById = projectRepresentatives.stream()
+					.collect(Collectors.toMap(Representative::getId, rep -> rep));
+
+			// Atualizar ou criar respostas
+			for (Map.Entry<Long, List<QuestionnaireResponse>> entry : responsesByRepresentative.entrySet()) {
+				Long representativeId = entry.getKey();
+				List<QuestionnaireResponse> representativeResponses = entry.getValue();
+
+				Representative rep = representativesById.get(representativeId);
+				if (rep != null) {
+					// Atualizar respostas existentes
+					for (QuestionnaireResponse response : representativeResponses) {
+						response.setProjectId(projectId);
+						response.setQuestionnaireId(questionnaireId.intValue());
+						response.setRepresentativeId(representativeId);
+						response.setSubmissionDate(LocalDateTime.now());
+
+						questionnaireResponseRepository.save(response);
+					}
+				}
+			}
+
+			log.info("[project] Respostas do questionário id={} atualizadas com sucesso para o projeto id={}", questionnaireId, projectId);
+		} catch (Exception ex) {
+			log.error("[project] Falha ao atualizar respostas do questionário id={} para o projeto id={}", questionnaireId, projectId, ex);
+			throw ex;
+		}
+	}
+
+	@Transactional(readOnly = true)
+	public List<QuestionnaireResponse> getQuestionnaireResponses(Long projectId, Long questionnaireId) {
+		try {
+			log.info("[project] Buscando respostas do questionário id={} para o projeto id={}", questionnaireId, projectId);
+			Project project = projectRepository.findById(projectId)
+					.orElseThrow(() -> new EntityNotFoundException("Projeto não encontrado: " + projectId));
+			Questionnaire questionnaire = questionnaireRepository.findById(questionnaireId.intValue())
+					.orElseThrow(() -> new EntityNotFoundException("Questionário não encontrado: " + questionnaireId));
+
+			assertUserCanAccessProject(project);
+
+			return questionnaireResponseRepository.findByProjectIdAndQuestionnaireId(projectId, questionnaireId.intValue());
+		} catch (Exception ex) {
+			log.error("[project] Falha ao buscar respostas do questionário id={} para o projeto id={}", questionnaireId, projectId, ex);
+			throw ex;
+		}
+	}
+
+    public ProjectQuestionnaireSummaryDTO getProjectQuestionnaireSummary(Long projectId, Integer questionnaireId) {
+        try {
+            log.info("[project] Resumindo questionário id={} do projeto {}", questionnaireId, projectId);
+            Project project = projectRepository.findById(projectId)
+                    .orElseThrow(() -> new EntityNotFoundException("Projeto não encontrado: " + projectId));
+            assertUserCanAccessProject(project);
+
+            Questionnaire questionnaire = questionnaireRepository.findById(questionnaireId)
+                    .orElseThrow(() -> new EntityNotFoundException("Questionário não encontrado: " + questionnaireId));
+            if (!Objects.equals(questionnaire.getProject().getId(), projectId)) {
+                throw new BusinessException("Questionário não pertence ao projeto informado");
+            }
+
+            Set<Representative> projectRepresentatives = Optional.ofNullable(project.getRepresentatives()).orElse(Set.of());
+            Map<Long, Representative> representativesById = projectRepresentatives.stream()
+                    .collect(Collectors.toMap(Representative::getId, rep -> rep));
+
+            QuestionnaireSummaryResponseDTO summary = buildQuestionnaireSummary(questionnaire, representativesById);
+            return ProjectQuestionnaireSummaryDTO.builder()
+                    .projectId(projectId)
+                    .questionnaireId(questionnaireId)
+                    .questionnaireName(summary.getName())
+                    .stageName(summary.getStageName())
+                    .iterationName(summary.getIterationName())
+                    .applicationStartDate(summary.getApplicationStartDate())
+                    .applicationEndDate(summary.getApplicationEndDate())
+                    .overallStatus(summary.getProgressStatus())
+                    .totalRespondents(summary.getTotalRespondents())
+                    .responded(summary.getRespondedRespondents())
+                    .pending(summary.getPendingRespondents())
+                    .lastResponseAt(summary.getLastResponseAt())
+                    .respondents(summary.getRespondents())
+                    .build();
+        } catch (Exception ex) {
+            log.error("[project] Falha ao resumir questionário id={} projeto={}", questionnaireId, projectId, ex);
+            throw ex;
+        }
+    }
 }

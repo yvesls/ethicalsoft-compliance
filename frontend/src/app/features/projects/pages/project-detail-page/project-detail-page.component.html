@@ -216,32 +216,66 @@
                       </div>
                     </div>
 
-                    @if (isAdmin()) {
+                    @if (shouldDisplayQuestionnaireActions(questionnaire)) {
                       <div class="questionnaire-card__actions" aria-label="Ações do questionário">
                         <span class="questionnaire-card__actions-label">Ações</span>
-                        <button
-                          type="button"
-                          class="questionnaire-card__action-button"
-                          (click)="copyQuestionnaireLink(questionnaire)"
-                        >
-                          Copiar link
-                        </button>
-                        @if (
-                          isQuestionnaireInProgress(questionnaire) &&
-                          questionnaire.pendingRespondents > 0
-                        ) {
+
+                        @if (isAdmin()) {
+                          <button
+                            type="button"
+                            class="questionnaire-card__action-button"
+                            (click)="copyQuestionnaireLink(questionnaire)"
+                          >
+                            Copiar link
+                          </button>
+
+                          @if (
+                            isQuestionnaireInProgress(questionnaire) &&
+                            questionnaire.pendingRespondents > 0
+                          ) {
+                            <button
+                              type="button"
+                              class="questionnaire-card__action-button questionnaire-card__action-button--primary"
+                              [disabled]="isReminderInProgress(questionnaire.id)"
+                              (click)="onSendReminder(questionnaire)"
+                            >
+                              @if (isReminderInProgress(questionnaire.id)) {
+                                Enviando lembrete...
+                              } @else {
+                                Enviar lembrete
+                              }
+                            </button>
+                          }
+                        }
+
+                        @if (canCurrentUserRespond(questionnaire)) {
                           <button
                             type="button"
                             class="questionnaire-card__action-button questionnaire-card__action-button--primary"
-                            [disabled]="isReminderInProgress(questionnaire.id)"
-                            (click)="onSendReminder(questionnaire)"
+                            (click)="navigateToQuestionnaire(questionnaire, 'respond')"
                           >
-                            @if (isReminderInProgress(questionnaire.id)) {
-                              Enviando lembrete...
-                            } @else {
-                              Enviar lembrete
-                            }
+                            Responder agora
                           </button>
+                        }
+
+                        @if (canCurrentUserView(questionnaire)) {
+                          @if (isAdmin()) {
+                            <button
+                              type="button"
+                              class="questionnaire-card__action-button"
+                              (click)="navigateToQuestionnaire(questionnaire, 'view')"
+                            >
+                              Visualizar questionário
+                            </button>
+                          } @else {
+                            <button
+                              type="button"
+                              class="questionnaire-card__action-button"
+                              (click)="navigateToQuestionnaire(questionnaire, 'view')"
+                            >
+                              Visualizar respostas
+                            </button>
+                          }
                         }
                       </div>
                     }
@@ -296,16 +330,6 @@
                           +{{ questionnaire.respondents.length - 5 }} representantes adicionais
                         </span>
                       }
-                    </div>
-                  } @else if (questionnaire.respondents.length && !canDisplayRespondents()) {
-                    <div class="questionnaire-card__respondents questionnaire-card__respondents--restricted">
-                      <div class="respondent-list__restricted">
-                        <img src="assets/icons/eye-slash.svg" alt="Visualização restrita" />
-                        <div>
-                          <strong>Informações restritas</strong>
-                          <p>Apenas administradores podem consultar o status individual dos respondentes.</p>
-                        </div>
-                      </div>
                     </div>
                   }
                 </article>

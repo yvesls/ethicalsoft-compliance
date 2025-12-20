@@ -1,0 +1,333 @@
+@use 'sass:color';
+@use '../../../../../assets/scss/base/vars' as *;
+
+.questionnaire-response-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem 2rem;
+  background-color: $gray-quaternary;
+
+  .page-state {
+    padding: 2rem;
+    border-radius: $radius-default;
+    background-color: $gray-tertiary;
+    text-align: center;
+    color: $text-color;
+    box-shadow: $box-shadow-primary;
+
+    &--error {
+      background-color: $error-bg;
+      color: $error-text-dark;
+    }
+  }
+}
+
+.response-page__breadcrumb {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .link-btn {
+    color: $blue-primary;
+    background: none;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.card-surface {
+  background-color: $white;
+  border-radius: $radius-default;
+  box-shadow: $box-shadow-primary;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  padding: 1.5rem 2rem;
+}
+
+.response-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+
+    h1 {
+      margin: 0;
+      color: $text-color;
+      font-size: 1.6rem;
+    }
+  }
+
+  &__badge {
+    margin: 0;
+    text-transform: uppercase;
+    font-size: $text-xsm;
+    letter-spacing: 0.08em;
+    color: $gray-secundary;
+  }
+
+  &__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    color: $gray-secundary;
+    font-size: $text-sm;
+
+    strong {
+      color: $text-color;
+    }
+  }
+
+  &__stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+  }
+}
+
+.stat-card {
+  background-color: $gray-tertiary;
+  border-radius: $radius-default;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  &__label {
+    font-size: $text-xsm;
+    color: $gray-secundary;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  &__value {
+    font-size: 1.2rem;
+    color: $text-color;
+  }
+
+  &--progress {
+    .progress-track {
+      width: 100%;
+      height: 0.4rem;
+      border-radius: 999px;
+      background-color: rgba($blue-primary, 0.1);
+      overflow: hidden;
+
+      &__fill {
+        height: 100%;
+        background: linear-gradient(90deg, $blue-primary, $green-primary);
+        border-radius: inherit;
+        transition: width 0.3s ease;
+      }
+    }
+  }
+}
+
+.info-banner {
+  padding: 0.85rem 1rem;
+  border-radius: $radius-default;
+  background-color: $info-bg;
+  border: 1px solid $info-border;
+  color: $info-text-dark;
+  font-size: $text-sm;
+}
+
+.admin-actions {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.response-table {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  &__header {
+    display: grid;
+    grid-template-columns: 3fr 1.2fr 1.5fr;
+    gap: 1rem;
+    font-size: $text-sm;
+    color: $gray-secundary;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding-bottom: 0.5rem;
+
+    @media (max-width: 900px) {
+      display: none;
+    }
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+}
+
+.response-row {
+  display: grid;
+  grid-template-columns: 3fr 1.2fr 1.5fr;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: $radius-default;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  background-color: $gray-tertiary;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+
+  &__question {
+    .question-index {
+      font-size: $text-xsm;
+      color: $gray-secundary;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .question-text {
+      margin: 0.35rem 0 0;
+      color: $text-color;
+      font-weight: 600;
+    }
+  }
+
+  &__radios {
+    display: inline-flex;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: center;
+
+    @media (max-width: 900px) {
+      justify-content: flex-start;
+    }
+  }
+
+  &__attachments {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+}
+
+.radio-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid rgba($blue-primary, 0.35);
+  font-weight: 600;
+  color: $blue-primary;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+
+  input {
+    accent-color: $blue-primary;
+  }
+
+  &--active {
+    background-color: $blue-primary;
+    color: $white;
+    border-color: transparent;
+  }
+
+  input:disabled + span,
+  input:disabled ~ span {
+    color: $gray-secundary;
+  }
+}
+
+.attachment-title {
+  margin: 0;
+  font-weight: 600;
+  color: $text-color;
+}
+
+.attachment-description {
+  margin: 0;
+  font-size: $text-sm;
+  color: $gray-secundary;
+
+  &--empty {
+    color: $gray-quinary;
+  }
+}
+
+.attachment-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  .attachment-link {
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.75rem;
+    background-color: rgba($blue-primary, 0.05);
+    border: 1px solid rgba($blue-primary, 0.08);
+  }
+
+  a {
+    display: flex;
+    flex-direction: column;
+    color: $blue-primary;
+    text-decoration: none;
+
+    &:hover .attachment-link__description {
+      text-decoration: underline;
+    }
+  }
+}
+
+.attachment-link__description {
+  font-weight: 600;
+  color: $text-color;
+  word-break: break-word;
+}
+
+.empty-state {
+  padding: 2rem;
+  text-align: center;
+  border: 1px dashed rgba(0, 0, 0, 0.1);
+  border-radius: $radius-default;
+  color: $gray-secundary;
+}
+
+.pagination-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.page-footer {
+  position: sticky;
+  border-radius: $radius-default;
+  bottom: 0;
+  background: rgba($white, 0.95);
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: flex-end;
+  box-shadow: $box-shadow-primary;
+}
+
+.btn-sm {
+  padding: 0.35rem 0.75rem;
+  font-size: $text-sm;
+}
+
+.btn-lg {
+  padding: 0.85rem 1.5rem;
+  font-size: 1rem;
+}

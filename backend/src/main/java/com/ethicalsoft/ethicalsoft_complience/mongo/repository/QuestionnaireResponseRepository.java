@@ -17,4 +17,9 @@ public interface QuestionnaireResponseRepository extends MongoRepository<Questio
 
     @Query(value = "{ 'projectId' : ?0, 'questionnaireId' : ?1, 'status' : 'PENDING' }", fields = "{ 'representativeId': 1 }")
     List<QuestionnaireResponse> findPendingResponses(Long projectId, Integer questionnaireId);
+
+    Optional<QuestionnaireResponse> findByProjectIdAndQuestionnaireIdAndRepresentativeId(Long projectId, Integer questionnaireId, Long representativeId);
+
+    @Query(value = "{ 'projectId': ?0, 'questionnaireId': ?1 }", fields = "{ 'answers': 0 }")
+    List<QuestionnaireResponse> findSummariesByProjectAndQuestionnaire(Long projectId, Integer questionnaireId);
 }

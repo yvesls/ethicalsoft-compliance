@@ -51,6 +51,23 @@ $text-color-dark: $gray-secundary;
 
       color: $gray-secundary !important;
 
+    &.input-wrapper--borderless {
+      border: none;
+      padding: 0;
+      margin-top: 0;
+      background: transparent;
+      height: auto;
+      min-height: 0;
+      box-shadow: none;
+
+      input[type='text'],
+      input[type='password'],
+      input[type='email'],
+      input[type='number'] {
+        padding: 0;
+      }
+    }
+
       &:focus {
         outline: none;
         box-shadow: none !important;
@@ -67,23 +84,6 @@ $text-color-dark: $gray-secundary;
     }
   }
 
-  .is-invalid-border {
-    border-color: $red !important;
-    box-shadow: none !important;
-  }
-
-  input:-webkit-autofill,
-  input:-webkit-autofill:hover,
-  input:-webkit-autofill:focus,
-  input:-webkit-autofill:active {
-    -webkit-text-fill-color: $gray-secundary !important;
-
-    box-shadow: none !important;
-    outline: none;
-
-    -webkit-box-shadow: 0 0 0px 1000px #fff inset;
-    transition: background-color 5000s ease-in-out 0s;
-  }
 
   .is-invalid {
     font-size: 0.875rem;

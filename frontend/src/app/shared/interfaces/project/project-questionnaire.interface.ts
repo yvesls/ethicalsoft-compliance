@@ -6,20 +6,20 @@ export interface QuestionnaireRespondentStatus {
   name: string;
   email: string;
   status: QuestionnaireResponseStatus;
-  completedAt?: string | Date | null;
+  completedAt?: Date | null;
 }
 
 export interface ProjectQuestionnaireSummary {
   id: number;
   name: string;
-  applicationStartDate?: string | Date | null;
-  applicationEndDate?: string | Date | null;
+  applicationStartDate?: Date | null;
+  applicationEndDate?: Date | null;
   stageName?: string | null;
   iterationName?: string | null;
   totalRespondents: number;
   respondedRespondents: number;
   pendingRespondents: number;
-  lastResponseAt?: string | Date | null;
+  lastResponseAt?: Date | null;
   progressStatus: QuestionnaireResponseStatus;
   status: TimelineStatus | string;
   respondents: QuestionnaireRespondentStatus[];
