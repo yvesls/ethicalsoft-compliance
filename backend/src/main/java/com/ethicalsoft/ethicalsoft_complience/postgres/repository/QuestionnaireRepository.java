@@ -1,6 +1,6 @@
 package com.ethicalsoft.ethicalsoft_complience.postgres.repository;
 
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.Questionnaire;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Questionnaire;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

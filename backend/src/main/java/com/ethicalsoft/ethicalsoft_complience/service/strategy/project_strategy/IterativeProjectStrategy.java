@@ -1,10 +1,10 @@
 package com.ethicalsoft.ethicalsoft_complience.service.strategy.project_strategy;
 
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.Iteration;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.Project;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.Stage;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.ProjectCreationRequestDTO;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.ProjectTypeEnum;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Iteration;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Project;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Stage;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.ProjectCreationRequestDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.ProjectTypeEnum;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.IterationRepository;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.StageRepository;
 import com.ethicalsoft.ethicalsoft_complience.service.QuestionnaireService;

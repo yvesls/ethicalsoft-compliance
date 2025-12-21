@@ -2,9 +2,9 @@ package com.ethicalsoft.ethicalsoft_complience.controller;
 
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.GetQuestionnaireRawUseCase;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.SearchQuestionnaireQuestionsUseCase;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.QuestionSearchFilterDTO;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.response.QuestionnaireQuestionResponseDTO;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.response.QuestionnaireRawResponseDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.QuestionSearchFilterDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.QuestionnaireQuestionResponseDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.QuestionnaireRawResponseDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,10 +29,9 @@ public class QuestionnaireQueryController {
 
     @PostMapping("/{questionnaireId}/questions/search")
     @PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")
-    public Page<QuestionnaireQuestionResponseDTO> searchQuestions(@PathVariable Long projectId,
-                                                                  @PathVariable Integer questionnaireId,
+    public Page<QuestionnaireQuestionResponseDTO> searchQuestions(@PathVariable Integer questionnaireId,
                                                                   @RequestBody(required = false) QuestionSearchFilterDTO filter,
                                                                   @PageableDefault(size = 10) Pageable pageable) {
-        return searchQuestionnaireQuestionsUseCase.execute(projectId, questionnaireId, filter, pageable);
+        return searchQuestionnaireQuestionsUseCase.execute(questionnaireId, filter, pageable);
     }
 }

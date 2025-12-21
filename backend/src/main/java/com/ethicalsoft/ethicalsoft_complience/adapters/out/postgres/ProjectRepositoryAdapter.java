@@ -1,7 +1,7 @@
 package com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres;
 
 import com.ethicalsoft.ethicalsoft_complience.domain.repository.ProjectRepositoryPort;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.Project;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Project;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.ProjectRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

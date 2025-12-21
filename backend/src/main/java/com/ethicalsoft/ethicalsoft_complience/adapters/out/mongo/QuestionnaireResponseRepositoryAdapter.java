@@ -1,7 +1,7 @@
 package com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo;
 
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.QuestionnaireResponse;
 import com.ethicalsoft.ethicalsoft_complience.domain.repository.QuestionnaireResponseRepositoryPort;
-import com.ethicalsoft.ethicalsoft_complience.mongo.model.QuestionnaireResponse;
 import com.ethicalsoft.ethicalsoft_complience.mongo.repository.QuestionnaireResponseRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

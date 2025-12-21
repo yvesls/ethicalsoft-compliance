@@ -1,11 +1,12 @@
 package com.ethicalsoft.ethicalsoft_complience.service;
 
 import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.User;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.auth.LoginDTO;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.auth.RegisterUserDTO;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.ErrorTypeEnum;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.UserRoleEnum;
+import com.ethicalsoft.ethicalsoft_complience.exception.UserNotFoundException;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.User;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.auth.LoginDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.auth.RegisterUserDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.ErrorTypeEnum;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.UserRoleEnum;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,13 +15,15 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
 @Service
 @Slf4j
-public class AuthService {
+public class AuthService implements UserDetailsService {
 
 	private final UserRepository userRepository;
 
@@ -89,13 +92,15 @@ public class AuthService {
 		return getAuthenticatedUser().getId();
 	}
 
+    @Override
+    public UserDetails loadUserByUsername(String username) {
+        return this.userRepository.findByEmail(username)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+    }
+
+    @Deprecated
     public User loadUserByEmail(String email) {
-        try {
-            return userRepository.findByEmail(email)
-                    .orElseThrow(() -> new BusinessException(ErrorTypeEnum.INFO, "User not found"));
-        } catch (Exception ex) {
-            log.error("[auth] Falha ao carregar usuário por email {}", email, ex);
-            throw ex;
-        }
+        return this.userRepository.findByEmail( email )
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
     }
 }

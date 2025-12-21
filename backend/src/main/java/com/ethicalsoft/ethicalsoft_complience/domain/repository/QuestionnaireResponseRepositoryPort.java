@@ -1,6 +1,6 @@
 package com.ethicalsoft.ethicalsoft_complience.domain.repository;
 
-import com.ethicalsoft.ethicalsoft_complience.mongo.model.QuestionnaireResponse;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.QuestionnaireResponse;
 
 import java.util.List;
 import java.util.Optional;

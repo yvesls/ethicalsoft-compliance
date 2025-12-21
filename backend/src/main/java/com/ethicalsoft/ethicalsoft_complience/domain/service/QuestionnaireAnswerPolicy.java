@@ -1,9 +1,9 @@
 package com.ethicalsoft.ethicalsoft_complience.domain.service;
 
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.QuestionnaireResponse;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.LinkDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.QuestionnaireAnswerRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
-import com.ethicalsoft.ethicalsoft_complience.mongo.model.QuestionnaireResponse;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.LinkDTO;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.QuestionnaireAnswerRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.util.ObjectUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

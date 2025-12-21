@@ -1,11 +1,11 @@
 package com.ethicalsoft.ethicalsoft_complience;
 
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.Iteration;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.Project;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.Stage;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.QuestionnaireDTO;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.StageDTO;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.ProjectCreationRequestDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Iteration;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Project;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Stage;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.QuestionnaireDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.StageDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.ProjectCreationRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.StageRepository;
 import com.ethicalsoft.ethicalsoft_complience.service.QuestionnaireService;
 import com.ethicalsoft.ethicalsoft_complience.service.strategy.project_strategy.WaterfallProjectStrategy;

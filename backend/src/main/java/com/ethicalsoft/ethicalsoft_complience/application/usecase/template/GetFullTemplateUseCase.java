@@ -1,7 +1,7 @@
 package com.ethicalsoft.ethicalsoft_complience.application.usecase.template;
 
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.ProjectTemplate;
 import com.ethicalsoft.ethicalsoft_complience.application.port.TemplateQueryPort;
-import com.ethicalsoft.ethicalsoft_complience.mongo.model.ProjectTemplate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

@@ -1,9 +1,9 @@
 package com.ethicalsoft.ethicalsoft_complience.service;
 
 import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.RefreshToken;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.User;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.auth.RefreshTokenDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.RefreshToken;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.User;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.auth.RefreshTokenDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.RefreshTokenRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

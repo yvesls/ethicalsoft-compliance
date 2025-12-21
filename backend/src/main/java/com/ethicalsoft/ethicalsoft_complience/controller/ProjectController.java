@@ -1,11 +1,16 @@
 package com.ethicalsoft.ethicalsoft_complience.controller;
 
-import com.ethicalsoft.ethicalsoft_complience.application.usecase.*;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.ProjectCreationRequestDTO;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.ProjectSearchRequestDTO;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.QuestionnaireReminderRequestDTO;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.QuestionnaireSearchFilter;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.response.*;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.ProjectCreationRequestDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.ProjectSearchRequestDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.QuestionnaireReminderRequestDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.QuestionnaireSearchFilter;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.*;
+import com.ethicalsoft.ethicalsoft_complience.application.usecase.ListProjectQuestionnairesUseCase;
+import com.ethicalsoft.ethicalsoft_complience.application.usecase.ListRolesUseCase;
+import com.ethicalsoft.ethicalsoft_complience.application.usecase.SendQuestionnaireReminderUseCase;
+import com.ethicalsoft.ethicalsoft_complience.application.usecase.project.CreateProjectUseCase;
+import com.ethicalsoft.ethicalsoft_complience.application.usecase.project.GetProjectByIdUseCase;
+import com.ethicalsoft.ethicalsoft_complience.application.usecase.project.SearchProjectsUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -34,8 +39,8 @@ public class ProjectController {
     }
 
     @PostMapping
-    public ProjectResponseDTO createProject( @Valid @RequestBody ProjectCreationRequestDTO request ) {
-        return createProjectUseCase.execute( request );
+    public ProjectResponseDTO createProject(@Valid @RequestBody ProjectCreationRequestDTO request ) {
+        return createProjectUseCase.createProject( request );
     }
 
     @PostMapping("/search")

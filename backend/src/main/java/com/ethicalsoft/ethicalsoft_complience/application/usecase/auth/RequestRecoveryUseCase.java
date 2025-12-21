@@ -1,7 +1,7 @@
 package com.ethicalsoft.ethicalsoft_complience.application.usecase.auth;
 
 import com.ethicalsoft.ethicalsoft_complience.application.port.PasswordRecoveryPort;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.auth.PasswordRecoveryDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.auth.PasswordRecoveryDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

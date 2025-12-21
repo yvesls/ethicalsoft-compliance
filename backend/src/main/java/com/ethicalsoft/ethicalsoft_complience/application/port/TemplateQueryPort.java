@@ -1,7 +1,7 @@
 package com.ethicalsoft.ethicalsoft_complience.application.port;
 
-import com.ethicalsoft.ethicalsoft_complience.mongo.model.ProjectTemplate;
-import com.ethicalsoft.ethicalsoft_complience.mongo.model.dto.TemplateListDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.ProjectTemplate;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.dto.TemplateListDTO;
 
 import java.util.List;
 

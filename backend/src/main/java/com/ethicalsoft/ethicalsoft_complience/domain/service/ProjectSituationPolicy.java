@@ -1,7 +1,7 @@
 package com.ethicalsoft.ethicalsoft_complience.domain.service;
 
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.Project;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.ProjectTypeEnum;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Project;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.ProjectTypeEnum;
 import org.springframework.stereotype.Service;
 
 @Service

@@ -1,9 +1,9 @@
 package com.ethicalsoft.ethicalsoft_complience;
 
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.*;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.QuestionDTO;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.QuestionnaireDTO;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.ProjectTypeEnum;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.*;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.QuestionDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.QuestionnaireDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.ProjectTypeEnum;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.QuestionRepository;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.QuestionnaireRepository;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.RoleRepository;
@@ -80,7 +80,7 @@ class QuestionnaireServiceTest {
 		questionnaireDTO.setQuestions( Set.of( questionDTO ) );
 
 		questionIdSequence = new AtomicInteger(1);
-		lenient().when( questionRepository.save( any( Question.class ) ) ).thenAnswer( invocation -> {
+		lenient().when( questionRepository.save( any( Question.class ) ) ).thenAnswer(invocation -> {
 			Question q = invocation.getArgument(0);
 			if ( q.getId() == null ) {
 				q.setId( questionIdSequence.getAndIncrement() );
@@ -96,7 +96,7 @@ class QuestionnaireServiceTest {
 	void createQuestionnaires_forIterativeProject_shouldLinkToIteration() {
 		project.setType( ProjectTypeEnum.ITERATIVO );
 		when( roleRepository.findAll() ).thenReturn( List.of( role ) );
-		when( questionnaireRepository.save( any( Questionnaire.class ) ) ).thenAnswer( invocation -> invocation.getArgument( 0 ) );
+		when( questionnaireRepository.save( any( Questionnaire.class ) ) ).thenAnswer(invocation -> invocation.getArgument( 0 ) );
 
 		questionnaireDTO.setIterationName( "Sprint 1" );
 		questionnaireDTO.setStageName( null );

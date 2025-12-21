@@ -1,6 +1,6 @@
 package com.ethicalsoft.ethicalsoft_complience.postgres.repository;
 
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.RecoveryCode;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.RecoveryCode;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,8 +1,8 @@
 package com.ethicalsoft.ethicalsoft_complience.controller;
 
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.auth.*;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.auth.*;
 import com.ethicalsoft.ethicalsoft_complience.controller.base.BaseController;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.auth.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
@@ -26,7 +26,7 @@ public class AuthController extends BaseController {
     private final ResetPasswordUseCase resetPasswordUseCase;
 
     @PostMapping( "/token" )
-    public AuthDTO token( @Valid @RequestBody LoginDTO loginDTO ) {
+    public AuthDTO token(@Valid @RequestBody LoginDTO loginDTO ) {
         return tokenUseCase.execute( loginDTO );
     }
 

@@ -1,6 +1,6 @@
 package com.ethicalsoft.ethicalsoft_complience.domain.service;
 
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.Role;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Role;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;

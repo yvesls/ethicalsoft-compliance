@@ -1,8 +1,8 @@
 package com.ethicalsoft.ethicalsoft_complience.domain.service;
 
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.User;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.RepresentativeDTO;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.UserRoleEnum;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.User;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.RepresentativeDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.UserRoleEnum;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;

@@ -1,6 +1,6 @@
 package com.ethicalsoft.ethicalsoft_complience.mongo.repository;
 
-import com.ethicalsoft.ethicalsoft_complience.mongo.model.ProjectTemplate;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.ProjectTemplate;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;

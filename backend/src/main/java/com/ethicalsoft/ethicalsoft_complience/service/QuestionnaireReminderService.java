@@ -1,13 +1,14 @@
 package com.ethicalsoft.ethicalsoft_complience.service;
 
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.QuestionnaireResponse;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Project;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Questionnaire;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.QuestionnaireReminderRequestDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.TimelineStatusEnum;
+import com.ethicalsoft.ethicalsoft_complience.application.port.NotificationDispatcherPort;
 import com.ethicalsoft.ethicalsoft_complience.application.port.QuestionnaireReminderPort;
 import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
-import com.ethicalsoft.ethicalsoft_complience.mongo.model.QuestionnaireResponse;
 import com.ethicalsoft.ethicalsoft_complience.mongo.repository.QuestionnaireResponseRepository;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.Project;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.Questionnaire;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.QuestionnaireReminderRequestDTO;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.TimelineStatusEnum;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.ProjectRepository;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.QuestionnaireRepository;
 import com.ethicalsoft.ethicalsoft_complience.service.criteria.QuestionnaireReminderContext;
@@ -29,7 +30,7 @@ public class QuestionnaireReminderService implements QuestionnaireReminderPort {
     private final ProjectRepository projectRepository;
     private final QuestionnaireRepository questionnaireRepository;
     private final QuestionnaireResponseRepository questionnaireResponseRepository;
-    private final EmailService emailService;
+    private final NotificationDispatcherPort notificationDispatcher;
 
     @Override
     @Transactional(readOnly = true)
@@ -39,7 +40,7 @@ public class QuestionnaireReminderService implements QuestionnaireReminderPort {
 
 
             Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new EntityNotFoundException("Projeto não encontrado: " + projectId));
+                    .orElseThrow(() -> new EntityNotFoundException("Projeto não encontrado: " + projectId));
 
             Questionnaire questionnaire = questionnaireRepository.findById(questionnaireId)
                     .orElseThrow(() -> new EntityNotFoundException("Questionário não encontrado: " + questionnaireId));
@@ -112,6 +113,6 @@ public class QuestionnaireReminderService implements QuestionnaireReminderPort {
     private void sendReminderEmails(Collection<String> emails, QuestionnaireReminderContext context) {
         emails.stream()
                 .distinct()
-                .forEach(email -> emailService.sendQuestionnaireReminderEmail(email, context));
+                .forEach(email -> notificationDispatcher.dispatchQuestionnaireReminder(email, context));
     }
 }

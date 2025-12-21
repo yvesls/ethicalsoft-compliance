@@ -1,6 +1,6 @@
 package com.ethicalsoft.ethicalsoft_complience.domain.repository;
 
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.Representative;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Representative;
 
 import java.util.Optional;
 

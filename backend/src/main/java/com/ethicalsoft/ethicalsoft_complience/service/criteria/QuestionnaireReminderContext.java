@@ -1,6 +1,6 @@
 package com.ethicalsoft.ethicalsoft_complience.service.criteria;
 
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.Questionnaire;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Questionnaire;
 
 import java.time.format.DateTimeFormatter;
 

@@ -1,7 +1,7 @@
 package com.ethicalsoft.ethicalsoft_complience.adapters.persistence;
 
 import com.ethicalsoft.ethicalsoft_complience.application.port.RoleQueryPort;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.response.RoleSummaryResponseDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.RoleSummaryResponseDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.RoleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

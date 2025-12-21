@@ -1,6 +1,6 @@
 package com.ethicalsoft.ethicalsoft_complience.domain.service;
 
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.Iteration;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Iteration;
 import com.ethicalsoft.ethicalsoft_complience.util.ObjectUtil;
 import org.springframework.stereotype.Service;
 

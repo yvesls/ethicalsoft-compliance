@@ -1,9 +1,9 @@
 package com.ethicalsoft.ethicalsoft_complience.adapters.mapper;
 
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.Question;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.Role;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.Stage;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.response.QuestionnaireQuestionResponseDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Question;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Role;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Stage;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.QuestionnaireQuestionResponseDTO;
 import org.springframework.stereotype.Component;
 
 import java.util.Comparator;

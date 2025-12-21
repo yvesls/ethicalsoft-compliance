@@ -1,13 +1,13 @@
 package com.ethicalsoft.ethicalsoft_complience.service;
 
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.QuestionnaireResponse;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.*;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.QuestionDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.QuestionnaireDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.ProjectTypeEnum;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.QuestionnaireResponseStatus;
 import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
-import com.ethicalsoft.ethicalsoft_complience.mongo.model.QuestionnaireResponse;
 import com.ethicalsoft.ethicalsoft_complience.mongo.repository.QuestionnaireResponseRepository;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.*;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.QuestionDTO;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.QuestionnaireDTO;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.ProjectTypeEnum;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.QuestionnaireResponseStatus;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.QuestionRepository;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.QuestionnaireRepository;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.RoleRepository;
@@ -33,7 +33,7 @@ public class QuestionnaireService {
 	private final QuestionRepository questionRepository;
 
 	@Transactional( propagation = Propagation.MANDATORY )
-	public void createQuestionnaires( Project project, Set<QuestionnaireDTO> questionnaireDTOs, Map<String, Stage> stageMap, Map<String, Iteration> iterationMap ) {
+	public void createQuestionnaires(Project project, Set<QuestionnaireDTO> questionnaireDTOs, Map<String, Stage> stageMap, Map<String, Iteration> iterationMap ) {
 
 		try {
 			log.info("[questionnaire] Criando questionários para projeto id={} quantidade={}", project != null ? project.getId() : null, questionnaireDTOs != null ? questionnaireDTOs.size() : 0);
@@ -219,5 +219,10 @@ public class QuestionnaireService {
 		return clones;
 	}
 
+	@Deprecated
+	@Transactional(readOnly = true)
+	public List<Questionnaire> getQuestionnairesByProjectId(Long projectId) {
+		return questionnaireRepository.findByProjectId(projectId);
+	}
 
 }

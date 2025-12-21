@@ -1,7 +1,7 @@
 package com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres;
 
 import com.ethicalsoft.ethicalsoft_complience.domain.repository.QuestionnaireRepositoryPort;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.Questionnaire;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Questionnaire;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.QuestionnaireRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

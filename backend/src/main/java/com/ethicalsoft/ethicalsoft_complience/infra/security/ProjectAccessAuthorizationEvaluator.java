@@ -1,6 +1,6 @@
 package com.ethicalsoft.ethicalsoft_complience.infra.security;
 
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.enums.UserRoleEnum;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.UserRoleEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;

@@ -1,6 +1,6 @@
 package com.ethicalsoft.ethicalsoft_complience.mongo.repository;
 
-import com.ethicalsoft.ethicalsoft_complience.mongo.model.QuestionnaireResponse;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.QuestionnaireResponse;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 

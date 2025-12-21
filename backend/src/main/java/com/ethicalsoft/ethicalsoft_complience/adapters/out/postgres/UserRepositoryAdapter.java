@@ -1,7 +1,7 @@
 package com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres;
 
 import com.ethicalsoft.ethicalsoft_complience.domain.repository.UserRepositoryPort;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.User;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.User;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

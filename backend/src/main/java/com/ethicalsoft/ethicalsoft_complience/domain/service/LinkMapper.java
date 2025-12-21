@@ -1,7 +1,7 @@
 package com.ethicalsoft.ethicalsoft_complience.domain.service;
 
-import com.ethicalsoft.ethicalsoft_complience.mongo.model.QuestionnaireResponse;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.request.LinkDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.QuestionnaireResponse;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.LinkDTO;
 import org.springframework.stereotype.Service;
 
 @Service

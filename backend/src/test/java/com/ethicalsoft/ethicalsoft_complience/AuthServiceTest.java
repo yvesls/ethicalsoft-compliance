@@ -1,9 +1,9 @@
 package com.ethicalsoft.ethicalsoft_complience;
 
 import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.User;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.auth.LoginDTO;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.dto.auth.RegisterUserDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.User;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.auth.LoginDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.auth.RegisterUserDTO;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.UserRepository;
 import com.ethicalsoft.ethicalsoft_complience.service.AuthService;
 import org.junit.jupiter.api.BeforeEach;

@@ -1,7 +1,7 @@
 package com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres;
 
 import com.ethicalsoft.ethicalsoft_complience.domain.repository.RepresentativeRepositoryPort;
-import com.ethicalsoft.ethicalsoft_complience.postgres.model.Representative;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Representative;
 import com.ethicalsoft.ethicalsoft_complience.postgres.repository.RepresentativeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
