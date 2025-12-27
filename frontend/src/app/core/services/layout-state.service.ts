@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core'
+import { Injectable, inject } from '@angular/core'
 import { BehaviorSubject, Observable } from 'rxjs'
 import { StorageService } from './storage.service'
 
@@ -6,6 +6,8 @@ import { StorageService } from './storage.service'
 	providedIn: 'root',
 })
 export class LayoutStateService {
+	private readonly storageService = inject(StorageService)
+
 	private showLayoutSubject = new BehaviorSubject<boolean>(true)
 	showLayout$: Observable<boolean> = this.showLayoutSubject.asObservable()
 
@@ -15,7 +17,7 @@ export class LayoutStateService {
 	private sidebarMobileOpenedSubject = new BehaviorSubject<boolean>(false)
 	sidebarMobileOpened$: Observable<boolean> = this.sidebarMobileOpenedSubject.asObservable()
 
-	constructor(private storageService: StorageService) {
+	constructor() {
 		this.showLayoutSubject.next(this.storageService.getShowLayout())
 		this.isSidebarCollapsedSubject.next(this.storageService.getSidebarState())
 		this.setSidebarMobileState(true)

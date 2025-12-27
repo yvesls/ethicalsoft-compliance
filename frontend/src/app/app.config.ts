@@ -6,6 +6,7 @@ import { BrowserAnimationsModule, provideAnimations } from '@angular/platform-br
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http'
 import { tokenInterceptorFn } from './core/interceptors/token.interceptor.fn'
 import { spinnerInterceptorFn } from './core/interceptors/spinner.interceptor.fn'
+import { projectContextInterceptorFn } from './core/interceptors/project-context.interceptor.fn'
 
 export const appConfig: ApplicationConfig = {
 	providers: [
@@ -13,6 +14,9 @@ export const appConfig: ApplicationConfig = {
 		provideClientHydration(),
 		provideAnimations(),
 		BrowserAnimationsModule,
-		provideHttpClient(withInterceptors([spinnerInterceptorFn, tokenInterceptorFn]), withFetch()),
+		provideHttpClient(
+			withInterceptors([spinnerInterceptorFn, tokenInterceptorFn, projectContextInterceptorFn]),
+			withFetch()
+		),
 	],
 }

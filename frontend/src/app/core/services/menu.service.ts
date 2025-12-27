@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core'
+import { DestroyRef, Injectable, inject } from '@angular/core'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { BehaviorSubject } from 'rxjs'
 import { AuthenticationService } from './authentication.service'
 import { MENU_CONFIG, MenuItem } from '../config/menu.config'
@@ -8,22 +9,27 @@ import { LoggerService } from './logger.service'
 	providedIn: 'root',
 })
 export class MenuService {
+	private readonly authService = inject(AuthenticationService)
+	private readonly destroyRef = inject(DestroyRef)
+
 	private menuItemsSubject = new BehaviorSubject<MenuItem[]>([])
 	menuItems$ = this.menuItemsSubject.asObservable()
 
-	constructor(private authService: AuthenticationService) {
-		this.authService.userRoles$.subscribe({
-			next: (userRoles) => {
-				if (!Array.isArray(userRoles)) {
-					LoggerService.warn('MenuService: userRoles is not an array. Proceeding with empty menu.')
-					userRoles = []
-				}
-				this.updateMenu(userRoles)
-			},
-			error: (error) => {
-				LoggerService.error('MenuService: Failed to load user roles', error)
-			},
-		})
+	constructor() {
+		this.authService.userRoles$
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe({
+				next: (userRoles) => {
+					const safeRoles = Array.isArray(userRoles) ? userRoles : []
+					if (!Array.isArray(userRoles)) {
+						LoggerService.warn('MenuService: userRoles is not an array. Proceeding with empty menu.')
+					}
+					this.updateMenu(safeRoles)
+				},
+				error: (error: unknown) => {
+					LoggerService.error('MenuService: Failed to load user roles', error)
+				},
+			})
 	}
 
 	private updateMenu(userRoles: string[]): void {

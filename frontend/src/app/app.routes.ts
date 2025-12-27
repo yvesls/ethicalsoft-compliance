@@ -10,6 +10,8 @@ import { ResetPasswordComponent } from './features/auth/reset-password/reset-pas
 import { NavigationSourceGuard } from './core/guards/navigation-source.guard'
 import { RegisterComponent } from './features/auth/register/register.component'
 import { RoleEnum } from './shared/enums/role.enum'
+import { SettingsComponent } from './features/settings/settings.component'
+import { SettingsResetPasswordComponent } from './features/settings/settings-reset-password/settings-reset-password.component'
 
 export const routes: Routes = [
 	{
@@ -52,6 +54,36 @@ export const routes: Routes = [
 		component: RegisterComponent,
 		canActivate: [LayoutGuard],
 		data: { showLayout: false },
+	},
+  {
+    path: 'projects',
+    canActivate: [AuthGuard, LayoutGuard],
+    data: {
+      roles: [RoleEnum.ADMIN, RoleEnum.USER],
+      showLayout: true,
+    },
+    loadChildren: () =>
+      import('./features/projects/projects.routes').then(
+        (r) => r.PROJECTS_ROUTES
+      ),
+  },
+	{
+		path: 'settings',
+		component: SettingsComponent,
+		canActivate: [AuthGuard, LayoutGuard],
+		data: {
+			roles: [RoleEnum.USER],
+			showLayout: true,
+		},
+	},
+	{
+		path: 'settings/reset-password',
+		component: SettingsResetPasswordComponent,
+		canActivate: [AuthGuard, LayoutGuard],
+		data: {
+			roles: [RoleEnum.USER],
+			showLayout: true,
+		},
 	},
 	{
 		path: '**',

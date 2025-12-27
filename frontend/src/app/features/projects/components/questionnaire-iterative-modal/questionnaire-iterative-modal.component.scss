@@ -1,0 +1,83 @@
+@use '../../../../../assets/scss/base/vars' as *;
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid $gray-primary;
+
+  h2 {
+    margin: 0;
+    font: $heading4;
+    color: $text-color;
+  }
+}
+
+.modal-body {
+  padding: 1.5rem;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+
+  &.full-width {
+    grid-column: 1 / -1;
+  }
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: $text-color;
+}
+
+.date-range-display {
+  padding: 0.75rem 1rem;
+  border: 1px solid $gray-primary;
+  border-radius: 0.5rem;
+  background-color: $gray-tertiary;
+  font-size: 0.9rem;
+  color: $text-color;
+  min-height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  &.error {
+    border-color: $red;
+    background-color: $error-bg-light;
+  }
+}
+
+.warning-text {
+  color: $red;
+  font-weight: 500;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-top: 1px solid $gray-primary;
+}

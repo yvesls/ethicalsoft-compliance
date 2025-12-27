@@ -1,0 +1,64 @@
+<div class="question-modal">
+  <h2>{{ modalTitle }}</h2>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <div class="form-group">
+      <app-input
+        label="Pergunta *"
+        type="text"
+        formControlName="value"
+        placeholder="Digite a pergunta"
+        [control]="form.get('value')"
+      ></app-input>
+    </div>
+
+    <div class="form-group">
+      <label for="roleIds" class="mb-2 d-block fw-medium">Papéis *</label>
+      <app-multi-select
+        id="roleIds"
+        [options]="roleOptions"
+        formControlName="roleIds"
+        placeholder="Selecione os papéis"
+      ></app-multi-select>
+      @if (form.get('roleIds')?.invalid && form.get('roleIds')?.touched) {
+        <small class="error-message text-danger mt-1 d-block">
+          Selecione pelo menos um papel
+        </small>
+      }
+    </div>
+
+    @if (showStageSelector) {
+      <div class="form-group">
+        <label for="stageNames" class="mb-2 d-block fw-medium">
+          {{ stageLabel }}
+          @if (stageConfig?.required) {
+            <span class="text-danger">*</span>
+          }
+        </label>
+        <app-multi-select
+          id="stageNames"
+          formControlName="stageNames"
+          [options]="stageOptions"
+          [placeholder]="stagePlaceholder"
+          [maxSelectedItems]="stageMaxSelectedItems"
+          [itemsNotRemovable]="stageLockedValues"
+          [control]="form.get('stageNames')"
+        ></app-multi-select>
+        @if (form.get('stageNames')?.invalid && form.get('stageNames')?.touched) {
+          <small class="error-message text-danger mt-1 d-block">
+            Selecione ao menos uma etapa
+          </small>
+        }
+      </div>
+    }
+
+    <div class="panel-actions mt-4 d-flex justify-content-end gap-2">
+      <button type="button" class="btn btn-secondary" (click)="close()">
+        Cancelar
+      </button>
+      <button type="submit" class="btn btn-primary">
+        {{ mode === 'CREATE' ? 'Criar' : 'Salvar' }}
+      </button>
+    </div>
+  </form>
+</div>

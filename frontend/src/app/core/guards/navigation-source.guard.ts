@@ -1,6 +1,5 @@
-import { Injectable } from '@angular/core'
-import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree, Router } from '@angular/router'
-import { Observable, of } from 'rxjs'
+import { inject, Injectable } from '@angular/core'
+import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree } from '@angular/router'
 import { NavigationSourceService } from '../services/navigation-source.service'
 import { NotificationService } from '../services/notification.service'
 import { RouterService } from '../services/router.service'
@@ -10,16 +9,15 @@ import { LoggerService } from '../services/logger.service'
 	providedIn: 'root',
 })
 export class NavigationSourceGuard implements CanActivate {
-	constructor(
-		private navigationSourceService: NavigationSourceService,
-		private routerService: RouterService,
-		private notificationService: NotificationService
-	) {}
+	private readonly navigationSourceService = inject(NavigationSourceService)
+	private readonly routerService = inject(RouterService)
+	private readonly notificationService = inject(NotificationService)
 
-	canActivate(
-		route: ActivatedRouteSnapshot,
-		state: RouterStateSnapshot
-	): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
+	canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean | UrlTree {
+		LoggerService.info('NavigationSourceGuard: Checking route access source', {
+			url: state.url,
+			path: route.routeConfig?.path,
+		})
 		if (this.navigationSourceService.isInternalNavigation()) {
 			LoggerService.info('NavigationSourceGuard: Internal navigation detected. Access granted.')
 			return true

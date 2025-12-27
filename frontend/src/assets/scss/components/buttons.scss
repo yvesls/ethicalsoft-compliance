@@ -1,5 +1,29 @@
 @use '../base/vars' as *;
 
+button,
+.btn,
+.btn-primary,
+.btn-secundary,
+.btn-icon {
+	border: none;
+	background: none;
+	color: inherit;
+	font: inherit;
+	padding: 0;
+	margin: 0;
+	line-height: normal;
+	border-radius: 0;
+	box-shadow: none;
+	text-align: inherit;
+	min-height: auto;
+	min-width: 0;
+}
+
+button:disabled,
+.btn:disabled {
+	opacity: 1;
+}
+
 .btn.btn {
 	height: 3rem;
 	border: none;
@@ -30,6 +54,7 @@
 	&:focus {
 		background-color: $blue-secundary;
 		border-color: $blue-primary;
+		color: $white;
 	}
 
 	--bs-btn-active-bg: $blue-primary;
@@ -37,6 +62,10 @@
 
 	--bs-btn-disabled-bg: $gray-secundary;
 	--bs-btn-disabled-border-color: $gray-secundary;
+
+	&.btn-icon img {
+		filter: brightness(0) invert(1);
+	}
 }
 
 .btn-secundary.btn-secundary {
@@ -49,6 +78,7 @@
 	&:focus {
 		background-color: $green-secundary;
 		border-color: $green-primary;
+		color: $white;
 	}
 
 	--bs-btn-active-bg: $green-primary;
@@ -56,4 +86,22 @@
 
 	--bs-btn-disabled-bg: $gray-primary;
 	--bs-btn-disabled-border-color: $gray-primary;
+
+	&.btn-icon img {
+		filter: brightness(0) invert(1);
+	}
+}
+
+.btn-icon.btn-icon {
+	width: 3rem;
+
+	padding: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	img {
+		width: 1.875rem;
+		height: 1.875rem;
+	}
 }

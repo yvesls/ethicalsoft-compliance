@@ -5,7 +5,6 @@
 @use './base/_media-queries' as *;
 @use './components/cards' as *;
 @use 'bootstrap/scss/bootstrap';
-@use 'ngx-spinner/animations/ball-scale-multiple.css';
 
 * {
 	font-family: $font-family;
@@ -17,8 +16,8 @@
 
 	/* Chrome, Edge, and Safari */
 	&::-webkit-scrollbar {
-		width: 12px;
-		height: 12px;
+		width: 0.75rem;
+		height: 0.75rem;
 	}
 
 	&::-webkit-scrollbar-track {
@@ -27,7 +26,7 @@
 
 	&::-webkit-scrollbar-thumb {
 		background-color: $blue-primary;
-		border-radius: 10px;
+		border-radius: 0.625rem;
 		border: 3px solid $white;
 	}
 }
@@ -123,8 +122,8 @@ form {
 }
 
 :root {
-	--sidebar-width: 230px;
-	--sidebar-collapsed-width: 100px;
+	--sidebar-width: 14.375rem;
+	--sidebar-collapsed-width: 6.25rem;
 
 	@include for-tablet-down {
 		--sidebar-width: 0px;
@@ -176,7 +175,7 @@ app-header {
 
 	@include for-phone-only {
 		height: auto;
-		min-height: 50px;
+		min-height: 3.125rem;
 	}
 }
 
@@ -203,7 +202,7 @@ app-footer {
 
 	@include for-phone-only {
 		height: auto;
-		min-height: 40px;
+		min-height: 2.5rem;
 	}
 }
 
@@ -264,7 +263,7 @@ app-footer {
 	.modal-content {
 		background: $background-color;
 		border-radius: $radius-default;
-		padding: 40px;
+		padding: 2.5rem;
 		text-align: center;
 		box-shadow: $box-shadow-primary;
 		position: relative;
@@ -291,45 +290,45 @@ app-footer {
 
 	.close {
 		position: absolute;
-		top: 10px;
-		right: 15px;
+		top: 0.625rem;
+		right: 0.9375rem;
 		background: none;
 		border: none;
-		font-size: 18px;
+		font-size: 1.125rem;
 		font-weight: bold;
 		cursor: pointer;
 		outline: none;
 	}
 
 	.modal-icon {
-		margin: 10px auto;
-		width: 70px;
-		height: 70px;
+		margin: 0.625rem auto;
+		width: 4.375rem;
+		height: 4.375rem;
 	}
 
 	.modal-title {
-		font-size: 20px;
+		font-size: 1.25rem;
 		font-weight: bold;
-		margin-bottom: 10px;
+		margin-bottom: 0.625rem;
 	}
 
 	.modal-message {
-		font-size: 14px;
+		font-size: 0.875rem;
 		color: $text-color;
-		margin-bottom: 15px;
+		margin-bottom: 0.9375rem;
 	}
 
 	.modal-buttons {
 		display: flex;
 		justify-content: center;
-		gap: 10px;
+		gap: 0.625rem;
 
 		button {
 			border: none;
-			padding: 8px 12px;
+			padding: 0.5rem 0.75rem;
 			border-radius: 5px;
 			cursor: pointer;
-			font-size: 14px;
+			font-size: 0.875rem;
 		}
 
 		.btn-cancel {
@@ -342,6 +341,31 @@ app-footer {
 			color: white;
 		}
 	}
+}
+
+.form-grid {
+  display: grid;
+  gap: 1.5rem;
+  width: 100%;
+  margin-bottom: 1.5rem;
+
+  &.form-grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  &.form-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  &.form-grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.separation-line {
+  width: 100%;
+  padding: 0 1.5rem 1.5rem 1.5rem;
+  border-bottom: 1px solid $white-secundary;
 }
 
 @keyframes fadeInScale {

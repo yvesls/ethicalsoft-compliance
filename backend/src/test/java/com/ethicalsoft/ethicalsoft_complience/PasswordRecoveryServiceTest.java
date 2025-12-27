@@ -1,14 +1,14 @@
 package com.ethicalsoft.ethicalsoft_complience;
 
+import com.ethicalsoft.ethicalsoft_complience.application.port.NotificationDispatcherPort;
 import com.ethicalsoft.ethicalsoft_complience.exception.UserNotFoundException;
-import com.ethicalsoft.ethicalsoft_complience.model.RecoveryCode;
-import com.ethicalsoft.ethicalsoft_complience.model.User;
-import com.ethicalsoft.ethicalsoft_complience.model.dto.auth.CodeValidationDTO;
-import com.ethicalsoft.ethicalsoft_complience.model.dto.auth.PasswordRecoveryDTO;
-import com.ethicalsoft.ethicalsoft_complience.model.dto.auth.PasswordResetDTO;
-import com.ethicalsoft.ethicalsoft_complience.repository.RecoveryCodeRepository;
-import com.ethicalsoft.ethicalsoft_complience.repository.UserRepository;
-import com.ethicalsoft.ethicalsoft_complience.service.EmailService;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.RecoveryCode;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.User;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.auth.CodeValidationDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.auth.PasswordRecoveryDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.auth.PasswordResetDTO;
+import com.ethicalsoft.ethicalsoft_complience.postgres.repository.RecoveryCodeRepository;
+import com.ethicalsoft.ethicalsoft_complience.postgres.repository.UserRepository;
 import com.ethicalsoft.ethicalsoft_complience.service.PasswordRecoveryService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
- class PasswordRecoveryServiceTest {
+class PasswordRecoveryServiceTest {
 
     @Mock
     private UserRepository userRepository;
@@ -35,7 +35,7 @@ import static org.mockito.Mockito.*;
     @Mock
     private RecoveryCodeRepository recoveryCodeRepository;
     @Mock
-    private EmailService emailService;
+    private NotificationDispatcherPort notificationDispatcher;
     @InjectMocks
     private PasswordRecoveryService passwordRecoveryService;
 
@@ -46,12 +46,11 @@ import static org.mockito.Mockito.*;
         PasswordRecoveryDTO passwordRecoveryDTO = new PasswordRecoveryDTO();
         passwordRecoveryDTO.setEmail("test@example.com");
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
-        doNothing().when(emailService).sendRecoveryEmail(anyString(), anyString());
 
         passwordRecoveryService.requestRecovery(passwordRecoveryDTO);
 
         verify(recoveryCodeRepository, times(1)).save(any(RecoveryCode.class));
-        verify(emailService, times(1)).sendRecoveryEmail(anyString(), anyString());
+        verify(notificationDispatcher, times(1)).dispatchRecoveryCode(anyString(), anyString());
     }
 
     @Test
@@ -59,7 +58,7 @@ import static org.mockito.Mockito.*;
         when(userRepository.findByEmail("invalid@example.com")).thenReturn(Optional.empty());
         PasswordRecoveryDTO passwordRecoveryDTO = new PasswordRecoveryDTO();
         passwordRecoveryDTO.setEmail("invalid@example.com");
-        assertThrows( UsernameNotFoundException.class, () -> passwordRecoveryService.requestRecovery(passwordRecoveryDTO));
+        assertThrows(UsernameNotFoundException.class, () -> passwordRecoveryService.requestRecovery(passwordRecoveryDTO));
     }
 
     @Test
@@ -140,7 +139,7 @@ import static org.mockito.Mockito.*;
 
         when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
 
-        assertThrows( UserNotFoundException.class,
+        assertThrows(UserNotFoundException.class,
                 () -> passwordRecoveryService.resetPassword(passwordResetDTO));
     }
 }

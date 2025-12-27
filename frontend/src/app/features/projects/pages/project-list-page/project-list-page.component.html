@@ -1,0 +1,80 @@
+<div class="page-container">
+  <app-filter-bar
+    [formGroup]="filterForm"
+    (filterSubmit)="onSearch()"
+    gridTemplateColumns="2fr 1.5fr 1.5fr 1fr auto" >
+
+    <app-select
+      filters formControlName="type"
+      label="Tipo"
+      placeholder="Selecione o tipo"
+      [control]="filterForm.get('type')"
+      [options]="projectTypeOptions"
+      [allowClear]="true">
+    </app-select>
+
+    <app-select
+      filters formControlName="status"
+      label="Status"
+      placeholder="Selecione o status"
+      [control]="filterForm.get('status')"
+      [options]="projectStatusOptions"
+      [allowClear]="true">
+    </app-select>
+
+    <app-input
+      filters formControlName="name"
+      label="Nome"
+      type="text"
+      placeholder="Informe o nome"
+      [control]="filterForm.get('name')"
+    ></app-input>
+
+    <app-input
+      filters formControlName="code"
+      label="Código"
+      type="text"
+      placeholder="Informe o Código"
+      [control]="filterForm.get('code')"
+    ></app-input>
+
+    <button filters type="submit" class="btn btn-primary btn-icon">
+        <img src="assets/icons/search.svg" alt="Buscar" />
+    </button>
+
+    <div actions>
+      @if (isAdmin()) {
+        <button type="button" class="btn btn-secundary" (click)="goToCreateProject()">
+          Criar novo projeto
+        </button>
+      }
+    </div>
+  </app-filter-bar>
+
+  <app-list
+    [status]="status()"
+    [error]="error()"
+    noItemsMessage="Nenhum projeto encontrado."
+    [itemCount]="projects().length" >
+
+    <div listBody>
+  @for (project of projects(); track trackByProjectId($index, project)) {
+        <app-list-item
+          [item]="project"
+          [navigateTo]="['/projects', project.id]">
+        </app-list-item>
+      }
+    </div>
+
+    <div listFooter>
+      <app-pagination
+         [currentPage]="pagination().currentPage"
+         [totalItems]="pagination().totalItems"
+         [pageSize]="pagination().pageSize"
+         (pageChange)="onPageChange($event)">
+      </app-pagination>
+    </div>
+
+  </app-list>
+
+</div>

@@ -1,0 +1,55 @@
+<div class="item-container">
+
+  <div class="item-main-content">
+    <div class="item-header">
+      @if (item.status && statusIconMap[item.status]) {
+        <img
+          [src]="statusIconMap[item.status]"
+          [alt]="item.status"
+          class="status-icon-img"
+        />
+      }
+      @if (item.status) {
+        <span class="header-status">
+          {{ statusDisplayMap[item.status] || item.status }}
+        </span>
+      }
+      @if (item.id !== undefined) {
+        <span class="header-code">
+          {{ formattedCode }}
+        </span>
+      }
+    </div>
+    <div class="item-title">
+      <strong>{{ item.name }}</strong>
+    </div>
+  </div>
+
+  <div class="item-data-grid">
+    <div class="column-tipo">
+      <span class="data-label">Tipo</span>
+      <span class="data-value">{{ item.type }}</span>
+    </div>
+
+    <div class="column-situacao">
+      <span class="data-label">Situação</span>
+      <span class="data-value">{{ formattedSituation }}</span>
+    </div>
+
+    <div class="column-inicio">
+      <span class="data-label">Início</span>
+      <span class="data-value">{{ item.startDate | date: 'dd/MM/yyyy' }}</span>
+    </div>
+
+    <div class="column-encerramento">
+      <span class="data-label">Encerramento</span>
+      <span class="data-value">
+        @if (item.deadline) {
+          {{ item.deadline | date: 'dd/MM/yyyy' }}
+        } @else {
+          ---/--/----
+        }
+      </span>
+    </div>
+  </div>
+</div>

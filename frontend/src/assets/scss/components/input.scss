@@ -1,57 +1,94 @@
 @use '../base/vars' as *;
 @use 'sass:color';
 
+$text-color-dark: $gray-secundary;
+
+%form-control-base {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 3rem;
+  padding: 0.5rem 1rem;
+  background-color: #fff;
+  border: 1px solid $gray-primary;
+  border-radius: 0.625rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  margin-top: 0.2rem;
+
+  &:focus,
+  &:focus-within {
+    box-shadow: none !important;
+    outline: none;
+  }
+}
+
 .form-group {
-	display: flex;
-	flex-direction: column;
+  display: flex;
+  flex-direction: column;
 
-	label {
-		color: $gray-secundary;
-		text-align: left;
-		margin-top: 1rem;
-	}
+  label {
+    color: $gray-secundary;
+    text-align: left;
+    margin-top: 1rem;
+  }
 
-	input[type='text'],
-	input[type='password'],
-	input[type='email'],
-	input[type='number'],
-	input[type='date'] {
-		padding: 0.5rem;
-		margin-top: 0.2rem;
-		border: 1px solid $gray-primary;
-		border-radius: 10px;
-		height: 3rem;
+  .input-wrapper,
+  .select-trigger {
+    @extend %form-control-base;
+  }
 
-		&:focus {
-			box-shadow: $box-shadow-primary;
-			outline: none;
-			transition: $transition-default;
-		}
+  .input-wrapper {
+    input[type='text'],
+    input[type='password'],
+    input[type='email'],
+    input[type='number'] {
+      width: 100%;
+      height: 100%;
+      border: none;
+      padding: 0;
+      margin: 0;
+      background-color: transparent;
 
-		&:hover {
-			background-color: transparent;
-			transition: $transition-default;
-		}
-	}
+      color: $gray-secundary !important;
 
-	input.is-invalid-border {
-		border-color: $red;
-	}
+    &.input-wrapper--borderless {
+      border: none;
+      padding: 0;
+      margin-top: 0;
+      background: transparent;
+      height: auto;
+      min-height: 0;
+      box-shadow: none;
 
-	input:-webkit-autofill,
-	input:-webkit-autofill:hover,
-	input:-webkit-autofill:focus,
-	input:-webkit-autofill:active {
-		background-color: $gray-primary;
-		transition: background-color 0.2s ease-out;
-		-webkit-box-shadow: 0 0 0px 1000px color.adjust($gray-primary, $lightness: 40%) inset;
-		color: $gray-secundary;
-	}
+      input[type='text'],
+      input[type='password'],
+      input[type='email'],
+      input[type='number'] {
+        padding: 0;
+      }
+    }
 
-	.is-invalid {
-		font-size: 14px;
-		color: $red;
-		text-align: start;
-		padding: 1px;
-	}
+      &:focus {
+        outline: none;
+        box-shadow: none !important;
+      }
+
+      &::placeholder {
+        color: $gray-primary;
+        opacity: 1;
+      }
+      &::-webkit-input-placeholder { color: $gray-primary; }
+      &::-moz-placeholder { color: $gray-primary; opacity: 1; }
+      &:-ms-input-placeholder { color: $gray-primary; }
+      &:-moz-placeholder { color: $gray-primary; opacity: 1; }
+    }
+  }
+
+
+  .is-invalid {
+    font-size: 0.875rem;
+    color: $red;
+    text-align: start;
+    padding: 1px;
+  }
 }

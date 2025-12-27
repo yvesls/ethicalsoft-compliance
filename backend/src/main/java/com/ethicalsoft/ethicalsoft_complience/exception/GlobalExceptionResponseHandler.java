@@ -1,7 +1,9 @@
 package com.ethicalsoft.ethicalsoft_complience.exception;
 
 
-import com.ethicalsoft.ethicalsoft_complience.model.enums.ErrorTypeEnum;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.ErrorTypeEnum;
+import com.ethicalsoft.ethicalsoft_complience.util.ExceptionUtil;
+import com.ethicalsoft.ethicalsoft_complience.util.ObjectUtil;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,8 +29,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
-import util.ExceptionUtil;
-import util.ObjectUtil;
 
 import java.net.BindException;
 import java.util.ArrayList;

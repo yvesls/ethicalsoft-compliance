@@ -1,0 +1,53 @@
+<div class="project-type-modal">
+  <h1 class="modal-title">Selecionar Tipo de Projeto</h1>
+  <p class="modal-message">
+    Escolha a metodologia de gestão para o seu novo projeto.
+  </p>
+
+  <div class="type-selection-container">
+    <div
+      class="type-card"
+      [class.selected]="selectedType() === ProjectType.Cascata"
+      (click)="selectType(ProjectType.Cascata)"
+      (keydown.enter)="selectType(ProjectType.Cascata)"
+      (keydown.space)="selectType(ProjectType.Cascata)"
+      role="button"
+      tabindex="0"
+    >
+      <h3>Cascata</h3>
+      <p>
+        Um modelo sequencial onde as etapas são fixas e executadas uma após a
+        outra ou ao mesmo tempo. Ideal para projetos com requisitos bem definidos.
+      </p>
+    </div>
+
+    <div
+      class="type-card"
+      [class.selected]="selectedType() === ProjectType.Iterativo"
+      (click)="selectType(ProjectType.Iterativo)"
+      (keydown.enter)="selectType(ProjectType.Iterativo)"
+      (keydown.space)="selectType(ProjectType.Iterativo)"
+      role="button"
+      tabindex="0"
+    >
+      <h3>Iterativo Incremental</h3>
+      <p>
+        Um modelo flexível (Agile) onde o projeto é dividido em Sprints.
+      </p>
+    </div>
+  </div>
+
+  <div class="modal-buttons">
+    <button type="button" class="btn btn-secondary" (click)="close()">
+      Cancelar
+    </button>
+    <button
+      type="button"
+      class="btn btn-primary"
+      (click)="continue()"
+      [disabled]="!selectedType()"
+    >
+      Continuar
+    </button>
+  </div>
+</div>

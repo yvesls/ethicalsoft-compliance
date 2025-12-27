@@ -1,0 +1,43 @@
+@use '../../../../../assets/scss/base/vars' as *;
+
+.first-access-modal {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+
+.first-access-modal header {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+}
+
+.first-access-modal .eyebrow {
+	font-size: 0.85rem;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: $gray-secundary;
+	margin: 0;
+}
+
+.first-access-modal h2 {
+	margin: 0;
+	font-size: 1.5rem;
+}
+
+.first-access-modal p {
+	margin: 0;
+	color: $gray-secundary;
+}
+
+.first-access-modal ul {
+	margin: 0;
+	padding-left: 1.25rem;
+	color: $gray-secundary;
+}
+
+.first-access-modal button {
+	align-self: flex-center;
+	padding: 0.75rem 1.5rem;
+	border-radius: 999px;
+}

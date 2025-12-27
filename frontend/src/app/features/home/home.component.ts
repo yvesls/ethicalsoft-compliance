@@ -6,6 +6,6 @@ import { NgxSpinnerModule } from 'ngx-spinner'
 	selector: 'app-home',
 	imports: [CommonModule, NgxSpinnerModule],
 	templateUrl: './home.component.html',
-	styleUrls: ['./home.component.css'],
+	styleUrls: ['./home.component.scss'],
 })
 export class HomeComponent {}

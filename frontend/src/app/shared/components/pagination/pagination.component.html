@@ -1,0 +1,38 @@
+@if (totalPages() > 1) {
+  <nav class="pagination-container" aria-label="Project pagination">
+    <ul class="pagination-list">
+      <li class="page-item" [class.disabled]="currentPage === 1">
+        <button class="page-link" (click)="onPrevious()" [disabled]="currentPage === 1" aria-label="Previous page">
+          &laquo;
+        </button>
+      </li>
+
+      @for (page of pages(); track page)
+      {
+        <li
+          class="page-item"
+          [class.active]="page === currentPage"
+          [class.ellipsis]="page === '...'"
+        >
+          @if (page !== '...') {
+            <button
+              class="page-link"
+              (click)="onPageChange(page)"
+              [attr.aria-current]="page === currentPage ? 'page' : null"
+            >
+              {{ page }}
+            </button>
+          } @else {
+            <span class="page-link-ellipsis">...</span>
+          }
+        </li>
+      }
+
+      <li class="page-item" [class.disabled]="currentPage === totalPages()">
+        <button class="page-link" (click)="onNext()" [disabled]="currentPage === totalPages()" aria-label="Next page">
+          &raquo;
+        </button>
+      </li>
+    </ul>
+  </nav>
+}

@@ -1,0 +1,17 @@
+@use '../../../../../assets/scss/base/vars' as *;
+@use '../../../../../assets/scss/base/_media-queries' as *;
+
+:host {
+  display: block;
+  width: 100%;
+  min-height: 50vh;
+  padding: 1.5rem 2rem;
+}
+
+h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: $text-color;
+  margin-bottom: 1.25rem;
+}
+

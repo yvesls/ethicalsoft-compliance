@@ -1,4 +1,3 @@
-import { ResetPasswordComponent } from './../../features/auth/reset-password/reset-password.component'
 import { Injectable } from '@angular/core'
 import { Observable } from 'rxjs'
 import { BaseStore } from './base/base.store'
@@ -8,7 +7,6 @@ import { AuthRefreshTokenInterface } from '../interfaces/auth/auth-refresh-token
 import { ValidateCodeInterface } from '../interfaces/auth/validate-code.interface'
 import { PasswordRecoveryInterface } from '../interfaces/auth/password-recovery.interface'
 import { ResetPasswordInterface } from '../interfaces/auth/reset-password.interface'
-import { RoleEnum } from '../enums/role.enum'
 import { RegisterInterface } from '../interfaces/auth/register.interface'
 
 @Injectable({

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core'
+import { Component, inject } from '@angular/core'
 import { RouterService } from '../../../core/services/router.service'
 
 @Component({
@@ -8,7 +8,7 @@ import { RouterService } from '../../../core/services/router.service'
 	styleUrls: ['./not-found.component.scss'],
 })
 export class NotFoundComponent {
-	constructor(private routerService: RouterService) {}
+	private routerService = inject(RouterService)
 
 	goToHome() {
 		this.routerService.navigateTo('/')

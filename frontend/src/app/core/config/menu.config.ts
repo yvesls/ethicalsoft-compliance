@@ -31,6 +31,6 @@ export const MENU_CONFIG: MenuItem[] = [
 		label: 'Settings',
 		icon: 'settings',
 		route: '/settings',
-		roles: [RoleEnum.ADMIN],
+		roles: [RoleEnum.ADMIN, RoleEnum.USER],
 	},
 ]

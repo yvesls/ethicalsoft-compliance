@@ -1,0 +1,29 @@
+<div class="accordion-panel" [class.disabled]="disabled">
+  <button
+    type="button"
+    class="accordion-header"
+    (click)="toggle()"
+    [class.disabled]="disabled"
+    [disabled]="disabled"
+    [attr.aria-expanded]="isOpen()"
+  >
+    <span class="header-title">
+      {{ title }}
+      @if (required) {
+        <span class="required-asterisk">*</span>
+      }
+    </span>
+    <img
+      src="assets/icons/angle-down.svg"
+      alt="Abrir/Fechar"
+      class="chevron-icon"
+      [class.is-open]="isOpen()"
+    />
+  </button>
+
+  @if (isOpen()) {
+    <div class="accordion-body">
+      <ng-content></ng-content>
+    </div>
+  }
+</div>

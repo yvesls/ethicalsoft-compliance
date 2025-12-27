@@ -1,11 +1,12 @@
-import { Component, ElementRef, HostListener, OnDestroy, OnInit, Renderer2 } from '@angular/core'
+import { Component, ElementRef, Renderer2, DestroyRef, inject, OnInit } from '@angular/core'
 import { MenuService } from '../../../core/services/menu.service'
-import { Observable, Subject, takeUntil } from 'rxjs'
+import { Observable } from 'rxjs'
 import { LayoutStateService } from '../../../core/services/layout-state.service'
 import { AuthenticationService } from '../../../core/services/authentication.service'
 import { MenuItem } from '../../../core/config/menu.config'
 import { CommonModule } from '@angular/common'
 import { RouterModule } from '@angular/router'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 
 @Component({
 	selector: 'app-sidebar',
@@ -14,32 +15,36 @@ import { RouterModule } from '@angular/router'
 	templateUrl: './sidebar.component.html',
 	styleUrls: ['./sidebar.component.scss'],
 })
-export class SidebarComponent {
+export class SidebarComponent implements OnInit {
 	isCollapsed = false
+	private layoutStateService = inject(LayoutStateService)
+	private menuService = inject(MenuService)
+	private renderer = inject(Renderer2)
+	private authService = inject(AuthenticationService)
+	private el = inject(ElementRef)
+	private destroyRef = inject(DestroyRef)
 	menuItems$: Observable<MenuItem[]>
 	sidebarOpened = true
 	isMobile = window.innerWidth <= 992
 
-	constructor(
-		private layoutStateService: LayoutStateService,
-		private menuService: MenuService,
-		private renderer: Renderer2,
-		private authService: AuthenticationService,
-		private el: ElementRef
-	) {
+	constructor() {
 		this.menuItems$ = this.menuService.menuItems$
 	}
 
 	ngOnInit() {
-		this.layoutStateService.isSidebarCollapsed$.subscribe((state) => {
-			this.isCollapsed = state
-			this.updateSidebarClass()
-		})
-		if (this.isMobile) {
-			this.layoutStateService.sidebarMobileOpened$.subscribe((state) => {
+		this.layoutStateService.isSidebarCollapsed$
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe((state) => {
 				this.isCollapsed = state
 				this.updateSidebarClass()
 			})
+		if (this.isMobile) {
+			this.layoutStateService.sidebarMobileOpened$
+				.pipe(takeUntilDestroyed(this.destroyRef))
+				.subscribe((state) => {
+					this.isCollapsed = state
+					this.updateSidebarClass()
+				})
 		}
 	}
 

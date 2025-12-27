@@ -1,7 +1,7 @@
 import { HttpContext, HttpHeaders } from '@angular/common/http'
 
-export interface RequestInputOptions {
-	data?: Object
+export interface RequestInputOptions<TPayload = unknown> {
+	data?: TPayload
 	contentType?: string
 	isBase?: boolean
 	headers?: HttpHeaders

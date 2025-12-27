@@ -40,7 +40,11 @@ $transition-default: all 0.2s ease-out;
 
 $white: #fff;
 $white-secundary: #eeeeee;
-$white-tertiary: #e2e2e2;
+$white-tertiary: #ebebeb;
+$white-4: #eaeaea;
+
+$bage: #fecaca;
+$bage-light: #fef2f2;
 
 $blue-primary: #051937;
 $blue-secundary: #051937c4;
@@ -53,6 +57,8 @@ $green-secundary: #59721d;
 $gray-primary: #cacaca;
 $gray-secundary: #515151;
 $gray-tertiary: #f0f0f0;
+$gray-quaternary: #f7f8fa;
+$gray-quinary: #9ca3af;
 
 $success-color: #4caf50;
 $warning-color: #0f2342;
@@ -61,6 +67,28 @@ $background-color: #eaeaea;
 $text-color: #000;
 $button-bg: #929aa5;
 $button-text-color: #fff;
+
+$info-bg: #f0f9ff;
+$info-border: #bae6fd;
+$info-text: #0369a1;
+$info-text-dark: #0c4a6e;
+
+$warning-bg: #fef3c7;
+$warning-border: #fde68a;
+$warning-text: #92400e;
+
+$error-bg: #fee2e2;
+$error-bg-light: #fef2f2;
+$error-border: #fca5a5;
+$error-text: #991b1b;
+$error-text-dark: #7f1d1d;
+
+$validation-error-bg: #fef2f2;
+$validation-error-border: #fecaca;
+$validation-error-text: #dc2626;
+
+$neutral-text: #334155;
+$neutral-text-light: #64748b;
 
 /* ---------------- */
 

@@ -1,4 +1,4 @@
-import { Inject, Injectable, PLATFORM_ID } from '@angular/core'
+import { inject, Injectable, PLATFORM_ID } from '@angular/core'
 import { isPlatformBrowser } from '@angular/common'
 import { NavigateInfo, RouteStorageParams } from './router.service'
 import { LoggerService } from '../services/logger.service'
@@ -12,8 +12,7 @@ export class StorageService {
 	private readonly CURRENT_PAGE_KEY = 'current_page'
 	private readonly SIDEBAR_STATE_KEY = 'sidebar_collapsed'
 	private readonly SHOW_LAYOUT_KEY = 'show_layout'
-
-	constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
+	private readonly platformId = inject(PLATFORM_ID)
 
 	setAuthToken(token: string | null): void {
 		if (isPlatformBrowser(this.platformId)) {
@@ -63,20 +62,20 @@ export class StorageService {
 
 	remHistVID(...vids: string[]): void {
 		if (isPlatformBrowser(this.platformId)) {
-			let history = this.getHistVID().filter((vid) => !vids.includes(vid))
+			const history = this.getHistVID().filter((vid) => !vids.includes(vid))
 			localStorage.setItem(this.NAVIGATION_HISTORY_KEY, JSON.stringify(history))
 			LoggerService.warn(`StorageService: Removed VIDs: ${vids.join(', ')}`)
 		}
 	}
 
-	setCurrentPage<T>(currentData: NavigateInfo<T>): void {
+	setCurrentPage(currentData: NavigateInfo): void {
 		if (isPlatformBrowser(this.platformId)) {
 			localStorage.setItem(this.CURRENT_PAGE_KEY, JSON.stringify(currentData))
 			LoggerService.warn('StorageService: Current page set successfully')
 		}
 	}
 
-	getCurrentPage<T>(): NavigateInfo<T> {
+	getCurrentPage(): NavigateInfo {
 		if (isPlatformBrowser(this.platformId)) {
 			const data = localStorage.getItem(this.CURRENT_PAGE_KEY)
 			if (!data) {
@@ -84,8 +83,8 @@ export class StorageService {
 			}
 			try {
 				return data ? JSON.parse(data) : { vid: '', route: '' }
-			} catch (error) {
-				LoggerService.error('StorageService: Failed to parse current page', error)
+			} catch (_error) {
+				LoggerService.error('StorageService: Failed to parse current page', _error)
 				return { vid: '', route: '' }
 			}
 		}
@@ -117,6 +116,10 @@ export class StorageService {
 			try {
 				return JSON.parse(data)
 			} catch (error) {
+				LoggerService.error('StorageService: Failed to parse view page data', {
+					error,
+					vid,
+				})
 				return null
 			}
 		}
@@ -148,7 +151,8 @@ export class StorageService {
 			try {
 				const parsedValue = JSON.parse(storedValue || 'true')
 				return typeof parsedValue === 'boolean' ? parsedValue : true
-			} catch (e) {
+			} catch (error) {
+				LoggerService.error('StorageService: Failed to parse show layout flag', error)
 				return true
 			}
 		}
@@ -166,11 +170,11 @@ export class StorageService {
 		if (isPlatformBrowser(this.platformId)) {
 			localStorage.removeItem(this.NAVIGATION_HISTORY_KEY)
 			localStorage.removeItem(this.CURRENT_PAGE_KEY)
-			Object.keys(localStorage).forEach((key) => {
+			for (const key of Object.keys(localStorage)) {
 				if (key.startsWith('view_page_')) {
 					localStorage.removeItem(key)
 				}
-			})
+			}
 			LoggerService.warn('StorageService: All storage cleared')
 		}
 	}

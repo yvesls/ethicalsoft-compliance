@@ -3,17 +3,18 @@
 
 	<form class="code-form" [formGroup]="form" (ngSubmit)="verifyCode()">
 		<div class="code-inputs" formArrayName="code">
-			<input
-				*ngFor="let control of codeControls.controls; let i = index"
-				#codeInput
-				[formControlName]="i"
-				maxlength="1"
-				class="code-input"
-				type="text"
-				autocomplete="off"
-				(input)="onInput($event, i)"
-				(paste)="onPaste($event)"
-			/>
+			@for (_ of codeControls.controls; track $index; let i = $index) {
+				<input
+					#codeInput
+					[formControlName]="i"
+					maxlength="1"
+					class="code-input"
+					type="text"
+					autocomplete="off"
+					(input)="onInput($event, i)"
+					(paste)="onPaste($event)"
+				/>
+			}
 		</div>
 
 		<button class="btn btn-primary" type="submit" [disabled]="form.invalid">Confirmar</button>

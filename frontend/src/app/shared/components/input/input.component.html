@@ -1,35 +1,49 @@
 <div class="form-group">
   <label [attr.for]="id" [class]="labelClasses">
-    {{ label }} <span *ngIf="required" class="text-red">*</span>
+    {{ label }}
+    @if (required) {
+      <span class="text-red">*</span>
+    }
   </label>
 
-  <div class="input-wrapper">
+  <div
+    class="input-wrapper"
+    [class.is-invalid-border]="control?.touched && control?.invalid"
+    [class.has-icon]="type === 'password'"
+  >
     <input
       [attr.id]="id"
-      [attr.type]="currentType" [placeholder]="placeholder"
-      [ngClass]="[inputClasses, control?.touched && control?.invalid ? 'is-invalid-border' : '']"
+      [attr.type]="currentType"
+      [placeholder]="placeholder"
       [value]="value"
       (input)="onInput($event)"
       (blur)="onBlur()"
+      (focus)="onFocus()"
+      [ngClass]="[inputClasses]"
+      [disabled]="disabled"
+      [attr.readonly]="readonly ? '' : null"
     />
 
-    <button
-      *ngIf="type === 'password'"
-      type="button"
-      class="password-toggle-btn"
-      (click)="togglePasswordVisibility()"
-      tabindex="-1"
-    >
-      <img
-        [src]="isPasswordVisible ? 'assets/icons/eye-slash.svg' : 'assets/icons/eye.svg'"
-        alt="Alternar visibilidade da senha"
-      />
-    </button>
+    @if (type === 'password') {
+      <button
+        type="button"
+        class="input-icon-btn"
+        (click)="togglePasswordVisibility()"
+        tabindex="-1"
+      >
+        <img
+          [src]="isPasswordVisible ? 'assets/icons/eye-slash.svg' : 'assets/icons/eye.svg'"
+          alt="Alternar visibilidade da senha"
+        />
+      </button>
+    }
   </div>
 
-  <div class="d-flex justify-content-start" *ngIf="control && control.errors && (control.dirty || control.touched)">
-    <div *ngFor="let error of getErrorMessages()">
-      <span class="is-invalid" [style.white-space]="'pre-line'">{{ error }}</span>
+  @if (control && control.errors && (control.dirty || control.touched)) {
+    <div class="d-flex justify-content-start">
+      @for (error of getErrorMessages(); track error) {
+        <span class="is-invalid" [style.white-space]="'pre-line'">{{ error }}</span>
+      }
     </div>
-  </div>
+  }
 </div>

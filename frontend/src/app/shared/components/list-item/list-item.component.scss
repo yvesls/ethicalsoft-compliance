@@ -1,0 +1,93 @@
+@use '../../../../assets/scss/base/vars' as *;
+
+:host {
+  display: block;
+  padding: 1rem 1.5rem;
+  font-size: 0.875rem;
+  color: $text-color;
+  cursor: pointer;
+  margin-top: 1rem;
+
+  background-color: $gray-tertiary;
+  border-radius: $radius-default;
+  box-shadow: $box-shadow-primary;
+  border-bottom: none;
+
+  transition: box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out;
+
+  &:hover {
+    box-shadow: $box-shadow-secundary;
+    transform: translateY(-0.125rem);
+  }
+
+  &.clickable {
+    cursor: pointer;
+  }
+}
+
+.item-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.item-main-content {
+  flex: 2.5;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.item-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: $text-xsm;
+  color: $gray-secundary;
+  font-weight: 500;
+
+  .status-icon-img {
+    width: 0.875rem;
+    height: 0.875rem;
+    filter: brightness(0) saturate(100%) invert(35%) sepia(0%) saturate(1450%) hue-rotate(189deg) brightness(94%) contrast(84%);
+  }
+}
+
+.item-title {
+  strong {
+    font-weight: 600;
+    color: $blue-primary;
+    font-size: 1.5rem;
+    letter-spacing: 1px;
+  }
+}
+
+.item-data-grid {
+  flex: 4;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  padding-top: 0.25rem;
+}
+
+.column-tipo,
+.column-situacao,
+.column-inicio,
+.column-encerramento {
+  display: flex;
+  flex-direction: column;
+  font-size: $text-sm;
+
+  .data-label {
+    color: $gray-secundary;
+    font-size: $text-xsm;
+    font-weight: 500;
+    margin-bottom: 0.125rem;
+  }
+
+  .data-value {
+    color: $text-color;
+    font-weight: 500;
+  }
+}

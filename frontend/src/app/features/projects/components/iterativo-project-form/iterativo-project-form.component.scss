@@ -1,0 +1,23 @@
+@use '../../../../../assets/scss/base/vars' as *;
+
+.questionnaire-error-row {
+	td {
+		padding: 0.25rem 1rem 0.75rem;
+	}
+
+	.questionnaire-error-message {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.875rem;
+		line-height: 1.25rem;
+		color: $validation-error-text;
+	}
+
+	.error-icon {
+		width: 1rem;
+		height: 1rem;
+		flex-shrink: 0;
+		filter: invert(17%) sepia(93%) saturate(6493%) hue-rotate(358deg) brightness(88%) contrast(91%);
+	}
+}

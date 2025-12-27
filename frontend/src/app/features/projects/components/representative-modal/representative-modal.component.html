@@ -1,0 +1,79 @@
+<div class="modal-header">
+  <h2>{{ modalTitle }}</h2>
+</div>
+
+<div class="modal-body">
+  <form [formGroup]="form">
+    <div class="form-row">
+      <div class="form-group">
+        <app-input
+          label="Nome"
+          [required]="true"
+          formControlName="firstName"
+          [control]="form.get('firstName')"
+          type="text"
+          placeholder="Digite o nome"
+          [autoCapitalize]="true"
+        ></app-input>
+      </div>
+
+      <div class="form-group">
+        <app-input
+          label="Sobrenome"
+          [required]="true"
+          formControlName="lastName"
+          [control]="form.get('lastName')"
+          type="text"
+          placeholder="Digite o sobrenome"
+          [autoCapitalize]="true"
+        ></app-input>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <app-input
+          label="Email"
+          [required]="true"
+          formControlName="email"
+          [control]="form.get('email')"
+          type="email"
+          placeholder="Digite o email"
+        ></app-input>
+      </div>
+
+      <div class="form-group">
+        <app-input
+          label="Peso"
+          [required]="true"
+          formControlName="weight"
+          [control]="form.get('weight')"
+          type="number"
+          placeholder="Digite o peso"
+        ></app-input>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group full-width">
+        <app-multi-select
+          label="Encargos"
+          [required]="true"
+          formControlName="roleIds"
+          [control]="form.get('roleIds')"
+          [options]="roleOptions"
+          placeholder="Selecione os encargos"
+        ></app-multi-select>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="modal-footer">
+  <button type="button" class="btn btn-secondary" (click)="cancel()">
+    Cancelar
+  </button>
+  <button type="button" class="btn btn-primary" (click)="confirm()" [disabled]="form.invalid">
+    Confirmar
+  </button>
+</div>

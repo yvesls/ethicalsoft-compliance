@@ -1,14 +1,17 @@
 package com.ethicalsoft.ethicalsoft_complience.infra.security;
 
-import com.ethicalsoft.ethicalsoft_complience.model.User;
-import com.ethicalsoft.ethicalsoft_complience.model.enums.UserRoleEnum;
-import com.ethicalsoft.ethicalsoft_complience.repository.RepresentativeRepository;
-import com.ethicalsoft.ethicalsoft_complience.repository.UserRepository;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Representative;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.User;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.UserRoleEnum;
+import com.ethicalsoft.ethicalsoft_complience.postgres.repository.ProjectRepository;
+import com.ethicalsoft.ethicalsoft_complience.postgres.repository.RepresentativeRepository;
+import com.ethicalsoft.ethicalsoft_complience.postgres.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,11 +26,13 @@ import java.util.Objects;
 
 @RequiredArgsConstructor
 @Component
+@Slf4j
 public class SecurityFilter extends OncePerRequestFilter {
 
 	private final TokenService tokenService;
 	private final UserRepository userRepository;
 	private final RepresentativeRepository representativeRepository;
+	private final ProjectRepository projectRepository;
 
 	@Override
 	protected void doFilterInternal( HttpServletRequest request, HttpServletResponse response, FilterChain filterChain ) throws ServletException, IOException {
@@ -35,10 +40,13 @@ public class SecurityFilter extends OncePerRequestFilter {
 			var token = extractToken( request );
 			if ( Objects.nonNull( token ) ) {
 				var username = tokenService.validateToken( token );
-				userRepository.findByEmail( username ).ifPresent( user -> authenticateUser( request, user ) );
+				userRepository.findWithRepresentativesByEmail( username ).ifPresentOrElse(
+					user -> authenticateUser( request, user ),
+					() -> log.warn("[security-filter] Usuário {} não encontrado ao validar token", username)
+				);
 			}
 		} catch ( Exception ex ) {
-			logger.warn( "JWT inválido ou expirado", ex );
+			log.warn( "[security-filter] JWT inválido ou expirado: {}", ex.getMessage() );
 			response.sendError( HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized" );
 			return;
 		}
@@ -51,6 +59,7 @@ public class SecurityFilter extends OncePerRequestFilter {
 
 		var authentication = new UsernamePasswordAuthenticationToken( user, null, authorities );
 		SecurityContextHolder.getContext().setAuthentication( authentication );
+		log.debug("[security-filter] Usuário {} autenticado com roles {}", user.getEmail(), authorities);
 	}
 
 	private List<SimpleGrantedAuthority> getAuthorities( User user, Long projectId ) {
@@ -59,20 +68,31 @@ public class SecurityFilter extends OncePerRequestFilter {
 
 		if ( UserRoleEnum.ADMIN.equals( user.getRole() ) ) {
 			authorities.add( new SimpleGrantedAuthority( UserRoleEnum.ADMIN.name() ) );
+			return authorities;
 		}
 
 		if ( Objects.nonNull( projectId ) ) {
-			representativeRepository.findByUserEmailAndProjectId( user.getEmail(), projectId ).
-					ifPresent( rep ->
-					authorities.addAll( rep.getRoles().stream()
-							.map( role ->
-									new SimpleGrantedAuthority( "ROLE_" + role.getName().toUpperCase() ) )
-							.toList()
-					)
-			);
+			if ( projectRepository.existsByIdAndOwnerId(projectId, user.getId()) ) {
+				authorities.add(new SimpleGrantedAuthority(UserRoleEnum.ADMIN.name()));
+				return authorities;
+			}
+
+			representativeRepository.findByUserIdAndProjectId( user.getId(), projectId )
+				.ifPresent(rep -> appendRepresentativeAuthorities(authorities, rep));
 		}
 
 		return authorities;
+	}
+
+	private void appendRepresentativeAuthorities(List<SimpleGrantedAuthority> authorities, Representative representative) {
+		representative.getRoles().forEach(role -> authorities.add(new SimpleGrantedAuthority("ROLE_" + normalizeRoleName(role.getName()))));
+	}
+
+	private String normalizeRoleName(String rawName) {
+		if (rawName == null) {
+			return "";
+		}
+		return rawName.trim().toUpperCase().replaceAll("\\s+", "_");
 	}
 
 	private String extractToken( HttpServletRequest request ) {

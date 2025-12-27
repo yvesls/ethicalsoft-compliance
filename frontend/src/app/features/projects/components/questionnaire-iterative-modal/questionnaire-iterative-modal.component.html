@@ -1,0 +1,86 @@
+<div class="modal-header">
+  <h2>{{ modalTitle }}</h2>
+</div>
+
+<div class="modal-body">
+  <form [formGroup]="form">
+    <div class="form-row">
+      <div class="form-group">
+        <app-input
+          label="Nome do Questionário"
+          [required]="true"
+          formControlName="name"
+          [control]="form.get('name')"
+          type="text"
+          placeholder="Digite o nome do questionário"
+        ></app-input>
+      </div>
+
+      <div class="form-group">
+        <app-select
+          label="Iteração"
+          [required]="true"
+          formControlName="iteration"
+          [control]="form.get('iteration')"
+          [options]="iterationOptions"
+          placeholder="Selecione a iteração"
+        ></app-select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <app-input
+          label="Peso"
+          [required]="true"
+          formControlName="weight"
+          [control]="form.get('weight')"
+          type="number"
+          placeholder="Digite o peso"
+        ></app-input>
+      </div>
+
+      <div class="form-group">
+        <app-input
+          label="Duração (dias úteis)"
+          [required]="true"
+          formControlName="durationDays"
+          [control]="form.get('durationDays')"
+          type="number"
+          placeholder="Digite a duração"
+        ></app-input>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group full-width">
+        <span class="form-label">Faixa de Aplicação</span>
+        <div
+          class="date-range-display"
+          [class.error]="calculatedDateRange?.exceedsDeadline"
+        >
+          {{ getFormattedDateRange() }}
+          @if (calculatedDateRange?.exceedsDeadline) {
+            <span class="warning-text">
+              Ultrapassa o prazo limite do projeto
+            </span>
+          }
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="modal-footer">
+  <button type="button" class="btn btn-secondary" (click)="cancel()">
+    Cancelar
+  </button>
+  <button
+    type="button"
+    class="btn btn-primary"
+    (click)="confirm()"
+    [disabled]="form.invalid || !calculatedDateRange"
+  >
+    Confirmar
+  </button>
+</div>

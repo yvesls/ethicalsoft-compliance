@@ -1,0 +1,29 @@
+<div class="list-card">
+  <div class="list-card-body p-0 m-0" [class.no-padding]="!bodyPadding">
+    @switch (status) {
+      @case ('loading') {
+        <div class="empty-state">
+          <p>Carregando...</p>
+        </div>
+      }
+      @case ('error') {
+        <div class="empty-state error-state">
+          <p>{{ error }}</p>
+        </div>
+      }
+      @case ('loaded') {
+        @if (itemCount > 0) {
+          <ng-content select="[listBody]"></ng-content>
+        } @else {
+          <div class="empty-state">
+            <p>{{ noItemsMessage }}</p>
+          </div>
+        }
+      }
+    }
+  </div>
+
+  <div class="list-card-footer">
+    <ng-content select="[listFooter]"></ng-content>
+  </div>
+</div>

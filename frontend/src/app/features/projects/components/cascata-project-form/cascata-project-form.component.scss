@@ -1,0 +1,54 @@
+@use '../../../../../assets/scss/base/vars' as *;
+
+.validation-errors {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background-color: $validation-error-bg;
+  border: 0.0625rem solid $validation-error-border;
+  border-radius: 0.375rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  .error-message {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: $validation-error-text;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+
+    .error-icon {
+      width: 1rem;
+      height: 1rem;
+      flex-shrink: 0;
+      filter: invert(17%) sepia(93%) saturate(6493%) hue-rotate(358deg) brightness(88%) contrast(91%);
+    }
+
+    span {
+      flex: 1;
+    }
+  }
+}
+
+.questionnaire-error-row {
+  td {
+    padding: 0.25rem 1rem 0.75rem;
+  }
+
+  .questionnaire-error-message {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: $validation-error-text;
+  }
+
+  .error-icon {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+    filter: invert(17%) sepia(93%) saturate(6493%) hue-rotate(358deg) brightness(88%) contrast(91%);
+  }
+}

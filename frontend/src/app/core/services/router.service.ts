@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core'
+import { inject, Injectable } from '@angular/core'
 import { ActivatedRoute, NavigationEnd, Params, Router } from '@angular/router'
 import { BehaviorSubject, filter, Observable } from 'rxjs'
 import { Md5 } from 'ts-md5'
@@ -10,20 +10,22 @@ import { LayoutStateService } from './layout-state.service'
 import { NavigationSourceService } from './navigation-source.service'
 import { LoggerService } from './logger.service'
 
+export type GenericParams = Record<string, unknown>
+
 @Injectable({ providedIn: 'root' })
 export class RouterService {
-	private params: any
+	private params: GenericParams = {}
 	private currentRouteSubject = new BehaviorSubject<string>('')
 	currentRoute$ = this.currentRouteSubject.asObservable()
 
-	constructor(
-		private activatedRoute: ActivatedRoute,
-		private router: Router,
-		private storageService: StorageService,
-		private notificationService: NotificationService,
-		private layoutStateService: LayoutStateService,
-		private navigationSourceService: NavigationSourceService
-	) {
+	private readonly activatedRoute = inject(ActivatedRoute)
+	private readonly router = inject(Router)
+	private readonly storageService = inject(StorageService)
+	private readonly notificationService = inject(NotificationService)
+	private readonly layoutStateService = inject(LayoutStateService)
+	private readonly navigationSourceService = inject(NavigationSourceService)
+
+	constructor() {
 		this.clearOldViewPageData()
 		this.currentRouteSubject.next(this.router.url)
 		this.monitorRouteChanges()
@@ -40,10 +42,10 @@ export class RouterService {
 		})
 	}
 
-	async navigateTo<T>(
+	async navigateTo<T extends GenericParams>(
 		url: string,
 		navigateParams?: NavigateParams<T>,
-		isFormDirty: boolean = false
+		isFormDirty = false
 	): Promise<boolean> {
 		const { params = {}, queryParams = {} } = navigateParams || {}
 
@@ -66,11 +68,11 @@ export class RouterService {
 		return this._redirectTo(url, queryParams)
 	}
 
-	navigateToNewTab<T>(url: string, navigateParams?: NavigateParams<T>): void {
+	navigateToNewTab<T extends GenericParams>(url: string, navigateParams?: NavigateParams<T>): void {
 		const { queryParams = {} } = navigateParams || {}
 		this._generateVID(queryParams)
 		this.navigationSourceService.setInternalNavigation(true)
-		window.open(`${url}?vid=${queryParams['vid']}`, '_blank')
+		globalThis.open(`${url}?vid=${queryParams['vid']}`, '_blank')
 		LoggerService.warn('Opening URL in new tab', { url, queryParams })
 	}
 
@@ -79,10 +81,10 @@ export class RouterService {
 	}
 
 	rawNavigateToNewTab(url: string): void {
-		window.open(url, '_blank')
+		globalThis.open(url, '_blank')
 	}
 
-	getRouteInfoParams<T>(): Observable<RouteHistoryParams<T>> {
+	getRouteInfoParams<T extends GenericParams>(): Observable<RouteHistoryParams<T>> {
 		return new Observable((observer) => {
 			this.activatedRoute.queryParams.subscribe({
 				next: (routeQueryParams: Params) => {
@@ -109,7 +111,7 @@ export class RouterService {
 
 	getFormattedRoute(): string {
 		const url = this.router.url.split('?')[0]
-		const segments = url.split('/').filter((segment) => segment)
+		const segments = url.split('/').filter(Boolean)
 		if (!segments.length) return 'Home'
 		return segments.map((segment) => this.capitalizeWords(segment)).join(' > ')
 	}
@@ -121,15 +123,27 @@ export class RouterService {
 			.join('-')
 	}
 
-	backToPrevious(inverseIndex: number = 1, removeVID: boolean = true): void {
+	backToPrevious(
+		inverseIndex = 1,
+		removeVID = true,
+		updatedParams?: GenericParams
+	): void {
 		const currentViewPage = this.getStoredCurrentPage()
 		if (!this._isStoredViewPage(currentViewPage.vid)) inverseIndex = 0
 		else if (removeVID) {
 			this.storageService.remHistVID(currentViewPage.vid)
 			this.storageService.remove(currentViewPage.vid)
+			this.removeTrailingEntriesByRoute(currentViewPage.route)
 		}
 		const previousViewPage = this.getStoredViewPageByHistory(inverseIndex)
 		if (previousViewPage?.obj?.route) {
+			if (updatedParams) {
+				if (previousViewPage.obj.params && previousViewPage.obj.params.p) {
+					previousViewPage.obj.params.p = { ...previousViewPage.obj.params.p, ...updatedParams }
+				} else {
+					previousViewPage.obj.params = { ...previousViewPage.obj.params, ...updatedParams }
+				}
+			}
 			this.navigateTo(previousViewPage?.obj?.route, previousViewPage.obj)
 		} else {
 			this.navigateTo('')
@@ -137,8 +151,9 @@ export class RouterService {
 	}
 
 	browserBack(): void {
-		if (window.history.length > 1) {
-			window.history.back()
+		const history = globalThis.history
+		if (history.length > 1) {
+			history.back()
 		} else {
 			this.navigateTo('')
 		}
@@ -154,11 +169,11 @@ export class RouterService {
 		return this.router.navigate([uri], { queryParams })
 	}
 
-	private _createPageData<T>(url: string, params: RouteParams<T>, queryParams: Params): void {
+	private _createPageData<T extends GenericParams>(url: string, params: RouteParams<T>, queryParams: Params): void {
 		this.params = params
 		this._generateVID(queryParams)
 		const vid = queryParams['vid']
-		this.setStoredCurrentPage<T>({ vid: vid, route: url })
+		this.setStoredCurrentPage({ vid: vid, route: url })
 		this.setStoredPageViewParams(vid, {
 			d: new Date(),
 			obj: { vid: vid, route: url, params: { ...this.params }, queryParams: queryParams },
@@ -166,7 +181,7 @@ export class RouterService {
 	}
 
 	private _isStoredViewPage(vid: string): boolean {
-		return this.storageService.getHistVID()?.some((pg) => pg === vid)
+		return this.storageService.getHistVID()?.includes(vid) ?? false
 	}
 
 	private getStoredViewPageByHistory(inverseIndex: number): RouteStorageParams | null {
@@ -179,11 +194,11 @@ export class RouterService {
 		return null
 	}
 
-	private getStoredCurrentPage<T>(): NavigateInfo<T> {
-		return this.storageService.getCurrentPage<T>()
+	private getStoredCurrentPage(): NavigateInfo {
+		return this.storageService.getCurrentPage()
 	}
 
-	setStoredCurrentPage<T>(currentData: NavigateInfo<T>): void {
+	setStoredCurrentPage(currentData: NavigateInfo): void {
 		this.storageService.setCurrentPage(currentData)
 	}
 
@@ -202,40 +217,65 @@ export class RouterService {
 			this.storageService.clear()
 		} else {
 			const histVID = this.storageService.getHistVID()
-			histVID.forEach((vidKey: any) => {
+			for (const vidKey of histVID) {
 				const viewPageData = this.storageService.getViewPageData(vidKey)
 				if (!viewPageData || new Date(viewPageData.d) < expiredStorageDate) {
 					this.storageService.remove(vidKey)
 				}
-			})
+			}
+		}
+	}
+
+	private removeTrailingEntriesByRoute(route: string): void {
+		if (!route) {
+			return
+		}
+
+		const histVID = this.storageService.getHistVID()
+		const vidsToRemove: string[] = []
+
+		for (let i = histVID.length - 1; i >= 0; i--) {
+			const vid = histVID[i]
+			const viewData = this.getStoredPageViewParams(vid)
+			if (viewData?.obj?.route === route) {
+				vidsToRemove.push(vid)
+			} else {
+				break
+			}
+		}
+
+		if (vidsToRemove.length) {
+			this.storageService.remHistVID(...vidsToRemove)
+			for (const vid of vidsToRemove) {
+				this.storageService.remove(vid)
+			}
 		}
 	}
 }
 
-export interface NavigateInfo<T> {
+export interface NavigateInfo {
 	vid: string
 	route: string
 }
 
-export interface NavigateParams<T> {
+export interface NavigateParams<T extends GenericParams> {
 	params: RouteParams<T>
 	queryParams?: Params
 }
 
-export interface RouteHistoryParams<T> {
+export interface RouteHistoryParams<T extends GenericParams> {
 	vid: string
 	route: string
 	params: RouteParams<T>
 	queryParams?: Params
 }
 
-export interface RouteParams<T> {
+export type RouteParams<T extends GenericParams> = GenericParams & {
 	objCopy?: string
 	p?: T
-	[s: string]: any
 }
 
 export interface RouteStorageParams {
 	d: Date
-	obj: RouteHistoryParams<any>
+	obj: RouteHistoryParams<GenericParams>
 }

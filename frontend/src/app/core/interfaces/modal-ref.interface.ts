@@ -1,6 +1,6 @@
 import { Subject } from 'rxjs'
 
-export interface ModalRef {
-	close: (result?: any) => void
-	result: Subject<any>
+export interface ModalRef<TResult = unknown> {
+	close: (result?: TResult) => void
+	result: Subject<TResult>
 }

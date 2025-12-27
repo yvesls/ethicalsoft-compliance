@@ -1,11 +1,8 @@
 package com.ethicalsoft.ethicalsoft_complience.controller;
 
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.auth.*;
+import com.ethicalsoft.ethicalsoft_complience.application.usecase.auth.*;
 import com.ethicalsoft.ethicalsoft_complience.controller.base.BaseController;
-import com.ethicalsoft.ethicalsoft_complience.model.dto.auth.*;
-import com.ethicalsoft.ethicalsoft_complience.service.AuthService;
-import com.ethicalsoft.ethicalsoft_complience.service.PasswordRecoveryService;
-import com.ethicalsoft.ethicalsoft_complience.service.RefreshTokenService;
-import com.ethicalsoft.ethicalsoft_complience.service.facade.AuthenticationFacadeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
@@ -20,47 +17,46 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping( "auth" )
 public class AuthController extends BaseController {
 
-	private final AuthService authService;
+    private final TokenUseCase tokenUseCase;
+    private final RefreshTokenUseCase refreshTokenUseCase;
+    private final LogoutUseCase logoutUseCase;
+    private final RegisterUseCase registerUseCase;
+    private final RequestRecoveryUseCase requestRecoveryUseCase;
+    private final ValidateCodeUseCase validateCodeUseCase;
+    private final ResetPasswordUseCase resetPasswordUseCase;
 
-	private final RefreshTokenService refreshTokenService;
+    @PostMapping( "/token" )
+    public AuthDTO token(@Valid @RequestBody LoginDTO loginDTO ) {
+        return tokenUseCase.execute( loginDTO );
+    }
 
-	private final PasswordRecoveryService recoveryService;
+    @PostMapping( "/refresh" )
+    public AuthDTO refresh( @Valid @RequestBody RefreshTokenDTO refreshTokenDTO ) {
+        return refreshTokenUseCase.execute( refreshTokenDTO );
+    }
 
-	private final AuthenticationFacadeService authenticationFacadeService;
+    @PostMapping( "/logout" )
+    public void logout( @Valid @RequestBody RefreshTokenDTO refreshTokenDTO ) {
+        logoutUseCase.execute( refreshTokenDTO );
+    }
 
-	@PostMapping( "/token" )
-	public AuthDTO token( @Valid @RequestBody LoginDTO loginDTO ) {
-		return authenticationFacadeService.token( loginDTO );
-	}
+    @PostMapping( "/register" )
+    public void register( @Valid @RequestBody RegisterUserDTO registerUserDTO ) {
+        registerUseCase.execute( registerUserDTO );
+    }
 
-	@PostMapping( "/refresh" )
-	public AuthDTO refresh( @Valid @RequestBody RefreshTokenDTO refreshTokenDTO ) {
-		return authenticationFacadeService.refresh( refreshTokenDTO );
-	}
+    @PostMapping( "/recover-account" )
+    public void requestRecovery( @Valid @RequestBody PasswordRecoveryDTO passwordRecoveryDTO ) {
+        requestRecoveryUseCase.execute( passwordRecoveryDTO );
+    }
 
-	@PostMapping( "/logout" )
-	public void logout( @Valid @RequestBody RefreshTokenDTO refreshTokenDTO ) {
-		refreshTokenService.deleteRefreshToken( refreshTokenDTO );
-	}
+    @PostMapping( "/validate-code" )
+    public void validateCode( @Valid @RequestBody CodeValidationDTO codeValidationDTO ) {
+        validateCodeUseCase.execute( codeValidationDTO );
+    }
 
-	@PostMapping( "/register" )
-	public void register( @Valid @RequestBody RegisterUserDTO registerUserDTO ) {
-		authService.register( registerUserDTO );
-	}
-
-	@PostMapping( "/recover-account" )
-	public void requestRecovery( @Valid @RequestBody PasswordRecoveryDTO passwordRecoveryDTO ) {
-		recoveryService.requestRecovery( passwordRecoveryDTO );
-	}
-
-	@PostMapping( "/validate-code" )
-	public void validateCode( @Valid @RequestBody CodeValidationDTO codeValidationDTO ) {
-		recoveryService.validateCode( codeValidationDTO );
-	}
-
-	@PostMapping( "/reset-password" )
-	public void resetPassword( @Valid @RequestBody PasswordResetDTO passwordResetDTO ) {
-		recoveryService.resetPassword( passwordResetDTO );
-	}
-
+    @PostMapping( "/reset-password" )
+    public void resetPassword( @Valid @RequestBody PasswordResetDTO passwordResetDTO ) {
+        resetPasswordUseCase.execute( passwordResetDTO );
+    }
 }

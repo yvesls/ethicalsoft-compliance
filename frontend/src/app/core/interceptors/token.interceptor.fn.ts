@@ -4,9 +4,9 @@ import { TokenInterceptor } from './token.interceptor'
 import { Observable } from 'rxjs'
 
 export const tokenInterceptorFn: HttpInterceptorFn = (
-	req: HttpRequest<any>,
+	req: HttpRequest<unknown>,
 	next: HttpHandlerFn
-): Observable<HttpEvent<any>> => {
+): Observable<HttpEvent<unknown>> => {
 	const interceptor = inject(TokenInterceptor)
 	const nextHandler: HttpHandler = { handle: next }
 	return interceptor.intercept(req, nextHandler)

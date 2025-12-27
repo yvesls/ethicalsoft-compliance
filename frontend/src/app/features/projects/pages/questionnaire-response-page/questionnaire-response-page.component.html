@@ -1,0 +1,171 @@
+<div class="questionnaire-response-page">
+  @switch (state().status) {
+    @case ('loading') {
+      <div class="page-state">Carregando questionário...</div>
+    }
+    @case ('error') {
+      <div class="page-state page-state--error">
+        <p>{{ state().error }}</p>
+        <button type="button" class="btn btn-primary" (click)="loadResponse(1)">
+          Tentar novamente
+        </button>
+      </div>
+    }
+    @case ('loaded') {
+      @if (questionnaire(); as questionnaireData) {
+        <div class="response-page__breadcrumb">
+          <button type="button" class="link-btn" (click)="onNavigateBack()">
+            ← Voltar para o projeto
+          </button>
+        </div>
+
+        <section class="response-summary card-surface">
+          <header class="response-summary__header">
+            <div>
+              <p class="response-summary__badge">{{ pageMode() === 'respond' ? 'Responder' : 'Visualizar' }} questionário</p>
+              <h1>{{ questionnaireData.name }}</h1>
+              <div class="response-summary__meta">
+                <span>{{ referenceLabel }}</span>
+                <span>{{ applicationRange }}</span>
+                <span>Status do participante: <strong>{{ getRespondentStatusLabel() }}</strong></span>
+              </div>
+            </div>
+            <span
+              class="status-chip"
+              [ngClass]="{
+                'status-chip--success': pageMode() === 'view' && getRespondentStatusLabel() === 'Respondido',
+                'status-chip--neutral': pageMode() === 'respond'
+              }"
+            >
+              {{ pageMode() === 'respond' ? 'Em andamento' : 'Visualização' }}
+            </span>
+          </header>
+
+          <div class="response-summary__stats">
+            <div class="stat-card">
+              <span class="stat-card__label">Respondidas nesta página</span>
+              <strong class="stat-card__value">{{ answeredCount() }}/{{ answers().length }}</strong>
+            </div>
+            <div class="stat-card">
+              <span class="stat-card__label">Total de perguntas</span>
+              <strong class="stat-card__value">{{ totalQuestions() }}</strong>
+            </div>
+            <div class="stat-card stat-card--progress">
+              <span class="stat-card__label">Progresso da página</span>
+              <div class="progress-track">
+                <div class="progress-track__fill" [style.width.%]="progressPercentage()"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="response-table card-surface" aria-live="polite">
+          @if (totalQuestions() === 0) {
+            <div class="empty-state">
+              Nenhuma pergunta encontrada para este questionário.
+            </div>
+          } @else {
+            <header class="response-table__header">
+              <span>Pergunta</span>
+              <span>Resposta (obrigatório)</span>
+              <span>Anexos / Observações</span>
+            </header>
+
+            <div class="response-table__body">
+              @for (answer of answers(); track answer.questionId; let index = $index) {
+                <article class="response-row">
+                  <div class="response-row__question">
+                    <small class="question-index">Pergunta {{ getQuestionOrdinal(index) }} de {{ totalQuestions() }}</small>
+                    <p class="question-text">{{ answer.questionText }}</p>
+                  </div>
+
+                  <div class="response-row__radios" role="group" aria-label="Resposta obrigatória">
+                    <label class="radio-pill" [class.radio-pill--active]="answer.response === true">
+                      <input
+                        type="radio"
+                        [checked]="answer.response === true"
+                        [disabled]="isReadOnly"
+                        (change)="onSelectAnswer(answer, true)"
+                      />
+                      <span>Sim</span>
+                    </label>
+                    <label class="radio-pill" [class.radio-pill--active]="answer.response === false">
+                      <input
+                        type="radio"
+                        [checked]="answer.response === false"
+                        [disabled]="isReadOnly"
+                        (change)="onSelectAnswer(answer, false)"
+                      />
+                      <span>Não</span>
+                    </label>
+                  </div>
+
+                  <div class="response-row__attachments">
+                    <p class="attachment-title">
+                      {{ answer.response === false ? 'Justificativa' : 'Observações/Evidências' }}
+                    </p>
+                    @if ((answer.response === false ? answer.justification?.descricao : answer.evidence?.descricao)) {
+                      <p class="attachment-description">
+                        {{ answer.response === false ? answer.justification?.descricao : answer.evidence?.descricao }}
+                      </p>
+                    } @else {
+                      <p class="attachment-description attachment-description--empty">
+                        Nenhuma anotação adicionada.
+                      </p>
+                    }
+
+                    <ul class="attachment-links">
+                      @if (answer.attachments.length) {
+                        @for (link of answer.attachments; track $index; let linkIndex = $index) {
+                          <li class="attachment-link">
+                            <a
+                              [href]="link.url"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              [attr.title]="link.url"
+                            >
+                              <span class="attachment-link__description">
+                                {{ link.descricao || ('Link ' + (linkIndex + 1)) }}
+                              </span>
+                            </a>
+                          </li>
+                        }
+                      } @else {
+                        <li class="attachment-description attachment-description--empty">
+                          Nenhum link anexado.
+                        </li>
+                      }
+                    </ul>
+
+                    @if (!isReadOnly) {
+                      <button type="button" class="btn btn-secundary btn-sm" (click)="openAttachmentModal(answer)">
+                        {{ answer.response === false ? 'Adicionar justificativa' : 'Adicionar evidências' }}
+                      </button>
+                    }
+                  </div>
+                </article>
+              }
+            </div>
+
+            <div class="pagination-wrapper" aria-label="Paginação das perguntas">
+              <app-pagination
+                [currentPage]="currentPage()"
+                [totalItems]="totalQuestions()"
+                [pageSize]="pagination()?.pageSize || pageSize"
+                (pageChange)="onPageChange($event)"
+              ></app-pagination>
+            </div>
+          }
+          </section>
+
+        @if (pageMode() === 'respond' && totalQuestions() > 0) {
+          <footer class="page-footer">
+            <button type="button" class="btn btn-primary btn-lg" [disabled]="!canSubmit()" (click)="submitResponses()">
+              Enviar respostas
+            </button>
+          </footer>
+        }
+      }
+    }
+  }
+</div>

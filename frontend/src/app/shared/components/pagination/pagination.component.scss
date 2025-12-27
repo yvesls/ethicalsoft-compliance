@@ -1,0 +1,78 @@
+@use '../../../../assets/scss/base/vars' as *;
+
+:host {
+  display: block;
+  margin-top: 1.5rem;
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: start;
+}
+
+.pagination-list {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.page-item {
+  &.active .page-link {
+    background-color: $blue-primary;
+    color: $white;
+    border-color: $blue-primary;
+    font-weight: 600;
+  }
+
+  &.disabled .page-link {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: $gray-tertiary;
+    border-color: $gray-primary;
+  }
+
+  &.ellipsis .page-link-ellipsis {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    color: $gray-secundary;
+  }
+}
+
+.page-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+
+  background-color: transparent;
+  color: $gray-secundary;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-radius: 50%;
+
+  &:hover:not(:disabled) {
+    background-color: $gray-tertiary;
+  }
+
+  .page-item:first-child &,
+  .page-item:last-child & {
+    background-color: $white;
+    border: 1px solid $gray-primary;
+    border-radius: 0.5rem;
+    color: $gray-secundary;
+
+    &:hover:not(:disabled) {
+      background-color: $gray-tertiary;
+    }
+  }
+}
