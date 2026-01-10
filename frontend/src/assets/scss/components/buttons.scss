@@ -92,6 +92,29 @@ button:disabled,
 	}
 }
 
+.btn-cancel.btn-cancel {
+	background-color: $button-bg;
+	color: $button-text-color;
+	border-color: $button-bg;
+
+	&:hover,
+	&:active,
+	&:focus {
+		background-color: darken($button-bg, 6%);
+		border-color: darken($button-bg, 6%);
+		color: $button-text-color;
+	}
+
+	&:disabled {
+		background-color: $gray-primary;
+		border-color: $gray-primary;
+		color: $button-text-color;
+	}
+
+	--bs-btn-active-bg: darken($button-bg, 6%);
+	--bs-btn-active-border-color: darken($button-bg, 6%);
+}
+
 .btn-icon.btn-icon {
 	width: 3rem;
 

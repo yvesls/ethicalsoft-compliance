@@ -9,6 +9,7 @@ import {
 	ValidationErrors,
 	Validators,
 } from '@angular/forms'
+import { RouterModule } from '@angular/router'
 import { catchError, finalize, switchMap, throwError } from 'rxjs'
 import { InputComponent } from '../../../shared/components/input/input.component'
 import { NotificationService } from '../../../core/services/notification.service'
@@ -30,7 +31,7 @@ type ResetPasswordForm = FormGroup<{
 @Component({
 	selector: 'app-settings-reset-password',
 	standalone: true,
-	imports: [CommonModule, ReactiveFormsModule, InputComponent],
+	imports: [CommonModule, ReactiveFormsModule, RouterModule, InputComponent],
 	templateUrl: './settings-reset-password.component.html',
 	styleUrl: './settings-reset-password.component.scss',
 })
@@ -43,6 +44,8 @@ export class SettingsResetPasswordComponent implements OnInit {
 	private readonly modalService = inject(ModalService)
 
 	private readonly invalidCurrentPasswordError = 'INVALID_CURRENT_PASSWORD'
+
+	showTerms = false
 
 	form: ResetPasswordForm = this.formBuilder.nonNullable.group(
 		{
@@ -78,6 +81,18 @@ export class SettingsResetPasswordComponent implements OnInit {
 
 	ngOnInit(): void {
 		this.showFirstAccessModal()
+		this.configureTermsVisibility()
+	}
+
+	private configureTermsVisibility(): void {
+		this.showTerms = this.authenticationService.isFirstAccessPending()
+
+		if (!this.showTerms) {
+			const control = this.form.get('acceptedTerms')
+			control?.clearValidators()
+			control?.setValue(true, { emitEvent: false })
+			control?.updateValueAndValidity({ emitEvent: false })
+		}
 	}
 
 	resetPassword(): void {

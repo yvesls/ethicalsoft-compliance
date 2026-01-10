@@ -126,7 +126,8 @@ export class RouterService {
 	backToPrevious(
 		inverseIndex = 1,
 		removeVID = true,
-		updatedParams?: GenericParams
+		updatedParams?: GenericParams,
+		fallbackRoute = ''
 	): void {
 		const currentViewPage = this.getStoredCurrentPage()
 		if (!this._isStoredViewPage(currentViewPage.vid)) inverseIndex = 0
@@ -146,7 +147,7 @@ export class RouterService {
 			}
 			this.navigateTo(previousViewPage?.obj?.route, previousViewPage.obj)
 		} else {
-			this.navigateTo('')
+			this.navigateTo(fallbackRoute)
 		}
 	}
 

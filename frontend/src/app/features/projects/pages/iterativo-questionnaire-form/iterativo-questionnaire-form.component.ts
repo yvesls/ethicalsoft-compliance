@@ -31,6 +31,7 @@ interface IterativoQuestionnaireRouteParams extends GenericParams {
   iteration?: string;
   questions?: QuestionData[];
   stages?: string[];
+  returnTo?: string;
 }
 
 type IterativoQuestionnaireRestoreParams = RestoreParams<IterativoQuestionnaireRouteParams>;
@@ -54,6 +55,7 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
   private questionnaireMetadata: IterativoQuestionnaireRouteParams | null = null;
   private skipStatePersistence = false;
   private stageSelectionConfig?: QuestionStageConfig;
+  private returnTo: string | null = null;
 
   readonly mode = signal<ActionType>(ActionType.EDIT);
   readonly isViewMode = signal(false);
@@ -101,6 +103,7 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
     this.isViewMode.set(incomingMode === ActionType.VIEW);
     this.viewProjectId.set(typeof data.projectId === 'string' ? data.projectId : null);
     this.viewQuestionnaireId.set(typeof data.questionnaireId === 'number' ? data.questionnaireId : null);
+  this.returnTo = typeof data.returnTo === 'string' ? data.returnTo : null;
 
     this.questionnaireIndex = typeof data.questionnaireIndex === 'number' ? data.questionnaireIndex : null;
     this.questionnaireMetadata = data;
@@ -473,7 +476,12 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
 
   private navigateBack(updatedParams?: GenericParams): void {
     this.skipStatePersistence = true;
-    this.routerService.backToPrevious(0, true, updatedParams);
+    if (this.returnTo) {
+      this.routerService.navigateTo(this.returnTo);
+      return;
+    }
+
+    this.routerService.backToPrevious(0, true, updatedParams, '/projects');
   }
 
   override ngOnDestroy(): void {
