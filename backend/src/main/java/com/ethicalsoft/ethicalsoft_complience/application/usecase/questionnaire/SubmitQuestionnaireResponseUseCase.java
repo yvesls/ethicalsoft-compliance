@@ -3,9 +3,9 @@ package com.ethicalsoft.ethicalsoft_complience.application.usecase.questionnaire
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.QuestionnaireResponse;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Project;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Representative;
-import com.ethicalsoft.ethicalsoft_complience.mongo.repository.QuestionnaireResponseRepository;
-import com.ethicalsoft.ethicalsoft_complience.postgres.repository.ProjectRepository;
-import com.ethicalsoft.ethicalsoft_complience.postgres.repository.QuestionnaireRepository;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.repository.QuestionnaireResponseRepository;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.ProjectRepository;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.QuestionnaireRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

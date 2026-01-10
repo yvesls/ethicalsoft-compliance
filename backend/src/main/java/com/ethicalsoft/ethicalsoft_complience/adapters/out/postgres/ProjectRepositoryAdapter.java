@@ -1,8 +1,8 @@
 package com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres;
 
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.ProjectRepository;
 import com.ethicalsoft.ethicalsoft_complience.domain.repository.ProjectRepositoryPort;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Project;
-import com.ethicalsoft.ethicalsoft_complience.postgres.repository.ProjectRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -42,5 +42,9 @@ public class ProjectRepositoryAdapter implements ProjectRepositoryPort {
     public Optional<Project> findById(Long id) {
         return delegate.findById(id);
     }
-}
 
+    @Override
+    public Project save(Project project) {
+        return delegate.save(project);
+    }
+}

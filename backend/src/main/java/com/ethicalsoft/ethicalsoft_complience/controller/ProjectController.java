@@ -56,18 +56,6 @@ public class ProjectController {
         return getProjectByIdUseCase.execute(projectId);
     }
 
-    @GetMapping("/{projectId}/questionnaires")
-    @PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")
-    public Page<QuestionnaireSummaryResponseDTO> listProjectQuestionnaires(
-            @PathVariable Long projectId,
-            @RequestParam(name = "name", required = false) String questionnaireName,
-            @RequestParam(name = "stage", required = false) String stageName,
-            @RequestParam(name = "iteration", required = false) String iterationName,
-            @PageableDefault(page = 0, size = 10) Pageable pageable) {
-        QuestionnaireSearchFilter filter = new QuestionnaireSearchFilter(questionnaireName, stageName, iterationName);
-        return listProjectQuestionnairesUseCase.execute(projectId, pageable, filter);
-    }
-
     @PostMapping("/{projectId}/questionnaires/{questionnaireId}/reminders")
     @PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")
     public void sendQuestionnaireReminder(@PathVariable Long projectId,

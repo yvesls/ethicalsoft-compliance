@@ -8,11 +8,11 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.ProjectTypeEnum;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.TimelineStatusEnum;
 import com.ethicalsoft.ethicalsoft_complience.application.port.ProjectCommandPort;
-import com.ethicalsoft.ethicalsoft_complience.postgres.repository.ProjectRepository;
-import com.ethicalsoft.ethicalsoft_complience.service.AuthService;
-import com.ethicalsoft.ethicalsoft_complience.service.TimelineStatusService;
-import com.ethicalsoft.ethicalsoft_complience.service.strategy.ProjectCreationStrategy;
-import com.ethicalsoft.ethicalsoft_complience.util.ModelMapperUtils;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.ProjectRepository;
+import com.ethicalsoft.ethicalsoft_complience.application.port.CurrentUserPort;
+import com.ethicalsoft.ethicalsoft_complience.domain.service.ProjectTimelineStatusPolicy;
+import com.ethicalsoft.ethicalsoft_complience.application.service.strategy.ProjectCreationStrategy;
+import com.ethicalsoft.ethicalsoft_complience.common.util.mapper.ModelMapperUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,8 +26,8 @@ import java.util.*;
 public class CreateProjectUseCase implements ProjectCommandPort {
 
     private final ProjectRepository projectRepository;
-    private final AuthService authService;
-    private final TimelineStatusService timelineStatusService;
+    private final CurrentUserPort currentUserPort;
+    private final ProjectTimelineStatusPolicy projectTimelineStatusPolicy;
     private final AddRepresentativeUseCase addRepresentativeUseCase;
     private final List<ProjectCreationStrategy> creationStrategies;
 
@@ -60,7 +60,7 @@ public class CreateProjectUseCase implements ProjectCommandPort {
 
     private Project createProjectShell(ProjectCreationRequestDTO request) {
         Project project = ModelMapperUtils.map(request, Project.class);
-        project.setOwner(authService.getAuthenticatedUser());
+        project.setOwner(currentUserPort.getCurrentUser());
         project.setType(ProjectTypeEnum.fromValue(request.getType()));
         project.setStages(new HashSet<>());
         project.setIterations(new HashSet<>());
@@ -85,7 +85,7 @@ public class CreateProjectUseCase implements ProjectCommandPort {
     }
 
     private Project refreshTimeline(Project project) {
-        timelineStatusService.updateProjectTimeline(project);
+        projectTimelineStatusPolicy.updateProjectTimeline(project);
         return projectRepository.save(project);
     }
 

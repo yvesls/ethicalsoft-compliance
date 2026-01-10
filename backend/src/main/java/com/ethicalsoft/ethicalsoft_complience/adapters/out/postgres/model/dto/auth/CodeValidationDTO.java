@@ -1,7 +1,7 @@
 package com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.auth;
 
-import com.ethicalsoft.ethicalsoft_complience.util.validators.annotations.Email;
-import com.ethicalsoft.ethicalsoft_complience.util.validators.annotations.RequiredField;
+import com.ethicalsoft.ethicalsoft_complience.common.validation.validators.annotations.ValidEmail;
+import com.ethicalsoft.ethicalsoft_complience.common.validation.validators.annotations.RequiredField;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,7 +13,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class CodeValidationDTO {
 
-	@Email
+	@ValidEmail
 	private String email;
 
 	@RequiredField( label = "code" )

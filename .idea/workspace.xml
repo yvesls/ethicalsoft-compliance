@@ -4,17 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="9707c739-66fc-41ad-aa08-23856e7d9a2c" name="Changes" comment="chore: reorganizando pastas para incluir frontend">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/app/features/projects/components/cascata-project-form/cascata-project-form.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/features/projects/components/cascata-project-form/cascata-project-form.component.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/app/features/projects/components/cascata-project-form/cascata-project-form.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/features/projects/components/cascata-project-form/cascata-project-form.component.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/app/features/projects/components/iterativo-project-form/iterativo-project-form.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/features/projects/components/iterativo-project-form/iterativo-project-form.component.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/app/features/projects/components/iterativo-project-form/iterativo-project-form.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/features/projects/components/iterativo-project-form/iterativo-project-form.component.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/app/features/projects/components/stage-iterative-modal/stage-iterative-modal.component.scss" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/features/projects/components/stage-iterative-modal/stage-iterative-modal.component.scss" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/app/features/projects/pages/create-project-page/create-project-page.component.scss" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/features/projects/pages/create-project-page/create-project-page.component.scss" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/app/features/projects/projects.routes.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/features/projects/projects.routes.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/assets/scss/styles.scss" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/assets/scss/styles.scss" afterDir="false" />
-    </list>
+    <list default="true" id="9707c739-66fc-41ad-aa08-23856e7d9a2c" name="Changes" comment="chore: reorganizando pastas para incluir frontend" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -84,9 +74,9 @@
     "RunOnceActivity.git.unshallow": "true",
     "SONARLINT_PRECOMMIT_ANALYSIS": "true",
     "Spring Boot.EthicalsoftComplienceApplication.executor": "Debug",
-    "git-widget-placeholder": "feature/list-project",
+    "git-widget-placeholder": "main",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "/home/yves/Documentos/github/ethicalsoft-compliance/backend",
+    "last_opened_file_path": "C:/Users/t04603/IdeaProjects/ethicalsoft-compliance/backend",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",

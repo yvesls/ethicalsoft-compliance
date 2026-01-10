@@ -6,7 +6,7 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.
 import com.ethicalsoft.ethicalsoft_complience.domain.service.ProjectCurrentIterationPolicy;
 import com.ethicalsoft.ethicalsoft_complience.domain.service.ProjectCurrentStagePolicy;
 import com.ethicalsoft.ethicalsoft_complience.domain.service.ProjectSituationPolicy;
-import com.ethicalsoft.ethicalsoft_complience.postgres.repository.ProjectRepository;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.ProjectRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

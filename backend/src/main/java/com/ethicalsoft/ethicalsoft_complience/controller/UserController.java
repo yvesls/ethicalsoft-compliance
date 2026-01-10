@@ -25,7 +25,7 @@ public class UserController extends BaseController {
     private final ListUsersUseCase listUsersUseCase;
     private final GetUserByIdUseCase getUserByIdUseCase;
 
-    @GetMapping( "/" )
+    @GetMapping
     @PreAuthorize( "hasRole('ADMIN')" )
     public Page< UserDTO > findAll( @PageableDefault( sort = "id", direction = Sort.Direction.ASC ) Pageable pageable ) {
         return listUsersUseCase.execute( pageable );

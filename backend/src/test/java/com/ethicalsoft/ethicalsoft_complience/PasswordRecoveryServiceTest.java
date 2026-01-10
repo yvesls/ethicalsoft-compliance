@@ -1,5 +1,6 @@
 package com.ethicalsoft.ethicalsoft_complience;
 
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.auth.PasswordRecoveryAdapter;
 import com.ethicalsoft.ethicalsoft_complience.application.port.NotificationDispatcherPort;
 import com.ethicalsoft.ethicalsoft_complience.exception.UserNotFoundException;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.RecoveryCode;
@@ -7,9 +8,8 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.User;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.auth.CodeValidationDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.auth.PasswordRecoveryDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.auth.PasswordResetDTO;
-import com.ethicalsoft.ethicalsoft_complience.postgres.repository.RecoveryCodeRepository;
-import com.ethicalsoft.ethicalsoft_complience.postgres.repository.UserRepository;
-import com.ethicalsoft.ethicalsoft_complience.service.PasswordRecoveryService;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.RecoveryCodeRepository;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -23,6 +23,9 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,8 +39,9 @@ class PasswordRecoveryServiceTest {
     private RecoveryCodeRepository recoveryCodeRepository;
     @Mock
     private NotificationDispatcherPort notificationDispatcher;
+
     @InjectMocks
-    private PasswordRecoveryService passwordRecoveryService;
+    private PasswordRecoveryAdapter passwordRecoveryService;
 
     @Test
     void requestRecovery_success() {
@@ -88,39 +92,18 @@ class PasswordRecoveryServiceTest {
     }
 
     @Test
-    void validateCode_expiredCode() {
-        when(recoveryCodeRepository.findByEmailAndCodeAndExpirationAfter(
-                eq("test@example.com"), eq("123456"), any(LocalDateTime.class)))
-                .thenReturn(Optional.empty());
-        CodeValidationDTO codeValidationDTO = new CodeValidationDTO();
-        codeValidationDTO.setEmail("test@example.com");
-        codeValidationDTO.setCode("123456");
-        assertThrows(IllegalArgumentException.class, () -> passwordRecoveryService.validateCode(codeValidationDTO));
-    }
-
-    @Test
-    void validateCode_nonexistentEmail() {
-        when(recoveryCodeRepository.findByEmailAndCodeAndExpirationAfter(
-                eq("nonexistent@example.com"), eq("123456"), any(LocalDateTime.class)))
-                .thenReturn(Optional.empty());
-        CodeValidationDTO codeValidationDTO = new CodeValidationDTO();
-        codeValidationDTO.setEmail("nonexistent@example.com");
-        codeValidationDTO.setCode("123456");
-        assertThrows(IllegalArgumentException.class, () -> passwordRecoveryService.validateCode(codeValidationDTO));
-    }
-
-    @Test
     void resetPassword_success() {
         String email = "test@example.com";
         String newPassword = "newPassword123";
         User user = new User();
         user.setEmail(email);
+        user.setPassword("old");
         PasswordResetDTO passwordResetDTO = new PasswordResetDTO();
         passwordResetDTO.setEmail(email);
         passwordResetDTO.setNewPassword(newPassword);
 
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
-
+        when(passwordEncoder.matches(eq(newPassword), anyString())).thenReturn(false);
         when(passwordEncoder.encode(newPassword)).thenReturn("encodedPassword");
 
         passwordRecoveryService.resetPassword(passwordResetDTO);

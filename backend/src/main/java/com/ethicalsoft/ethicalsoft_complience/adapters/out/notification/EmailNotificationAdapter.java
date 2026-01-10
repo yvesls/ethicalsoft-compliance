@@ -5,8 +5,8 @@ import com.ethicalsoft.ethicalsoft_complience.application.port.dto.NewUserCreden
 import com.ethicalsoft.ethicalsoft_complience.application.port.dto.ProjectAssignmentNotificationDTO;
 import com.ethicalsoft.ethicalsoft_complience.exception.EmailSendingException;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Questionnaire;
-import com.ethicalsoft.ethicalsoft_complience.postgres.repository.QuestionnaireRepository;
-import com.ethicalsoft.ethicalsoft_complience.service.criteria.QuestionnaireReminderContext;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.QuestionnaireRepository;
+import com.ethicalsoft.ethicalsoft_complience.domain.notification.criteria.QuestionnaireReminderContext;
 import freemarker.template.TemplateException;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;

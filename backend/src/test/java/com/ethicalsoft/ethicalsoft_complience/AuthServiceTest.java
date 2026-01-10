@@ -1,11 +1,11 @@
 package com.ethicalsoft.ethicalsoft_complience;
 
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.auth.AuthAdapter;
 import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.User;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.auth.LoginDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.auth.RegisterUserDTO;
-import com.ethicalsoft.ethicalsoft_complience.postgres.repository.UserRepository;
-import com.ethicalsoft.ethicalsoft_complience.service.AuthService;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,6 +16,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
 
@@ -32,8 +33,11 @@ class AuthServiceTest {
     @Mock
     private AuthenticationManager authenticationManager;
 
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
     @InjectMocks
-    private AuthService authService;
+    private AuthAdapter authService;
 
     private RegisterUserDTO validRegisterDTO;
     private LoginDTO validLoginDTO;
@@ -56,7 +60,7 @@ class AuthServiceTest {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenReturn(expectedAuth);
 
-        Authentication result = authService.token( validLoginDTO );
+        Authentication result = authService.token(validLoginDTO);
 
         assertEquals(expectedAuth, result);
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
@@ -67,21 +71,14 @@ class AuthServiceTest {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenThrow(new BadCredentialsException("Invalid credentials"));
 
-        assertThrows(BadCredentialsException.class, () -> authService.token( validLoginDTO ));
-    }
-
-    @Test
-    void login_UserNotFound() {
-        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-                .thenThrow(new BadCredentialsException("User not found"));
-
-        assertThrows(BadCredentialsException.class, () -> authService.token( validLoginDTO ));
+        assertThrows(BadCredentialsException.class, () -> authService.token(validLoginDTO));
     }
 
     @Test
     void register_Success() {
         when(userRepository.findByEmail(validRegisterDTO.getEmail()))
                 .thenReturn(Optional.empty());
+        when(passwordEncoder.encode(any())).thenReturn("encoded");
         when(userRepository.save(any(User.class)))
                 .thenReturn(new User());
 

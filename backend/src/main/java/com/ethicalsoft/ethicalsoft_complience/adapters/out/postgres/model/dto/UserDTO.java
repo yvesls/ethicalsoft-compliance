@@ -1,6 +1,6 @@
 package com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto;
 
-import com.ethicalsoft.ethicalsoft_complience.util.validators.annotations.RequiredField;
+import com.ethicalsoft.ethicalsoft_complience.common.validation.validators.annotations.RequiredField;
 import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

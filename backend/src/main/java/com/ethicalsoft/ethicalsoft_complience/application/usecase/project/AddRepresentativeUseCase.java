@@ -6,17 +6,16 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Role;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.User;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.RepresentativeDTO;
 import com.ethicalsoft.ethicalsoft_complience.application.port.NotificationDispatcherPort;
+import com.ethicalsoft.ethicalsoft_complience.application.port.CurrentUserPort;
 import com.ethicalsoft.ethicalsoft_complience.application.port.dto.NewUserCredentialsNotificationDTO;
 import com.ethicalsoft.ethicalsoft_complience.application.port.dto.ProjectAssignmentNotificationDTO;
 import com.ethicalsoft.ethicalsoft_complience.domain.service.ProjectCurrentStagePolicy;
 import com.ethicalsoft.ethicalsoft_complience.domain.service.RoleMappingPolicy;
 import com.ethicalsoft.ethicalsoft_complience.domain.service.UserResolutionPolicy;
 import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
-import com.ethicalsoft.ethicalsoft_complience.postgres.repository.RepresentativeRepository;
-import com.ethicalsoft.ethicalsoft_complience.postgres.repository.RoleRepository;
-import com.ethicalsoft.ethicalsoft_complience.service.AuthService;
-import com.ethicalsoft.ethicalsoft_complience.service.QuestionnaireService;
-import com.ethicalsoft.ethicalsoft_complience.util.ObjectUtil;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.RepresentativeRepository;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.RoleRepository;
+import com.ethicalsoft.ethicalsoft_complience.common.util.ObjectUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,12 +36,12 @@ public class AddRepresentativeUseCase {
 
     private final RepresentativeRepository representativeRepository;
     private final RoleRepository roleRepository;
-    private final AuthService authService;
+    private final CurrentUserPort currentUserPort;
     private final UserResolutionPolicy userResolutionPolicy;
     private final RoleMappingPolicy roleMappingPolicy;
-    private final QuestionnaireService questionnaireService;
     private final ProjectCurrentStagePolicy projectCurrentStagePolicy;
     private final NotificationDispatcherPort notificationDispatcher;
+    private final com.ethicalsoft.ethicalsoft_complience.application.port.questionnaire.RepresentativeQuestionnaireResponseCommandPort representativeQuestionnaireResponseCommandPort;
 
     @Transactional
     public Set<Representative> execute(Project project, Set<RepresentativeDTO> repDTOs) {
@@ -50,15 +49,15 @@ public class AddRepresentativeUseCase {
             log.info("[usecase-add-representative] Adicionando representantes para projeto id={} quantidade={}",
                     project != null ? project.getId() : null, repDTOs != null ? repDTOs.size() : 0);
 
-            if (ObjectUtil.isNullOrEmpty(repDTOs)) {
+            if (ObjectUtils.isNullOrEmpty(repDTOs)) {
                 return new HashSet<>();
             }
-            if (ObjectUtil.isNullOrEmpty(project)) {
+            if (ObjectUtils.isNullOrEmpty(project)) {
                 throw new BusinessException("Projeto inválido para criação de representantes.");
             }
 
             Map<Long, Role> resolvedRoles = resolveRoles(repDTOs);
-            User currentAdmin = authService.getAuthenticatedUser();
+            User currentAdmin = currentUserPort.getCurrentUser();
 
             Set<Representative> representatives = repDTOs.stream()
                     .map(dto -> processRepresentative(dto, project, resolvedRoles, currentAdmin))
@@ -102,7 +101,7 @@ public class AddRepresentativeUseCase {
         rep.setCreationDate(LocalDate.now());
 
         representativeRepository.save(rep);
-        questionnaireService.createResponsesForRepresentative(project, rep);
+        representativeQuestionnaireResponseCommandPort.createResponsesForRepresentative(project, rep);
 
         notifyUser(resolution, rep, project, currentAdmin);
 

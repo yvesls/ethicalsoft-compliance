@@ -2,7 +2,6 @@ package com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres;
 
 import com.ethicalsoft.ethicalsoft_complience.domain.repository.QuestionRepositoryPort;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Question;
-import com.ethicalsoft.ethicalsoft_complience.postgres.repository.QuestionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,7 +13,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class QuestionRepositoryAdapter implements QuestionRepositoryPort {
 
-    private final QuestionRepository delegate;
+    private final com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.QuestionRepository delegate;
 
     @Override
     public Page<Question> findByQuestionnaireIdOrderByIdAsc(Integer questionnaireId, Pageable pageable) {
@@ -31,4 +30,3 @@ public class QuestionRepositoryAdapter implements QuestionRepositoryPort {
         return delegate.findById(id);
     }
 }
-
