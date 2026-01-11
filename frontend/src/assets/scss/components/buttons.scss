@@ -1,4 +1,5 @@
 @use '../base/vars' as *;
+@use 'sass:color';
 
 button,
 .btn,
@@ -90,6 +91,29 @@ button:disabled,
 	&.btn-icon img {
 		filter: brightness(0) invert(1);
 	}
+}
+
+.btn-cancel.btn-cancel {
+	background-color: $button-bg;
+	color: $button-text-color;
+	border-color: $button-bg;
+
+	&:hover,
+	&:active,
+	&:focus {
+		background-color: color.adjust($button-bg, $lightness: -6%);
+		border-color: color.adjust($button-bg, $lightness: -6%);
+		color: $button-text-color;
+	}
+
+	&:disabled {
+		background-color: $gray-primary;
+		border-color: $gray-primary;
+		color: $button-text-color;
+	}
+
+	--bs-btn-active-bg: color.adjust($button-bg, $lightness: -6%);
+	--bs-btn-active-border-color: color.adjust($button-bg, $lightness: -6%);
 }
 
 .btn-icon.btn-icon {

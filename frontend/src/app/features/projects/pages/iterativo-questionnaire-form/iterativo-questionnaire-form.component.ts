@@ -18,6 +18,7 @@ import { QuestionnaireQueryStore } from '../../../../shared/stores/questionnaire
 import { QuestionnaireQuestionResponse, QuestionnaireRawResponse } from '../../../../shared/interfaces/questionnaire/questionnaire-query.interface';
 import { Page } from '../../../../shared/interfaces/pageable.interface';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
+import { RoleSummary } from '../../../../shared/interfaces/role/role-summary.interface';
 
 interface IterativoQuestionnaireRouteParams extends GenericParams {
   questionnaireIndex?: number;
@@ -63,6 +64,8 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
   readonly pagination = signal<Page<unknown> | null>(null);
   readonly currentPage = signal(0);
   readonly pageSize = signal(10);
+
+  private roleNameById = new Map<number, string>();
 
   form!: FormGroup;
   questions: WritableSignal<QuestionData[]> = signal([]);
@@ -188,11 +191,14 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
           this.stageSelectionConfig = stageConfig;
 
           const questions = (result.content ?? []).map((q: QuestionnaireQuestionResponse) => {
+            const roleIds = q.roleIds ?? [];
+            const roleNames = this.mapRoleIdsToNames(roleIds);
+
             return this.enrichQuestionStageMetadata({
               id: String(q.id),
               value: q.text,
-              roleIds: q.roleIds ?? [],
-              roleNames: [],
+              roleIds,
+              roleNames,
               stageNames: q.stageNames ?? [],
             } as unknown as QuestionData);
           });
@@ -232,6 +238,7 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
             value: role.name,
             label: role.name,
           }));
+          this.roleNameById = new Map((roles ?? []).map((role: RoleSummary) => [role.id, role.name]));
           this.cdr.markForCheck();
         },
         error: (error) => {
@@ -464,7 +471,22 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
     question.stageNames = stageNames;
     question.stageName = stageNames[0] ?? null;
     question.categoryStageName = stageNames.length === 1 ? stageNames[0] : question.categoryStageName ?? null;
+    question.roleNames = this.mapRoleIdsToNames(question.roleIds, question.roleNames);
     return question;
+  }
+
+  private mapRoleIdsToNames(roleIds?: number[] | null, fallbackNames?: string[]): string[] {
+    const ids = Array.isArray(roleIds) ? roleIds : [];
+    if (ids.length && this.roleNameById.size) {
+      const names = ids
+        .map((id) => this.roleNameById.get(Number(id)))
+        .filter((name): name is string => Boolean(name));
+      if (names.length) {
+        return Array.from(new Set(names));
+      }
+    }
+
+    return Array.isArray(fallbackNames) ? [...fallbackNames] : [];
   }
 
   private hasValidStageSelection(question: QuestionData | undefined): boolean {
