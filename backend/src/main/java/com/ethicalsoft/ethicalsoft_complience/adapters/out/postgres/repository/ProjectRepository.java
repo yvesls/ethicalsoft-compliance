@@ -5,6 +5,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,10 +25,10 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, JpaSpec
             "left join fetch p.questionnaires q " +
             "left join fetch q.stage " +
             "left join fetch q.iterationRef " +
-            "left join fetch q.questions")
-    Optional<Project> findByIdWithDetails(Long id);
+            "left join fetch q.questions " +
+            "where p.id = :id")
+    Optional<Project> findByIdWithDetails(@Param("id") Long id);
 
     @Override
     List<Project> findAll(Specification<Project> spec);
 }
-

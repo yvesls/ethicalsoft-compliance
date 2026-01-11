@@ -27,7 +27,6 @@ public class ModelMapperUtils {
 	private static final ModelMapper modelMapper;
 	private static final ModelMapper modelMapperDynamic;
 
-	// Cache para instâncias de ModelMapper customizadas
 	private static final Map<MapperConfig, ModelMapper> customMapperCache = new ConcurrentHashMap<>();
 
 	static {
@@ -35,9 +34,6 @@ public class ModelMapperUtils {
 		modelMapperDynamic = buildMap( MatchingStrategies.STANDARD, false );
 	}
 
-	/**
-	 * Cria um model mapper novo, para qualquer requisitante.
-	 */
 	private static ModelMapper buildMap( MatchingStrategy matchingStrategy, boolean preferNestedProperties ) {
 		ModelMapper modelMapper = new ModelMapper();
 		modelMapper.createTypeMap( String.class, LocalDate.class );
@@ -49,16 +45,12 @@ public class ModelMapperUtils {
 		return modelMapper;
 	}
 
-	/**
-	 * Escolhe o model mapper padrão, ou obtém/cria um mapper customizado do cache.
-	 */
 	private static ModelMapper chooseMap( MatchingStrategy matchingStrategy, Boolean preferNestedProperties ) {
-		// Se nenhum parâmetro customizado for passado, usa o mapper padrão (STRICT)
+
 		if ( matchingStrategy == null && preferNestedProperties == null ) {
 			return ModelMapperUtils.modelMapper;
 		}
 
-		// Define os valores padrão se algum for nulo
 		MatchingStrategy strategy = ( matchingStrategy == null ) ? ModelMapperUtils.modelMapper.getConfiguration().getMatchingStrategy() : matchingStrategy;
 
 		boolean preferNested = ( preferNestedProperties == null ) ? ModelMapperUtils.modelMapper.getConfiguration().isPreferNestedProperties() : preferNestedProperties;
@@ -71,19 +63,13 @@ public class ModelMapperUtils {
 		return customMapperCache.computeIfAbsent( config, k -> buildMap( k.strategy(), k.preferNested() ) );
 	}
 
-	/**
-	 * Faz o mapeamento entre classes.
-	 */
 	public static <D, T> D map( final T entity, Class<D> outClass, MatchingStrategy matchingStrategy, Boolean preferNestedProperties ) {
 		ModelMapper modelMapper = chooseMap( matchingStrategy, preferNestedProperties );
 		return modelMapper.map( entity, outClass );
 	}
 
-	/**
-	 * Faz o mapeamento de uma coleção de classes.
-	 */
 	public static <D, T> List<D> mapAll( final Collection<T> entityList, Class<D> outCLass, MatchingStrategy matchingStrategy, Boolean preferNestedProperties ) {
-		// Usa List.of() (Java 9+) para retornar uma lista vazia imutável
+
 		if ( entityList == null || entityList.isEmpty() ) {
 			return List.of();
 		}
@@ -93,18 +79,12 @@ public class ModelMapperUtils {
 		return entityList.stream().map( entity -> modelMapper.map( entity, outCLass ) ).toList();
 	}
 
-	/**
-	 * Faz o mapeamento para uma instância de destino existente.
-	 */
 	public static <S, D> D map( final S source, D destination, MatchingStrategy matchingStrategy, Boolean preferNestedProperties ) {
 		ModelMapper modelMapper = chooseMap( matchingStrategy, preferNestedProperties );
 		modelMapper.map( source, destination );
 		return destination;
 	}
 
-	/**
-	 * Faz o mapeamento para um tipo genérico.
-	 */
 	public static <S, D> D map( final S source, Type genericType, MatchingStrategy matchingStrategy, Boolean preferNestedProperties ) {
 		ModelMapper modelMapper = chooseMap( matchingStrategy, preferNestedProperties );
 		return modelMapper.map( source, genericType );
@@ -114,7 +94,6 @@ public class ModelMapperUtils {
 		return map( entity, outClass, null, null );
 	}
 
-	// --- Métodos de conveniência (padrão) ---
 
 	public static <D, T> List<D> mapAll( final Collection<T> entityList, Class<D> outCLass ) {
 		return mapAll( entityList, outCLass, null, null );
@@ -131,8 +110,6 @@ public class ModelMapperUtils {
 	public static <D, T> D mapDynamic( final T entity, Class<D> outClass ) {
 		return modelMapperDynamic.map( entity, outClass );
 	}
-
-	// --- Métodos dinâmicos ---
 
 	public static <D, T> List<D> mapAllDynamic( final Collection<T> entityList, Class<D> outCLass ) {
 		if ( entityList == null || entityList.isEmpty() ) {

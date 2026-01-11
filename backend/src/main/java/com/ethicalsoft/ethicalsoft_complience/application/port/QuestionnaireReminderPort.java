@@ -4,5 +4,5 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.re
 
 public interface QuestionnaireReminderPort {
     void sendReminder(Long projectId, Integer questionnaireId, QuestionnaireReminderRequestDTO request);
+    void sendAutomaticReminder(Long projectId, Integer questionnaireId);
 }
-

@@ -1,12 +1,12 @@
 package com.ethicalsoft.ethicalsoft_complience.adapters.out.notification;
 
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Questionnaire;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.QuestionnaireRepository;
 import com.ethicalsoft.ethicalsoft_complience.application.port.NotificationDispatcherPort;
 import com.ethicalsoft.ethicalsoft_complience.application.port.dto.NewUserCredentialsNotificationDTO;
 import com.ethicalsoft.ethicalsoft_complience.application.port.dto.ProjectAssignmentNotificationDTO;
-import com.ethicalsoft.ethicalsoft_complience.exception.EmailSendingException;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Questionnaire;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.QuestionnaireRepository;
 import com.ethicalsoft.ethicalsoft_complience.domain.notification.criteria.QuestionnaireReminderContext;
+import com.ethicalsoft.ethicalsoft_complience.exception.EmailSendingException;
 import freemarker.template.TemplateException;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
@@ -47,8 +47,15 @@ public class EmailNotificationAdapter implements NotificationDispatcherPort {
     @Value("${app.support.email:suporte@ethicalsoft.com}")
     private String supportEmail;
 
+    @Value("${app.email.enabled:true}")
+    private boolean emailEnabled;
+
     @Override
     public void dispatchRecoveryCode(String to, String code) {
+        if (!emailEnabled) {
+            log.info("[notification-email] Envio de email desabilitado (app.email.enabled=false). Ignorando envio de recovery para {}", to);
+            return;
+        }
         try {
             log.info("[notification-email] Enviando código de recuperação para {}", to);
             var message = mailSender.createMimeMessage();
@@ -65,7 +72,7 @@ public class EmailNotificationAdapter implements NotificationDispatcherPort {
             mailSender.send( message );
             log.info("[notification-email] Código de recuperação enviado para {}", to);
         } catch ( MessagingException | IOException | TemplateException e ) {
-            log.error("[notification-email] Falha ao enviar email de recuperação para {}", to, e);
+            log.error("[notification-email] Falha ao enviar email de recuperação para {}. Verifique SMTP/TLS e credenciais.", to, e);
             throw new EmailSendingException( "Failed to send recovery email to " + to, e );
         }
     }
@@ -73,6 +80,10 @@ public class EmailNotificationAdapter implements NotificationDispatcherPort {
     @Override
     @Async
     public void dispatchNewUserCredentials(NewUserCredentialsNotificationDTO dto) {
+        if (!emailEnabled) {
+            log.info("[notification-email] Envio de email desabilitado (app.email.enabled=false). Ignorando envio de credenciais para {}", dto.to());
+            return;
+        }
         try {
             log.info("[notification-email] Enviando credenciais temporárias para {}", dto.to());
             var message = mailSender.createMimeMessage();
@@ -80,7 +91,7 @@ public class EmailNotificationAdapter implements NotificationDispatcherPort {
 
             Map<String, Object> model = new HashMap<>();
             model.put("firstName", dto.firstName());
-            model.put("temporaryPassword", "******");
+            model.put("temporaryPassword", dto.tempPassword());
             model.put("projectName", dto.projectName());
             model.put("adminName", dto.adminName());
             model.put("resetLink", buildFrontendLink("/auth/reset-password"));
@@ -88,21 +99,25 @@ public class EmailNotificationAdapter implements NotificationDispatcherPort {
             model.put("environment", environment);
             String html = generateEmailBody("users/new-user-credentials.ftl", model);
 
-            helper.setTo( dto.to() );
-            helper.setSubject( "Bem-vindo ao EthicalSoft Compliance" );
-            helper.setText( html, true );
+            helper.setTo(dto.to());
+            helper.setSubject("Bem-vindo ao EthicalSoft Compliance");
+            helper.setText(html, true);
 
-            mailSender.send( message );
+            mailSender.send(message);
             log.info("[notification-email] Credenciais temporárias enviadas para {}", dto.to());
-        } catch ( MessagingException | IOException | TemplateException e ) {
-            log.error("[notification-email] Falha ao enviar credenciais temporárias para {}", dto.to(), e );
-            throw new EmailSendingException( "Falha ao enviar credenciais para " + dto.to(), e );
+        } catch (MessagingException | IOException | TemplateException e) {
+            log.error("[notification-email] Falha ao enviar credenciais temporárias para {}. Verifique SMTP/TLS e credenciais.", dto.to(), e);
+            throw new EmailSendingException("Falha ao enviar credenciais para " + dto.to(), e);
         }
     }
 
     @Override
     @Async
     public void dispatchProjectAssignment(ProjectAssignmentNotificationDTO dto) {
+        if (!emailEnabled) {
+            log.info("[notification-email] Envio de email desabilitado (app.email.enabled=false). Ignorando notificação de projeto para {}", dto.to());
+            return;
+        }
         try {
             log.info("[notification-email] Enviando notificação de vinculação ao projeto {} para {}", dto.projectName(), dto.to());
             var message = mailSender.createMimeMessage();
@@ -132,13 +147,17 @@ public class EmailNotificationAdapter implements NotificationDispatcherPort {
             mailSender.send( message );
             log.info("[notification-email] Notificação de projeto enviada para {}", dto.to());
         } catch ( MessagingException | IOException | TemplateException e ) {
-            log.error("[notification-email] Falha ao enviar notificação de projeto para {}", dto.to(), e );
+            log.error("[notification-email] Falha ao enviar notificação de projeto para {}. Verifique SMTP/TLS e credenciais.", dto.to(), e );
             throw new EmailSendingException( "Falha ao enviar notificação de projeto para " + dto.to(), e );
         }
     }
 
     @Override
     public void dispatchQuestionnaireReminder(String to, QuestionnaireReminderContext context) {
+        if (!emailEnabled) {
+            log.info("[notification-email] Envio de email desabilitado (app.email.enabled=false). Ignorando lembrete de questionário {} para {}", context.questionnaireId(), to);
+            return;
+        }
         try {
             log.info("[notification-email] Enviando lembrete de questionário {} para {}", context.questionnaireId(), to);
             var message = mailSender.createMimeMessage();
@@ -158,7 +177,7 @@ public class EmailNotificationAdapter implements NotificationDispatcherPort {
 
             mailSender.send(message);
         } catch ( MessagingException | IOException | TemplateException e ) {
-            log.error("[notification-email] Falha ao enviar lembrete de questionário {} para {}", context.questionnaireId(), to, e);
+            log.error("[notification-email] Falha ao enviar lembrete de questionário {} para {}. Verifique SMTP/TLS e credenciais.", context.questionnaireId(), to, e);
             throw new EmailSendingException("Falha ao enviar lembrete para " + to, e);
         }
     }
@@ -201,3 +220,4 @@ public class EmailNotificationAdapter implements NotificationDispatcherPort {
         }
     }
 }
+

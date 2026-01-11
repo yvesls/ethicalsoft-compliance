@@ -2,27 +2,24 @@ package com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.notification;
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.NotificationDocument;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.NotificationPartyDocument;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.repository.NotificationRepository;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.repository.NotificationTemplateRepository;
 import com.ethicalsoft.ethicalsoft_complience.application.port.notification.InternalNotificationPort;
 import com.ethicalsoft.ethicalsoft_complience.application.port.notification.ListInternalNotificationsPort;
 import com.ethicalsoft.ethicalsoft_complience.application.port.notification.NotificationTemplatePort;
 import com.ethicalsoft.ethicalsoft_complience.application.port.notification.UpdateInternalNotificationStatusPort;
-import com.ethicalsoft.ethicalsoft_complience.domain.notification.Notification;
-import com.ethicalsoft.ethicalsoft_complience.domain.notification.NotificationChannel;
-import com.ethicalsoft.ethicalsoft_complience.domain.notification.NotificationParty;
-import com.ethicalsoft.ethicalsoft_complience.domain.notification.NotificationStatus;
-import com.ethicalsoft.ethicalsoft_complience.domain.notification.NotificationTemplate;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.repository.NotificationRepository;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.repository.NotificationTemplateRepository;
+import com.ethicalsoft.ethicalsoft_complience.domain.notification.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class MongoInternalNotificationAdapter implements InternalNotificationPort, ListInternalNotificationsPort, UpdateInternalNotificationStatusPort, NotificationTemplatePort {
 
     private final NotificationRepository notificationMongoRepository;
@@ -30,15 +27,30 @@ public class MongoInternalNotificationAdapter implements InternalNotificationPor
 
     @Override
     public Notification save(Notification notification) {
-        NotificationDocument saved = notificationMongoRepository.save(toDocument(notification));
+        NotificationDocument doc = toDocument(notification);
+        log.info("[notification-mongo] Salvando notificação interna templateKey={} recipientUserId={} recipientEmail={} status={}",
+                doc.getTemplateKey(),
+                doc.getRecipient() != null ? doc.getRecipient().getUserId() : null,
+                doc.getRecipient() != null ? doc.getRecipient().getEmail() : null,
+                doc.getStatus());
+
+        NotificationDocument saved = notificationMongoRepository.save(doc);
+
+        log.info("[notification-mongo] Notificação interna salva id={} templateKey={} recipientUserId={}",
+                saved.getId(),
+                saved.getTemplateKey(),
+                saved.getRecipient() != null ? saved.getRecipient().getUserId() : null);
+
         return toDomain(saved);
     }
 
     @Override
-    public Page<Notification> listForRecipient(Long recipientUserId, Pageable pageable) {
+    public List<Notification> listUnseenForRecipient(Long recipientUserId) {
         return notificationMongoRepository
-                .findByRecipientUserIdAndStatusNot(recipientUserId, NotificationStatus.DELETED, pageable)
-                .map(this::toDomain);
+                .findByRecipient_UserIdAndStatusOrderByCreatedAtDesc(recipientUserId, NotificationStatus.UNREAD)
+                .stream()
+                .map(this::toDomain)
+                .toList();
     }
 
     @Override
@@ -58,7 +70,7 @@ public class MongoInternalNotificationAdapter implements InternalNotificationPor
                         t.getChannels() == null ? java.util.List.of() : t.getChannels().stream()
                                 .map(s -> s == null ? null : s.toUpperCase(Locale.ROOT))
                                 .filter(java.util.Objects::nonNull)
-                                .map(s -> NotificationChannel.valueOf(s))
+                                .map(NotificationChannel::valueOf)
                                 .toList()
                 ));
     }

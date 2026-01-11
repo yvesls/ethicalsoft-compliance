@@ -2,15 +2,16 @@ package com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.query;
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.ProjectTemplate;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.dto.*;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.repository.ProjectTemplateRepository;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.*;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.CreateTemplateRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.RoleSummaryResponseDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.StageSummaryResponseDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.TemplateVisibilityEnum;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.ProjectRepository;
 import com.ethicalsoft.ethicalsoft_complience.application.port.CurrentUserPort;
 import com.ethicalsoft.ethicalsoft_complience.application.port.TemplateCommandPort;
 import com.ethicalsoft.ethicalsoft_complience.application.port.TemplateQueryPort;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.repository.ProjectTemplateRepository;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.ProjectRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -164,6 +166,20 @@ public class TemplateMongoAdapter implements TemplateQueryPort, TemplateCommandP
         return questions.stream().map(question -> {
             TemplateQuestionDTO pDto = new TemplateQuestionDTO();
             pDto.setValue(question.getValue());
+
+            if (question.getStages() != null) {
+                pDto.setStages(question.getStages().stream()
+                        .filter(Objects::nonNull)
+                        .map(stage -> new StageSummaryResponseDTO(stage.getId(), stage.getName()))
+                        .toList());
+
+                pDto.setStageName(question.getStages().stream()
+                        .filter(Objects::nonNull)
+                        .findFirst()
+                        .map(Stage::getName)
+                        .orElse(null));
+            }
+
             if (question.getRoles() != null) {
                 pDto.setRoles(question.getRoles().stream()
                         .map(role -> new RoleSummaryResponseDTO(role.getId(), role.getName()))

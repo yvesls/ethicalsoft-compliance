@@ -149,8 +149,11 @@ public class QuestionnaireResponseAdapter implements QuestionnaireResponsePort {
                                                 Integer questionnaireId,
                                                 Long representativeId) {
         if (representativeId == null) {
-            throw new BusinessException("Representante não identificado para o questionário");
+            return questionnaireResponseRepository
+                    .findByProjectIdAndQuestionnaireIdAndRepresentativeId(projectId, questionnaireId, null)
+                    .orElseThrow(() -> new BusinessException("Registro de respostas não encontrado"));
         }
+
         return questionnaireResponseRepository
                 .findByProjectIdAndQuestionnaireIdAndRepresentativeId(projectId, questionnaireId, representativeId)
                 .orElseThrow(() -> new BusinessException("Registro de respostas não encontrado"));

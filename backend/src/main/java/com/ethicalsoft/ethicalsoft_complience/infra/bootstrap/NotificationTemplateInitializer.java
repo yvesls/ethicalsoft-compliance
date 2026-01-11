@@ -36,10 +36,6 @@ public class NotificationTemplateInitializer {
         );
     }
 
-    /**
-     * Seed idempotente: só cria se não existir.
-     * Obs: evitar sobrescrever para não apagar alterações manuais no Mongo em ambiente real.
-     */
     private void insertIfMissing(NotificationTemplateDocument template) {
         if (template == null || template.getKey() == null || template.getKey().isBlank()) {
             return;

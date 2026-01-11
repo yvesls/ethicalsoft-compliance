@@ -1,9 +1,9 @@
 package com.ethicalsoft.ethicalsoft_complience.controller;
 
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.UserDTO;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.user.GetUserByIdUseCase;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.user.ListUsersUseCase;
 import com.ethicalsoft.ethicalsoft_complience.controller.base.BaseController;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.UserDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,13 +26,13 @@ public class UserController extends BaseController {
     private final GetUserByIdUseCase getUserByIdUseCase;
 
     @GetMapping
-    @PreAuthorize( "hasRole('ADMIN')" )
+    @PreAuthorize( "hasAuthority('ADMIN')" )
     public Page< UserDTO > findAll( @PageableDefault( sort = "id", direction = Sort.Direction.ASC ) Pageable pageable ) {
         return listUsersUseCase.execute( pageable );
     }
 
     @GetMapping( "/{id}" )
-    @PreAuthorize( "hasRole('ADMIN')" )
+    @PreAuthorize( "hasAuthority('ADMIN')" )
     public UserDTO findById( @PathVariable Long id ) {
         return getUserByIdUseCase.execute( id );
     }

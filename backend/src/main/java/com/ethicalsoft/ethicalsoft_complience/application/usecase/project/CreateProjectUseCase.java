@@ -7,21 +7,22 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.re
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.ProjectStatusEnum;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.ProjectTypeEnum;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.TimelineStatusEnum;
-import com.ethicalsoft.ethicalsoft_complience.application.port.ProjectCommandPort;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.ProjectRepository;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.QuestionnaireRepository;
 import com.ethicalsoft.ethicalsoft_complience.application.port.CurrentUserPort;
-import com.ethicalsoft.ethicalsoft_complience.domain.service.ProjectTimelineStatusPolicy;
+import com.ethicalsoft.ethicalsoft_complience.application.port.ProjectCommandPort;
+import com.ethicalsoft.ethicalsoft_complience.application.port.QuestionnaireReminderPort;
 import com.ethicalsoft.ethicalsoft_complience.application.service.strategy.ProjectCreationStrategy;
 import com.ethicalsoft.ethicalsoft_complience.common.util.mapper.ModelMapperUtils;
-import lombok.RequiredArgsConstructor;
+import com.ethicalsoft.ethicalsoft_complience.domain.service.ProjectTimelineStatusPolicy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class CreateProjectUseCase implements ProjectCommandPort {
 
@@ -29,13 +30,28 @@ public class CreateProjectUseCase implements ProjectCommandPort {
     private final CurrentUserPort currentUserPort;
     private final ProjectTimelineStatusPolicy projectTimelineStatusPolicy;
     private final AddRepresentativeUseCase addRepresentativeUseCase;
-    private final List<ProjectCreationStrategy> creationStrategies;
+    private final QuestionnaireReminderPort questionnaireReminderPort;
+    private final QuestionnaireRepository questionnaireRepository;
 
     private final Map<ProjectTypeEnum, ProjectCreationStrategy> strategyMap = new EnumMap<>(ProjectTypeEnum.class);
 
-    @jakarta.annotation.PostConstruct
-    public void initStrategyMap() {
-        creationStrategies.forEach(strategy -> strategyMap.put(strategy.getType(), strategy));
+    public CreateProjectUseCase(ProjectRepository projectRepository,
+                               CurrentUserPort currentUserPort,
+                               ProjectTimelineStatusPolicy projectTimelineStatusPolicy,
+                               AddRepresentativeUseCase addRepresentativeUseCase,
+                               List<ProjectCreationStrategy> creationStrategies,
+                               QuestionnaireReminderPort questionnaireReminderPort,
+                               QuestionnaireRepository questionnaireRepository) {
+        this.projectRepository = projectRepository;
+        this.currentUserPort = currentUserPort;
+        this.projectTimelineStatusPolicy = projectTimelineStatusPolicy;
+        this.addRepresentativeUseCase = addRepresentativeUseCase;
+        this.questionnaireReminderPort = questionnaireReminderPort;
+        this.questionnaireRepository = questionnaireRepository;
+
+        if (creationStrategies != null) {
+            creationStrategies.forEach(strategy -> this.strategyMap.put(strategy.getType(), strategy));
+        }
     }
 
     @Override
@@ -47,9 +63,14 @@ public class CreateProjectUseCase implements ProjectCommandPort {
             Project project = createProjectShell(request);
             applyCreationStrategy(project, request);
 
+            var questionnaires = questionnaireRepository.findByProjectId(project.getId()).stream().collect(Collectors.toSet());
+            project.setQuestionnaires(questionnaires);
             project = refreshTimeline(project);
 
             Set<Representative> representatives = addRepresentativeUseCase.execute(project, request.getRepresentatives());
+
+            project.setRepresentatives(representatives);
+            triggerInitialQuestionnaireReminders(project);
 
             return buildResponse(project, representatives, request);
         } catch (Exception ex) {
@@ -87,6 +108,16 @@ public class CreateProjectUseCase implements ProjectCommandPort {
     private Project refreshTimeline(Project project) {
         projectTimelineStatusPolicy.updateProjectTimeline(project);
         return projectRepository.save(project);
+    }
+
+    private void triggerInitialQuestionnaireReminders(Project project) {
+        project.getQuestionnaires().forEach(q -> {
+            try {
+                questionnaireReminderPort.sendAutomaticReminder(project.getId(), q.getId());
+            } catch (Exception ex) {
+                log.warn("[usecase-create-project] Falha ao disparar lembrete inicial projectId={} questionnaireId={}", project.getId(), q.getId(), ex);
+            }
+        });
     }
 
     private ProjectResponseDTO buildResponse(Project project, Set<Representative> representatives, ProjectCreationRequestDTO request) {

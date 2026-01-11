@@ -11,16 +11,15 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.Q
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.QuestionnaireRepository;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.RoleRepository;
 import com.ethicalsoft.ethicalsoft_complience.application.port.questionnaire.ProjectQuestionnaireCommandPort;
-import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
-import com.ethicalsoft.ethicalsoft_complience.common.util.mapper.ModelMapperUtils;
 import com.ethicalsoft.ethicalsoft_complience.common.util.ObjectUtils;
+import com.ethicalsoft.ethicalsoft_complience.common.util.mapper.ModelMapperUtils;
+import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -154,7 +153,16 @@ public class ProjectQuestionnaireAdapter implements ProjectQuestionnaireCommandP
                                         List<QuestionnaireResponse.AnswerDocument> answerTemplate) {
 
         Set<Representative> representatives = Optional.ofNullable(project.getRepresentatives()).orElse(Collections.emptySet());
+
         if (representatives.isEmpty()) {
+            QuestionnaireResponse base = new QuestionnaireResponse();
+            base.setProjectId(project.getId());
+            base.setQuestionnaireId(questionnaire.getId());
+            base.setRepresentativeId(null);
+            base.setStageId(questionnaire.getStage() != null ? questionnaire.getStage().getId() : null);
+            base.setStatus(QuestionnaireResponseStatus.PENDING);
+            base.setAnswers(cloneAnswerTemplate(answerTemplate));
+            questionnaireResponseRepository.save(base);
             return;
         }
 

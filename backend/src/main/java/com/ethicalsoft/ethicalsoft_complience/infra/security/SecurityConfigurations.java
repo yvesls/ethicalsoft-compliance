@@ -37,7 +37,7 @@ public class SecurityConfigurations {
 						session.sessionCreationPolicy( SessionCreationPolicy.STATELESS ) )
 				.authorizeHttpRequests( auth ->
 						auth.requestMatchers( HttpMethod.OPTIONS, "/**" ).permitAll()
-								.requestMatchers( HttpMethod.POST, "/auth/**" ).permitAll()
+								.requestMatchers( "/auth/**" ).permitAll()
 								.anyRequest()
 								.authenticated()
 				).exceptionHandling( exception ->

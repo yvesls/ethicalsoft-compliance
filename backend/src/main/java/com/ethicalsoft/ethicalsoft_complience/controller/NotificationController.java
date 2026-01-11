@@ -6,12 +6,10 @@ import com.ethicalsoft.ethicalsoft_complience.controller.dto.notification.Notifi
 import com.ethicalsoft.ethicalsoft_complience.controller.dto.notification.UpdateNotificationStatusRequestDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("api/notifications")
@@ -22,16 +20,14 @@ public class NotificationController {
     private final UpdateInternalNotificationStatusUseCase updateInternalNotificationStatusUseCase;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','USER')")
-    public Page<NotificationResponseDTO> listMyNotifications(
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        return listMyInternalNotificationsUseCase.execute(pageable);
+    @PreAuthorize("hasAnyAuthority('ADMIN','USER')")
+    public List<NotificationResponseDTO> listMyNotifications() {
+        return listMyInternalNotificationsUseCase.executeOnlyUnseen();
     }
 
-    @PatchMapping("/{id}/status")
-    @PreAuthorize("hasAnyRole('ADMIN','USER')")
+    @PostMapping("/{id}/status")
+    @PreAuthorize("hasAnyAuthority('ADMIN','USER')")
     public void updateStatus(@PathVariable String id, @RequestBody @Valid UpdateNotificationStatusRequestDTO request) {
         updateInternalNotificationStatusUseCase.execute(id, request.status());
     }
 }
-

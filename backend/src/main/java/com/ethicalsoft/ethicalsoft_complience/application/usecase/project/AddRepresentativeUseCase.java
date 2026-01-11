@@ -5,22 +5,24 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Repres
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Role;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.User;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.RepresentativeDTO;
-import com.ethicalsoft.ethicalsoft_complience.application.port.NotificationDispatcherPort;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.RepresentativeRepository;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.RoleRepository;
 import com.ethicalsoft.ethicalsoft_complience.application.port.CurrentUserPort;
+import com.ethicalsoft.ethicalsoft_complience.application.port.NotificationDispatcherPort;
 import com.ethicalsoft.ethicalsoft_complience.application.port.dto.NewUserCredentialsNotificationDTO;
 import com.ethicalsoft.ethicalsoft_complience.application.port.dto.ProjectAssignmentNotificationDTO;
+import com.ethicalsoft.ethicalsoft_complience.common.util.ObjectUtils;
 import com.ethicalsoft.ethicalsoft_complience.domain.service.ProjectCurrentStagePolicy;
 import com.ethicalsoft.ethicalsoft_complience.domain.service.RoleMappingPolicy;
 import com.ethicalsoft.ethicalsoft_complience.domain.service.UserResolutionPolicy;
 import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.RepresentativeRepository;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.RoleRepository;
-import com.ethicalsoft.ethicalsoft_complience.common.util.ObjectUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDate;
 import java.util.HashSet;
@@ -109,30 +111,45 @@ public class AddRepresentativeUseCase {
     }
 
     private void notifyUser(UserResolutionPolicy.UserResolutionResult resolution, Representative rep, Project project, User currentAdmin) {
-        resolution.temporaryPassword().ifPresent(tempPassword -> {
-            NewUserCredentialsNotificationDTO credentialsDTO = new NewUserCredentialsNotificationDTO(
+        Runnable sendNotifications = () -> {
+            resolution.temporaryPassword().ifPresent(tempPassword -> {
+                NewUserCredentialsNotificationDTO credentialsDTO = new NewUserCredentialsNotificationDTO(
+                        rep.getUser().getEmail(),
+                        rep.getUser().getFirstName(),
+                        tempPassword,
+                        rep.getProject().getName(),
+                        currentAdmin.getFirstName() + " " + currentAdmin.getLastName()
+                );
+                notificationDispatcher.dispatchNewUserCredentials(credentialsDTO);
+            });
+
+            ProjectAssignmentNotificationDTO assignmentDTO = new ProjectAssignmentNotificationDTO(
                     rep.getUser().getEmail(),
                     rep.getUser().getFirstName(),
-                    tempPassword,
-                    rep.getProject().getName(),
-                    currentAdmin.getFirstName() + " " + currentAdmin.getLastName()
+                    project.getName(),
+                    project.getId(),
+                    currentAdmin.getFirstName() + " " + currentAdmin.getLastName(),
+                    currentAdmin.getEmail(),
+                    rep.getRoles().stream().map(Role::getName).toList(),
+                    project.getCurrentSituation(),
+                    project.getStartDate(),
+                    project.getDeadline(),
+                    projectCurrentStagePolicy.findNextQuestionnaireDate(project)
             );
-            notificationDispatcher.dispatchNewUserCredentials(credentialsDTO);
-        });
+            notificationDispatcher.dispatchProjectAssignment(assignmentDTO);
+        };
 
-        ProjectAssignmentNotificationDTO assignmentDTO = new ProjectAssignmentNotificationDTO(
-                rep.getUser().getEmail(),
-                rep.getUser().getFirstName(),
-                project.getName(),
-                project.getId(),
-                currentAdmin.getFirstName() + " " + currentAdmin.getLastName(),
-                currentAdmin.getEmail(),
-                rep.getRoles().stream().map(Role::getName).toList(),
-                project.getCurrentSituation(),
-                project.getStartDate(),
-                project.getDeadline(),
-                projectCurrentStagePolicy.findNextQuestionnaireDate(project)
-        );
-        notificationDispatcher.dispatchProjectAssignment(assignmentDTO);
+        // Se estivermos dentro de uma transação, garante que o envio acontece só após COMMIT.
+        // Assim, se a criação do projeto falhar/rollback, nenhum e-mail sai.
+        if (TransactionSynchronizationManager.isActualTransactionActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    sendNotifications.run();
+                }
+            });
+        } else {
+            sendNotifications.run();
+        }
     }
 }

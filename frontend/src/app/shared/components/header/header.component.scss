@@ -70,6 +70,7 @@ header {
 
 				button {
 					padding: 8px;
+					position: relative;
 
 					@include for-phone-only {
 						padding: 5px;
@@ -85,6 +86,22 @@ header {
 						@include for-phone-only {
 							height: 16px;
 						}
+					}
+
+					.notification-badge {
+						position: absolute;
+						top: 4px;
+						right: 4px;
+						min-width: 18px;
+						height: 18px;
+						padding: 0 5px;
+						border-radius: 999px;
+						background: $red;
+						color: $white;
+						font-size: 0.75rem;
+						line-height: 18px;
+						text-align: center;
+						font-weight: 600;
 					}
 				}
 			}
@@ -145,6 +162,13 @@ header {
 			border: 1px solid $white-secundary;
 			border-radius: $radius-default;
 			background: $white;
+			transition: $transition-default;
+
+			&:hover {
+				background: $gray-quaternary;
+				border-color: $blue-primary;
+				box-shadow: 0 6px 18px rgba(5, 25, 55, 0.12);
+			}
 
 			&__text {
 				flex: 1;
@@ -171,13 +195,8 @@ header {
 				display: flex;
 				flex-direction: column;
 				gap: 0.25rem;
-				min-width: 90px;
-
-				button {
-					padding: 0;
-					text-align: right;
-					color: $blue-primary;
-				}
+				min-width: 96px;
+				align-items: flex-end;
 			}
 		}
 	}

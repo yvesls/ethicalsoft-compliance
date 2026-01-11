@@ -5,16 +5,14 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Projec
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Stage;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.ProjectTypeEnum;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.TimelineStatusEnum;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.Clock;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.Set;
 
-/**
- * Política de domínio para atualizar status/situação de um projeto e seus componentes.
- * Não depende de Spring.
- */
+@Slf4j
 public class ProjectTimelineStatusPolicy {
 
     private final Clock clock;
@@ -25,8 +23,10 @@ public class ProjectTimelineStatusPolicy {
 
     public void updateProjectTimeline(Project project) {
         if (project == null) {
+            log.warn("[project-timeline-status-policy] Projeto nulo fornecido para atualização de timeline");
             return;
         }
+        log.info("[project-timeline-status-policy] Atualizando status de timeline do projeto id={}", project.getId());
 
         LocalDate today = LocalDate.now(clock);
 
@@ -53,6 +53,7 @@ public class ProjectTimelineStatusPolicy {
         if (project.getQuestionnaires() != null) {
             project.getQuestionnaires().forEach(qn -> qn.setStatus(resolveTimelineStatus(qn.getApplicationStartDate(), qn.getApplicationEndDate(), today, qn.getStatus())));
         }
+        log.info("[project-timeline-status-policy] Status de timeline atualizado para o projeto id={} status={}", project.getId(), project.getTimelineStatus());
     }
 
     private TimelineStatusEnum resolveTimelineStatus(LocalDate start, LocalDate end, LocalDate today, TimelineStatusEnum currentStatus) {

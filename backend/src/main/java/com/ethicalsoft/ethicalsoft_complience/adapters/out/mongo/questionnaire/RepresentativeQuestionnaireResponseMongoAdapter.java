@@ -2,23 +2,13 @@ package com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.questionnaire;
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.QuestionnaireResponse;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.repository.QuestionnaireResponseRepository;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Project;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Question;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Questionnaire;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Representative;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Role;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Stage;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.*;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.QuestionnaireResponseStatus;
 import com.ethicalsoft.ethicalsoft_complience.application.port.questionnaire.RepresentativeQuestionnaireResponseCommandPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor
@@ -38,16 +28,36 @@ public class RepresentativeQuestionnaireResponseMongoAdapter implements Represen
         }
 
         for (Questionnaire questionnaire : questionnaires) {
-            List<Question> questions = Optional.ofNullable(questionnaire.getQuestions()).map(ArrayList::new).orElseGet(ArrayList::new);
-            List<QuestionnaireResponse.AnswerDocument> template = buildAnswerTemplate(questions);
+
+            if (questionnaireResponseRepository
+                    .findByProjectIdAndQuestionnaireIdAndRepresentativeId(project.getId(), questionnaire.getId(), representative.getId())
+                    .isPresent()) {
+                continue;
+            }
+
+            QuestionnaireResponse base = questionnaireResponseRepository
+                    .findByProjectIdAndQuestionnaireIdAndRepresentativeId(project.getId(), questionnaire.getId(), null)
+                    .orElse(null);
+
+            List<QuestionnaireResponse.AnswerDocument> template;
+            Integer stageId;
+            if (base != null) {
+                template = cloneAnswerTemplate(Optional.ofNullable(base.getAnswers()).orElse(Collections.emptyList()));
+                stageId = base.getStageId();
+            } else {
+                List<Question> questions = Optional.ofNullable(questionnaire.getQuestions()).map(ArrayList::new).orElseGet(ArrayList::new);
+                template = buildAnswerTemplate(questions);
+                template = cloneAnswerTemplate(template);
+                stageId = questionnaire.getStage() != null ? questionnaire.getStage().getId() : null;
+            }
 
             QuestionnaireResponse response = new QuestionnaireResponse();
             response.setProjectId(project.getId());
             response.setQuestionnaireId(questionnaire.getId());
             response.setRepresentativeId(representative.getId());
-            response.setStageId(questionnaire.getStage() != null ? questionnaire.getStage().getId() : null);
+            response.setStageId(stageId);
             response.setStatus(QuestionnaireResponseStatus.PENDING);
-            response.setAnswers(cloneAnswerTemplate(template));
+            response.setAnswers(template);
             questionnaireResponseRepository.save(response);
         }
     }
@@ -98,4 +108,3 @@ public class RepresentativeQuestionnaireResponseMongoAdapter implements Represen
         return clones;
     }
 }
-

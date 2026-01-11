@@ -3,7 +3,6 @@ package com.ethicalsoft.ethicalsoft_complience.application.usecase.questionnaire
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Questionnaire;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.QuestionnaireRepository;
 import com.ethicalsoft.ethicalsoft_complience.application.port.QuestionnaireReminderPort;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.questionnaire.QuestionnaireReminderAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,11 +26,10 @@ public class SendAutomaticQuestionnaireRemindersUseCase {
 
     private void trySend(Questionnaire questionnaire) {
         try {
-            if (questionnaireReminderPort instanceof QuestionnaireReminderAdapter adapter) {
-                adapter.sendAutomaticQuestionnaireReminder(questionnaire);
-                return;
-            }
-            log.warn("[questionnaire-reminder] Implementação de QuestionnaireReminderPort não suporta lembrete automático ainda.");
+            questionnaireReminderPort.sendAutomaticReminder(
+                    questionnaire.getProject().getId(),
+                    questionnaire.getId()
+            );
         } catch (Exception ex) {
             log.error("[questionnaire-reminder] Falha ao enviar lembrete automático questionário={}", questionnaire != null ? questionnaire.getId() : null, ex);
         }

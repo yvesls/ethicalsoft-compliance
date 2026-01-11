@@ -6,8 +6,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
+import java.util.List;
+
 public interface NotificationRepository extends MongoRepository<NotificationDocument, String> {
 
-    Page<NotificationDocument> findByRecipientUserIdAndStatusNot(Long recipientUserId, NotificationStatus status, Pageable pageable);
-}
+    Page<NotificationDocument> findByRecipient_UserIdAndStatusNot(Long recipientUserId, NotificationStatus status, Pageable pageable);
 
+    List<NotificationDocument> findByRecipient_UserIdAndStatusOrderByCreatedAtDesc(Long recipientUserId, NotificationStatus status);
+}

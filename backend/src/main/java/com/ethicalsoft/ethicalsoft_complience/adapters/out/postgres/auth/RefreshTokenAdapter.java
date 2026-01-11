@@ -47,7 +47,7 @@ public class RefreshTokenAdapter implements RefreshTokenPort {
             }
 
             refreshTokenRepository.save(refreshTokenToSave);
-            return token; // retorna token "cru" para o cliente
+            return token;
         } catch (Exception ex) {
             log.error("[refresh-token] Falha ao criar refresh token para usuário id={}", user != null ? user.getId() : null, ex);
             throw ex;
