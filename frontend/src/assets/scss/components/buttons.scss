@@ -1,4 +1,5 @@
 @use '../base/vars' as *;
+@use 'sass:color';
 
 button,
 .btn,
@@ -100,8 +101,8 @@ button:disabled,
 	&:hover,
 	&:active,
 	&:focus {
-		background-color: darken($button-bg, 6%);
-		border-color: darken($button-bg, 6%);
+		background-color: color.adjust($button-bg, $lightness: -6%);
+		border-color: color.adjust($button-bg, $lightness: -6%);
 		color: $button-text-color;
 	}
 
@@ -111,8 +112,8 @@ button:disabled,
 		color: $button-text-color;
 	}
 
-	--bs-btn-active-bg: darken($button-bg, 6%);
-	--bs-btn-active-border-color: darken($button-bg, 6%);
+	--bs-btn-active-bg: color.adjust($button-bg, $lightness: -6%);
+	--bs-btn-active-border-color: color.adjust($button-bg, $lightness: -6%);
 }
 
 .btn-icon.btn-icon {

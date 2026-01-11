@@ -1,13 +1,13 @@
 package com.ethicalsoft.ethicalsoft_complience.adapters.out.auth;
 
-import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
-import com.ethicalsoft.ethicalsoft_complience.exception.UserNotFoundException;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.User;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.auth.LoginDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.auth.RegisterUserDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.ErrorTypeEnum;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.UserRoleEnum;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.UserRepository;
+import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
+import com.ethicalsoft.ethicalsoft_complience.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -61,8 +61,6 @@ public class AuthAdapter implements UserDetailsService {
 
             var newUser = modelMapper.map(registerUserDTO, User.class);
             newUser.setRole(UserRoleEnum.ADMIN);
-            newUser.setFirstAccess(false);
-
             this.userRepository.save(newUser);
             log.info("[auth] Usuário {} criado com sucesso", registerUserDTO.getEmail());
         } catch (Exception ex) {

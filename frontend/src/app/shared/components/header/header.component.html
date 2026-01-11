@@ -6,6 +6,40 @@
 				<button (click)="openNotifications()" aria-label="Abrir notificações" class="unstyled-btn">
 					<img src="../../../../assets/icons/notification.svg" alt="Notificações" height="20px" />
 				</button>
+				@if (isPanelOpen) {
+					<div class="notification-panel">
+						<div class="notification-panel__header">
+							<span>Notificações</span>
+							<button class="link-btn" (click)="loadNotifications()" [disabled]="isLoading">Recarregar</button>
+						</div>
+						@if (!isLoading) {
+							@if (errorMessage) {
+								<p class="notification-panel__error">{{ errorMessage }}</p>
+							}
+							@if (!errorMessage && notifications.length) {
+								<ul class="notification-list">
+									@for (n of notifications; track n.id) {
+										<li class="notification-item">
+											<div class="notification-item__text">
+												<strong [class.unread]="n.status === 'UNREAD'">{{ n.title }}</strong>
+												<p>{{ n.content }}</p>
+												<small>{{ n.createdAt | date: 'short' }}</small>
+											</div>
+											<div class="notification-item__actions">
+												<button class="btn btn-link" (click)="markAsRead(n)" [disabled]="n.status === 'READ'">Marcar lida</button>
+												<button class="btn btn-link" (click)="deleteNotification(n)">Excluir</button>
+											</div>
+										</li>
+									}
+								</ul>
+							} @else {
+								<div class="notification-panel__empty">Sem notificações</div>
+							}
+						} @else {
+							<div class="notification-panel__loading">Carregando...</div>
+						}
+					</div>
+				}
 			</li>
 		</ul>
 	</div>

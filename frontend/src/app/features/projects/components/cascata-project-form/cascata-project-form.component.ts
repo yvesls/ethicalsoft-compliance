@@ -66,6 +66,7 @@ export interface Representative {
   weight: number;
   roleIds: number[];
   roleNames?: string[];
+  roles?: RoleSummary[];
   userId?: number | null;
   projectId?: number | null;
 }
@@ -368,6 +369,12 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
   }
 
   private mapRepresentativeRoleIds(rep: Representative): number[] {
+    if (Array.isArray(rep.roles) && rep.roles.length) {
+      return rep.roles
+        .map((role) => Number(role.id))
+        .filter((id) => Number.isFinite(id) && id > 0)
+    }
+
     if (rep.roleIds?.length) {
       return rep.roleIds.map(Number).filter(Number.isFinite);
     }

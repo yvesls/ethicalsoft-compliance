@@ -220,16 +220,25 @@ export class AuthenticationService {
 
 	private decodeUser(token: string): UserInterface {
 		const decoded = jwtDecode<DecodedAuthToken>(token)
+		const isFirstAccess = this.parseFirstAccessFlag(decoded)
 
 		return {
 			sub: decoded.sub ?? '',
 			exp: decoded.exp ?? 0,
 			roles: decoded.roles ?? [],
-			isFirstAccess: decoded.isFirstAccess ?? false,
+			isFirstAccess,
 			name: decoded.name ?? '',
 			email: decoded.email ?? '',
 			avatarUrl: decoded.avatarUrl ?? '',
 		}
+	}
+
+	private parseFirstAccessFlag(decoded: DecodedAuthToken): boolean {
+		const rawValue = decoded.isFirstAccess ?? (decoded as unknown as { firstAccess?: unknown }).firstAccess
+		if (typeof rawValue === 'boolean') return rawValue
+		if (typeof rawValue === 'string') return rawValue.toLowerCase() === 'true'
+		if (typeof rawValue === 'number') return rawValue === 1
+		return false
 	}
 
 	private startSessionMonitor(): void {
