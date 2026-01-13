@@ -6,4 +6,3 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.re
 public interface ProjectCommandPort {
     ProjectResponseDTO createProject(ProjectCreationRequestDTO request);
 }
-

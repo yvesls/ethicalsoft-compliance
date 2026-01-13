@@ -1,8 +1,8 @@
 package com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo;
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.QuestionnaireResponse;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.repository.QuestionnaireResponseRepository;
 import com.ethicalsoft.ethicalsoft_complience.domain.repository.QuestionnaireResponseRepositoryPort;
-import com.ethicalsoft.ethicalsoft_complience.mongo.repository.QuestionnaireResponseRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -50,4 +50,3 @@ public class QuestionnaireResponseRepositoryAdapter implements QuestionnaireResp
         return delegate.save(response);
     }
 }
-

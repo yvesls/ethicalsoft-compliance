@@ -3,7 +3,7 @@ package com.ethicalsoft.ethicalsoft_complience.domain.service;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Project;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Questionnaire;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Stage;
-import com.ethicalsoft.ethicalsoft_complience.util.ObjectUtil;
+import com.ethicalsoft.ethicalsoft_complience.common.util.ObjectUtils;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -14,7 +14,7 @@ import java.util.Set;
 public class ProjectCurrentStagePolicy {
 
     public String findCurrentStageName(Set<Questionnaire> questionnaires, LocalDate now) {
-        if (ObjectUtil.isNullOrEmpty( questionnaires )) {
+        if (ObjectUtils.isNullOrEmpty( questionnaires )) {
             return null;
         }
         return questionnaires.stream()
@@ -37,4 +37,3 @@ public class ProjectCurrentStagePolicy {
                 .orElse(project.getStartDate());
     }
 }
-

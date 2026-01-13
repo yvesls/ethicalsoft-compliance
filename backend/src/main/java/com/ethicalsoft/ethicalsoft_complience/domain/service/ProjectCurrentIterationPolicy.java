@@ -1,7 +1,7 @@
 package com.ethicalsoft.ethicalsoft_complience.domain.service;
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Iteration;
-import com.ethicalsoft.ethicalsoft_complience.util.ObjectUtil;
+import com.ethicalsoft.ethicalsoft_complience.common.util.ObjectUtils;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -13,7 +13,7 @@ import java.util.Set;
 public class ProjectCurrentIterationPolicy {
 
     public Integer findCurrentIterationNumber(Set<Iteration> iterations, LocalDate now) {
-        if (ObjectUtil.isNullOrEmpty( iterations )) {
+        if (ObjectUtils.isNullOrEmpty( iterations )) {
             return null;
         }
 
@@ -32,4 +32,3 @@ public class ProjectCurrentIterationPolicy {
         return null;
     }
 }
-

@@ -19,5 +19,6 @@ public interface ProjectRepositoryPort {
     boolean existsByIdAndOwnerId(Long projectId, Long ownerId);
 
     Optional<Project> findById(Long id);
-}
 
+    Project save(Project project);
+}

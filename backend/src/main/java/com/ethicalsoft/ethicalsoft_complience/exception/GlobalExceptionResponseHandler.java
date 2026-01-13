@@ -2,8 +2,8 @@ package com.ethicalsoft.ethicalsoft_complience.exception;
 
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.ErrorTypeEnum;
-import com.ethicalsoft.ethicalsoft_complience.util.ExceptionUtil;
-import com.ethicalsoft.ethicalsoft_complience.util.ObjectUtil;
+import com.ethicalsoft.ethicalsoft_complience.common.util.ObjectUtils;
+import com.ethicalsoft.ethicalsoft_complience.common.util.exception.ExceptionUtils;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -139,12 +139,12 @@ public class GlobalExceptionResponseHandler {
 		var errorMessage = new ArrayList<String>();
 
 		for ( FieldError fieldError : exception.getBindingResult().getFieldErrors() ) {
-			String message = Optional.of( messageSource.getMessage( fieldError, LocaleContextHolder.getLocale() ) ).map( ObjectUtil::getOrNull ).orElse( fieldError.getDefaultMessage() );
+			String message = Optional.of( messageSource.getMessage( fieldError, LocaleContextHolder.getLocale() ) ).map( ObjectUtils::getOrNull ).orElse( fieldError.getDefaultMessage() );
 			errorMessage.add( message + fieldError.getRejectedValue() );
 		}
 
 		for ( ObjectError objError : exception.getBindingResult().getGlobalErrors() ) {
-			String message = Optional.of( messageSource.getMessage( objError, LocaleContextHolder.getLocale() ) ).map( ObjectUtil::getOrNull ).orElse( objError.getDefaultMessage() );
+			String message = Optional.of( messageSource.getMessage( objError, LocaleContextHolder.getLocale() ) ).map( ObjectUtils::getOrNull ).orElse( objError.getDefaultMessage() );
 			errorMessage.add( objError.getObjectName() + ": " + message );
 		}
 
@@ -176,7 +176,7 @@ public class GlobalExceptionResponseHandler {
 	private ExceptionResponseDTO makeDefaultResponse( ErrorTypeEnum typeException, Exception exception, String responseMessage, HttpServletRequest request, HttpStatus httpStatus ) {
 		boolean showExceptionDetails = false;
 
-		return new ExceptionResponseDTO( typeException, httpStatus, request, responseMessage, ExceptionUtil.getErrorStackTrace( exception, showExceptionDetails ) );
+		return new ExceptionResponseDTO( typeException, httpStatus, request, responseMessage, ExceptionUtils.getErrorStackTrace( exception, showExceptionDetails ) );
 	}
 
 }

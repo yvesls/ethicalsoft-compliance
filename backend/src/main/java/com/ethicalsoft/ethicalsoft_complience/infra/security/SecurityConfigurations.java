@@ -1,6 +1,6 @@
 package com.ethicalsoft.ethicalsoft_complience.infra.security;
 
-import com.ethicalsoft.ethicalsoft_complience.postgres.repository.UserRepository;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.UserRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -37,7 +37,7 @@ public class SecurityConfigurations {
 						session.sessionCreationPolicy( SessionCreationPolicy.STATELESS ) )
 				.authorizeHttpRequests( auth ->
 						auth.requestMatchers( HttpMethod.OPTIONS, "/**" ).permitAll()
-								.requestMatchers( HttpMethod.POST, "/auth/**" ).permitAll()
+								.requestMatchers( "/auth/**" ).permitAll()
 								.anyRequest()
 								.authenticated()
 				).exceptionHandling( exception ->

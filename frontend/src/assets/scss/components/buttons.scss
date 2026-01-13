@@ -129,3 +129,37 @@ button:disabled,
 		height: 1.875rem;
 	}
 }
+
+/* Botões compactos para notificações */
+.btn-notification {
+	border: 1px solid $blue-primary;
+	background-color: $white;
+	color: $blue-primary;
+	font-size: 0.85rem;
+	font-weight: 600;
+	padding: 0.25rem 0.65rem;
+	border-radius: $radius-default;
+	line-height: 1.2;
+	transition: $transition-default;
+	min-height: auto;
+	min-width: auto;
+
+	&:hover,
+	&:focus {
+		background-color: $blue-primary;
+		color: $white;
+		border-color: $blue-primary;
+		text-decoration: none;
+	}
+
+	&:active {
+		background-color: $blue-secundary;
+		border-color: $blue-primary;
+		color: $white;
+	}
+
+	&:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+	}
+}

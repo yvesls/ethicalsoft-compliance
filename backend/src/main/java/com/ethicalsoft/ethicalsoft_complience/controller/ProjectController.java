@@ -3,14 +3,17 @@ package com.ethicalsoft.ethicalsoft_complience.controller;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.ProjectCreationRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.ProjectSearchRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.QuestionnaireReminderRequestDTO;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.QuestionnaireSearchFilter;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.*;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.ProjectDetailResponseDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.ProjectResponseDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.ProjectSummaryResponseDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.RoleSummaryResponseDTO;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.ListProjectQuestionnairesUseCase;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.ListRolesUseCase;
-import com.ethicalsoft.ethicalsoft_complience.application.usecase.SendQuestionnaireReminderUseCase;
+import com.ethicalsoft.ethicalsoft_complience.application.usecase.notification.SendNotificationUseCase;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.project.CreateProjectUseCase;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.project.GetProjectByIdUseCase;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.project.SearchProjectsUseCase;
+import com.ethicalsoft.ethicalsoft_complience.domain.notification.NotificationType;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -31,7 +34,7 @@ public class ProjectController {
     private final SearchProjectsUseCase searchProjectsUseCase;
     private final GetProjectByIdUseCase getProjectByIdUseCase;
     private final ListProjectQuestionnairesUseCase listProjectQuestionnairesUseCase;
-    private final SendQuestionnaireReminderUseCase sendQuestionnaireReminderUseCase;
+    private final SendNotificationUseCase sendNotificationUseCase;
 
     @GetMapping("/roles")
     public List<RoleSummaryResponseDTO> listRoles() {
@@ -56,23 +59,18 @@ public class ProjectController {
         return getProjectByIdUseCase.execute(projectId);
     }
 
-    @GetMapping("/{projectId}/questionnaires")
-    @PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")
-    public Page<QuestionnaireSummaryResponseDTO> listProjectQuestionnaires(
-            @PathVariable Long projectId,
-            @RequestParam(name = "name", required = false) String questionnaireName,
-            @RequestParam(name = "stage", required = false) String stageName,
-            @RequestParam(name = "iteration", required = false) String iterationName,
-            @PageableDefault(page = 0, size = 10) Pageable pageable) {
-        QuestionnaireSearchFilter filter = new QuestionnaireSearchFilter(questionnaireName, stageName, iterationName);
-        return listProjectQuestionnairesUseCase.execute(projectId, pageable, filter);
-    }
-
     @PostMapping("/{projectId}/questionnaires/{questionnaireId}/reminders")
     @PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")
     public void sendQuestionnaireReminder(@PathVariable Long projectId,
                                           @PathVariable Integer questionnaireId,
                                           @Valid @RequestBody QuestionnaireReminderRequestDTO requestDTO) {
-        sendQuestionnaireReminderUseCase.execute(projectId, questionnaireId, requestDTO);
+        sendNotificationUseCase.execute(new com.ethicalsoft.ethicalsoft_complience.application.usecase.notification.command.SendNotificationCommand(
+                NotificationType.QUESTIONNAIRE_REMINDER,
+                java.util.Map.of(
+                        "projectId", projectId,
+                        "questionnaireId", questionnaireId,
+                        "recipients", requestDTO.emails()
+                )
+        ));
     }
 }

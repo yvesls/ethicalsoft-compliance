@@ -4,7 +4,7 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.Questionn
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.LinkDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.QuestionnaireAnswerRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
-import com.ethicalsoft.ethicalsoft_complience.util.ObjectUtil;
+import com.ethicalsoft.ethicalsoft_complience.common.util.ObjectUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -29,7 +29,7 @@ public class QuestionnaireAnswerPolicy {
         if (Boolean.TRUE.equals(dto.getResponse()) && CollectionUtils.isEmpty(dto.getAttachments())) {
             throw new BusinessException("Anexos são obrigatórios quando a resposta é 'Sim'.");
         }
-        if (Boolean.FALSE.equals(dto.getResponse()) && ObjectUtil.isNullOrEmpty(dto.getJustification())) {
+        if (Boolean.FALSE.equals(dto.getResponse()) && ObjectUtils.isNullOrEmpty(dto.getJustification())) {
             throw new BusinessException("Justificativa é obrigatória quando a resposta é 'Não'.");
         }
 
@@ -60,4 +60,3 @@ public class QuestionnaireAnswerPolicy {
         return linkMapper.toDocument(dto);
     }
 }
-

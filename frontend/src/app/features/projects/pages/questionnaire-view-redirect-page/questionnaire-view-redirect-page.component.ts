@@ -61,11 +61,14 @@ export class QuestionnaireViewRedirectPageComponent implements OnInit {
                   ? '/projects/questionnaire/cascata'
                   : '/projects/questionnaire/iterativo';
 
+              const returnTo = `/projects/${projectId}`;
+
               void this.routerService.navigateTo<ViewRedirectParams>(target, {
                 params: {
                   projectId,
                   questionnaireId,
                   mode: ActionType.VIEW,
+                  returnTo,
                 },
               });
             },

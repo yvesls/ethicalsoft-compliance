@@ -5,27 +5,29 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Repres
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Role;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.User;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.RepresentativeDTO;
-import com.ethicalsoft.ethicalsoft_complience.application.port.NotificationDispatcherPort;
-import com.ethicalsoft.ethicalsoft_complience.application.port.dto.NewUserCredentialsNotificationDTO;
-import com.ethicalsoft.ethicalsoft_complience.application.port.dto.ProjectAssignmentNotificationDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.RepresentativeRepository;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.RoleRepository;
+import com.ethicalsoft.ethicalsoft_complience.application.port.CurrentUserPort;
+import com.ethicalsoft.ethicalsoft_complience.application.usecase.notification.SendNotificationUseCase;
+import com.ethicalsoft.ethicalsoft_complience.application.usecase.notification.command.SendNotificationCommand;
+import com.ethicalsoft.ethicalsoft_complience.common.util.ObjectUtils;
+import com.ethicalsoft.ethicalsoft_complience.domain.notification.NotificationType;
 import com.ethicalsoft.ethicalsoft_complience.domain.service.ProjectCurrentStagePolicy;
 import com.ethicalsoft.ethicalsoft_complience.domain.service.RoleMappingPolicy;
 import com.ethicalsoft.ethicalsoft_complience.domain.service.UserResolutionPolicy;
 import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
-import com.ethicalsoft.ethicalsoft_complience.postgres.repository.RepresentativeRepository;
-import com.ethicalsoft.ethicalsoft_complience.postgres.repository.RoleRepository;
-import com.ethicalsoft.ethicalsoft_complience.service.AuthService;
-import com.ethicalsoft.ethicalsoft_complience.service.QuestionnaireService;
-import com.ethicalsoft.ethicalsoft_complience.util.ObjectUtil;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -37,12 +39,11 @@ public class AddRepresentativeUseCase {
 
     private final RepresentativeRepository representativeRepository;
     private final RoleRepository roleRepository;
-    private final AuthService authService;
+    private final CurrentUserPort currentUserPort;
     private final UserResolutionPolicy userResolutionPolicy;
     private final RoleMappingPolicy roleMappingPolicy;
-    private final QuestionnaireService questionnaireService;
     private final ProjectCurrentStagePolicy projectCurrentStagePolicy;
-    private final NotificationDispatcherPort notificationDispatcher;
+    private final SendNotificationUseCase sendNotificationUseCase;
 
     @Transactional
     public Set<Representative> execute(Project project, Set<RepresentativeDTO> repDTOs) {
@@ -50,15 +51,15 @@ public class AddRepresentativeUseCase {
             log.info("[usecase-add-representative] Adicionando representantes para projeto id={} quantidade={}",
                     project != null ? project.getId() : null, repDTOs != null ? repDTOs.size() : 0);
 
-            if (ObjectUtil.isNullOrEmpty(repDTOs)) {
+            if (ObjectUtils.isNullOrEmpty(repDTOs)) {
                 return new HashSet<>();
             }
-            if (ObjectUtil.isNullOrEmpty(project)) {
+            if (ObjectUtils.isNullOrEmpty(project)) {
                 throw new BusinessException("Projeto inválido para criação de representantes.");
             }
 
             Map<Long, Role> resolvedRoles = resolveRoles(repDTOs);
-            User currentAdmin = authService.getAuthenticatedUser();
+            User currentAdmin = currentUserPort.getCurrentUser();
 
             Set<Representative> representatives = repDTOs.stream()
                     .map(dto -> processRepresentative(dto, project, resolvedRoles, currentAdmin))
@@ -102,7 +103,6 @@ public class AddRepresentativeUseCase {
         rep.setCreationDate(LocalDate.now());
 
         representativeRepository.save(rep);
-        questionnaireService.createResponsesForRepresentative(project, rep);
 
         notifyUser(resolution, rep, project, currentAdmin);
 
@@ -110,30 +110,50 @@ public class AddRepresentativeUseCase {
     }
 
     private void notifyUser(UserResolutionPolicy.UserResolutionResult resolution, Representative rep, Project project, User currentAdmin) {
-        resolution.temporaryPassword().ifPresent(tempPassword -> {
-            NewUserCredentialsNotificationDTO credentialsDTO = new NewUserCredentialsNotificationDTO(
-                    rep.getUser().getEmail(),
-                    rep.getUser().getFirstName(),
-                    tempPassword,
-                    rep.getProject().getName(),
-                    currentAdmin.getFirstName() + " " + currentAdmin.getLastName()
-            );
-            notificationDispatcher.dispatchNewUserCredentials(credentialsDTO);
-        });
+        Runnable sendNotifications = () -> {
+            resolution.temporaryPassword().ifPresent(tempPassword -> {
+                Map<String, Object> ctx = new java.util.HashMap<>();
+                ctx.put("to", rep.getUser().getEmail());
+                ctx.put("firstName", Optional.ofNullable(rep.getUser().getFirstName()).orElse(""));
+                ctx.put("tempPassword", Optional.ofNullable(tempPassword).orElse(""));
+                ctx.put("projectName", Optional.ofNullable(rep.getProject()).map(Project::getName).orElse(""));
+                ctx.put("adminName", Optional.ofNullable(currentAdmin.getFirstName()).orElse("") + " " + Optional.ofNullable(currentAdmin.getLastName()).orElse(""));
+                ctx.put("projectId", Optional.ofNullable(rep.getProject()).map(Project::getId).orElse(null));
 
-        ProjectAssignmentNotificationDTO assignmentDTO = new ProjectAssignmentNotificationDTO(
-                rep.getUser().getEmail(),
-                rep.getUser().getFirstName(),
-                project.getName(),
-                project.getId(),
-                currentAdmin.getFirstName() + " " + currentAdmin.getLastName(),
-                currentAdmin.getEmail(),
-                rep.getRoles().stream().map(Role::getName).toList(),
-                project.getCurrentSituation(),
-                project.getStartDate(),
-                project.getDeadline(),
-                projectCurrentStagePolicy.findNextQuestionnaireDate(project)
-        );
-        notificationDispatcher.dispatchProjectAssignment(assignmentDTO);
+                sendNotificationUseCase.execute(new SendNotificationCommand(
+                        NotificationType.NEW_USER_CREDENTIALS,
+                        ctx
+                ));
+            });
+
+            Map<String, Object> ctx = new java.util.HashMap<>();
+            ctx.put("to", rep.getUser().getEmail());
+            ctx.put("firstName", Optional.ofNullable(rep.getUser().getFirstName()).orElse(""));
+            ctx.put("projectName", Optional.ofNullable(project.getName()).orElse(""));
+            ctx.put("projectId", Optional.ofNullable(project.getId()).orElse(null));
+            ctx.put("adminName", Optional.ofNullable(currentAdmin.getFirstName()).orElse("") + " " + Optional.ofNullable(currentAdmin.getLastName()).orElse(""));
+            ctx.put("adminEmail", Optional.ofNullable(currentAdmin.getEmail()).orElse(""));
+            ctx.put("roles", Optional.ofNullable(rep.getRoles()).orElse(Set.of()).stream().map(Role::getName).toList());
+            ctx.put("timelineSummary", Optional.ofNullable(project.getCurrentSituation()).orElse(""));
+            ctx.put("startDate", project.getStartDate());
+            ctx.put("deadline", project.getDeadline());
+            ctx.put("nextQuestionnaireDate", projectCurrentStagePolicy.findNextQuestionnaireDate(project));
+
+            sendNotificationUseCase.execute(new SendNotificationCommand(
+                    NotificationType.PROJECT_ASSIGNMENT,
+                    ctx
+            ));
+        };
+
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    sendNotifications.run();
+                }
+            });
+        } else {
+            sendNotifications.run();
+        }
     }
 }

@@ -26,6 +26,7 @@ import { QuestionnaireRespondentStatus } from '../../../../shared/interfaces/pro
 import { ModalService } from '../../../../core/services/modal.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { ProjectContextService } from '../../../../core/services/project-context.service';
+import { RouterService } from '../../../../core/services/router.service';
 import { AuthenticationService, UserInterface } from '../../../../core/services/authentication.service';
 import { RoleEnum } from '../../../../shared/enums/role.enum';
 
@@ -52,6 +53,7 @@ export class QuestionnaireResponsePageComponent implements OnInit {
   private readonly modalService = inject(ModalService);
   private readonly notification = inject(NotificationService);
   private readonly projectContext = inject(ProjectContextService);
+  private readonly routerService = inject(RouterService);
   private readonly authService = inject(AuthenticationService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -94,11 +96,12 @@ export class QuestionnaireResponsePageComponent implements OnInit {
   }
 
   onNavigateBack(): void {
+    const fallback = '/projects';
     if (this.projectId) {
-      this.router.navigate(['/projects', this.projectId]);
+      this.routerService.backToPrevious(0, true, undefined, `/projects/${this.projectId}`);
       return;
     }
-    this.router.navigate(['/projects']);
+    this.routerService.backToPrevious(0, true, undefined, fallback);
   }
 
   onPageChange(page: number): void {

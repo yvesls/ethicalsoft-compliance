@@ -6,9 +6,9 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Stage;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.QuestionnaireDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.StageDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.ProjectCreationRequestDTO;
-import com.ethicalsoft.ethicalsoft_complience.postgres.repository.StageRepository;
-import com.ethicalsoft.ethicalsoft_complience.service.QuestionnaireService;
-import com.ethicalsoft.ethicalsoft_complience.service.strategy.project_strategy.WaterfallProjectStrategy;
+import com.ethicalsoft.ethicalsoft_complience.application.port.project.StageCommandPort;
+import com.ethicalsoft.ethicalsoft_complience.application.port.questionnaire.ProjectQuestionnaireCommandPort;
+import com.ethicalsoft.ethicalsoft_complience.application.service.strategy.project_strategy.WaterfallProjectStrategy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,9 +35,9 @@ import static org.mockito.Mockito.when;
 class WaterfallProjectStrategyTest {
 
 	@Mock
-	private StageRepository stageRepository;
+	private StageCommandPort stageCommandPort;
 	@Mock
-	private QuestionnaireService questionnaireService;
+	private ProjectQuestionnaireCommandPort projectQuestionnaireCommandPort;
 
 	@InjectMocks
 	private WaterfallProjectStrategy strategy;
@@ -68,22 +68,22 @@ class WaterfallProjectStrategyTest {
 	}
 
 	@Test
-	void createStructure_shouldSaveStagesAndCallQuestionnaireService() {
+	void createStructure_shouldSaveStagesAndCallQuestionnairePort() {
 		Stage savedStage = new Stage();
 		savedStage.setId( 1 );
 		savedStage.setName( "Requirements" );
 		savedStage.setProject( project );
 
-		when( stageRepository.saveAll( any( List.class ) ) ).thenReturn( List.of( savedStage ) );
+		when( stageCommandPort.saveAll( any( List.class ) ) ).thenReturn( List.of( savedStage ) );
 
 		strategy.createStructure( project, request );
 
-		verify( stageRepository ).saveAll( stagesCaptor.capture() );
+		verify( stageCommandPort ).saveAll( stagesCaptor.capture() );
 		List<Stage> savedStages = stagesCaptor.getValue();
 		assertEquals( 1, savedStages.size() );
 		assertEquals( project, savedStages.get( 0 ).getProject() );
 
-		verify( questionnaireService ).createQuestionnaires( eq( project ), eq( request.getQuestionnaires() ), stageMapCaptor.capture(), iterationMapCaptor.capture() );
+		verify( projectQuestionnaireCommandPort ).createQuestionnaires( eq( project ), eq( request.getQuestionnaires() ), stageMapCaptor.capture(), iterationMapCaptor.capture() );
 
 		Map<String, Stage> capturedStageMap = stageMapCaptor.getValue();
 		assertEquals( 1, capturedStageMap.size() );

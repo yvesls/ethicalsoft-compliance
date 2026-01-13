@@ -1,5 +1,6 @@
 package com.ethicalsoft.ethicalsoft_complience.domain.service;
 
+import com.ethicalsoft.ethicalsoft_complience.application.port.CurrentUserPort;
 import com.ethicalsoft.ethicalsoft_complience.domain.repository.ProjectRepositoryPort;
 import com.ethicalsoft.ethicalsoft_complience.domain.repository.RepresentativeRepositoryPort;
 import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
@@ -7,7 +8,6 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Projec
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Representative;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.User;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.UserRoleEnum;
-import com.ethicalsoft.ethicalsoft_complience.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,10 +19,10 @@ public class RepresentativeAccessPolicy {
 
     private final ProjectRepositoryPort projectRepository;
     private final RepresentativeRepositoryPort representativeRepository;
-    private final AuthService authService;
+    private final CurrentUserPort currentUserPort;
 
     public Long resolveRepresentativeId(Long projectId) {
-        User authenticated = authService.getAuthenticatedUser();
+        User authenticated = currentUserPort.getCurrentUser();
         if (UserRoleEnum.ADMIN.equals(authenticated.getRole()) || projectRepository.existsByIdAndOwnerId(projectId, authenticated.getId())) {
             return null;
         }
@@ -39,4 +39,3 @@ public class RepresentativeAccessPolicy {
         }
     }
 }
-

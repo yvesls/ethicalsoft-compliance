@@ -2,7 +2,7 @@ package com.ethicalsoft.ethicalsoft_complience.exception;
 
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.ErrorTypeEnum;
-import com.ethicalsoft.ethicalsoft_complience.util.ObjectUtil;
+import com.ethicalsoft.ethicalsoft_complience.common.util.ObjectUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -37,7 +37,7 @@ public class ExceptionResponseDTO {
 		this.path = request.getServletPath();
 		this.error = httpStatus.name();
 		this.stackTrace = stackTrace;
-		this.errorType = ObjectUtil.isNullOrEmpty( errorType ) ? ErrorTypeEnum.ERROR : errorType;
+		this.errorType = ObjectUtils.isNullOrEmpty( errorType ) ? ErrorTypeEnum.ERROR : errorType;
 	}
 
 	@Override

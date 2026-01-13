@@ -30,6 +30,7 @@ interface CascataQuestionnaireRouteParams extends GenericParams {
   applicationStartDate?: string;
   applicationEndDate?: string;
   questions?: QuestionData[];
+  returnTo?: string;
 }
 
 type CascataQuestionnaireRestoreParams = RestoreParams<CascataQuestionnaireRouteParams>;
@@ -52,6 +53,7 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
   private questionnaireMetadata: CascataQuestionnaireRouteParams | null = null;
   private skipStatePersistence = false;
   private currentStageName: string | null = null;
+  private returnTo: string | null = null;
 
   readonly mode = signal<ActionType>(ActionType.EDIT);
   readonly isViewMode = signal(false);
@@ -121,6 +123,7 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
     this.isViewMode.set(incomingMode === ActionType.VIEW);
     this.viewProjectId.set(typeof data.projectId === 'string' ? data.projectId : null);
     this.viewQuestionnaireId.set(typeof data.questionnaireId === 'number' ? data.questionnaireId : null);
+  this.returnTo = typeof data.returnTo === 'string' ? data.returnTo : null;
 
     this.questionnaireIndex = typeof data.questionnaireIndex === 'number' ? data.questionnaireIndex : null;
     this.questionnaireMetadata = data;
@@ -338,7 +341,12 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
 
   private navigateBack(updatedParams?: GenericParams): void {
     this.skipStatePersistence = true;
-    this.routerService.backToPrevious(0, true, updatedParams);
+    if (this.returnTo) {
+      this.routerService.navigateTo(this.returnTo);
+      return;
+    }
+
+    this.routerService.backToPrevious(0, true, updatedParams, '/projects');
   }
 
   private annotateQuestionsWithStage(questions?: QuestionData[]): QuestionData[] {

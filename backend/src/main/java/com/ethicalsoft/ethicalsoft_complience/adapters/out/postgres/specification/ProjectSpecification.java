@@ -20,6 +20,7 @@ public class ProjectSpecification {
 	public static Specification<Project> findByCriteria(ProjectSearchRequestDTO filters, User currentUser) {
 
 		return (root, query, cb) -> {
+			query.distinct(true);
 			List<Predicate> predicates = new ArrayList<>();
 
 			if (StringUtils.hasText(filters.getName())) {
@@ -31,19 +32,16 @@ public class ProjectSpecification {
                 predicates.add(cb.equal(root.get("type"), typeEnum));
 			}
 
-			if ( StringUtils.hasText(filters.getStatus())) {
+			if (StringUtils.hasText(filters.getStatus())) {
                 ProjectStatusEnum statusEnum = ProjectStatusEnum.valueOf(filters.getStatus().toUpperCase());
                 predicates.add(cb.equal(root.get("status"), statusEnum));
 			}
 
 			if (currentUser != null) {
-				Join<Object, Object> representativeJoin = root.join("representatives", JoinType.LEFT);
 				if (UserRoleEnum.ADMIN.equals(currentUser.getRole())) {
-					predicates.add(cb.or(
-						cb.equal(root.get("owner").get("id"), currentUser.getId()),
-						cb.equal(representativeJoin.get("user").get("id"), currentUser.getId())
-					));
+					predicates.add(cb.equal(root.get("owner").get("id"), currentUser.getId()));
 				} else {
+					Join<Object, Object> representativeJoin = root.join("representatives", JoinType.LEFT);
 					predicates.add(cb.equal(representativeJoin.get("user").get("id"), currentUser.getId()));
 				}
 			}
