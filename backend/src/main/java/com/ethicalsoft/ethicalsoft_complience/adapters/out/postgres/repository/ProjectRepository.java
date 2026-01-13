@@ -1,13 +1,13 @@
 package com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository;
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Project;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.ProjectStatusEnum;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,6 +34,8 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, JpaSpec
     List<Project> findAll(Specification<Project> spec);
 
     @Query("select distinct p from Project p left join fetch p.representatives r left join fetch r.user " +
-            "where p.deadline is not null and p.deadline between :from and :to and p.status <> com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.ProjectStatusEnum.ENCERRADO")
-    List<Project> findWithDeadlineBetween(@Param("from") LocalDate from, @Param("to") LocalDate to);
+            "where p.deadline is not null and p.deadline between :from and :to and p.status <> :closedStatus")
+    List<Project> findWithDeadlineBetween(@Param("from") java.time.LocalDate from,
+                                          @Param("to") java.time.LocalDate to,
+                                          @Param("closedStatus") ProjectStatusEnum closedStatus);
 }

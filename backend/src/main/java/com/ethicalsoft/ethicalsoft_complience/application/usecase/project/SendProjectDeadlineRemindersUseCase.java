@@ -31,7 +31,8 @@ public class SendProjectDeadlineRemindersUseCase {
     public void execute() {
         LocalDate today = LocalDate.now();
         LocalDate until = today.plusDays(DEFAULT_WINDOW_DAYS);
-        List<Project> projects = projectRepository.findWithDeadlineBetween(today, until);
+        List<Project> projects = projectRepository.findWithDeadlineBetween(today, until,
+                com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.ProjectStatusEnum.CONCLUIDO);
 
         for (Project project : projects) {
             try {
@@ -66,4 +67,3 @@ public class SendProjectDeadlineRemindersUseCase {
         sendNotificationUseCase.execute(new SendNotificationCommand(NotificationType.DEADLINE_REMINDER, context));
     }
 }
-
