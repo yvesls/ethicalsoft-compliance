@@ -27,6 +27,7 @@ public class NotificationTemplateDocument {
 
     private String title;
     private String body;
+    private String templateLink;
 
     private List<String> channels;
 }

@@ -3,11 +3,7 @@ package com.ethicalsoft.ethicalsoft_complience.application.usecase.notification;
 import com.ethicalsoft.ethicalsoft_complience.application.port.notification.InternalNotificationPort;
 import com.ethicalsoft.ethicalsoft_complience.application.port.notification.NotificationTemplatePort;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.notification.command.SendInternalNotificationCommand;
-import com.ethicalsoft.ethicalsoft_complience.domain.notification.Notification;
-import com.ethicalsoft.ethicalsoft_complience.domain.notification.NotificationParty;
-import com.ethicalsoft.ethicalsoft_complience.domain.notification.NotificationStatus;
-import com.ethicalsoft.ethicalsoft_complience.domain.notification.NotificationTemplate;
-import com.ethicalsoft.ethicalsoft_complience.domain.notification.ResolvePlaceholderPolicy;
+import com.ethicalsoft.ethicalsoft_complience.domain.notification.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.access.AccessDeniedException;
 
@@ -16,7 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -35,9 +32,9 @@ class SendInternalNotificationUseCaseTest {
                         List.of("AGENT"),
                         "Pendência: {questionnaireName}",
                         "Projeto {projectName}",
+                        null,
                         List.of(com.ethicalsoft.ethicalsoft_complience.domain.notification.NotificationChannel.INTERNAL)
                 )));
-
         when(internalPort.save(any())).thenAnswer(inv -> {
             Notification n = inv.getArgument(0);
             return new Notification(
@@ -82,9 +79,9 @@ class SendInternalNotificationUseCaseTest {
                         List.of("PROJECT_MANAGER"),
                         List.of("AGENT"),
                         "T", "B",
+                        null,
                         List.of(com.ethicalsoft.ethicalsoft_complience.domain.notification.NotificationChannel.INTERNAL)
                 )));
-
         var useCase = new SendInternalNotificationUseCase(templatePort, internalPort, policy);
 
         var cmd = new SendInternalNotificationCommand(
@@ -98,4 +95,3 @@ class SendInternalNotificationUseCaseTest {
         verify(internalPort, never()).save(any());
     }
 }
-

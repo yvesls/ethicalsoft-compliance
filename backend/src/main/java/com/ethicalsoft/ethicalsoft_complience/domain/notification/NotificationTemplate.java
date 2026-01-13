@@ -8,7 +8,7 @@ public record NotificationTemplate(
         List<String> recipients,
         String title,
         String body,
+        String templateLink,
         List<NotificationChannel> channels
 ) {
 }
-

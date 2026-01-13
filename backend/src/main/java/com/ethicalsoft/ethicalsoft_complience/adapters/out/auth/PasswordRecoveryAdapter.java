@@ -1,14 +1,16 @@
 package com.ethicalsoft.ethicalsoft_complience.adapters.out.auth;
 
-import com.ethicalsoft.ethicalsoft_complience.application.port.NotificationDispatcherPort;
-import com.ethicalsoft.ethicalsoft_complience.application.port.PasswordRecoveryPort;
-import com.ethicalsoft.ethicalsoft_complience.exception.UserNotFoundException;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.RecoveryCode;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.auth.CodeValidationDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.auth.PasswordRecoveryDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.auth.PasswordResetDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.RecoveryCodeRepository;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.UserRepository;
+import com.ethicalsoft.ethicalsoft_complience.application.port.PasswordRecoveryPort;
+import com.ethicalsoft.ethicalsoft_complience.application.usecase.notification.SendNotificationUseCase;
+import com.ethicalsoft.ethicalsoft_complience.application.usecase.notification.command.SendNotificationCommand;
+import com.ethicalsoft.ethicalsoft_complience.domain.notification.NotificationType;
+import com.ethicalsoft.ethicalsoft_complience.exception.UserNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -28,7 +31,7 @@ public class PasswordRecoveryAdapter implements PasswordRecoveryPort {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final RecoveryCodeRepository recoveryCodeRepository;
-    private final NotificationDispatcherPort notificationDispatcher;
+    private final SendNotificationUseCase sendNotificationUseCase;
 
     @Override
     @Transactional(rollbackOn = Exception.class)
@@ -41,7 +44,10 @@ public class PasswordRecoveryAdapter implements PasswordRecoveryPort {
             RecoveryCode recoveryCode = new RecoveryCode( passwordRecoveryDTO.getEmail(), code, LocalDateTime.now().plusMinutes( 10 ) );
 
             recoveryCodeRepository.save( recoveryCode );
-            notificationDispatcher.dispatchRecoveryCode( passwordRecoveryDTO.getEmail(), code );
+            sendNotificationUseCase.execute(new SendNotificationCommand(
+                    NotificationType.PASSWORD_RECOVERY,
+                    Map.of("to", passwordRecoveryDTO.getEmail(), "code", code)
+            ));
             log.info("[password-recovery] Código de recuperação gerado e notificação despachada para {}", passwordRecoveryDTO.getEmail());
         } catch ( Exception ex ) {
             log.error("[password-recovery] Falha ao solicitar recuperação para {}", passwordRecoveryDTO != null ? passwordRecoveryDTO.getEmail() : null, ex);

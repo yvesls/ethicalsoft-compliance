@@ -11,9 +11,11 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.P
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.QuestionnaireRepository;
 import com.ethicalsoft.ethicalsoft_complience.application.port.CurrentUserPort;
 import com.ethicalsoft.ethicalsoft_complience.application.port.ProjectCommandPort;
-import com.ethicalsoft.ethicalsoft_complience.application.port.QuestionnaireReminderPort;
 import com.ethicalsoft.ethicalsoft_complience.application.service.strategy.ProjectCreationStrategy;
+import com.ethicalsoft.ethicalsoft_complience.application.usecase.notification.SendNotificationUseCase;
+import com.ethicalsoft.ethicalsoft_complience.application.usecase.notification.command.SendNotificationCommand;
 import com.ethicalsoft.ethicalsoft_complience.common.util.mapper.ModelMapperUtils;
+import com.ethicalsoft.ethicalsoft_complience.domain.notification.NotificationType;
 import com.ethicalsoft.ethicalsoft_complience.domain.service.ProjectTimelineStatusPolicy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,7 +32,7 @@ public class CreateProjectUseCase implements ProjectCommandPort {
     private final CurrentUserPort currentUserPort;
     private final ProjectTimelineStatusPolicy projectTimelineStatusPolicy;
     private final AddRepresentativeUseCase addRepresentativeUseCase;
-    private final QuestionnaireReminderPort questionnaireReminderPort;
+    private final SendNotificationUseCase sendNotificationUseCase;
     private final QuestionnaireRepository questionnaireRepository;
 
     private final Map<ProjectTypeEnum, ProjectCreationStrategy> strategyMap = new EnumMap<>(ProjectTypeEnum.class);
@@ -40,13 +42,13 @@ public class CreateProjectUseCase implements ProjectCommandPort {
                                ProjectTimelineStatusPolicy projectTimelineStatusPolicy,
                                AddRepresentativeUseCase addRepresentativeUseCase,
                                List<ProjectCreationStrategy> creationStrategies,
-                               QuestionnaireReminderPort questionnaireReminderPort,
+                               SendNotificationUseCase sendNotificationUseCase,
                                QuestionnaireRepository questionnaireRepository) {
         this.projectRepository = projectRepository;
         this.currentUserPort = currentUserPort;
         this.projectTimelineStatusPolicy = projectTimelineStatusPolicy;
         this.addRepresentativeUseCase = addRepresentativeUseCase;
-        this.questionnaireReminderPort = questionnaireReminderPort;
+        this.sendNotificationUseCase = sendNotificationUseCase;
         this.questionnaireRepository = questionnaireRepository;
 
         if (creationStrategies != null) {
@@ -110,16 +112,6 @@ public class CreateProjectUseCase implements ProjectCommandPort {
         return projectRepository.save(project);
     }
 
-    private void triggerInitialQuestionnaireReminders(Project project) {
-        project.getQuestionnaires().forEach(q -> {
-            try {
-                questionnaireReminderPort.sendAutomaticReminder(project.getId(), q.getId());
-            } catch (Exception ex) {
-                log.warn("[usecase-create-project] Falha ao disparar lembrete inicial projectId={} questionnaireId={}", project.getId(), q.getId(), ex);
-            }
-        });
-    }
-
     private ProjectResponseDTO buildResponse(Project project, Set<Representative> representatives, ProjectCreationRequestDTO request) {
         return ProjectResponseDTO.builder()
                 .id(project.getId())
@@ -132,5 +124,21 @@ public class CreateProjectUseCase implements ProjectCommandPort {
                 .stageCount(request.getStages() != null ? request.getStages().size() : 0)
                 .iterationCount(request.getIterations() != null ? request.getIterations().size() : 0)
                 .build();
+    }
+
+    private void triggerInitialQuestionnaireReminders(Project project) {
+        project.getQuestionnaires().forEach(q -> {
+            try {
+                sendNotificationUseCase.execute(new SendNotificationCommand(
+                        NotificationType.QUESTIONNAIRE_REMINDER,
+                            java.util.Map.ofEntries(
+                                java.util.Map.entry("projectId", project.getId()),
+                                java.util.Map.entry("questionnaireId", q.getId())
+                        )
+                ));
+            } catch (Exception ex) {
+                log.warn("[usecase-create-project] Falha ao disparar lembrete inicial projectId={} questionnaireId={}", project.getId(), q.getId(), ex);
+            }
+        });
     }
 }

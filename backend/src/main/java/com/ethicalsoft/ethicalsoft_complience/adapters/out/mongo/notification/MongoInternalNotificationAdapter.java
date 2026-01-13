@@ -67,6 +67,7 @@ public class MongoInternalNotificationAdapter implements InternalNotificationPor
                         t.getRecipients(),
                         t.getTitle(),
                         t.getBody(),
+                        t.getTemplateLink(),
                         t.getChannels() == null ? java.util.List.of() : t.getChannels().stream()
                                 .map(s -> s == null ? null : s.toUpperCase(Locale.ROOT))
                                 .filter(java.util.Objects::nonNull)

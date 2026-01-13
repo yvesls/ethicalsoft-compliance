@@ -1,8 +1,6 @@
 package com.ethicalsoft.ethicalsoft_complience;
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.auth.PasswordRecoveryAdapter;
-import com.ethicalsoft.ethicalsoft_complience.application.port.NotificationDispatcherPort;
-import com.ethicalsoft.ethicalsoft_complience.exception.UserNotFoundException;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.RecoveryCode;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.User;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.auth.CodeValidationDTO;
@@ -10,6 +8,7 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.au
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.auth.PasswordResetDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.RecoveryCodeRepository;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.UserRepository;
+import com.ethicalsoft.ethicalsoft_complience.exception.UserNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -23,9 +22,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -37,8 +34,6 @@ class PasswordRecoveryServiceTest {
     private PasswordEncoder passwordEncoder;
     @Mock
     private RecoveryCodeRepository recoveryCodeRepository;
-    @Mock
-    private NotificationDispatcherPort notificationDispatcher;
 
     @InjectMocks
     private PasswordRecoveryAdapter passwordRecoveryService;
@@ -54,7 +49,6 @@ class PasswordRecoveryServiceTest {
         passwordRecoveryService.requestRecovery(passwordRecoveryDTO);
 
         verify(recoveryCodeRepository, times(1)).save(any(RecoveryCode.class));
-        verify(notificationDispatcher, times(1)).dispatchRecoveryCode(anyString(), anyString());
     }
 
     @Test

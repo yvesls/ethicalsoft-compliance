@@ -7,7 +7,7 @@ import java.util.Map;
 @Component
 public class ResolvePlaceholderPolicy {
 
-    public String resolve(String template, Map<String, String> values) {
+    public static String resolve(String template, Map<String, String> values) {
         if (template == null || template.isBlank() || values == null || values.isEmpty()) {
             return template;
         }

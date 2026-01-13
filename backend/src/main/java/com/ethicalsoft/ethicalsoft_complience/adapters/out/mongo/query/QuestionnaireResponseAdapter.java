@@ -8,6 +8,9 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.re
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.QuestionnaireResponseSummaryDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.QuestionnaireResponseStatus;
 import com.ethicalsoft.ethicalsoft_complience.application.port.QuestionnaireResponsePort;
+import com.ethicalsoft.ethicalsoft_complience.application.usecase.notification.SendNotificationUseCase;
+import com.ethicalsoft.ethicalsoft_complience.application.usecase.notification.command.SendNotificationCommand;
+import com.ethicalsoft.ethicalsoft_complience.domain.notification.NotificationType;
 import com.ethicalsoft.ethicalsoft_complience.domain.repository.QuestionnaireRepositoryPort;
 import com.ethicalsoft.ethicalsoft_complience.domain.repository.QuestionnaireResponseRepositoryPort;
 import com.ethicalsoft.ethicalsoft_complience.domain.service.*;
@@ -38,6 +41,7 @@ public class QuestionnaireResponseAdapter implements QuestionnaireResponsePort {
     private final PageSliceResolver pageSliceResolver;
     private final LinkMapper linkMapper;
     private final RepresentativeAccessPolicy representativeAccessPolicy;
+    private final SendNotificationUseCase sendNotificationUseCase;
 
     @Override
     public QuestionnaireAnswerPageResponseDTO getAnswerPage(Long projectId,
@@ -99,6 +103,10 @@ public class QuestionnaireResponseAdapter implements QuestionnaireResponsePort {
             response.setSubmissionDate(status == QuestionnaireResponseStatus.COMPLETED ? LocalDateTime.now() : null);
             questionnaireResponseRepository.save(response);
 
+            if (QuestionnaireResponseStatus.COMPLETED.equals(status)) {
+                triggerQuestionnaireSubmittedNotification(questionnaire, response, effectiveRepresentativeId);
+            }
+
             log.info("[questionnaire-response] Respostas registradas projeto={} questionario={} representante={} status={}", projectId, questionnaireId, effectiveRepresentativeId, status);
             return getAnswerPage(projectId, questionnaireId, PageRequest.of(request.getPageNumber(), request.getPageSize()));
         } catch (Exception ex) {
@@ -157,5 +165,16 @@ public class QuestionnaireResponseAdapter implements QuestionnaireResponsePort {
         return questionnaireResponseRepository
                 .findByProjectIdAndQuestionnaireIdAndRepresentativeId(projectId, questionnaireId, representativeId)
                 .orElseThrow(() -> new BusinessException("Registro de respostas não encontrado"));
+    }
+
+    private void triggerQuestionnaireSubmittedNotification(Questionnaire questionnaire,
+                                                           QuestionnaireResponse response,
+                                                           Long representativeId) {
+        Map<String, Object> context = new java.util.HashMap<>();
+        context.put("projectId", questionnaire.getProject() != null ? questionnaire.getProject().getId() : null);
+        context.put("questionnaireId", questionnaire.getId());
+        context.put("representativeId", representativeId);
+        context.put("submittedAt", response.getSubmissionDate());
+        sendNotificationUseCase.execute(new SendNotificationCommand(NotificationType.QUESTIONNAIRE_SUBMITTED, context));
     }
 }
