@@ -6,7 +6,7 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.au
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.auth.PasswordResetDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.RecoveryCodeRepository;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.UserRepository;
-import com.ethicalsoft.ethicalsoft_complience.application.port.PasswordRecoveryPort;
+import com.ethicalsoft.ethicalsoft_complience.application.port.auth.PasswordRecoveryPort;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.notification.SendNotificationUseCase;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.notification.command.SendNotificationCommand;
 import com.ethicalsoft.ethicalsoft_complience.domain.notification.NotificationType;

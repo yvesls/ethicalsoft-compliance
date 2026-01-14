@@ -7,7 +7,7 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.User;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.RepresentativeDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.RepresentativeRepository;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.RoleRepository;
-import com.ethicalsoft.ethicalsoft_complience.application.port.CurrentUserPort;
+import com.ethicalsoft.ethicalsoft_complience.application.port.auth.CurrentUserPort;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.notification.SendNotificationUseCase;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.notification.command.SendNotificationCommand;
 import com.ethicalsoft.ethicalsoft_complience.common.util.ObjectUtils;

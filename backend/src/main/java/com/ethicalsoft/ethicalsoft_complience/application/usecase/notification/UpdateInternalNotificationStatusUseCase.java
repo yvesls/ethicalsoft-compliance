@@ -1,7 +1,7 @@
 package com.ethicalsoft.ethicalsoft_complience.application.usecase.notification;
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.UserRoleEnum;
-import com.ethicalsoft.ethicalsoft_complience.application.port.CurrentUserPort;
+import com.ethicalsoft.ethicalsoft_complience.application.port.auth.CurrentUserPort;
 import com.ethicalsoft.ethicalsoft_complience.application.port.notification.UpdateInternalNotificationStatusPort;
 import com.ethicalsoft.ethicalsoft_complience.domain.notification.NotificationStatus;
 import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;

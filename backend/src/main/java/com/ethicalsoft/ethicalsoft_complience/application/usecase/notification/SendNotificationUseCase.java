@@ -1,6 +1,6 @@
 package com.ethicalsoft.ethicalsoft_complience.application.usecase.notification;
 
-import com.ethicalsoft.ethicalsoft_complience.application.port.notification.NotificationTypeStrategy;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.notification.NotificationTypeStrategy;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.notification.command.SendNotificationCommand;
 import com.ethicalsoft.ethicalsoft_complience.domain.notification.NotificationType;
 import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;

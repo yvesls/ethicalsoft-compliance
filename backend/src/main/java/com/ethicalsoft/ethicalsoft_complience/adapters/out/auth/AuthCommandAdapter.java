@@ -5,8 +5,8 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.au
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.auth.LoginDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.auth.RefreshTokenDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.auth.RegisterUserDTO;
-import com.ethicalsoft.ethicalsoft_complience.application.port.AuthCommandPort;
-import com.ethicalsoft.ethicalsoft_complience.application.port.RefreshTokenPort;
+import com.ethicalsoft.ethicalsoft_complience.application.port.auth.AuthCommandPort;
+import com.ethicalsoft.ethicalsoft_complience.application.port.auth.RefreshTokenPort;
 import com.ethicalsoft.ethicalsoft_complience.infra.security.TokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

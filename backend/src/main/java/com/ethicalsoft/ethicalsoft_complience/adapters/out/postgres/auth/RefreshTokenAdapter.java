@@ -4,7 +4,7 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Refres
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.User;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.auth.RefreshTokenDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.RefreshTokenRepository;
-import com.ethicalsoft.ethicalsoft_complience.application.port.RefreshTokenPort;
+import com.ethicalsoft.ethicalsoft_complience.application.port.auth.RefreshTokenPort;
 import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

@@ -1,7 +1,7 @@
 package com.ethicalsoft.ethicalsoft_complience.application.usecase.user;
 
-import com.ethicalsoft.ethicalsoft_complience.application.port.UserQueryPort;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.UserDTO;
+import com.ethicalsoft.ethicalsoft_complience.application.port.auth.UserQueryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

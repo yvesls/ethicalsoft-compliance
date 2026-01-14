@@ -9,8 +9,8 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.TimelineStatusEnum;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.ProjectRepository;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.QuestionnaireRepository;
-import com.ethicalsoft.ethicalsoft_complience.application.port.CurrentUserPort;
-import com.ethicalsoft.ethicalsoft_complience.application.port.ProjectCommandPort;
+import com.ethicalsoft.ethicalsoft_complience.application.port.auth.CurrentUserPort;
+import com.ethicalsoft.ethicalsoft_complience.application.port.project.ProjectCommandPort;
 import com.ethicalsoft.ethicalsoft_complience.application.service.strategy.ProjectCreationStrategy;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.notification.SendNotificationUseCase;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.notification.command.SendNotificationCommand;

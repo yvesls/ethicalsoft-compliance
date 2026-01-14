@@ -2,7 +2,7 @@ package com.ethicalsoft.ethicalsoft_complience.application.usecase;
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.QuestionnaireSearchFilter;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.QuestionnaireSummaryResponseDTO;
-import com.ethicalsoft.ethicalsoft_complience.application.port.ProjectQuestionnaireQueryPort;
+import com.ethicalsoft.ethicalsoft_complience.application.port.project.ProjectQuestionnaireQueryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

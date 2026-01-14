@@ -8,9 +8,8 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.ProjectRepository;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.QuestionnaireRepository;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.UserRepository;
-import com.ethicalsoft.ethicalsoft_complience.application.port.CurrentUserPort;
+import com.ethicalsoft.ethicalsoft_complience.application.port.auth.CurrentUserPort;
 import com.ethicalsoft.ethicalsoft_complience.application.port.notification.NotificationTemplatePort;
-import com.ethicalsoft.ethicalsoft_complience.application.port.notification.NotificationTypeStrategy;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.notification.command.SendNotificationCommand;
 import com.ethicalsoft.ethicalsoft_complience.domain.notification.NotificationAuthorizationPolicy;
 import com.ethicalsoft.ethicalsoft_complience.domain.notification.NotificationParty;

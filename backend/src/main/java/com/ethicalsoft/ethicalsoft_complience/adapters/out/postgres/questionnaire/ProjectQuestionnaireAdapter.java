@@ -131,21 +131,23 @@ public class ProjectQuestionnaireAdapter implements ProjectQuestionnaireCommandP
             return Collections.emptyList();
         }
 
-        return persistedQuestions.stream().map(question -> {
-            QuestionnaireResponse.AnswerDocument answer = new QuestionnaireResponse.AnswerDocument();
-            answer.setQuestionId(question.getId().longValue());
-            answer.setQuestionText(question.getValue());
-            answer.setStageIds(Optional.ofNullable(question.getStages())
-                    .orElse(Collections.emptySet())
-                    .stream()
-                    .map(Stage::getId)
-                    .filter(Objects::nonNull)
-                    .toList());
-            if (question.getRoles() != null) {
-                answer.setRoleIds(question.getRoles().stream().map(Role::getId).collect(Collectors.toList()));
-            }
-            return answer;
-        }).collect(Collectors.toList());
+        return persistedQuestions.stream().map(this::toAnswerDocument).toList();
+    }
+
+    private QuestionnaireResponse.AnswerDocument toAnswerDocument(Question question) {
+        QuestionnaireResponse.AnswerDocument answer = new QuestionnaireResponse.AnswerDocument();
+        answer.setQuestionId(question.getId().longValue());
+        answer.setQuestionText(question.getValue());
+        answer.setStageIds(Optional.ofNullable(question.getStages())
+                .orElse(Collections.emptySet())
+                .stream()
+                .map(Stage::getId)
+                .filter(Objects::nonNull)
+                .toList());
+        if (question.getRoles() != null) {
+            answer.setRoleIds(question.getRoles().stream().map(Role::getId).collect(Collectors.toList()));
+        }
+        return answer;
     }
 
     private void createInitialResponses(Project project,
@@ -155,29 +157,29 @@ public class ProjectQuestionnaireAdapter implements ProjectQuestionnaireCommandP
         Set<Representative> representatives = Optional.ofNullable(project.getRepresentatives()).orElse(Collections.emptySet());
 
         if (representatives.isEmpty()) {
-            QuestionnaireResponse base = new QuestionnaireResponse();
-            base.setProjectId(project.getId());
-            base.setQuestionnaireId(questionnaire.getId());
-            base.setRepresentativeId(null);
-            base.setStageId(questionnaire.getStage() != null ? questionnaire.getStage().getId() : null);
-            base.setStatus(QuestionnaireResponseStatus.PENDING);
-            base.setAnswers(cloneAnswerTemplate(answerTemplate));
-            questionnaireResponseRepository.save(base);
+            questionnaireResponseRepository.save(buildResponse(project, questionnaire, null, answerTemplate));
             return;
         }
 
-        List<QuestionnaireResponse> responseDocuments = representatives.stream().map(rep -> {
-            QuestionnaireResponse response = new QuestionnaireResponse();
-            response.setProjectId(project.getId());
-            response.setQuestionnaireId(questionnaire.getId());
-            response.setRepresentativeId(rep.getId());
-            response.setStageId(questionnaire.getStage() != null ? questionnaire.getStage().getId() : null);
-            response.setStatus(QuestionnaireResponseStatus.PENDING);
-            response.setAnswers(cloneAnswerTemplate(answerTemplate));
-            return response;
-        }).collect(Collectors.toList());
+        List<QuestionnaireResponse> responseDocuments = representatives.stream()
+                .map(rep -> buildResponse(project, questionnaire, rep.getId(), answerTemplate))
+                .toList();
 
         questionnaireResponseRepository.saveAll(responseDocuments);
+    }
+
+    private QuestionnaireResponse buildResponse(Project project,
+                                                Questionnaire questionnaire,
+                                                Long representativeId,
+                                                List<QuestionnaireResponse.AnswerDocument> answerTemplate) {
+        QuestionnaireResponse response = new QuestionnaireResponse();
+        response.setProjectId(project.getId());
+        response.setQuestionnaireId(questionnaire.getId());
+        response.setRepresentativeId(representativeId);
+        response.setStageId(questionnaire.getStage() != null ? questionnaire.getStage().getId() : null);
+        response.setStatus(QuestionnaireResponseStatus.PENDING);
+        response.setAnswers(cloneAnswerTemplate(answerTemplate));
+        return response;
     }
 
     private List<QuestionnaireResponse.AnswerDocument> cloneAnswerTemplate(List<QuestionnaireResponse.AnswerDocument> template) {
@@ -185,20 +187,20 @@ public class ProjectQuestionnaireAdapter implements ProjectQuestionnaireCommandP
             return Collections.emptyList();
         }
 
-        List<QuestionnaireResponse.AnswerDocument> clones = new ArrayList<>();
-        for (QuestionnaireResponse.AnswerDocument original : template) {
-            QuestionnaireResponse.AnswerDocument copy = new QuestionnaireResponse.AnswerDocument();
-            copy.setQuestionId(original.getQuestionId());
-            copy.setQuestionText(original.getQuestionText());
-            copy.setStageIds(original.getStageIds() != null ? new ArrayList<>(original.getStageIds()) : null);
-            copy.setRoleIds(new ArrayList<>(Optional.ofNullable(original.getRoleIds()).orElse(Collections.emptyList())));
-            copy.setResponse(null);
-            copy.setJustification(null);
-            copy.setEvidence(null);
-            copy.setAttachments(new ArrayList<>());
-            clones.add(copy);
-        }
-        return clones;
+        return template.stream().map(this::copyAnswerDocument).toList();
+    }
+
+    private QuestionnaireResponse.AnswerDocument copyAnswerDocument(QuestionnaireResponse.AnswerDocument original) {
+        QuestionnaireResponse.AnswerDocument copy = new QuestionnaireResponse.AnswerDocument();
+        copy.setQuestionId(original.getQuestionId());
+        copy.setQuestionText(original.getQuestionText());
+        copy.setStageIds(original.getStageIds() != null ? new ArrayList<>(original.getStageIds()) : null);
+        copy.setRoleIds(new ArrayList<>(Optional.ofNullable(original.getRoleIds()).orElse(Collections.emptyList())));
+        copy.setResponse(null);
+        copy.setJustification(null);
+        copy.setEvidence(null);
+        copy.setAttachments(new ArrayList<>());
+        return copy;
     }
 
     @Deprecated

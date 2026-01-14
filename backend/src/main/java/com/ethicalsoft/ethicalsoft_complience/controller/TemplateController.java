@@ -3,8 +3,8 @@ package com.ethicalsoft.ethicalsoft_complience.controller;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.ProjectTemplate;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.dto.TemplateListDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.CreateTemplateRequestDTO;
-import com.ethicalsoft.ethicalsoft_complience.application.port.TemplateCommandPort;
-import com.ethicalsoft.ethicalsoft_complience.application.port.TemplateQueryPort;
+import com.ethicalsoft.ethicalsoft_complience.application.port.template.TemplateCommandPort;
+import com.ethicalsoft.ethicalsoft_complience.application.port.template.TemplateQueryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

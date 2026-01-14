@@ -1,4 +1,4 @@
-package com.ethicalsoft.ethicalsoft_complience.application.port;
+package com.ethicalsoft.ethicalsoft_complience.application.port.auth;
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.User;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.auth.RefreshTokenDTO;

@@ -7,7 +7,7 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Questi
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.QuestionSearchFilterDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.QuestionnaireQuestionResponseDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.QuestionnaireRawResponseDTO;
-import com.ethicalsoft.ethicalsoft_complience.application.port.QuestionnaireQueryPort;
+import com.ethicalsoft.ethicalsoft_complience.application.port.questionnaire.QuestionnaireQueryPort;
 import com.ethicalsoft.ethicalsoft_complience.domain.repository.ProjectRepositoryPort;
 import com.ethicalsoft.ethicalsoft_complience.domain.repository.QuestionRepositoryPort;
 import com.ethicalsoft.ethicalsoft_complience.domain.repository.QuestionnaireRepositoryPort;

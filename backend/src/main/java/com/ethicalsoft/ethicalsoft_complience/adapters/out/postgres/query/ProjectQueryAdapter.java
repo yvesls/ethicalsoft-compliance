@@ -13,8 +13,8 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.ProjectRepository;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.QuestionnaireRepository;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.specification.ProjectSpecification;
-import com.ethicalsoft.ethicalsoft_complience.application.port.CurrentUserPort;
-import com.ethicalsoft.ethicalsoft_complience.application.port.ProjectQueryPort;
+import com.ethicalsoft.ethicalsoft_complience.application.port.auth.CurrentUserPort;
+import com.ethicalsoft.ethicalsoft_complience.application.port.project.ProjectQueryPort;
 import com.ethicalsoft.ethicalsoft_complience.domain.service.ProjectCurrentIterationPolicy;
 import com.ethicalsoft.ethicalsoft_complience.domain.service.ProjectCurrentStagePolicy;
 import com.ethicalsoft.ethicalsoft_complience.domain.service.ProjectSituationPolicy;

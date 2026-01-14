@@ -1,10 +1,10 @@
 package com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.query;
 
-import com.ethicalsoft.ethicalsoft_complience.application.port.UserQueryPort;
-import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.UserDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.ErrorTypeEnum;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.UserRepository;
+import com.ethicalsoft.ethicalsoft_complience.application.port.auth.UserQueryPort;
+import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;

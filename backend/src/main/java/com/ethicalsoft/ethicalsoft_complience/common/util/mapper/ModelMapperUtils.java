@@ -6,6 +6,7 @@ import org.hibernate.collection.spi.PersistentCollection;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
+import org.modelmapper.spi.MappingContext;
 import org.modelmapper.spi.MatchingStrategy;
 import org.springframework.beans.PropertyAccessor;
 import org.springframework.beans.PropertyAccessorFactory;
@@ -19,6 +20,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @UtilityClass
@@ -144,29 +146,36 @@ public class ModelMapperUtils {
 	 * Converte uma Coleção de Entidades em uma Coleção de IDs (Long).
 	 */
 	public static <T> Converter<Collection<T>, Collection<Long>> convertEntityIdToLong() {
-		return ctx -> ctx.getSource().stream().map( ModelMapperUtils::getIdValue ).collect( Collectors.toSet() ); // Mantém Set mutável
+		return ctx -> toSet(ctx, ModelMapperUtils::getIdValue);
 	}
 
 	/**
 	 * Converte uma Coleção de Entidades em uma Coleção de IDs (String).
 	 */
 	public static <T> Converter<Collection<T>, Collection<String>> convertEntityIdToString() {
-		return ctx -> ctx.getSource().stream().map( ModelMapperUtils::getStringIdValue ).collect( Collectors.toSet() );
+		return ctx -> toSet(ctx, ModelMapperUtils::getStringIdValue);
 	}
 
 	/**
 	 * Converte uma Coleção de IDs (Long) em uma Coleção de Entidades (com apenas o ID).
 	 */
 	public static <T> Converter<Collection<Long>, Collection<T>> convertLongToEntityId( Class<T> clazz ) {
-		return ctx -> ctx.getSource().stream().map( id -> ModelMapperUtils.setIdValue( clazz, id ) ).collect( Collectors.toSet() );
+		return ctx -> toSet( ctx, id -> ModelMapperUtils.setIdValue( clazz, id ) );
 	}
 
 	/**
 	 * Converte uma Coleção de IDs (String) em uma Coleção de Entidades (com apenas o ID).
 	 */
 	public static <T> Converter<Collection<String>, Collection<T>> convertStringToEntityId( Class<T> clazz ) {
-		return ctx -> ctx.getSource().stream().map( id -> ModelMapperUtils.setStringIdValue( clazz, id ) ).collect( Collectors.toSet() );
+		return ctx -> toSet( ctx, id -> ModelMapperUtils.setStringIdValue( clazz, id ) );
 	}
+
+	private static <S, R> Collection<R> toSet(MappingContext<Collection<S>, Collection<R>> ctx, Function<S, R> mapper) {
+        if (ctx.getSource() == null) {
+            return List.of();
+        }
+        return ctx.getSource().stream().map(mapper).collect(Collectors.toSet());
+    }
 
 	/**
 	 * Encontra o campo anotado com @Id (inclusive em superclasses) e retorna seu valor.

@@ -9,9 +9,9 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.re
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.StageSummaryResponseDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.TemplateVisibilityEnum;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.ProjectRepository;
-import com.ethicalsoft.ethicalsoft_complience.application.port.CurrentUserPort;
-import com.ethicalsoft.ethicalsoft_complience.application.port.TemplateCommandPort;
-import com.ethicalsoft.ethicalsoft_complience.application.port.TemplateQueryPort;
+import com.ethicalsoft.ethicalsoft_complience.application.port.auth.CurrentUserPort;
+import com.ethicalsoft.ethicalsoft_complience.application.port.template.TemplateCommandPort;
+import com.ethicalsoft.ethicalsoft_complience.application.port.template.TemplateQueryPort;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

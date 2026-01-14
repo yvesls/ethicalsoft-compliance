@@ -8,6 +8,8 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.au
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.auth.PasswordResetDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.RecoveryCodeRepository;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.UserRepository;
+import com.ethicalsoft.ethicalsoft_complience.application.usecase.notification.SendNotificationUseCase;
+import com.ethicalsoft.ethicalsoft_complience.application.usecase.notification.command.SendNotificationCommand;
 import com.ethicalsoft.ethicalsoft_complience.exception.UserNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,6 +36,8 @@ class PasswordRecoveryServiceTest {
     private PasswordEncoder passwordEncoder;
     @Mock
     private RecoveryCodeRepository recoveryCodeRepository;
+    @Mock
+    private SendNotificationUseCase sendNotificationUseCase;
 
     @InjectMocks
     private PasswordRecoveryAdapter passwordRecoveryService;
@@ -45,10 +49,12 @@ class PasswordRecoveryServiceTest {
         PasswordRecoveryDTO passwordRecoveryDTO = new PasswordRecoveryDTO();
         passwordRecoveryDTO.setEmail("test@example.com");
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
+        doNothing().when(sendNotificationUseCase).execute(any(SendNotificationCommand.class));
 
         passwordRecoveryService.requestRecovery(passwordRecoveryDTO);
 
         verify(recoveryCodeRepository, times(1)).save(any(RecoveryCode.class));
+        verify(sendNotificationUseCase, times(1)).execute(any(SendNotificationCommand.class));
     }
 
     @Test

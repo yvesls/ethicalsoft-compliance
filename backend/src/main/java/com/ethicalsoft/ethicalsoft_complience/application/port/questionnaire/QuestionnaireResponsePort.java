@@ -1,4 +1,4 @@
-package com.ethicalsoft.ethicalsoft_complience.application.port;
+package com.ethicalsoft.ethicalsoft_complience.application.port.questionnaire;
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.QuestionnaireAnswerPageRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.QuestionnaireAnswerPageResponseDTO;
