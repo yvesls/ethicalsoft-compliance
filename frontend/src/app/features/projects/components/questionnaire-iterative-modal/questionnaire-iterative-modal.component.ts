@@ -7,6 +7,7 @@ import { ModalService } from '../../../../core/services/modal.service';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
 import { FormUtils } from '../../../../shared/utils/form-utils';
+import { BusinessDaysUtils } from '../../../../core/utils/business-days-utils';
 import { ActionType } from '../../../../shared/enums/action-type.enum';
 import { GenericParams, RouteParams } from '../../../../core/services/router.service';
 
@@ -71,6 +72,7 @@ export class QuestionnaireIterativeModalComponent extends BasePageComponent impl
   actionType: ActionType = ActionType.CREATE;
   questionnaireData?: QuestionnaireIterativeData;
   modalTitle = 'Criar novo questionário';
+  rangeFeedbackMessage = '';
 
   constructor() {
     super();
@@ -178,30 +180,40 @@ export class QuestionnaireIterativeModalComponent extends BasePageComponent impl
 
     if (!this.projectStartDate || !iteration || !this.iterationDuration || !durationDays) {
       this.calculatedDateRange = null;
+      this.rangeFeedbackMessage = 'Selecione a iteração e informe a duração para calcular a faixa.';
       this.cdr.detectChanges();
       return;
     }
 
-  const iterationNumber = Number.parseInt(iteration.replaceAll(/\D/g, ''));
-  if (Number.isNaN(iterationNumber)) {
+    const iterationIndex = this.resolveIterationIndex(iteration);
+    if (iterationIndex < 0) {
       this.calculatedDateRange = null;
+      this.rangeFeedbackMessage = 'Não foi possível identificar a iteração selecionada.';
       this.cdr.detectChanges();
       return;
     }
 
-    const iterationStartOffset = (iterationNumber - 1) * this.iterationDuration;
-    const projectStart = new Date(this.projectStartDate);
+    const iterationStartOffset = iterationIndex * this.iterationDuration;
+    const projectStart = BusinessDaysUtils.parseISODate(this.projectStartDate);
+
+    if (Number.isNaN(projectStart.getTime())) {
+      this.calculatedDateRange = null;
+      this.rangeFeedbackMessage = 'Data de início do projeto inválida para cálculo da faixa.';
+      this.cdr.detectChanges();
+      return;
+    }
+
     const iterationStartDate = FormUtils.addBusinessDays(projectStart, iterationStartOffset);
 
-    const openingOffset = Math.round(durationDays * 0.1);
-    const closingOffset = Math.round(durationDays * 0.9);
+    const openingOffset = Math.max(Math.round(durationDays * 0.1), 0);
+    const closingOffset = Math.max(Math.round(durationDays * 0.9), openingOffset);
 
     const applicationStartDate = FormUtils.addBusinessDays(iterationStartDate, openingOffset);
     const applicationEndDate = FormUtils.addBusinessDays(iterationStartDate, closingOffset);
 
     let exceedsDeadline = false;
     if (this.projectDeadline) {
-      const deadline = new Date(this.projectDeadline);
+      const deadline = BusinessDaysUtils.parseISODate(this.projectDeadline);
       exceedsDeadline = applicationEndDate > deadline;
     }
 
@@ -211,7 +223,36 @@ export class QuestionnaireIterativeModalComponent extends BasePageComponent impl
       exceedsDeadline
     };
 
+    this.rangeFeedbackMessage = exceedsDeadline
+      ? 'A faixa calculada ultrapassa o prazo limite do projeto. Ajuste a duração ou a iteração.'
+      : '';
+
     this.cdr.detectChanges();
+  }
+
+  private resolveIterationIndex(iterationValue: string): number {
+    const normalizedValue = iterationValue.trim().toLowerCase();
+
+    if (!normalizedValue.length) {
+      return -1;
+    }
+
+    const optionIndex = this.iterationOptions.findIndex((option) => {
+      const optionValue = String(option.value ?? '').trim().toLowerCase();
+      const optionLabel = String(option.label ?? '').trim().toLowerCase();
+      return optionValue === normalizedValue || optionLabel === normalizedValue;
+    });
+
+    if (optionIndex >= 0) {
+      return optionIndex;
+    }
+
+    const numericPart = Number.parseInt(normalizedValue.replaceAll(/\D/g, ''), 10);
+    if (Number.isNaN(numericPart) || numericPart <= 0) {
+      return -1;
+    }
+
+    return numericPart - 1;
   }
 
   private updateModalTitle(): void {
@@ -230,10 +271,14 @@ export class QuestionnaireIterativeModalComponent extends BasePageComponent impl
       return;
     }
 
+    if (this.calculatedDateRange.exceedsDeadline) {
+      return;
+    }
+
     const formValue = this.getFormValue();
 
     const questionnaireFormData: QuestionnaireIterativeData = {
-      name: formValue.name,
+      name: formValue.name.trim(),
       iteration: formValue.iteration,
       weight: formValue.weight,
       durationDays: formValue.durationDays,

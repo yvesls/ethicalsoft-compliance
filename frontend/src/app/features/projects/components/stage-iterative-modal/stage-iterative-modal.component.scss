@@ -1,51 +1,30 @@
 @use '../../../../../assets/scss/base/vars' as *;
 
-.modal-header {
-  padding: 1.5rem 2rem;
-  border-bottom: 1px solid $gray-secundary;
+.stage-modal {
+  .info-message {
+    margin: 0.5rem 0 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid $gray-secundary;
+    background-color: $gray-tertiary;
 
-  h2 {
-    margin: 0;
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: $gray-primary;
-  }
-}
-
-.modal-body {
-  padding: 2rem;
-
-  .validation-errors {
-    margin-top: 1rem;
-    padding: 1rem;
-    background-color: $error-bg;
-    border: 1px solid $error-border;
-    border-radius: 4px;
-
-    .error-message {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      color: $error-text;
-      font-size: 0.875rem;
-
-      .error-icon {
-        width: 16px;
-        height: 16px;
-        flex-shrink: 0;
-      }
-
-      &:not(:last-child) {
-        margin-bottom: 0.5rem;
-      }
+    p {
+      margin: 0;
+      color: $gray-primary;
+      font-size: 0.9rem;
     }
   }
-}
 
-.modal-footer {
-  padding: 1rem 2rem;
-  border-top: 1px solid $gray-secundary;
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
+  .validation-feedback {
+    margin-bottom: 0.75rem;
+    padding: 0.6rem 0.9rem;
+    border-radius: 0.45rem;
+    font-size: 0.85rem;
+
+    &.error {
+      color: $error-text;
+      border: 1px solid $error-border;
+      background-color: $error-bg;
+    }
+  }
 }

@@ -1,1 +1,7 @@
-<ng-container *ngComponentOutlet="formComponent()"></ng-container>
+@if (projectType() === ProjectType.Cascata) {
+	<app-cascata-project-form></app-cascata-project-form>
+}
+
+@if (projectType() === ProjectType.Iterativo) {
+	<app-iterativo-project-form></app-iterativo-project-form>
+}

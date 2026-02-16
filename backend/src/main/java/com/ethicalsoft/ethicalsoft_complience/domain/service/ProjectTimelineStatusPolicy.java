@@ -5,6 +5,9 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Projec
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Stage;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.ProjectTypeEnum;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.TimelineStatusEnum;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.IterationRepository;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.QuestionnaireRepository;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.StageRepository;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Clock;
@@ -16,9 +19,18 @@ import java.util.Set;
 public class ProjectTimelineStatusPolicy {
 
     private final Clock clock;
+    private final StageRepository stageRepository;
+    private final IterationRepository iterationRepository;
+    private final QuestionnaireRepository questionnaireRepository;
 
-    public ProjectTimelineStatusPolicy(Clock clock) {
+    public ProjectTimelineStatusPolicy(Clock clock,
+                                       StageRepository stageRepository,
+                                       IterationRepository iterationRepository,
+                                       QuestionnaireRepository questionnaireRepository) {
         this.clock = clock;
+        this.stageRepository = stageRepository;
+        this.iterationRepository = iterationRepository;
+        this.questionnaireRepository = questionnaireRepository;
     }
 
     public void updateProjectTimeline(Project project) {
@@ -33,27 +45,63 @@ public class ProjectTimelineStatusPolicy {
         String currentStage = null;
         Integer currentIterationIndex = null;
 
+        Set<Iteration> iterations = loadIterations(project.getId(), project.getIterations());
+        Set<Stage> stages = loadStages(project.getId(), project.getStages());
+        var questionnaires = loadQuestionnaires(project.getId(), project.getQuestionnaires());
+
         if (project.getType() == ProjectTypeEnum.CASCATA) {
-            currentStage = determineCurrentStage(project.getStages(), today);
+            currentStage = determineCurrentStage(stages, today);
         } else if (project.getType() == ProjectTypeEnum.ITERATIVO) {
-            currentIterationIndex = determineCurrentIterationIndex(project.getIterations(), today);
+            currentIterationIndex = determineCurrentIterationIndex(iterations, today);
         }
 
         project.setCurrentSituation(buildCurrentSituation(project, currentStage, currentIterationIndex));
         project.setTimelineStatus(resolveTimelineStatus(project.getStartDate(), project.getDeadline(), today, project.getTimelineStatus()));
 
-        if (project.getStages() != null) {
-            project.getStages().forEach(stage -> stage.setStatus(resolveTimelineStatus(stage.getApplicationStartDate(), stage.getApplicationEndDate(), today, stage.getStatus())));
+        if (stages != null) {
+            stages.forEach(stage -> stage.setStatus(resolveTimelineStatus(stage.getApplicationStartDate(), stage.getApplicationEndDate(), today, stage.getStatus())));
         }
 
-        if (project.getIterations() != null) {
-            project.getIterations().forEach(iteration -> iteration.setStatus(resolveTimelineStatus(iteration.getApplicationStartDate(), iteration.getApplicationEndDate(), today, iteration.getStatus())));
+        if (iterations != null) {
+            iterations.forEach(iteration -> iteration.setStatus(resolveTimelineStatus(iteration.getApplicationStartDate(), iteration.getApplicationEndDate(), today, iteration.getStatus())));
         }
 
-        if (project.getQuestionnaires() != null) {
-            project.getQuestionnaires().forEach(qn -> qn.setStatus(resolveTimelineStatus(qn.getApplicationStartDate(), qn.getApplicationEndDate(), today, qn.getStatus())));
+        if (questionnaires != null) {
+            questionnaires.forEach(qn -> qn.setStatus(resolveTimelineStatus(qn.getApplicationStartDate(), qn.getApplicationEndDate(), today, qn.getStatus())));
         }
         log.info("[project-timeline-status-policy] Status de timeline atualizado para o projeto id={} status={}", project.getId(), project.getTimelineStatus());
+    }
+
+    private Set<Stage> loadStages(Long projectId, Set<Stage> currentStages) {
+        if (currentStages != null && !currentStages.isEmpty()) {
+            return currentStages;
+        }
+        if (projectId == null) {
+            return currentStages;
+        }
+        return Set.copyOf(stageRepository.findByProjectId(projectId));
+    }
+
+    private Set<Iteration> loadIterations(Long projectId, Set<Iteration> currentIterations) {
+        if (currentIterations != null && !currentIterations.isEmpty()) {
+            return currentIterations;
+        }
+        if (projectId == null) {
+            return currentIterations;
+        }
+        return Set.copyOf(iterationRepository.findByProjectId(projectId));
+    }
+
+    private Set<com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Questionnaire> loadQuestionnaires(
+            Long projectId,
+            Set<com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Questionnaire> currentQuestionnaires) {
+        if (currentQuestionnaires != null && !currentQuestionnaires.isEmpty()) {
+            return currentQuestionnaires;
+        }
+        if (projectId == null) {
+            return currentQuestionnaires;
+        }
+        return Set.copyOf(questionnaireRepository.findByProjectId(projectId));
     }
 
     private TimelineStatusEnum resolveTimelineStatus(LocalDate start, LocalDate end, LocalDate today, TimelineStatusEnum currentStatus) {
@@ -118,4 +166,3 @@ public class ProjectTimelineStatusPolicy {
         return !date.isBefore(start) && !date.isAfter(end);
     }
 }
-

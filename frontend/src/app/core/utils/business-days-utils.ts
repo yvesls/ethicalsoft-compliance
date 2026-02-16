@@ -9,6 +9,23 @@ export interface BusinessDaysConfig {
 }
 
 export class BusinessDaysUtils {
+  private static readonly DEFAULT_CONFIG: BusinessDaysConfig = {
+    excludeWeekends: true,
+    holidays: [],
+  };
+
+  private static normalizeToLocalDate(date: Date): Date {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  }
+
+  private static parseDateInput(date: Date | string): Date {
+    if (typeof date === 'string') {
+      return this.parseISODate(date);
+    }
+
+    return this.normalizeToLocalDate(date);
+  }
+
   /**
    * Adiciona dias úteis a uma data, excluindo fins de semana e feriados
    * @param startDate Data inicial
@@ -19,9 +36,9 @@ export class BusinessDaysUtils {
   static addBusinessDays(
     startDate: Date,
     days: number,
-    config: BusinessDaysConfig = { excludeWeekends: true, holidays: [] }
+    config: BusinessDaysConfig = BusinessDaysUtils.DEFAULT_CONFIG
   ): Date {
-    const result = new Date(startDate);
+    const result = this.normalizeToLocalDate(startDate);
     let addedDays = 0;
     const holidays = config.holidays?.map(h => h.toDateString()) || [];
 
@@ -49,13 +66,14 @@ export class BusinessDaysUtils {
   static calculateBusinessDays(
     startDate: Date,
     endDate: Date,
-    config: BusinessDaysConfig = { excludeWeekends: true, holidays: [] }
+    config: BusinessDaysConfig = BusinessDaysUtils.DEFAULT_CONFIG
   ): number {
     let count = 0;
-    const current = new Date(startDate);
+    const current = this.normalizeToLocalDate(startDate);
+    const end = this.normalizeToLocalDate(endDate);
     const holidays = config.holidays?.map(h => h.toDateString()) || [];
 
-    while (current <= endDate) {
+    while (current <= end) {
       const isWeekend = current.getDay() === 0 || current.getDay() === 6;
       const isHoliday = holidays.includes(current.toDateString());
 
@@ -82,10 +100,10 @@ export class BusinessDaysUtils {
   static calculateApplicationRange(
     stageStartDate: Date,
     stageDurationDays: number,
-    config: BusinessDaysConfig = { excludeWeekends: true, holidays: [] }
+    config: BusinessDaysConfig = BusinessDaysUtils.DEFAULT_CONFIG
   ): { openingDate: Date; closingDate: Date } {
-    const openingOffset = Math.round(stageDurationDays * 0.1);
-    const closingOffset = Math.round(stageDurationDays * 0.9);
+    const openingOffset = Math.max(Math.round(stageDurationDays * 0.1), 0);
+    const closingOffset = Math.max(Math.round(stageDurationDays * 0.9), openingOffset);
 
     const openingDate = this.addBusinessDays(stageStartDate, openingOffset, config);
     const closingDate = this.addBusinessDays(stageStartDate, closingOffset, config);
@@ -94,13 +112,18 @@ export class BusinessDaysUtils {
   }
 
   static formatDateISO(date: Date): string {
-    return date.toISOString().split('T')[0];
+    const dateObj = this.normalizeToLocalDate(date);
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
   }
 
   static formatDateBR(date: Date | string): string {
     if (!date) return '';
 
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    const dateObj = this.parseDateInput(date);
     const day = String(dateObj.getDate()).padStart(2, '0');
     const month = String(dateObj.getMonth() + 1).padStart(2, '0');
     const year = dateObj.getFullYear();
@@ -108,7 +131,37 @@ export class BusinessDaysUtils {
     return `${day}/${month}/${year}`;
   }
 
-  static parseISODate(isoDate: string): Date {
-    return new Date(isoDate);
+  static parseISODate(isoDate: string | Date | null | undefined): Date {
+    if (isoDate instanceof Date) {
+      return this.normalizeToLocalDate(isoDate);
+    }
+
+    if (!isoDate || typeof isoDate !== 'string') {
+      return new Date(Number.NaN);
+    }
+
+    const normalized = isoDate.trim();
+
+    if (!normalized) {
+      return new Date(Number.NaN);
+    }
+
+    const strictIsoDateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (strictIsoDateRegex.test(normalized)) {
+      const [year, month, day] = normalized.split('-').map(Number);
+
+      if (!year || !month || !day) {
+        return new Date(Number.NaN);
+      }
+
+      return new Date(year, month - 1, day);
+    }
+
+    const fallbackDate = new Date(normalized);
+    if (Number.isNaN(fallbackDate.getTime())) {
+      return new Date(Number.NaN);
+    }
+
+    return this.normalizeToLocalDate(fallbackDate);
   }
 }

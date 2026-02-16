@@ -1,6 +1,6 @@
 import { Component, Output, EventEmitter, inject, Input, ChangeDetectorRef, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { ModalService } from '../../../../core/services/modal.service';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { BusinessDaysUtils } from '../../../../core/utils/business-days-utils';
@@ -22,6 +22,13 @@ interface DateRange {
   exceedsDeadline?: boolean;
 }
 
+interface StageContextData {
+  index: number;
+  weight: number;
+  durationDays: number;
+  sequence: number;
+}
+
 @Component({
   selector: 'app-stage-cascata-modal',
   standalone: true,
@@ -38,7 +45,8 @@ interface DateRange {
   @Input() projectStartDate?: string;
   @Input() projectDeadline?: string;
   @Input() projectDurationDays?: number;
-  @Input() existingStages: { weight: number; durationDays: number; sequence: number }[] = [];
+  @Input() existingStages: StageContextData[] = [];
+  @Input() currentStageIndex?: number;
   @Input() existingSequences: number[] = [];
 
   private modalService = inject(ModalService);
@@ -58,6 +66,9 @@ interface DateRange {
   ngOnInit(): void {
     this.actionType = this.mode ?? ActionType.CREATE;
 
+    this.form.get('sequence')?.addValidators(this.sequenceUniquenessValidator());
+    this.form.get('sequence')?.updateValueAndValidity({ emitEvent: false });
+
     if (this.editData) {
       this.stageData = this.editData;
       this.form.patchValue(
@@ -76,8 +87,28 @@ interface DateRange {
       };
     }
 
+    this.setupFormListeners();
+    this.calculateApplicationRange();
     this.updateModalTitle();
     this.cdr.detectChanges();
+  }
+
+  private sequenceUniquenessValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const sequence = Number(control.value);
+
+      if (!Number.isFinite(sequence) || sequence <= 0) {
+        return null;
+      }
+
+      if (this.actionType === ActionType.EDIT && this.editData?.sequence === sequence) {
+        return null;
+      }
+
+      return this.existingSequences.includes(sequence)
+        ? { duplicateSequence: true }
+        : null;
+    };
   }
 
   private initializeForm(): void {
@@ -87,18 +118,90 @@ interface DateRange {
       sequence: [1, [Validators.required, Validators.min(1)]],
       durationDays: [0, [Validators.required, Validators.min(1)]]
     });
+  }
 
-    this.form.get('weight')?.valueChanges.subscribe(() => {
-      this.calculateApplicationRange();
-    });
+  private setupFormListeners(): void {
+    this.form.get('durationDays')?.valueChanges.subscribe(() => this.calculateApplicationRange());
+    this.form.get('sequence')?.valueChanges.subscribe(() => this.calculateApplicationRange());
+  }
 
-    this.form.get('durationDays')?.valueChanges.subscribe(() => {
-      this.calculateApplicationRange();
-    });
+  private calculateApplicationRange(): void {
+    const durationDays = Number(this.form.get('durationDays')?.value);
+    const sequence = Number(this.form.get('sequence')?.value);
 
-    this.form.get('sequence')?.valueChanges.subscribe(() => {
-      this.calculateApplicationRange();
-    });
+    if (!this.projectStartDate || !Number.isFinite(durationDays) || durationDays <= 0 || !Number.isFinite(sequence) || sequence <= 0) {
+      this.calculatedDateRange = null;
+      this.cdr.markForCheck();
+      return;
+    }
+
+    const projectStartDate = BusinessDaysUtils.parseISODate(this.projectStartDate);
+    if (Number.isNaN(projectStartDate.getTime())) {
+      this.calculatedDateRange = null;
+      this.cdr.markForCheck();
+      return;
+    }
+
+    const candidate: StageContextData = {
+      index: this.currentStageIndex ?? this.existingStages.length,
+      weight: Number(this.form.get('weight')?.value) || 0,
+      durationDays,
+      sequence,
+    };
+
+    const contextualStages = this.existingStages.map((stage) => ({
+      ...stage,
+      index: Number(stage.index),
+    }));
+
+    const stagesForSimulation = this.actionType === ActionType.EDIT && this.currentStageIndex !== undefined
+      ? contextualStages.map((stage) =>
+          stage.index === this.currentStageIndex
+            ? { ...candidate }
+            : stage
+        )
+      : [...contextualStages, candidate];
+
+    const sortedStages = stagesForSimulation
+      .filter((stage) => Number.isFinite(stage.sequence) && stage.sequence > 0)
+      .sort((a, b) => (a.sequence - b.sequence) || (a.index - b.index));
+
+    let stageStart = new Date(projectStartDate);
+    let computedRange: DateRange | null = null;
+
+    for (const stage of sortedStages) {
+      const stageDuration = Math.max(Number(stage.durationDays) || 0, 0);
+      const openingOffset = Math.max(Math.round(stageDuration * 0.1), 0);
+      const closingOffset = Math.max(Math.round(stageDuration * 0.9), openingOffset);
+
+      const openingDate = BusinessDaysUtils.addBusinessDays(stageStart, openingOffset);
+      const closingDate = BusinessDaysUtils.addBusinessDays(stageStart, closingOffset);
+
+      if (stage.index === candidate.index) {
+        let exceedsDeadline = false;
+        if (this.projectDeadline) {
+          const deadlineDate = BusinessDaysUtils.parseISODate(this.projectDeadline);
+          if (!Number.isNaN(deadlineDate.getTime())) {
+            exceedsDeadline = closingDate > deadlineDate;
+          }
+        }
+
+        computedRange = {
+          startDate: BusinessDaysUtils.formatDateISO(openingDate),
+          endDate: BusinessDaysUtils.formatDateISO(closingDate),
+          exceedsDeadline,
+        };
+      }
+
+      stageStart = BusinessDaysUtils.addBusinessDays(stageStart, stageDuration);
+    }
+
+    this.calculatedDateRange = computedRange;
+    this.cdr.markForCheck();
+  }
+
+  formatDateBR(isoDate: string): string {
+    return BusinessDaysUtils.formatDateBR(isoDate);
   }
 
   private updateModalTitle(): void {
@@ -107,78 +210,13 @@ interface DateRange {
       : 'Criar nova etapa - Cascata';
   }
 
-  private calculateApplicationRange(): void {
-    const weight = this.form.get('weight')?.value;
-    const durationDays = this.form.get('durationDays')?.value;
-
-    if (!this.projectStartDate || !weight || !durationDays || durationDays <= 0) {
-      this.calculatedDateRange = null;
-      this.cdr.detectChanges();
-      return;
-    }
-
-    const stageStartDate = this.calculateStageStartDate();
-
-  if (Number.isNaN(stageStartDate.getTime())) {
-      console.error('Data de início da etapa inválida:', stageStartDate);
-      this.calculatedDateRange = null;
-      this.cdr.detectChanges();
-      return;
-    }
-
-    const { openingDate, closingDate } = BusinessDaysUtils.calculateApplicationRange(
-      stageStartDate,
-      durationDays
-    );
-
-    const startDateISO = BusinessDaysUtils.formatDateISO(openingDate);
-    const endDateISO = BusinessDaysUtils.formatDateISO(closingDate);
-
-    let exceedsDeadline = false;
-    if (this.projectDeadline) {
-      const deadlineDate = new Date(this.projectDeadline);
-      exceedsDeadline = closingDate > deadlineDate;
-    }
-
-    this.calculatedDateRange = {
-      startDate: startDateISO,
-      endDate: endDateISO,
-      exceedsDeadline
-    };
-
-    this.cdr.detectChanges();
-  }
-
-  private calculateStageStartDate(): Date {
-    const projectStart = new Date(this.projectStartDate!);
-    const currentSequence = this.form.get('sequence')?.value || 1;
-
-  if (Number.isNaN(projectStart.getTime())) {
-      console.error('ERRO: Data de início do projeto inválida!', this.projectStartDate);
-      return new Date();
-    }
-
-    let totalPreviousDays = 0;
-    for (const stage of this.existingStages) {
-      if (stage.sequence < currentSequence) {
-        const days = Number(stage.durationDays) || 0;
-        totalPreviousDays += days;
-      }
-    }
-
-    return BusinessDaysUtils.addBusinessDays(projectStart, totalPreviousDays);
-  }
-
-  formatDateBR(isoDate: string): string {
-    if (!isoDate) return '';
-    return BusinessDaysUtils.formatDateBR(isoDate);
-  }
-
   confirm(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
+
+    this.calculateApplicationRange();
 
     if (!this.calculatedDateRange) {
       return;

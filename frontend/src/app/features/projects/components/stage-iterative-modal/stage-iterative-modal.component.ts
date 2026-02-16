@@ -1,6 +1,6 @@
 import { Component, Output, EventEmitter, inject, ChangeDetectorRef, ChangeDetectionStrategy, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { ModalService } from '../../../../core/services/modal.service';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { ActionType } from '../../../../shared/enums/action-type.enum';
@@ -22,6 +22,7 @@ export interface StageIterativeData {
   export class StageIterativeModalComponent implements OnInit {
   @Input() editData?: StageIterativeData;
   @Input() mode: ActionType = ActionType.CREATE;
+    @Input() existingStageNames: string[] = [];
   @Output() stageCreated = new EventEmitter<StageIterativeData>();
   @Output() stageUpdated = new EventEmitter<StageIterativeData>();
 
@@ -41,6 +42,9 @@ export interface StageIterativeData {
   ngOnInit(): void {
     this.actionType = this.mode ?? ActionType.CREATE;
 
+    this.form.get('name')?.addValidators(this.stageNameUniquenessValidator());
+    this.form.get('name')?.updateValueAndValidity({ emitEvent: false });
+
     if (this.editData) {
       this.stageData = this.editData;
       this.form.patchValue(
@@ -58,9 +62,39 @@ export interface StageIterativeData {
 
   private initializeForm(): void {
     this.form = this.fb.group({
-      name: ['', [Validators.required]],
+      name: ['', [Validators.required, this.nonBlankValidator()]],
       weight: [1, [Validators.required, Validators.min(1)]]
     });
+  }
+
+  private nonBlankValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const value = (control.value ?? '').toString();
+      return value.trim().length === 0 ? { blankValue: true } : null;
+    };
+  }
+
+  private stageNameUniquenessValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const normalizedName = (control.value ?? '').toString().trim().toLowerCase();
+
+      if (!normalizedName) {
+        return null;
+      }
+
+      if (this.actionType === ActionType.EDIT) {
+        const currentName = (this.editData?.name ?? '').toString().trim().toLowerCase();
+        if (currentName === normalizedName) {
+          return null;
+        }
+      }
+
+      const duplicated = this.existingStageNames.some(
+        (name) => name.trim().toLowerCase() === normalizedName
+      );
+
+      return duplicated ? { duplicateStageName: true } : null;
+    };
   }
 
   private updateModalTitle(): void {
@@ -76,8 +110,8 @@ export interface StageIterativeData {
     }
 
     const stageFormData: StageIterativeData = {
-      name: this.form.value.name,
-      weight: this.form.value.weight
+      name: (this.form.value.name ?? '').toString().trim(),
+      weight: Number(this.form.value.weight)
     };
 
     if (this.actionType === ActionType.EDIT && this.stageData?.id) {
