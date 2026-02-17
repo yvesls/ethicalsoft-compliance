@@ -14,13 +14,25 @@ public class ListQuestionnaireQuestionsUseCase {
 
     private final QuestionnaireQueryPort questionnaireQueryPort;
 
+    public Page<QuestionnaireQuestionResponseDTO> execute(Long projectId,
+                                                          Integer questionnaireId,
+                                                          Pageable pageable,
+                                                          String questionText,
+                                                          String roleName,
+                                                          Long representativeId) {
+        QuestionSearchFilterDTO filter = new QuestionSearchFilterDTO();
+        filter.setQuestionText(questionText);
+        filter.setRoleName(roleName);
+        filter.setRoleIds(representativeId != null
+                ? questionnaireQueryPort.findRepresentativeRoleIds(projectId, representativeId)
+                : null);
+        return questionnaireQueryPort.searchQuestions(questionnaireId, filter, pageable);
+    }
+
     public Page<QuestionnaireQuestionResponseDTO> execute(Integer questionnaireId,
                                                           Pageable pageable,
                                                           String questionText,
                                                           String roleName) {
-        QuestionSearchFilterDTO filter = new QuestionSearchFilterDTO();
-        filter.setQuestionText(questionText);
-        filter.setRoleName(roleName);
-        return questionnaireQueryPort.searchQuestions(questionnaireId, filter, pageable);
+        return execute(null, questionnaireId, pageable, questionText, roleName, null);
     }
 }

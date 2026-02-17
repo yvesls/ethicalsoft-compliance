@@ -9,4 +9,5 @@ import org.springframework.data.domain.Pageable;
 public interface QuestionnaireQueryPort {
     QuestionnaireRawResponseDTO getQuestionnaireRaw(Long projectId, Integer questionnaireId);
     Page<QuestionnaireQuestionResponseDTO> searchQuestions(Integer questionnaireId, QuestionSearchFilterDTO filter, Pageable pageable);
+    java.util.List<Long> findRepresentativeRoleIds(Long projectId, Long representativeId);
 }

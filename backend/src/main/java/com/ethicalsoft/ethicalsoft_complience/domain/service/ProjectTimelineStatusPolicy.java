@@ -51,20 +51,14 @@ public class ProjectTimelineStatusPolicy {
 
         if (project.getType() == ProjectTypeEnum.CASCATA) {
             currentStage = determineCurrentStage(stages, today);
+            stages.forEach(stage -> stage.setStatus(resolveTimelineStatus(stage.getApplicationStartDate(), stage.getApplicationEndDate(), today, stage.getStatus())));
         } else if (project.getType() == ProjectTypeEnum.ITERATIVO) {
             currentIterationIndex = determineCurrentIterationIndex(iterations, today);
+            iterations.forEach(iteration -> iteration.setStatus(resolveTimelineStatus(iteration.getApplicationStartDate(), iteration.getApplicationEndDate(), today, iteration.getStatus())));
         }
 
         project.setCurrentSituation(buildCurrentSituation(project, currentStage, currentIterationIndex));
         project.setTimelineStatus(resolveTimelineStatus(project.getStartDate(), project.getDeadline(), today, project.getTimelineStatus()));
-
-        if (stages != null) {
-            stages.forEach(stage -> stage.setStatus(resolveTimelineStatus(stage.getApplicationStartDate(), stage.getApplicationEndDate(), today, stage.getStatus())));
-        }
-
-        if (iterations != null) {
-            iterations.forEach(iteration -> iteration.setStatus(resolveTimelineStatus(iteration.getApplicationStartDate(), iteration.getApplicationEndDate(), today, iteration.getStatus())));
-        }
 
         if (questionnaires != null) {
             questionnaires.forEach(qn -> qn.setStatus(resolveTimelineStatus(qn.getApplicationStartDate(), qn.getApplicationEndDate(), today, qn.getStatus())));

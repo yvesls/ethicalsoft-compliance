@@ -6,5 +6,5 @@ import lombok.Data;
 public class QuestionSearchFilterDTO {
     private String questionText;
     private String roleName;
+    private java.util.List<Long> roleIds;
 }
-

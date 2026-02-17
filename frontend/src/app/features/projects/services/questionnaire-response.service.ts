@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { forkJoin, map, Observable } from 'rxjs';
+import { forkJoin, map, Observable, switchMap } from 'rxjs';
 import { QuestionnaireResponseStatus } from '../../../shared/enums/questionnaire-response-status.enum';
 import {
   QuestionnaireAttachmentLink,
@@ -19,6 +19,7 @@ import { environment } from '../../../enviroments/environments';
 import { UrlParameter } from '../../../core/interfaces/url-parameter.interface';
 import { Page } from '../../../shared/interfaces/pageable.interface';
 import { ProjectStore } from '../../../shared/stores/project.store';
+import { ProjectQuestionnaireSummary } from '../../../shared/interfaces/project/project-questionnaire.interface';
 
 @Injectable({ providedIn: 'root' })
 export class QuestionnaireResponseService {
@@ -37,43 +38,64 @@ export class QuestionnaireResponseService {
     size: number = this.defaultPageSize,
     representativeEmail?: string | null
   ): Observable<QuestionnaireResponsePayload> {
-    return forkJoin({
-      questionnaire: this.projectStore.getQuestionnaireSummary(projectId, questionnaireId),
-      questionsPage: this.listQuestions(projectId, questionnaireId, page, size),
-      answersPage: this.getAnswerPage(projectId, questionnaireId, page, size),
-    }).pipe(
-      map(({ questionnaire, questionsPage, answersPage }) => {
-        const answerDocuments = this.mergeQuestionsAndAnswers(
-          questionsPage.content,
-          answersPage.answers
+    return this.projectStore.getQuestionnaireSummary(projectId, questionnaireId).pipe(
+      switchMap((questionnaire) => {
+        const representativeId = this.resolveRepresentativeId(questionnaire, representativeEmail);
+
+        return forkJoin({
+          questionsPage: this.listQuestions(projectId, questionnaireId, page, size, representativeId),
+          answersPage: this.getAnswerPage(projectId, questionnaireId, page, size, representativeId),
+        }).pipe(
+          map(({ questionsPage, answersPage }) => {
+            const answerDocuments = this.mergeQuestionsAndAnswers(
+              questionsPage.content,
+              answersPage.answers
+            );
+
+            const status = answersPage.completed
+              ? QuestionnaireResponseStatus.Completed
+              : QuestionnaireResponseStatus.InProgress;
+
+            const response: QuestionnaireResponseDocument = {
+              projectId: Number(projectId),
+              questionnaireId,
+              representativeEmail: representativeEmail ?? null,
+              status,
+              submissionDate: null,
+              answers: answerDocuments,
+            };
+
+            return {
+              questionnaire,
+              response,
+              pagination: {
+                pageNumber: answersPage.pageNumber,
+                pageSize: answersPage.pageSize,
+                totalPages: answersPage.totalPages,
+                totalElements: questionsPage.totalElements,
+                completed: answersPage.completed,
+              },
+            };
+          })
         );
-
-        const status = answersPage.completed
-          ? QuestionnaireResponseStatus.Completed
-          : QuestionnaireResponseStatus.InProgress;
-
-        const response: QuestionnaireResponseDocument = {
-          projectId: Number(projectId),
-          questionnaireId,
-          representativeEmail: representativeEmail ?? null,
-          status,
-          submissionDate: null,
-          answers: answerDocuments,
-        };
-
-        return {
-          questionnaire,
-          response,
-          pagination: {
-            pageNumber: answersPage.pageNumber,
-            pageSize: answersPage.pageSize,
-            totalPages: answersPage.totalPages,
-            totalElements: questionsPage.totalElements,
-            completed: answersPage.completed,
-          },
-        };
       })
     );
+  }
+
+  private resolveRepresentativeId(
+    questionnaire: ProjectQuestionnaireSummary,
+    representativeEmail?: string | null
+  ): number | undefined {
+    const normalizedEmail = representativeEmail?.trim().toLowerCase();
+    if (!normalizedEmail) {
+      return undefined;
+    }
+
+    const respondent = questionnaire.respondents?.find(
+      (item) => item.email?.trim().toLowerCase() === normalizedEmail
+    );
+
+    return respondent?.representativeId;
   }
 
   loadAdminView(
@@ -90,13 +112,20 @@ export class QuestionnaireResponseService {
     questionnaireId: number,
     payload: QuestionnaireResponseSubmission,
     pagination: { pageNumber: number; pageSize: number },
-    representativeEmail?: string | null
+    representativeEmail?: string | null,
+    representativeId?: number | null
   ): Observable<QuestionnaireResponseDocument> {
-    return this.submitAnswerPage(projectId, questionnaireId, {
+    const requestPayload: QuestionnaireAnswerPageRequest = {
       pageNumber: pagination.pageNumber,
       pageSize: pagination.pageSize,
       answers: payload.answers.map((answer) => this.mapToAnswerRequest(answer)),
-    }).pipe(
+    };
+
+    if (typeof representativeId === 'number' && Number.isFinite(representativeId)) {
+      requestPayload.representativeId = representativeId;
+    }
+
+    return this.submitAnswerPage(projectId, questionnaireId, requestPayload).pipe(
       map((responsePage) => ({
         projectId: Number(projectId),
         questionnaireId,

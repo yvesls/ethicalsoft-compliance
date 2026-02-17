@@ -57,18 +57,24 @@ export class ListItemComponent {
   get formattedSituation(): string {
     if (!this.item) return '---';
 
-    if (this.item.currentSituation) {
-      return this.item.currentSituation;
-    }
-
     if (this.item.type === ProjectType.Iterativo) {
-      if (this.item.currentIteration && this.item.iterationCount) {
-        return `Sprint ${this.item.currentIteration}/${this.item.iterationCount}`;
+      const totalIterations = this.item.iterationCount ?? this.item.configuredIterationCount;
+      if (this.item.currentIteration && totalIterations) {
+        return `Sprint ${this.item.currentIteration}/${totalIterations}`;
       }
+
+      if (this.item.currentSituation) {
+        return this.item.currentSituation;
+      }
+
       return this.item.currentStage || '---';
     }
 
     if (this.item.type === ProjectType.Cascata) {
+      if (this.item.currentSituation) {
+        return this.item.currentSituation;
+      }
+
       if (this.item.currentStage) {
         return this.item.currentStage;
       }

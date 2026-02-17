@@ -16,4 +16,7 @@ public interface RepresentativeRepository extends JpaRepository<Representative, 
     Optional<Representative> findByUserIdAndProjectId(Long userId, Long projectId);
 
     boolean existsByUserIdAndProjectId(Long userId, Long projectId);
+
+    @Query("select distinct r from Representative r left join fetch r.roles where r.id = :id")
+    Optional<Representative> findById(Long id);
 }

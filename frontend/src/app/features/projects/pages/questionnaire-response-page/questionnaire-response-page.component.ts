@@ -7,7 +7,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { take } from 'rxjs';
@@ -26,7 +26,6 @@ import { QuestionnaireRespondentStatus } from '../../../../shared/interfaces/pro
 import { ModalService } from '../../../../core/services/modal.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { ProjectContextService } from '../../../../core/services/project-context.service';
-import { RouterService } from '../../../../core/services/router.service';
 import { AuthenticationService, UserInterface } from '../../../../core/services/authentication.service';
 import { RoleEnum } from '../../../../shared/enums/role.enum';
 
@@ -53,13 +52,14 @@ export class QuestionnaireResponsePageComponent implements OnInit {
   private readonly modalService = inject(ModalService);
   private readonly notification = inject(NotificationService);
   private readonly projectContext = inject(ProjectContextService);
-  private readonly routerService = inject(RouterService);
+  private readonly location = inject(Location);
   private readonly authService = inject(AuthenticationService);
   private readonly destroyRef = inject(DestroyRef);
 
   private projectId: string | null = null;
   private questionnaireId: number | null = null;
   private requestedMode: PageMode = 'respond';
+  private lastUserEmail: string | null = null;
 
   private readonly userRoles = signal<string[]>([]);
   private readonly currentUser = signal<UserInterface | null>(null);
@@ -96,12 +96,16 @@ export class QuestionnaireResponsePageComponent implements OnInit {
   }
 
   onNavigateBack(): void {
-    const fallback = '/projects';
-    if (this.projectId) {
-      this.routerService.backToPrevious(0, true, undefined, `/projects/${this.projectId}`);
+    const fallback = this.projectId ? `/projects/${this.projectId}` : '/projects';
+    const hasBrowserHistory =
+      globalThis.window !== undefined && globalThis.window.history.length > 1;
+
+    if (hasBrowserHistory) {
+      this.location.back();
       return;
     }
-    this.routerService.backToPrevious(0, true, undefined, fallback);
+
+    this.router.navigateByUrl(fallback);
   }
 
   onPageChange(page: number): void {
@@ -136,8 +140,8 @@ export class QuestionnaireResponsePageComponent implements OnInit {
       initialValue,
       onSave: (value: AttachmentModalValue) =>
         this.updateAnswer(answer.questionId, {
-          justification: answer.response ? null : this.buildPrimaryNoteLink(value.note),
-          evidence: answer.response ? this.buildPrimaryNoteLink(value.note) : null,
+          justification: answer.response ? null : this.buildPrimaryNoteLink(value.note, value.attachments),
+          evidence: answer.response ? this.buildPrimaryNoteLink(value.note, value.attachments) : null,
           attachments: value.attachments,
         }),
     });
@@ -171,7 +175,8 @@ export class QuestionnaireResponsePageComponent implements OnInit {
         this.questionnaireId,
         submission,
         { pageNumber: pagination.pageNumber, pageSize: pagination.pageSize },
-        this.currentUser()?.email
+        this.currentUser()?.email,
+        this.isAdmin() ? this.getCurrentRespondent()?.representativeId : undefined
       )
       .pipe(take(1))
       .subscribe({
@@ -219,7 +224,31 @@ export class QuestionnaireResponsePageComponent implements OnInit {
       return false;
     }
 
-    return this.answers().every((answer) => answer.response !== null);
+    return this.answers().every((answer) => {
+      if (answer.response === null) {
+        return false;
+      }
+
+      if (answer.response === false) {
+        return this.hasRequiredJustification(answer);
+      }
+
+      if (answer.response === true) {
+        return this.hasRequiredEvidence(answer);
+      }
+
+      return true;
+    });
+  }
+
+  private hasRequiredJustification(answer: QuestionnaireAnswerDocument): boolean {
+    const descricao = answer.justification?.descricao?.trim();
+    return !!descricao;
+  }
+
+  private hasRequiredEvidence(answer: QuestionnaireAnswerDocument): boolean {
+    const descricao = answer.evidence?.descricao?.trim();
+    return !!descricao;
   }
 
   get referenceLabel(): string {
@@ -266,7 +295,22 @@ export class QuestionnaireResponsePageComponent implements OnInit {
 
     this.authService.currentUser$
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((user) => this.currentUser.set(user));
+      .subscribe((user) => {
+        this.currentUser.set(user);
+
+        const currentEmail = user?.email?.trim().toLowerCase() ?? null;
+        const emailChanged = currentEmail !== this.lastUserEmail;
+        this.lastUserEmail = currentEmail;
+
+        if (
+          emailChanged &&
+          !!currentEmail &&
+          !!this.projectId &&
+          this.questionnaireId !== null
+        ) {
+          this.loadResponse(this.currentPage() || 1);
+        }
+      });
   }
 
   private listenToRoute(): void {
@@ -276,7 +320,8 @@ export class QuestionnaireResponsePageComponent implements OnInit {
         this.projectId = params.get('projectId');
         const questionnaireId = params.get('questionnaireId');
         this.questionnaireId = questionnaireId ? Number(questionnaireId) : null;
-        this.requestedMode = (this.route.snapshot.queryParamMap.get('mode') as PageMode) ?? 'respond';
+        const modeFromQuery = this.route.snapshot.queryParamMap.get('mode');
+        this.requestedMode = modeFromQuery === 'view' ? 'view' : 'respond';
 
         if (!this.projectId || this.questionnaireId === null || Number.isNaN(this.questionnaireId)) {
           this.notification.showError('Identificador do questionário inválido.');
@@ -305,7 +350,7 @@ export class QuestionnaireResponsePageComponent implements OnInit {
         this.questionnaireId,
         zeroBasedPage,
         this.pageSize,
-        this.currentUser()?.email
+        this.isAdmin() ? this.currentUser()?.email : undefined
       )
       .pipe(take(1))
       .subscribe({
@@ -322,10 +367,6 @@ export class QuestionnaireResponsePageComponent implements OnInit {
   }
 
   private resolvePageMode(payload: QuestionnaireResponsePayload): PageMode {
-    if (this.isAdmin()) {
-      return 'view';
-    }
-
     const respondent = this.getCurrentRespondent(payload);
     if (!respondent) {
       this.notification.showWarning('Você não está associado a este questionário.');
@@ -387,15 +428,23 @@ export class QuestionnaireResponsePageComponent implements OnInit {
     });
   }
 
-  private buildPrimaryNoteLink(note: string): QuestionnaireAttachmentLink | null {
+  private buildPrimaryNoteLink(
+    note: string,
+    attachments: QuestionnaireAttachmentLink[] = []
+  ): QuestionnaireAttachmentLink | null {
     const descricao = note?.trim();
     if (!descricao) {
       return null;
     }
 
+    const primaryUrl =
+      attachments
+        .map((attachment) => attachment?.url?.trim() ?? '')
+        .find((url) => !!url) ?? '';
+
     return {
       descricao,
-      url: '',
+      url: primaryUrl,
     };
   }
 }

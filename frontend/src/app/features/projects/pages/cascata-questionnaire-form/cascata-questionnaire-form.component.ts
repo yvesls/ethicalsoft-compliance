@@ -18,6 +18,7 @@ import { QuestionnaireQueryStore } from '../../../../shared/stores/questionnaire
 import { QuestionnaireQuestionResponse, QuestionnaireRawResponse } from '../../../../shared/interfaces/questionnaire/questionnaire-query.interface';
 import { Page } from '../../../../shared/interfaces/pageable.interface';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
+import { RoleSummary } from '../../../../shared/interfaces/role/role-summary.interface';
 
 interface CascataQuestionnaireRouteParams extends GenericParams {
   questionnaireIndex?: number;
@@ -63,6 +64,7 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
   readonly pagination = signal<Page<unknown> | null>(null);
   readonly currentPage = signal(0);
   readonly pageSize = signal(10);
+  private roleNameById = new Map<number, string>();
 
   form!: FormGroup;
   questions: WritableSignal<QuestionData[]> = signal([]);
@@ -105,6 +107,10 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
             value: role.name,
             label: role.name,
           }));
+          this.roleNameById = new Map((roles ?? []).map((role: RoleSummary) => [role.id, role.name]));
+          this.questions.update((questions) =>
+            questions.map((question) => this.assignStageMetadata({ ...question }))
+          );
           this.cdr.markForCheck();
         },
         error: (error) => {
@@ -118,7 +124,9 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
 
     const data = (params.p ?? params) as CascataQuestionnaireRouteParams;
 
-    const incomingMode = data.mode ?? ActionType.EDIT;
+    const resolvedDefaultMode =
+      typeof data.questionnaireId === 'number' ? ActionType.VIEW : ActionType.EDIT;
+    const incomingMode = data.mode ?? resolvedDefaultMode;
     this.mode.set(incomingMode);
     this.isViewMode.set(incomingMode === ActionType.VIEW);
     this.viewProjectId.set(typeof data.projectId === 'string' ? data.projectId : null);
@@ -207,7 +215,7 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
               id: String(q.id),
               value: q.text,
               roleIds: q.roleIds ?? [],
-              roleNames: [],
+              roleNames: this.mapRoleIdsToNames(q.roleIds ?? []),
               stageNames: q.stageNames ?? [],
             } as unknown as QuestionData);
           });
@@ -360,6 +368,7 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
   private assignStageMetadata(question: QuestionData): QuestionData {
     const stageName = this.getEffectiveStageName();
     const normalizedStageName = stageName?.trim();
+    question.roleNames = this.mapRoleIdsToNames(question.roleIds, question.roleNames);
 
     if (normalizedStageName?.length) {
       question.stageNames = [normalizedStageName];
@@ -373,6 +382,21 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
     question.stageName = stageNames[0] ?? null;
     question.categoryStageName = stageNames.length === 1 ? stageNames[0] : question.categoryStageName ?? null;
     return question;
+  }
+
+  private mapRoleIdsToNames(roleIds?: number[] | null, fallbackNames?: string[]): string[] {
+    const ids = Array.isArray(roleIds) ? roleIds : [];
+    if (ids.length && this.roleNameById.size) {
+      const names = ids
+        .map((id) => this.roleNameById.get(Number(id)))
+        .filter((name): name is string => Boolean(name));
+
+      if (names.length) {
+        return Array.from(new Set(names));
+      }
+    }
+
+    return Array.isArray(fallbackNames) ? [...fallbackNames] : [];
   }
 
   private getEffectiveStageName(): string | null {

@@ -9,8 +9,9 @@ import java.util.Optional;
 public interface QuestionRepositoryPort {
     Page<Question> findByQuestionnaireIdOrderByIdAsc(Integer questionnaireId, Pageable pageable);
 
-    Page<Question> searchByQuestionnaireId(Integer questionnaireId, String questionText, String roleName, Pageable pageable);
+    Page<Question> searchByQuestionnaireId(Integer questionnaireId, String questionText, String roleName, java.util.List<Long> roleIds, Pageable pageable);
+
+    Page<Question> findByQuestionnaireIdAndRoleIds(Integer questionnaireId, java.util.List<Long> roleIds, Pageable pageable);
 
     Optional<Question> findById(Long id);
 }
-

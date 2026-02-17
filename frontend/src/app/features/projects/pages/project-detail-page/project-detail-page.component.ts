@@ -283,29 +283,32 @@ export class ProjectDetailPageComponent implements OnInit {
       return;
     }
 
-    if (this.isAdmin()) {
-      const viewUrl = this.router.createUrlTree([
-        '/projects',
-        projectId,
-        'questionnaires',
-        questionnaire.id,
-        'view',
-      ]);
-
-      void this.router.navigateByUrl(viewUrl);
-      return;
-    }
-
-    const url = this.router.createUrlTree([
+    void this.router.navigate([
       '/projects',
       projectId,
       'questionnaires',
       questionnaire.id,
+    ], {
+      queryParams: { mode },
+    });
+  }
+
+  navigateToQuestionnaireView(questionnaire: ProjectQuestionnaireSummary): void {
+    const projectId = this.currentProjectId ?? this.projectState().data?.id;
+
+    if (!projectId) {
+      return;
+    }
+
+    const viewUrl = this.router.createUrlTree([
+      '/projects',
+      projectId,
+      'questionnaires',
+      questionnaire.id,
+      'view',
     ]);
 
-    void this.router.navigateByUrl(url, {
-      state: { mode },
-    });
+    void this.router.navigateByUrl(viewUrl);
   }
 
   canDisplayRepresentativeActions(questionnaire: ProjectQuestionnaireSummary): boolean {
@@ -313,11 +316,7 @@ export class ProjectDetailPageComponent implements OnInit {
   }
 
   canCurrentUserRespond(questionnaire: ProjectQuestionnaireSummary): boolean {
-    if (!this.isQuestionnaireInProgress(questionnaire)) {
-      return false;
-    }
-
-    if (this.isAdmin()) {
+    if (!this.isQuestionnaireOpenForResponse(questionnaire)) {
       return false;
     }
 
@@ -336,9 +335,21 @@ export class ProjectDetailPageComponent implements OnInit {
     );
   }
 
+  private isQuestionnaireOpenForResponse(questionnaire: ProjectQuestionnaireSummary): boolean {
+    const normalizedStatus = (questionnaire.status ?? '').toString().toUpperCase();
+
+    return (
+      normalizedStatus === TimelineStatus.EmAndamento ||
+      normalizedStatus === TimelineStatus.Atrasado ||
+      normalizedStatus === 'IN_PROGRESS' ||
+      normalizedStatus === 'OVERDUE' ||
+      normalizedStatus === 'LATE'
+    );
+  }
+
   canCurrentUserView(questionnaire: ProjectQuestionnaireSummary): boolean {
     if (this.isAdmin()) {
-      return true;
+      return this.isCurrentUserRespondent(questionnaire);
     }
 
     const respondent = this.getCurrentRespondent(questionnaire);
@@ -493,20 +504,29 @@ export class ProjectDetailPageComponent implements OnInit {
       return '---';
     }
 
-    if (project.currentSituation) {
-      return project.currentSituation;
+    if (project.type === ProjectType.Iterativo) {
+      const totalIterations = project.iterationCount ?? project.configuredIterationCount;
+      if (project.currentIteration && totalIterations) {
+        return `Sprint ${project.currentIteration}/${totalIterations}`;
+      }
+
+      if (project.currentSituation) {
+        return project.currentSituation;
+      }
+
+      return project.currentStage || '---';
     }
 
-    if (
-      project.type === ProjectType.Iterativo &&
-      project.currentIteration &&
-      project.iterationCount
-    ) {
-      return `Sprint ${project.currentIteration}/${project.iterationCount}`;
-    }
+    if (project.type === ProjectType.Cascata) {
+      if (project.currentSituation) {
+        return project.currentSituation;
+      }
 
-    if (project.type === ProjectType.Cascata && project.currentStage) {
-      return project.currentStage;
+      if (project.currentStage) {
+        return project.currentStage;
+      }
+
+      return '---';
     }
 
     return '---';
