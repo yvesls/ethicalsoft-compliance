@@ -1,4 +1,5 @@
 import { AbstractControl, ValidationErrors, ValidatorFn, FormArray } from '@angular/forms';
+import { BusinessDaysUtils } from '../../core/utils/business-days-utils';
 
 export class StagesDeadlineValidator {
   static stagesFitWithinDeadline(): ValidatorFn {
@@ -12,7 +13,7 @@ export class StagesDeadlineValidator {
         return null;
       }
 
-      const deadlineDate = new Date(deadline);
+      const deadlineDate = BusinessDaysUtils.parseISODate(deadline);
 
       const stepsWithSequence = stepsArray.controls
         .map((control, index) => ({
@@ -26,13 +27,13 @@ export class StagesDeadlineValidator {
 
       const violatingStages = stepsWithSequence.filter(step => {
         if (!step.applicationEndDate) return false;
-        const endDate = new Date(step.applicationEndDate);
+        const endDate = BusinessDaysUtils.parseISODate(step.applicationEndDate);
         return endDate > deadlineDate;
       });
 
       if (violatingStages.length > 0) {
         const firstViolation = violatingStages[0];
-        const endDate = new Date(firstViolation.applicationEndDate);
+        const endDate = BusinessDaysUtils.parseISODate(firstViolation.applicationEndDate);
         const daysOver = this.calculateBusinessDaysDifference(deadlineDate, endDate);
 
         return {
@@ -55,18 +56,18 @@ export class StagesDeadlineValidator {
   }
 
   private static calculateBusinessDaysDifference(date1: Date, date2: Date): number {
-    let count = 0;
-    const currentDate = new Date(date1);
-    const endDate = new Date(date2);
-
-    while (currentDate < endDate) {
-      const dayOfWeek = currentDate.getDay();
-      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-        count++;
-      }
-      currentDate.setDate(currentDate.getDate() + 1);
+    if (date2 <= date1) {
+      return 0;
     }
 
-    return count;
+    const nextDay = BusinessDaysUtils.addBusinessDays(date1, 1, {
+      excludeWeekends: true,
+      holidays: [],
+    });
+
+    return BusinessDaysUtils.calculateBusinessDays(nextDay, date2, {
+      excludeWeekends: true,
+      holidays: [],
+    });
   }
 }

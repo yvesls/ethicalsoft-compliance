@@ -32,6 +32,7 @@ import { ProjectDatesValidators } from '../../../../shared/validators/project-da
 import { StagesDeadlineValidator } from '../../../../shared/validators/stages-deadline.validator';
 import { FormUtils } from '../../../../shared/utils/form-utils';
 import { capitalizeWords } from '../../../../core/utils/common-utils';
+import { BusinessDaysUtils } from '../../../../core/utils/business-days-utils';
 import {
   BasePageComponent,
   RestoreParams,
@@ -284,7 +285,7 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
 
   private loadRoles(): void {
     this.roleService
-      .getRoles()
+      .getRoles(true)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (roles) => {
@@ -422,7 +423,7 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
 
     const sortedSteps = this.getSortedStepsBySequence();
 
-    let previousStageEndDate: Date = new Date(startDate);
+    let previousStageEndDate: Date = BusinessDaysUtils.parseISODate(startDate);
 
     for (const stepInfo of sortedSteps) {
       const stepControl = this.stepsFormArray.at(stepInfo.index);
@@ -431,8 +432,8 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
       if (durationDays > 0) {
         const stageStartDate = new Date(previousStageEndDate);
 
-        const openingOffset = Math.round(durationDays * 0.1);
-        const closingOffset = Math.round(durationDays * 0.9);
+        const openingOffset = Math.max(Math.round(durationDays * 0.1), 0);
+        const closingOffset = Math.max(Math.round(durationDays * 0.9), openingOffset);
 
         const applicationStartDate = FormUtils.addBusinessDays(stageStartDate, openingOffset);
         const applicationEndDate = FormUtils.addBusinessDays(stageStartDate, closingOffset);
@@ -457,7 +458,7 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
         index,
         sequence: control.get('sequence')?.value || 999
       }))
-      .sort((a, b) => a.sequence - b.sequence);
+      .sort((a, b) => (a.sequence - b.sequence) || (a.index - b.index));
   }
 
   private loadTemplateData(templateId: string): void {
@@ -523,13 +524,15 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
   private openCreateStageModal(): void {
     const projectStart = this.projectForm.get('startDate')?.value;
     const projectDeadline = this.projectForm.get('deadline')?.value;
-    const existingStages = this.getExistingStagesData();
+    const existingStages = this.getExistingStagesDataWithIndex();
+    const existingSequences = this.getExistingSequencesData();
 
     this.modalService.open(StageCascataModalComponent, 'small-card', {
       projectStartDate: projectStart,
       projectDeadline: projectDeadline,
       projectDurationDays: this.calculateProjectDuration(),
-      existingStages: existingStages
+      existingStages: existingStages,
+      existingSequences,
     });
 
     const modalRef = this.modalService.getActiveInstance<StageCascataModalComponent>();
@@ -548,7 +551,8 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
     const stepFormGroup = this.stepsFormArray.at(index) as FormGroup;
     const projectStart = this.projectForm.get('startDate')?.value;
     const projectDeadline = this.projectForm.get('deadline')?.value;
-    const existingStages = this.getExistingStagesDataExcluding(index);
+    const existingStages = this.getExistingStagesDataWithIndex();
+    const existingSequences = this.getExistingSequencesDataExcluding(index);
 
     this.modalService.open(StageCascataModalComponent, 'medium-card', {
       mode: ActionType.EDIT,
@@ -564,7 +568,9 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
       projectStartDate: projectStart,
       projectDeadline: projectDeadline,
       projectDurationDays: this.calculateProjectDuration(),
-      existingStages: existingStages
+      existingStages: existingStages,
+      currentStageIndex: index,
+      existingSequences,
     });
 
     const modalRef = this.modalService.getActiveInstance<StageCascataModalComponent>();
@@ -579,20 +585,30 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
     });
   }
 
-  private getExistingStagesDataExcluding(excludeIndex: number): { weight: number; durationDays: number; sequence: number }[] {
+  private getExistingStagesDataWithIndex(): { index: number; weight: number; durationDays: number; sequence: number }[] {
+    return this.stepsFormArray.controls.map((control, index) => ({
+      index,
+      weight: Number(control.get('weight')?.value) || 0,
+      durationDays: Number(control.get('durationDays')?.value) || 0,
+      sequence: Number(control.get('sequence')?.value) || 1,
+    }));
+  }
+
+  private getExistingSequencesData(): number[] {
     return this.stepsFormArray.controls
-      .map((control, idx) => ({
-        weight: Number(control.get('weight')?.value) || 0,
-        durationDays: Number(control.get('durationDays')?.value) || 0,
-        sequence: Number(control.get('sequence')?.value) || 1,
-        index: idx
+      .map((control) => Number(control.get('sequence')?.value))
+      .filter((sequence) => Number.isFinite(sequence) && sequence > 0);
+  }
+
+  private getExistingSequencesDataExcluding(excludeIndex: number): number[] {
+    return this.stepsFormArray.controls
+      .map((control, index) => ({
+        index,
+        sequence: Number(control.get('sequence')?.value),
       }))
-      .filter(stage => stage.index !== excludeIndex)
-      .map(stage => ({
-        weight: stage.weight,
-        durationDays: stage.durationDays,
-        sequence: stage.sequence
-      }));
+      .filter((item) => item.index !== excludeIndex)
+      .map((item) => item.sequence)
+      .filter((sequence) => Number.isFinite(sequence) && sequence > 0);
   }
 
   private handleSequenceOnCreate(newSequence: number): void {
@@ -1004,7 +1020,10 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
       return 0;
     }
 
-    return FormUtils.calculateBusinessDays(new Date(startDate), new Date(deadline));
+    return FormUtils.calculateBusinessDays(
+      BusinessDaysUtils.parseISODate(startDate),
+      BusinessDaysUtils.parseISODate(deadline)
+    );
   }
 
   private distributeEqualDurationDays(): void {
@@ -1100,8 +1119,8 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
           this.selectedTemplateData.stages?.length &&
           !this.hasUserModifiedSteps()
         ) {
-          const stepsData = this.selectedTemplateData.stages.map((stage: TemplateStageDTO) =>
-            this.mapStageTemplateToForm(stage)
+          const stepsData = this.selectedTemplateData.stages.map((stage: TemplateStageDTO, index: number) =>
+            this.mapStageTemplateToForm(stage, index + 1)
           );
           this.projectForm.setControl('steps', this.buildCascataStepsForm(stepsData));
 
@@ -1519,16 +1538,24 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
       return [];
     }
 
+    const resolveStageNames = (question: QuestionData): string[] => {
+      if (Array.isArray(question.stageNames)) {
+        return [...question.stageNames];
+      }
+
+      if (question.stageName) {
+        return [question.stageName];
+      }
+
+      return [];
+    };
+
     return questions.map((question, index) => ({
       ...question,
       id: question.id ?? this.generateQuestionId(source, index),
       roleIds: Array.isArray(question.roleIds) ? [...question.roleIds] : [],
       roleNames: Array.isArray(question.roleNames) ? [...question.roleNames] : [],
-      stageNames: Array.isArray(question.stageNames)
-        ? [...question.stageNames]
-        : question.stageName
-          ? [question.stageName]
-          : [],
+      stageNames: resolveStageNames(question),
       stageName: question.stageNames?.[0] ?? question.stageName ?? null,
       categoryStageName: question.categoryStageName ?? question.stageNames?.[0] ?? question.stageName ?? null,
     }));
@@ -1557,11 +1584,16 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
     };
   }
 
-  private mapStageTemplateToForm(stage: TemplateStageDTO): CascataStageFormValue {
+  private mapStageTemplateToForm(stage: TemplateStageDTO, fallbackSequence = 1): CascataStageFormValue {
+    const parsedSequence = Number(stage.sequence);
+    const sequence = Number.isFinite(parsedSequence) && parsedSequence > 0
+      ? parsedSequence
+      : fallbackSequence;
+
     return {
       name: stage.name,
       weight: stage.weight,
-      sequence: stage.sequence ?? 1,
+      sequence,
       dateRange: '',
       durationDays: stage.durationDays ?? 0,
       applicationStartDate: '',
@@ -1603,8 +1635,8 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
   private extractRoleNames(roles?: RoleSummary[], fallbackNames?: string[]): string[] {
     if (roles?.length) {
       return roles
-        .map((role) => role.name?.trim())
-        .filter((name): name is string => Boolean(name));
+        .map((role) => role.name?.trim() ?? '')
+        .filter((name) => name.length > 0);
     }
 
     return Array.isArray(fallbackNames) ? [...fallbackNames] : [];

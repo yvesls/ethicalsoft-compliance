@@ -1,13 +1,13 @@
 package com.ethicalsoft.ethicalsoft_complience.controller;
 
-import com.ethicalsoft.ethicalsoft_complience.application.usecase.GetQuestionnaireAnswersPageUseCase;
-import com.ethicalsoft.ethicalsoft_complience.application.usecase.ListQuestionnaireQuestionsUseCase;
-import com.ethicalsoft.ethicalsoft_complience.application.usecase.ListQuestionnaireSummariesUseCase;
-import com.ethicalsoft.ethicalsoft_complience.application.usecase.SubmitQuestionnaireAnswersPageUseCase;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.QuestionnaireAnswerPageRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.QuestionnaireAnswerPageResponseDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.QuestionnaireQuestionResponseDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.QuestionnaireResponseSummaryDTO;
+import com.ethicalsoft.ethicalsoft_complience.application.usecase.GetQuestionnaireAnswersPageUseCase;
+import com.ethicalsoft.ethicalsoft_complience.application.usecase.ListQuestionnaireQuestionsUseCase;
+import com.ethicalsoft.ethicalsoft_complience.application.usecase.ListQuestionnaireSummariesUseCase;
+import com.ethicalsoft.ethicalsoft_complience.application.usecase.SubmitQuestionnaireAnswersPageUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,8 +36,9 @@ public class QuestionnaireResponseController {
                                                                 @PathVariable Integer questionnaireId,
                                                                 @PageableDefault(size = 10) Pageable pageable,
                                                                 @RequestParam(required = false) String questionText,
-                                                                @RequestParam(required = false) String roleName) {
-        return listQuestionnaireQuestionsUseCase.execute(questionnaireId, pageable, questionText, roleName);
+                                                                @RequestParam(required = false) String roleName,
+                                                                @RequestParam(required = false) Long representativeId) {
+        return listQuestionnaireQuestionsUseCase.execute(projectId, questionnaireId, pageable, questionText, roleName, representativeId);
     }
 
     @GetMapping("/responses/page")

@@ -45,6 +45,7 @@ import { StageIterativeModalComponent, StageIterativeData } from '../stage-itera
 import { RepresentativeModalComponent, RepresentativeData } from '../representative-modal/representative-modal.component';
 import { ActionType } from '../../../../shared/enums/action-type.enum';
 import { FormUtils } from '../../../../shared/utils/form-utils';
+import { BusinessDaysUtils } from '../../../../core/utils/business-days-utils';
 import { Subscription } from 'rxjs';
 import { QuestionData } from '../question-modal/question-modal.component';
 import { ProjectCreationConfirmModalComponent } from '../project-creation-confirm-modal/project-creation-confirm-modal.component';
@@ -259,8 +260,8 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
       const iterationDuration = iterationDurationControl?.value;
 
       if (startDate && deadline && iterationDuration && iterationDuration > 0) {
-        const start = new Date(startDate);
-        const end = new Date(deadline);
+        const start = BusinessDaysUtils.parseISODate(startDate);
+        const end = BusinessDaysUtils.parseISODate(deadline);
         const businessDays = FormUtils.calculateBusinessDays(start, end);
         const count = Math.floor(businessDays / iterationDuration);
         iterationCountControl?.setValue(count > 0 ? count : 1, { emitEvent: false });
@@ -315,7 +316,7 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
 
   private loadRoles(): void {
     this.roleService
-      .getRoles()
+      .getRoles(true)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (roles) => {
@@ -835,7 +836,9 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
   }
 
   private openCreateStageModal(): void {
-    this.modalService.open(StageIterativeModalComponent, 'small-card');
+    this.modalService.open(StageIterativeModalComponent, 'small-card', {
+      existingStageNames: this.getExistingStageNamesData(),
+    });
     const modalRef = this.modalService.getActiveInstance<StageIterativeModalComponent>();
     if (!modalRef) {
       return;
@@ -852,6 +855,7 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
 
     this.modalService.open(StageIterativeModalComponent, 'small-card', {
       mode: ActionType.EDIT,
+      existingStageNames: this.getExistingStageNamesDataExcluding(index),
       editData: {
         id: String(index),
         name: stageFormGroup.get('name')?.value,
@@ -878,6 +882,23 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
     });
 
     this.cdr.detectChanges();
+  }
+
+  private getExistingStageNamesData(): string[] {
+    return this.stagesFormArray.controls
+      .map((control) => (control.get('name')?.value ?? '').toString().trim())
+      .filter((name) => name.length > 0);
+  }
+
+  private getExistingStageNamesDataExcluding(excludeIndex: number): string[] {
+    return this.stagesFormArray.controls
+      .map((control, index) => ({
+        index,
+        name: (control.get('name')?.value ?? '').toString().trim(),
+      }))
+      .filter((item) => item.index !== excludeIndex)
+      .map((item) => item.name)
+      .filter((name) => name.length > 0);
   }
 
   private addNewStage(newStage: StageIterativeData): void {
@@ -1400,7 +1421,7 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
     }
 
     const iterationsData: Iteration[] = [];
-    let currentStartDate = new Date(startDateValue);
+    let currentStartDate = BusinessDaysUtils.parseISODate(startDateValue);
 
     for (let index = 0; index < iterationCount; index++) {
       const iterationEndDate = FormUtils.addBusinessDays(new Date(currentStartDate), Math.max(iterationDuration - 1, 0));
@@ -1465,8 +1486,8 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
         continue;
       }
 
-      const iterationStart = new Date(iterationStartValue);
-      const iterationEnd = new Date(iterationEndValue);
+      const iterationStart = BusinessDaysUtils.parseISODate(iterationStartValue);
+      const iterationEnd = BusinessDaysUtils.parseISODate(iterationEndValue);
       const iterationDurationDays = Math.max(FormUtils.calculateBusinessDays(iterationStart, iterationEnd), 1);
 
       const openingOffset = Math.max(Math.round(iterationDurationDays * 0.1), 0);
@@ -1497,11 +1518,7 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
 
   formatDate(dateString: string): string {
     if (!dateString) return '';
-    const date = new Date(dateString);
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
+    return BusinessDaysUtils.formatDateBR(dateString);
   }
 
   importQuestionnaires(): void {
@@ -1595,16 +1612,24 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
       return [];
     }
 
+    const resolveStageNames = (question: QuestionData): string[] => {
+      if (Array.isArray(question.stageNames)) {
+        return [...question.stageNames];
+      }
+
+      if (question.stageName) {
+        return [question.stageName];
+      }
+
+      return [];
+    };
+
     return questions.map((question, index) => ({
       ...question,
       id: question.id ?? this.generateQuestionId(source, index),
       roleIds: Array.isArray(question.roleIds) ? [...question.roleIds] : [],
       roleNames: Array.isArray(question.roleNames) ? [...question.roleNames] : [],
-      stageNames: Array.isArray(question.stageNames)
-        ? [...question.stageNames]
-        : question.stageName
-          ? [question.stageName]
-          : [],
+      stageNames: resolveStageNames(question),
       stageName: question.stageNames?.[0] ?? question.stageName ?? null,
       categoryStageName: question.categoryStageName ?? question.stageNames?.[0] ?? question.stageName ?? null,
     }));
@@ -1637,8 +1662,8 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
   private extractRoleNames(roles?: RoleSummary[], fallbackNames?: string[]): string[] {
     if (roles?.length) {
       return roles
-        .map((role) => role.name?.trim())
-        .filter((name): name is string => Boolean(name));
+        .map((role) => role.name?.trim() ?? '')
+        .filter((name) => name.length > 0);
     }
 
     return Array.isArray(fallbackNames) ? [...fallbackNames] : [];

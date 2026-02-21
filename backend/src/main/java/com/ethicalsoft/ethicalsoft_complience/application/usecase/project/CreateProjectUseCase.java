@@ -11,12 +11,14 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.P
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.QuestionnaireRepository;
 import com.ethicalsoft.ethicalsoft_complience.application.port.auth.CurrentUserPort;
 import com.ethicalsoft.ethicalsoft_complience.application.port.project.ProjectCommandPort;
+import com.ethicalsoft.ethicalsoft_complience.application.port.questionnaire.RepresentativeQuestionnaireResponseCommandPort;
 import com.ethicalsoft.ethicalsoft_complience.application.service.strategy.ProjectCreationStrategy;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.notification.SendNotificationUseCase;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.notification.command.SendNotificationCommand;
 import com.ethicalsoft.ethicalsoft_complience.common.util.mapper.ModelMapperUtils;
 import com.ethicalsoft.ethicalsoft_complience.domain.notification.NotificationType;
 import com.ethicalsoft.ethicalsoft_complience.domain.service.ProjectTimelineStatusPolicy;
+import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +36,7 @@ public class CreateProjectUseCase implements ProjectCommandPort {
     private final AddRepresentativeUseCase addRepresentativeUseCase;
     private final SendNotificationUseCase sendNotificationUseCase;
     private final QuestionnaireRepository questionnaireRepository;
+    private final RepresentativeQuestionnaireResponseCommandPort representativeQuestionnaireResponseCommandPort;
 
     private final Map<ProjectTypeEnum, ProjectCreationStrategy> strategyMap = new EnumMap<>(ProjectTypeEnum.class);
 
@@ -43,13 +46,15 @@ public class CreateProjectUseCase implements ProjectCommandPort {
                                AddRepresentativeUseCase addRepresentativeUseCase,
                                List<ProjectCreationStrategy> creationStrategies,
                                SendNotificationUseCase sendNotificationUseCase,
-                               QuestionnaireRepository questionnaireRepository) {
+                               QuestionnaireRepository questionnaireRepository,
+                               RepresentativeQuestionnaireResponseCommandPort representativeQuestionnaireResponseCommandPort) {
         this.projectRepository = projectRepository;
         this.currentUserPort = currentUserPort;
         this.projectTimelineStatusPolicy = projectTimelineStatusPolicy;
         this.addRepresentativeUseCase = addRepresentativeUseCase;
         this.sendNotificationUseCase = sendNotificationUseCase;
         this.questionnaireRepository = questionnaireRepository;
+        this.representativeQuestionnaireResponseCommandPort = representativeQuestionnaireResponseCommandPort;
 
         if (creationStrategies != null) {
             creationStrategies.forEach(strategy -> this.strategyMap.put(strategy.getType(), strategy));
@@ -65,13 +70,15 @@ public class CreateProjectUseCase implements ProjectCommandPort {
             Project project = createProjectShell(request);
             applyCreationStrategy(project, request);
 
-            var questionnaires = questionnaireRepository.findByProjectId(project.getId()).stream().collect(Collectors.toSet());
+            var questionnaires = questionnaireRepository.findAllByProjectIdWithQuestions(project.getId()).stream().collect(Collectors.toSet());
             project.setQuestionnaires(questionnaires);
             project = refreshTimeline(project);
 
             Set<Representative> representatives = addRepresentativeUseCase.execute(project, request.getRepresentatives());
 
             project.setRepresentatives(representatives);
+            validateRepresentativesRoles(project, representatives);
+            createResponsesForRepresentatives(project, representatives);
             triggerInitialQuestionnaireReminders(project);
 
             return buildResponse(project, representatives, request);
@@ -140,5 +147,41 @@ public class CreateProjectUseCase implements ProjectCommandPort {
                 log.warn("[usecase-create-project] Falha ao disparar lembrete inicial projectId={} questionnaireId={}", project.getId(), q.getId(), ex);
             }
         });
+    }
+
+    private void createResponsesForRepresentatives(Project project, Set<Representative> representatives) {
+        if (representatives == null || representatives.isEmpty()) {
+            return;
+        }
+        representatives.forEach(rep -> representativeQuestionnaireResponseCommandPort.createResponsesForRepresentative(project, rep));
+    }
+
+    private void validateRepresentativesRoles(Project project, Set<Representative> representatives) {
+        if (representatives == null || representatives.isEmpty()) {
+            return;
+        }
+        if (project.getQuestionnaires() == null || project.getQuestionnaires().isEmpty()) {
+            return;
+        }
+        for (Representative rep : representatives) {
+            Set<Long> representativeRoleIds = Optional.ofNullable(rep.getRoles())
+                    .orElseGet(Set::of)
+                    .stream()
+                    .map(role -> role.getId())
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+            for (var questionnaire : project.getQuestionnaires()) {
+                boolean hasMatchingRole = Optional.ofNullable(questionnaire.getQuestions())
+                        .orElseGet(Set::of)
+                        .stream()
+                        .flatMap(question -> Optional.ofNullable(question.getRoles()).orElseGet(Set::of).stream())
+                        .map(role -> role.getId())
+                        .filter(Objects::nonNull)
+                        .anyMatch(representativeRoleIds::contains);
+                if (!hasMatchingRole) {
+                    throw new BusinessException("Representante sem papéis vinculados às perguntas do questionário '" + questionnaire.getName() + "'.");
+                }
+            }
+        }
     }
 }

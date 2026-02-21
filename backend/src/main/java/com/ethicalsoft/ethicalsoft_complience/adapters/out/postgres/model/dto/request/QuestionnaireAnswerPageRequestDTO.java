@@ -20,6 +20,8 @@ public class QuestionnaireAnswerPageRequestDTO {
     @Min(1)
     private Integer pageSize;
 
+    private Long representativeId;
+
     @Valid
     @NotNull
     private List<QuestionnaireAnswerRequestDTO> answers;

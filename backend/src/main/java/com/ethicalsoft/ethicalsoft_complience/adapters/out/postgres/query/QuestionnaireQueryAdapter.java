@@ -4,6 +4,7 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.mapper.QuestionnaireQuest
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Project;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Question;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Questionnaire;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Representative;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.QuestionSearchFilterDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.QuestionnaireQuestionResponseDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.QuestionnaireRawResponseDTO;
@@ -11,6 +12,7 @@ import com.ethicalsoft.ethicalsoft_complience.application.port.questionnaire.Que
 import com.ethicalsoft.ethicalsoft_complience.domain.repository.ProjectRepositoryPort;
 import com.ethicalsoft.ethicalsoft_complience.domain.repository.QuestionRepositoryPort;
 import com.ethicalsoft.ethicalsoft_complience.domain.repository.QuestionnaireRepositoryPort;
+import com.ethicalsoft.ethicalsoft_complience.domain.repository.RepresentativeRepositoryPort;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +31,7 @@ public class QuestionnaireQueryAdapter implements QuestionnaireQueryPort {
     private final ProjectRepositoryPort projectRepository;
     private final QuestionRepositoryPort questionRepositoryPort;
     private final QuestionnaireQuestionMapper questionnaireQuestionMapper;
+    private final RepresentativeRepositoryPort representativeRepositoryPort;
 
     @Override
     @Transactional(readOnly = true)
@@ -78,17 +81,40 @@ public class QuestionnaireQueryAdapter implements QuestionnaireQueryPort {
 
             String questionText = filter != null ? filter.getQuestionText() : null;
             String roleName = filter != null ? filter.getRoleName() : null;
+            java.util.List<Long> roleIds = filter != null ? filter.getRoleIds() : null;
 
-            boolean hasFilters = StringUtils.hasText(questionText) || StringUtils.hasText(roleName);
+            boolean hasTextFilters = StringUtils.hasText(questionText) || StringUtils.hasText(roleName);
+            boolean hasRoleIds = roleIds != null && !roleIds.isEmpty();
 
-            Page<Question> page = hasFilters
-                    ? questionRepositoryPort.searchByQuestionnaireId(questionnaireId, questionText, roleName, pageable)
-                    : questionRepositoryPort.findByQuestionnaireIdOrderByIdAsc(questionnaireId, pageable);
+            Page<Question> page;
+            if (hasTextFilters) {
+                page = questionRepositoryPort.searchByQuestionnaireId(questionnaireId, questionText, roleName, roleIds, pageable);
+            } else if (hasRoleIds) {
+                page = questionRepositoryPort.findByQuestionnaireIdAndRoleIds(questionnaireId, roleIds, pageable);
+            } else {
+                page = questionRepositoryPort.findByQuestionnaireIdOrderByIdAsc(questionnaireId, pageable);
+            }
 
             return page.map(questionnaireQuestionMapper::toDto);
         } catch (Exception ex) {
             log.error("[questionnaire-query] Falha ao buscar perguntas questionnaire={}", questionnaireId, ex);
             throw ex;
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public java.util.List<Long> findRepresentativeRoleIds(Long projectId, Long representativeId) {
+        Representative representative = representativeRepositoryPort.findById(representativeId)
+                .orElseThrow(() -> new EntityNotFoundException("Representante não encontrado: " + representativeId));
+        if (representative.getProject() == null || !java.util.Objects.equals(representative.getProject().getId(), projectId)) {
+            throw new EntityNotFoundException("Representante não pertence ao projeto: " + projectId);
+        }
+        return java.util.Optional.ofNullable(representative.getRoles())
+                .orElse(java.util.Collections.emptySet())
+                .stream()
+                .map(role -> role.getId())
+                .filter(java.util.Objects::nonNull)
+                .toList();
     }
 }

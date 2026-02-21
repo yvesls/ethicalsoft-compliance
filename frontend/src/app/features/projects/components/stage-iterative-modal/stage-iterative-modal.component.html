@@ -21,6 +21,28 @@
       ></app-input>
     </div>
 
+    <div class="info-message">
+      <p><strong>Nota:</strong> O nome da etapa deve ser único no projeto e o peso deve ser maior que zero.</p>
+    </div>
+
+    @if (form.get('name')?.hasError('duplicateStageName') && (form.get('name')?.dirty || form.get('name')?.touched)) {
+      <div class="validation-feedback error">
+        Já existe uma etapa com este nome. Use um nome diferente.
+      </div>
+    }
+
+    @if (form.get('name')?.hasError('blankValue') && (form.get('name')?.dirty || form.get('name')?.touched)) {
+      <div class="validation-feedback error">
+        Informe um nome válido para a etapa.
+      </div>
+    }
+
+    @if (form.get('weight')?.hasError('min') && (form.get('weight')?.dirty || form.get('weight')?.touched)) {
+      <div class="validation-feedback error">
+        O peso mínimo permitido é 1.
+      </div>
+    }
+
     <div class="panel-actions">
       <button
         type="submit"

@@ -229,6 +229,14 @@
                             Copiar link
                           </button>
 
+                          <button
+                            type="button"
+                            class="questionnaire-card__action-button"
+                            (click)="navigateToQuestionnaireView(questionnaire)"
+                          >
+                            Visualizar questionário
+                          </button>
+
                           @if (
                             isQuestionnaireInProgress(questionnaire) &&
                             questionnaire.pendingRespondents > 0
@@ -259,23 +267,13 @@
                         }
 
                         @if (canCurrentUserView(questionnaire)) {
-                          @if (isAdmin()) {
-                            <button
-                              type="button"
-                              class="questionnaire-card__action-button"
-                              (click)="navigateToQuestionnaire(questionnaire, 'view')"
-                            >
-                              Visualizar questionário
-                            </button>
-                          } @else {
-                            <button
-                              type="button"
-                              class="questionnaire-card__action-button"
-                              (click)="navigateToQuestionnaire(questionnaire, 'view')"
-                            >
-                              Visualizar respostas
-                            </button>
-                          }
+                          <button
+                            type="button"
+                            class="questionnaire-card__action-button"
+                            (click)="navigateToQuestionnaire(questionnaire, 'view')"
+                          >
+                            Visualizar respostas
+                          </button>
                         }
                       </div>
                     }

@@ -1,4 +1,4 @@
-package com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.query;
+ package com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.query;
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.ProjectTemplate;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.dto.*;

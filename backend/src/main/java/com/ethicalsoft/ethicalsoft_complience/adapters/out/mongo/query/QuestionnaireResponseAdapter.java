@@ -90,7 +90,7 @@ public class QuestionnaireResponseAdapter implements QuestionnaireResponsePort {
         try {
             log.info("[questionnaire-response] Recebendo respostas projeto={} questionario={} pagina={}", projectId, questionnaireId, request.getPageNumber());
             Questionnaire questionnaire = loadQuestionnaire(projectId, questionnaireId);
-            Long effectiveRepresentativeId = representativeAccessPolicy.resolveRepresentativeId(projectId);
+            Long effectiveRepresentativeId = resolveRepresentativeIdForSubmit(projectId, questionnaire, request);
             QuestionnaireResponse response = loadResponse(projectId, questionnaireId, effectiveRepresentativeId);
             pageSliceResolver.resolve(request.getPageNumber(), request.getPageSize(), response.getAnswers().size());
             Map<Long, QuestionnaireResponse.AnswerDocument> answerMap = response.getAnswers().stream()
@@ -176,5 +176,32 @@ public class QuestionnaireResponseAdapter implements QuestionnaireResponsePort {
         context.put("representativeId", representativeId);
         context.put("submittedAt", response.getSubmissionDate());
         sendNotificationUseCase.execute(new SendNotificationCommand(NotificationType.QUESTIONNAIRE_SUBMITTED, context));
+    }
+
+    private Long resolveRepresentativeIdForSubmit(Long projectId,
+                                                  Questionnaire questionnaire,
+                                                  QuestionnaireAnswerPageRequestDTO request) {
+        Long resolved = representativeAccessPolicy.resolveRepresentativeId(projectId);
+        if (resolved != null) {
+            return resolved;
+        }
+        Long requestedRepresentativeId = request.getRepresentativeId();
+        if (requestedRepresentativeId == null) {
+            return null;
+        }
+        representativeAccessPolicy.ensureRepresentativeBelongsToProject(requestedRepresentativeId, questionnaire.getProject());
+        return requestedRepresentativeId;
+    }
+
+    private Long resolveRepresentativeIdForRead(Long projectId, Questionnaire questionnaire, Long representativeId) {
+        Long resolved = representativeAccessPolicy.resolveRepresentativeId(projectId);
+        if (resolved != null) {
+            return resolved;
+        }
+        if (representativeId == null) {
+            return null;
+        }
+        representativeAccessPolicy.ensureRepresentativeBelongsToProject(representativeId, questionnaire.getProject());
+        return representativeId;
     }
 }

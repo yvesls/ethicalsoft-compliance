@@ -5,6 +5,7 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.repository.Ques
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.*;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.QuestionnaireResponseStatus;
 import com.ethicalsoft.ethicalsoft_complience.application.port.questionnaire.RepresentativeQuestionnaireResponseCommandPort;
+import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -27,6 +28,13 @@ public class RepresentativeQuestionnaireResponseMongoAdapter implements Represen
             return;
         }
 
+        Set<Long> representativeRoleIds = Optional.ofNullable(representative.getRoles())
+                .orElse(Collections.emptySet())
+                .stream()
+                .map(Role::getId)
+                .filter(Objects::nonNull)
+                .collect(java.util.stream.Collectors.toSet());
+
         for (Questionnaire questionnaire : questionnaires) {
 
             if (questionnaireResponseRepository
@@ -42,13 +50,20 @@ public class RepresentativeQuestionnaireResponseMongoAdapter implements Represen
             List<QuestionnaireResponse.AnswerDocument> template;
             Integer stageId;
             if (base != null) {
-                template = cloneAnswerTemplate(Optional.ofNullable(base.getAnswers()).orElse(Collections.emptyList()));
+                template = filterTemplateByRoles(
+                        cloneAnswerTemplate(Optional.ofNullable(base.getAnswers()).orElse(Collections.emptyList())),
+                        representativeRoleIds
+                );
                 stageId = base.getStageId();
             } else {
                 List<Question> questions = Optional.ofNullable(questionnaire.getQuestions()).map(ArrayList::new).orElseGet(ArrayList::new);
-                template = buildAnswerTemplate(questions);
+                template = buildAnswerTemplate(questions, representativeRoleIds);
                 template = cloneAnswerTemplate(template);
                 stageId = questionnaire.getStage() != null ? questionnaire.getStage().getId() : null;
+            }
+
+            if (template.isEmpty()) {
+                throw new BusinessException("Representante sem perguntas vinculadas ao questionário '" + questionnaire.getName() + "'.");
             }
 
             QuestionnaireResponse response = new QuestionnaireResponse();
@@ -62,13 +77,17 @@ public class RepresentativeQuestionnaireResponseMongoAdapter implements Represen
         }
     }
 
-    private List<QuestionnaireResponse.AnswerDocument> buildAnswerTemplate(List<Question> persistedQuestions) {
+    private List<QuestionnaireResponse.AnswerDocument> buildAnswerTemplate(List<Question> persistedQuestions,
+                                                                          Set<Long> representativeRoleIds) {
         if (persistedQuestions == null || persistedQuestions.isEmpty()) {
             return Collections.emptyList();
         }
 
         List<QuestionnaireResponse.AnswerDocument> result = new ArrayList<>();
         for (Question question : persistedQuestions) {
+            if (!hasMatchingRole(question, representativeRoleIds)) {
+                continue;
+            }
             QuestionnaireResponse.AnswerDocument answer = new QuestionnaireResponse.AnswerDocument();
             answer.setQuestionId(question.getId().longValue());
             answer.setQuestionText(question.getValue());
@@ -85,6 +104,31 @@ public class RepresentativeQuestionnaireResponseMongoAdapter implements Represen
             result.add(answer);
         }
         return result;
+    }
+
+    private List<QuestionnaireResponse.AnswerDocument> filterTemplateByRoles(List<QuestionnaireResponse.AnswerDocument> template,
+                                                                             Set<Long> representativeRoleIds) {
+        if (template == null || template.isEmpty()) {
+            return Collections.emptyList();
+        }
+        if (representativeRoleIds == null || representativeRoleIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return template.stream()
+                .filter(answer -> answer.getRoleIds() != null && answer.getRoleIds().stream().anyMatch(representativeRoleIds::contains))
+                .toList();
+    }
+
+    private boolean hasMatchingRole(Question question, Set<Long> representativeRoleIds) {
+        if (question == null || representativeRoleIds == null || representativeRoleIds.isEmpty()) {
+            return false;
+        }
+        return Optional.ofNullable(question.getRoles())
+                .orElse(Collections.emptySet())
+                .stream()
+                .map(Role::getId)
+                .filter(Objects::nonNull)
+                .anyMatch(representativeRoleIds::contains);
     }
 
     private List<QuestionnaireResponse.AnswerDocument> cloneAnswerTemplate(List<QuestionnaireResponse.AnswerDocument> template) {

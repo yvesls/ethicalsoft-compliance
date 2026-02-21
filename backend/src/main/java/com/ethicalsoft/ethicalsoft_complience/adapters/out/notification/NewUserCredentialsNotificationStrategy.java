@@ -37,13 +37,19 @@ public class NewUserCredentialsNotificationStrategy implements NotificationTypeS
         String tempPassword = Optional.ofNullable(command.context().get("tempPassword")).map(Object::toString).orElse("");
         String projectName = Optional.ofNullable(command.context().get("projectName")).map(Object::toString).orElse("");
         String adminName = Optional.ofNullable(command.context().get("adminName")).map(Object::toString).orElse("");
+        String resetLink = Optional.ofNullable(command.context().get("resetLink")).map(Object::toString).orElse("");
+        String supportEmail = Optional.ofNullable(command.context().get("supportEmail")).map(Object::toString).orElse("");
+        String environment = Optional.ofNullable(command.context().get("environment")).map(Object::toString).orElse("");
 
-        Map<String, String> commonPlaceholders = Map.of(
-                "firstName", firstName,
-                "tempPassword", tempPassword,
-                "projectName", projectName,
-                "adminName", adminName
-        );
+        Map<String, String> commonPlaceholders = new HashMap<>();
+        commonPlaceholders.put("firstName", firstName);
+        commonPlaceholders.put("tempPassword", tempPassword);
+        commonPlaceholders.put("temporaryPassword", tempPassword);
+        commonPlaceholders.put("projectName", projectName);
+        commonPlaceholders.put("adminName", adminName);
+        commonPlaceholders.put("resetLink", resetLink);
+        commonPlaceholders.put("supportEmail", supportEmail);
+        commonPlaceholders.put("environment", environment);
 
         NotificationSendSupport.SenderData sender = sendSupport.buildSender(projectId);
 

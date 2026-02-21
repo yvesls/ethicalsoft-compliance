@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, shareReplay } from 'rxjs';
+import { Observable, catchError, shareReplay, throwError } from 'rxjs';
 import { RoleSummary } from '../../shared/interfaces/role/role-summary.interface';
 import { ProjectStore } from '../../shared/stores/project.store';
 
@@ -10,7 +10,13 @@ export class RoleService {
 
   getRoles(forceRefresh = false): Observable<RoleSummary[]> {
     if (!this.cachedRoles$ || forceRefresh) {
-      this.cachedRoles$ = this.projectStore.listRoles().pipe(shareReplay(1));
+      this.cachedRoles$ = this.projectStore.listRoles().pipe(
+        catchError((error) => {
+          this.clearCache();
+          return throwError(() => error);
+        }),
+        shareReplay(1)
+      );
     }
 
     return this.cachedRoles$;

@@ -1,41 +1,25 @@
+import { BusinessDaysUtils } from '../../core/utils/business-days-utils';
+
 export class FormUtils {
   static formatDateBR(isoDate: string): string {
-    if (!isoDate) return '';
-    const [year, month, day] = isoDate.split('-');
-    return `${day}/${month}/${year}`;
+    return BusinessDaysUtils.formatDateBR(isoDate);
   }
 
   static formatDateISO(date: Date): string {
-    return date.toISOString().split('T')[0];
+    return BusinessDaysUtils.formatDateISO(date);
   }
 
   static calculateBusinessDays(startDate: Date, endDate: Date): number {
-    let count = 0;
-    const current = new Date(startDate);
-
-    while (current <= endDate) {
-      const dayOfWeek = current.getDay();
-      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-        count++;
-      }
-      current.setDate(current.getDate() + 1);
-    }
-
-    return count;
+    return BusinessDaysUtils.calculateBusinessDays(startDate, endDate, {
+      excludeWeekends: true,
+      holidays: [],
+    });
   }
 
   static addBusinessDays(startDate: Date, days: number): Date {
-    const result = new Date(startDate);
-    let addedDays = 0;
-
-    while (addedDays < days) {
-      result.setDate(result.getDate() + 1);
-
-      if (result.getDay() !== 0 && result.getDay() !== 6) {
-        addedDays++;
-      }
-    }
-
-    return result;
+    return BusinessDaysUtils.addBusinessDays(startDate, days, {
+      excludeWeekends: true,
+      holidays: [],
+    });
   }
 }

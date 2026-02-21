@@ -10,20 +10,18 @@ interface StageFormValue {
 export class ProjectDatesValidators {
   static stageApplicationRangeWithinDeadline(): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
-      const parent = control.parent;
-      if (!parent) return null;
-
-      const deadline = parent.get('deadline')?.value;
-      const steps = parent.get('steps')?.value as StageFormValue[] | undefined;
+      const deadline = control.get('deadline')?.value;
+      const steps = control.get('steps')?.value as StageFormValue[] | undefined;
 
       if (!deadline || !steps || !Array.isArray(steps)) {
         return null;
       }
 
+      const deadlineDate = BusinessDaysUtils.parseISODate(deadline);
+
       for (const step of steps) {
         if (step.applicationEndDate) {
-          const endDate = new Date(step.applicationEndDate);
-          const deadlineDate = new Date(deadline);
+          const endDate = BusinessDaysUtils.parseISODate(step.applicationEndDate);
 
           if (endDate > deadlineDate) {
             const formattedStageEnd = BusinessDaysUtils.formatDateBR(step.applicationEndDate);
@@ -54,8 +52,8 @@ export class ProjectDatesValidators {
         return null;
       }
 
-      const endDate = new Date(applicationEndDate);
-      const deadlineDate = new Date(deadline);
+      const endDate = BusinessDaysUtils.parseISODate(applicationEndDate);
+      const deadlineDate = BusinessDaysUtils.parseISODate(deadline);
 
       if (endDate > deadlineDate) {
         const formattedEndDate = BusinessDaysUtils.formatDateBR(applicationEndDate);
@@ -86,13 +84,13 @@ export class ProjectDatesValidators {
         return null;
       }
 
-      const deadlineDate = new Date(deadline);
+      const deadlineDate = BusinessDaysUtils.parseISODate(deadline);
       let maxEndDate: Date | null = null;
       let conflictingStage: StageFormValue | null = null;
 
       for (const step of steps) {
         if (step.applicationEndDate) {
-          const stepEndDate = new Date(step.applicationEndDate);
+          const stepEndDate = BusinessDaysUtils.parseISODate(step.applicationEndDate);
           if (!maxEndDate || stepEndDate > maxEndDate) {
             maxEndDate = stepEndDate;
             conflictingStage = step;
@@ -146,8 +144,8 @@ export class ProjectDatesValidators {
         return null;
       }
 
-      const startDateObj = new Date(startDate);
-      const deadlineDate = new Date(deadline);
+      const startDateObj = BusinessDaysUtils.parseISODate(startDate);
+      const deadlineDate = BusinessDaysUtils.parseISODate(deadline);
       const projectedEndDate = BusinessDaysUtils.addBusinessDays(startDateObj, totalDurationDays);
 
       if (projectedEndDate > deadlineDate) {

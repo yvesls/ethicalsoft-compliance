@@ -74,6 +74,20 @@
   gap: 0.25rem;
 }
 
+.date-feedback {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+
+  &.warning {
+    color: $gray-primary;
+  }
+
+  &.error {
+    color: $red;
+  }
+}
+
 .modal-footer {
   display: flex;
   justify-content: flex-end;
