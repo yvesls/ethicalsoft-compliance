@@ -22,12 +22,6 @@ export const MENU_CONFIG: MenuItem[] = [
 		roles: [RoleEnum.ADMIN, RoleEnum.USER],
 	},
 	{
-		label: 'Dashboards',
-		icon: 'dashboards',
-		route: '/dashboards',
-		roles: [RoleEnum.ADMIN],
-	},
-	{
 		label: 'Settings',
 		icon: 'settings',
 		route: '/settings',

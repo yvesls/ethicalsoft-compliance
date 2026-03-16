@@ -273,6 +273,50 @@ export class ProjectDetailPageComponent implements OnInit {
     return start ? `A partir de ${start}` : `Até ${end}`;
   }
 
+  // ── Navegação Dashboard ──────────────────────────────────────────
+
+  isQuestionnaireCompleted(questionnaire: ProjectQuestionnaireSummary): boolean {
+    const status = (questionnaire.status ?? '').toString().toUpperCase();
+    return status === TimelineStatus.Concluido || status === 'COMPLETED';
+  }
+
+  navigateToProjectDashboard(): void {
+    const projectId = this.currentProjectId ?? this.projectState().data?.id;
+    if (!projectId) {
+      return;
+    }
+    void this.router.navigate(['/projects', projectId, 'dashboard']);
+  }
+
+  navigateToQuestionnaireDashboard(questionnaire: ProjectQuestionnaireSummary): void {
+    const projectId = this.currentProjectId ?? this.projectState().data?.id;
+    if (!projectId) {
+      return;
+    }
+    void this.router.navigate([
+      '/projects',
+      projectId,
+      'questionnaires',
+      questionnaire.id,
+      'dashboard',
+    ]);
+  }
+
+  navigateToIndividualDashboard(questionnaire: ProjectQuestionnaireSummary): void {
+    const projectId = this.currentProjectId ?? this.projectState().data?.id;
+    if (!projectId) {
+      return;
+    }
+    void this.router.navigate([
+      '/projects',
+      projectId,
+      'questionnaires',
+      questionnaire.id,
+      'dashboard',
+      'individual',
+    ]);
+  }
+
   navigateToQuestionnaire(
     questionnaire: ProjectQuestionnaireSummary,
     mode: QuestionnaireActionMode = 'respond'

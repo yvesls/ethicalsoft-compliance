@@ -1,0 +1,156 @@
+export interface IsepHistoryEntry {
+  questionnaireId: number;
+  questionnaireName: string;
+  stageName: string;
+  iterationName: string | null;
+  isep: number;
+  isepPercent: number;
+  band: Band;
+  calculatedAt: string;
+}
+
+export interface ProjectIsepDashboardDTO {
+  projectId: number;
+  projectName: string;
+  projectType: 'ITERATIVO' | 'CASCATA';
+  projectIsep: number | null;
+  projectIsepPercent: number | null;
+  projectBand: Band | null;
+  isepHistory: IsepHistoryEntry[];
+  totalQuestionnaires: number;
+  completedQuestionnaires: number;
+}
+export interface MemberResult {
+  representativeId: number;
+  representativeName: string;
+  icp: number;
+  icpPercent: number;
+  band: Band;
+}
+
+export interface StageResult {
+  representativeId: number;
+  representativeName: string;
+  stageId: number;
+  stageName: string;
+  iem: number;
+  iemPercent: number;
+  band: Band;
+}
+
+export interface QuestionnaireIsepDashboardDTO {
+  questionnaireId: number;
+  questionnaireName: string;
+  stageName: string;
+  iterationName: string | null;
+  isep: number;
+  isepPercent: number;
+  band: Band;
+  teamSimpleAverage: number;
+  teamSimpleAveragePercent: number;
+  teamStandardDeviation: number;
+  teamStandardDeviationPercent: number;
+  calculatedAt: string;
+  bandDistribution: Record<Band, number>;
+  memberResults: MemberResult[];
+  stageResults: StageResult[];
+  justificationTexts: string[];
+}
+
+export interface StageIemEntry {
+  stageId: number;
+  stageName: string;
+  iemPercent: number;
+  band: Band;
+  memberCount: number;
+}
+
+export interface RoleStageComplianceDTO {
+  roleId: number;
+  roleName: string;
+  iemByStage: Record<string, StageIemEntry>;
+}
+
+export interface WordEntry {
+  word: string;
+  frequency: number;
+}
+
+export interface WordCloudDTO {
+  questionnaireId: number;
+  wordFrequency: Record<string, number>;
+  topWords: WordEntry[];
+  totalJustifications: number;
+}
+
+export interface PersonalEvolutionEntry {
+  questionnaireId: number;
+  questionnaireName: string;
+  stageName: string;
+  iterationName: string | null;
+  isep: number;
+  isepPercent: number;
+  band: Band;
+  calculatedAt: string;
+}
+
+export interface IndividualDashboardDTO {
+  representativeId: number;
+  representativeName: string;
+  personalIcp: number;
+  personalIcpPercent: number;
+  personalBand: Band;
+  personalHistoricalAverage: number;
+  personalHistoricalAveragePercent: number;
+  teamAnonymousAverage: number | null;
+  teamAnonymousAveragePercent: number | null;
+  personalEvolution: PersonalEvolutionEntry[];
+}
+
+export interface ProjectCloseResultDTO {
+  projectId: number;
+  isepPercent: string;
+  band: Band;
+  questionnaireCount: number;
+  calculatedAt: string;
+  closedBy: string;
+}
+
+export interface ExportMemberResult {
+  representativeId: number;
+  memberName: string | null;
+  icpPercent: number;
+  band: Band;
+  stageResults: { stageId: number; stageName: string; iemPercent: number }[];
+}
+
+export interface IsepDataExportDTO {
+  projectId: number;
+  projectName: string;
+  questionnaireId: number;
+  questionnaireName: string;
+  iterationOrStageName: string;
+  calculatedAt: string;
+  isepPercent: number;
+  band: Band;
+  teamAveragePercent: number;
+  standardDeviationPercent: number;
+  members: ExportMemberResult[];
+}
+
+export type Band = 'A' | 'B' | 'C' | 'D' | 'E';
+
+export interface BandMeta {
+  label: string;
+  colorClass: string;
+  cssColor: string;
+  range: string;
+}
+
+export const BAND_META: Record<Band, BandMeta> = {
+  A: { label: 'A', colorClass: 'band-a', cssColor: '#2e7d32', range: '90–100%' },
+  B: { label: 'B', colorClass: 'band-b', cssColor: '#1565c0', range: '75–89,9%' },
+  C: { label: 'C', colorClass: 'band-c', cssColor: '#f57f17', range: '60–74,9%' },
+  D: { label: 'D', colorClass: 'band-d', cssColor: '#e65100', range: '45–59,9%' },
+  E: { label: 'E', colorClass: 'band-e', cssColor: '#c62828', range: '< 45%' },
+};

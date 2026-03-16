@@ -10,19 +10,23 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.re
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.ListProjectQuestionnairesUseCase;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.ListRolesUseCase;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.notification.SendNotificationUseCase;
+import com.ethicalsoft.ethicalsoft_complience.application.usecase.project.CloseProjectManuallyUseCase;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.project.CreateProjectUseCase;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.project.GetProjectByIdUseCase;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.project.SearchProjectsUseCase;
+import com.ethicalsoft.ethicalsoft_complience.domain.isep.IsepMath;
 import com.ethicalsoft.ethicalsoft_complience.domain.notification.NotificationType;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping( "api/projects" )
@@ -35,6 +39,7 @@ public class ProjectController {
     private final GetProjectByIdUseCase getProjectByIdUseCase;
     private final ListProjectQuestionnairesUseCase listProjectQuestionnairesUseCase;
     private final SendNotificationUseCase sendNotificationUseCase;
+    private final CloseProjectManuallyUseCase closeProjectManuallyUseCase;
 
     @GetMapping("/roles")
     public List<RoleSummaryResponseDTO> listRoles() {
@@ -71,6 +76,20 @@ public class ProjectController {
                         "questionnaireId", questionnaireId,
                         "recipients", requestDTO.emails()
                 )
+        ));
+    }
+
+    @PostMapping("/{projectId}/close")
+    @PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")
+    public ResponseEntity<Map<String, Object>> closeProject(@PathVariable Long projectId) {
+        var result = closeProjectManuallyUseCase.execute(projectId);
+        return ResponseEntity.ok(Map.of(
+                "projectId", projectId,
+                "isepPercent", IsepMath.toPercent(result.getIsep()).toPlainString(),
+                "band", result.getBand(),
+                "questionnaireCount", result.getQuestionnaireCount(),
+                "calculatedAt", result.getCalculatedAt().toString(),
+                "closedBy", result.getClosedBy() != null ? result.getClosedBy() : ""
         ));
     }
 }

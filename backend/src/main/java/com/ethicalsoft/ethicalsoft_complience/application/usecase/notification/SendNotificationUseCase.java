@@ -6,6 +6,7 @@ import com.ethicalsoft.ethicalsoft_complience.domain.notification.NotificationTy
 import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.EnumMap;
@@ -18,10 +19,10 @@ public class SendNotificationUseCase {
 
     private final List<NotificationTypeStrategy> strategies;
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void execute(SendNotificationCommand command) {
         NotificationType type = command.type();
-        Map<NotificationType, NotificationTypeStrategy> strategyMap = new EnumMap<>(NotificationType.class);
+    Map<NotificationType, NotificationTypeStrategy> strategyMap = new EnumMap<>(NotificationType.class);
         for (NotificationTypeStrategy strategy : strategies) {
             strategyMap.put(strategy.type(), strategy);
         }

@@ -1,0 +1,84 @@
+@if (!loading()) {
+  @if (dashboard(); as d) {
+    <div class="dash-page">
+
+      <div class="dash-header">
+        <div>
+          <button class="dash-link dash-link--back" (click)="goBack()">
+            ← Voltar ao Dashboard
+          </button>
+          <h1 class="dash-title">Meu Painel Individual</h1>
+          <span class="dash-sub">{{ d.representativeName }}</span>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <app-isep-kpi-card
+          label="Meu ICP (Iteração Atual)"
+          [value]="d.personalIcpPercent"
+          [band]="d.personalBand"
+          secondary="Conformidade pessoal desta iteração"
+        />
+        <app-isep-kpi-card
+          label="Média Pessoal (Projeto)"
+          [value]="d.personalHistoricalAveragePercent"
+          secondary="Média das minhas iterações concluídas"
+        />
+        <app-isep-kpi-card
+          label="Média da Equipe (Anônima)"
+          [value]="d.teamAnonymousAveragePercent"
+          [secondary]="d.teamAnonymousAverage === null ? 'ISEP ainda não calculado' : 'Média geral da equipe'"
+        />
+      </div>
+
+      <div class="dash-card mt-4">
+        <app-individual-radar-chart
+          [personalIcpPercent]="d.personalIcpPercent"
+          [teamAveragePercent]="d.teamAnonymousAveragePercent"
+        />
+      </div>
+
+      @if (d.personalEvolution.length > 1) {
+        <div class="dash-card mt-4">
+          <app-isep-evolution-chart
+            [entries]="d.personalEvolution"
+            title="Minha Evolução de Conformidade"
+          />
+        </div>
+      }
+
+      <div class="alert alert-info mt-3">
+        <strong>Interpretação:</strong>
+        <ul class="mb-0 mt-1">
+          <li>
+            Seu ICP atual é
+            <strong>{{ d.personalIcpPercent | number:'1.2-2' }}%</strong>
+            – Faixa <app-band-badge [band]="d.personalBand" />.
+          </li>
+          @if (d.teamAnonymousAveragePercent !== null) {
+            <li>
+              A média da equipe é <strong>{{ d.teamAnonymousAveragePercent | number:'1.2-2' }}%</strong>.
+              @if (d.personalIcpPercent >= d.teamAnonymousAveragePercent) {
+                Você está <strong>acima</strong> da média da equipe.
+              }
+              @if (d.personalIcpPercent < d.teamAnonymousAveragePercent) {
+                Você está <strong>abaixo</strong> da média da equipe.
+              }
+            </li>
+          }
+          @if (d.teamAnonymousAverage === null) {
+            <li>
+              A média da equipe ainda não está disponível (aguardando 100% das respostas).
+            </li>
+          }
+        </ul>
+      </div>
+
+    </div>
+  }
+} @else {
+  <div class="d-flex justify-content-center align-items-center py-5">
+    <div class="spinner-border text-primary"></div>
+    <span class="ms-3 text-muted">Carregando painel individual...</span>
+  </div>
+}

@@ -1,0 +1,104 @@
+@if (!loading()) {
+  @if (dashboard(); as d) {
+    <div class="dash-page">
+
+      <div class="dash-header">
+        <div>
+          <h1 class="dash-title">{{ d.projectName }}</h1>
+          <span class="dash-sub">Dashboard Consolidado · {{ d.projectType }}</span>
+        </div>
+
+        <div class="dash-actions">
+          <button class="dash-btn dash-btn--neutral" (click)="downloadCsv()">
+            <i class="bi bi-download"></i> Exportar CSV
+          </button>
+          @if (isAdmin) {
+            <button
+              class="dash-btn dash-btn--danger"
+              [disabled]="closing() || d.projectIsep !== null"
+              (click)="closeProject()"
+            >
+              <i class="bi bi-lock"></i>
+              {{ closing() ? 'Encerrando...' : 'Encerrar Projeto' }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <app-isep-kpi-card
+          label="ISEP Consolidado"
+          [value]="d.projectIsepPercent"
+          [band]="d.projectBand"
+          [secondary]="d.projectIsepPercent !== null ? 'Calculado' : 'Aguardando questionários'"
+        />
+        <app-isep-kpi-card
+          label="Questionários Concluídos"
+          [value]="completionPercent"
+          [secondary]="d.completedQuestionnaires + ' de ' + d.totalQuestionnaires"
+        />
+      </div>
+
+      @if (closeResult(); as r) {
+        <div class="alert alert-success mt-3">
+          Projeto encerrado em {{ r.calculatedAt | date: 'dd/MM/yyyy HH:mm' }} por <b>{{ r.closedBy }}</b>.
+          ISEP: <b>{{ r.isepPercent }}%</b> – Faixa {{ r.band }} ({{ r.questionnaireCount }} questionários).
+        </div>
+      }
+
+      @if (d.isepHistory.length) {
+        <div class="dash-card mt-4">
+          <app-isep-evolution-chart
+            [entries]="d.isepHistory"
+            title="Evolução do ISEP por Iteração/Etapa"
+          />
+        </div>
+      }
+
+      <div class="dash-card mt-4">
+        <h2 class="dash-section-title">Questionários</h2>
+        <table class="table table-hover align-middle">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Etapa / Iteração</th>
+              <th>ISEP (%)</th>
+              <th>Faixa</th>
+              <th>Calculado em</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (e of d.isepHistory; track e.questionnaireId) {
+              <tr>
+                <td>{{ e.questionnaireName }}</td>
+                <td>{{ e.iterationName ?? e.stageName }}</td>
+                <td>{{ e.isepPercent | number:'1.2-2' }}%</td>
+                <td><app-band-badge [band]="e.band" /></td>
+                <td>{{ e.calculatedAt | date: 'dd/MM/yyyy HH:mm' }}</td>
+                <td>
+                  <button
+                    class="dash-link"
+                    (click)="navigateToQuestionnaire(e.questionnaireId)"
+                  >
+                    Ver Dashboard →
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="text-center text-muted">Nenhum questionário concluído ainda.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  }
+} @else {
+  <div class="d-flex justify-content-center align-items-center py-5">
+    <div class="spinner-border text-primary"></div>
+    <span class="ms-3 text-muted">Carregando dashboard...</span>
+  </div>
+}

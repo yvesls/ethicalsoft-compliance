@@ -27,6 +27,15 @@ public interface QuestionnaireRepository extends JpaRepository<Questionnaire, In
     @Query("select q from Questionnaire q where q.applicationStartDate = :today")
     List<Questionnaire> findQuestionnairesStartingToday(LocalDate today);
 
+    @Query("""
+            SELECT q FROM Questionnaire q
+            WHERE q.applicationEndDate < :today
+              AND NOT EXISTS (
+                  SELECT 1 FROM QuestionnaireResult qr WHERE qr.questionnaireId = q.id
+              )
+            """)
+    List<Questionnaire> findExpiredWithoutIsepResult(LocalDate today);
+
     Optional<Questionnaire> findByIdAndProjectId(Integer questionnaireId, Long projectId);
 
     @Override

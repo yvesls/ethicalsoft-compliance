@@ -2,6 +2,7 @@ package com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository;
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Project;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.ProjectStatusEnum;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.TimelineStatusEnum;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -38,4 +39,35 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, JpaSpec
     List<Project> findWithDeadlineBetween(@Param("from") java.time.LocalDate from,
                                           @Param("to") java.time.LocalDate to,
                                           @Param("closedStatus") ProjectStatusEnum closedStatus);
+
+    @Query("select distinct p from Project p " +
+            "left join fetch p.representatives r " +
+            "left join fetch r.user " +
+            "left join fetch r.roles " +
+            "left join fetch p.questionnaires " +
+            "where p.deadline <= :today " +
+            "and p.status = :activeStatus " +
+            "and not exists (select 1 from ProjectIsepResult pir where pir.projectId = p.id)")
+    List<Project> findExpiredWithoutProjectIsepResult(@Param("today") java.time.LocalDate today,
+                                                      @Param("activeStatus") ProjectStatusEnum activeStatus);
+
+    @Query("select distinct p from Project p " +
+            "left join fetch p.representatives r " +
+            "left join fetch r.user " +
+            "left join fetch r.roles " +
+            "left join fetch p.questionnaires " +
+            "where p.status = :activeStatus " +
+            "and (p.deadline <= :today or p.timelineStatus = :overdueTimeline) " +
+            "and not exists (select 1 from ProjectIsepResult pir where pir.projectId = p.id)")
+    List<Project> findExpiredWithoutIsepResult(@Param("today") java.time.LocalDate today,
+                                               @Param("activeStatus") ProjectStatusEnum activeStatus,
+                                               @Param("overdueTimeline") TimelineStatusEnum overdueTimeline);
+
+    @Query("select distinct p from Project p " +
+            "left join fetch p.representatives r " +
+            "left join fetch r.user " +
+            "left join fetch r.roles " +
+            "left join fetch p.questionnaires " +
+            "where p.id = :projectId")
+    java.util.Optional<Project> findByIdWithRepresentativesAndQuestionnaires(@Param("projectId") Long projectId);
 }

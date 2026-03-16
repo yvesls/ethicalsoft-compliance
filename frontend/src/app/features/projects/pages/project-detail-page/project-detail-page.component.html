@@ -27,9 +27,14 @@
             </div>
           </div>
           @if (isAdmin()) {
-            <button type="button" class="btn btn-secundary" (click)="onEditProject()">
-              Editar projeto
-            </button>
+            <div class="project-header__actions">
+              <button type="button" class="btn btn-secundary" (click)="onEditProject()">
+                Editar projeto
+              </button>
+              <button type="button" class="btn btn-primary" (click)="navigateToProjectDashboard()">
+                Dashboard do projeto
+              </button>
+            </div>
           }
         </section>
 
@@ -237,6 +242,16 @@
                             Visualizar questionário
                           </button>
 
+                          @if (isQuestionnaireCompleted(questionnaire)) {
+                            <button
+                              type="button"
+                              class="questionnaire-card__action-button questionnaire-card__action-button--primary"
+                              (click)="navigateToQuestionnaireDashboard(questionnaire)"
+                            >
+                              Dashboard do questionário
+                            </button>
+                          }
+
                           @if (
                             isQuestionnaireInProgress(questionnaire) &&
                             questionnaire.pendingRespondents > 0
@@ -273,6 +288,16 @@
                             (click)="navigateToQuestionnaire(questionnaire, 'view')"
                           >
                             Visualizar respostas
+                          </button>
+                        }
+
+                        @if (canCurrentUserView(questionnaire) && isQuestionnaireCompleted(questionnaire)) {
+                          <button
+                            type="button"
+                            class="questionnaire-card__action-button questionnaire-card__action-button--primary"
+                            (click)="navigateToIndividualDashboard(questionnaire)"
+                          >
+                            Meu painel
                           </button>
                         }
                       </div>

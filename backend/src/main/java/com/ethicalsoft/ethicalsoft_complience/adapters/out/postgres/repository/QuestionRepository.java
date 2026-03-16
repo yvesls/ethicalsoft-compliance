@@ -13,10 +13,17 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
     @Query("select distinct q from Question q " +
             "left join q.roles r " +
             "where q.questionnaire.id = :questionnaireId " +
-            "and (:questionText is null or lower(q.value) like lower(concat('%', :questionText, '%'))) " +
-            "and (:roleName is null or lower(r.name) like lower(concat('%', :roleName, '%'))) " +
-            "and (:roleIds is null or r.id in :roleIds)")
-    Page<Question> searchByQuestionnaireId(Integer questionnaireId, String questionText, String roleName, java.util.List<Long> roleIds, Pageable pageable);
+            "and (:questionText is null or lower(cast(q.value as string)) like lower(concat('%', cast(:questionText as string), '%'))) " +
+            "and (:roleName is null or lower(cast(r.name as string)) like lower(concat('%', cast(:roleName as string), '%')))")
+    Page<Question> searchByQuestionnaireId(Integer questionnaireId, String questionText, String roleName, Pageable pageable);
+
+    @Query("select distinct q from Question q " +
+            "join q.roles r " +
+            "where q.questionnaire.id = :questionnaireId " +
+            "and (:questionText is null or lower(cast(q.value as string)) like lower(concat('%', cast(:questionText as string), '%'))) " +
+            "and (:roleName is null or lower(cast(r.name as string)) like lower(concat('%', cast(:roleName as string), '%'))) " +
+            "and r.id in :roleIds")
+    Page<Question> searchByQuestionnaireIdAndRoleIds(Integer questionnaireId, String questionText, String roleName, java.util.List<Long> roleIds, Pageable pageable);
 
     @Query("select distinct q from Question q " +
             "join q.roles r " +

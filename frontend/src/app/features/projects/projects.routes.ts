@@ -23,6 +23,33 @@ export const PROJECTS_ROUTES: Routes = [
     path: 'questionnaire/iterativo',
     component: IterativoQuestionnaireFormComponent,
   },
+
+  // ── Dashboard ─────────────────────────────────────────────────────
+
+  {
+    path: ':projectId/questionnaires/:questionnaireId/dashboard/individual',
+    loadComponent: () =>
+      import('../../features/dashboard/pages/individual-dashboard-page/individual-dashboard-page.component').then(
+        (m) => m.IndividualDashboardPageComponent
+      ),
+  },
+
+  {
+    path: ':projectId/questionnaires/:questionnaireId/dashboard',
+    loadComponent: () =>
+      import('../../features/dashboard/pages/questionnaire-dashboard-page/questionnaire-dashboard-page.component').then(
+        (m) => m.QuestionnaireDashboardPageComponent
+      ),
+  },
+
+  {
+    path: ':projectId/dashboard',
+    loadComponent: () =>
+      import('../../features/dashboard/pages/project-dashboard-page/project-dashboard-page.component').then(
+        (m) => m.ProjectDashboardPageComponent
+      ),
+  },
+
   {
     path: ':projectId/questionnaires/:questionnaireId',
     loadComponent: () =>
@@ -42,3 +69,4 @@ export const PROJECTS_ROUTES: Routes = [
       ),
   },
 ];
+

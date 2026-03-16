@@ -87,8 +87,10 @@ public class QuestionnaireQueryAdapter implements QuestionnaireQueryPort {
             boolean hasRoleIds = roleIds != null && !roleIds.isEmpty();
 
             Page<Question> page;
-            if (hasTextFilters) {
-                page = questionRepositoryPort.searchByQuestionnaireId(questionnaireId, questionText, roleName, roleIds, pageable);
+            if (hasTextFilters && hasRoleIds) {
+                page = questionRepositoryPort.searchByQuestionnaireIdAndRoleIds(questionnaireId, questionText, roleName, roleIds, pageable);
+            } else if (hasTextFilters) {
+                page = questionRepositoryPort.searchByQuestionnaireId(questionnaireId, questionText, roleName, pageable);
             } else if (hasRoleIds) {
                 page = questionRepositoryPort.findByQuestionnaireIdAndRoleIds(questionnaireId, roleIds, pageable);
             } else {

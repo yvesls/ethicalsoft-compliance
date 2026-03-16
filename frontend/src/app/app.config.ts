@@ -1,4 +1,5 @@
-import { ApplicationConfig } from '@angular/core'
+import { ApplicationConfig, PLATFORM_ID, inject, provideAppInitializer } from '@angular/core'
+import { isPlatformBrowser } from '@angular/common'
 import { provideRouter, withComponentInputBinding } from '@angular/router'
 import { routes } from './app.routes'
 import { provideClientHydration } from '@angular/platform-browser'
@@ -7,6 +8,18 @@ import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/
 import { tokenInterceptorFn } from './core/interceptors/token.interceptor.fn'
 import { spinnerInterceptorFn } from './core/interceptors/spinner.interceptor.fn'
 import { projectContextInterceptorFn } from './core/interceptors/project-context.interceptor.fn'
+
+import { provideEchartsCore } from 'ngx-echarts'
+import * as echarts from 'echarts/core'
+import { BarChart, HeatmapChart, RadarChart } from 'echarts/charts'
+import {
+  GridComponent,
+  TooltipComponent,
+  LegendComponent,
+  VisualMapComponent,
+  TitleComponent,
+} from 'echarts/components'
+import { CanvasRenderer } from 'echarts/renderers'
 
 export const appConfig: ApplicationConfig = {
 	providers: [
@@ -18,5 +31,23 @@ export const appConfig: ApplicationConfig = {
 			withInterceptors([spinnerInterceptorFn, tokenInterceptorFn, projectContextInterceptorFn]),
 			withFetch()
 		),
+		provideEchartsCore({ echarts }),
+		provideAppInitializer(() => {
+			const platformId = inject(PLATFORM_ID)
+			if (isPlatformBrowser(platformId)) {
+				echarts.use([
+					BarChart,
+					HeatmapChart,
+					RadarChart,
+					GridComponent,
+					TooltipComponent,
+					LegendComponent,
+					VisualMapComponent,
+					TitleComponent,
+					CanvasRenderer,
+				])
+			}
+		}),
 	],
 }
+

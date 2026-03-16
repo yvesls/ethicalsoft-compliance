@@ -23,6 +23,8 @@ public class NotificationTemplateInitializer {
     private static final String QUESTIONNAIRE_SUBMITTED = "QUESTIONNAIRE_SUBMITTED";
     private static final String QUESTIONNAIRE_COMPLETED = "QUESTIONNAIRE_COMPLETED";
     private static final String DEADLINE_REMINDER = "DEADLINE_REMINDER";
+    private static final String QUESTIONNAIRE_OVERDUE = "QUESTIONNAIRE_OVERDUE";
+    private static final String QUESTIONNAIRE_ISEP_CALCULATED = "QUESTIONNAIRE_ISEP_CALCULATED";
 
     private final NotificationTemplateRepository repository;
 
@@ -94,6 +96,24 @@ public class NotificationTemplateInitializer {
                         .title("Prazo próximo: {projectName}")
                         .body("O projeto {projectName} vence em {deadlineFormatted} (faltam {daysRemaining} dia(s)).")
                         .templateLink("users/project-deadline-reminder.ftl")
+                        .channels(List.of(NotificationChannel.INTERNAL.name(), NotificationChannel.EMAIL.name()))
+                        .build(),
+                NotificationTemplateDocument.builder()
+                        .key(QUESTIONNAIRE_OVERDUE)
+                        .whoCanSend(List.of(UserRoleEnum.ADMIN.name(), UserRoleEnum.USER.name()))
+                        .recipients(List.of())
+                        .title("Questionário atrasado: {questionnaireName}")
+                        .body("O questionário {questionnaireName} do projeto {projectName} expirou em {expiredAtFormatted} sem 100% de respostas. Respondentes pendentes: {pendingCount}/{totalCount}.")
+                        .templateLink("users/questionnaire-overdue.ftl")
+                        .channels(List.of(NotificationChannel.INTERNAL.name(), NotificationChannel.EMAIL.name()))
+                        .build(),
+                NotificationTemplateDocument.builder()
+                        .key(QUESTIONNAIRE_ISEP_CALCULATED)
+                        .whoCanSend(List.of(UserRoleEnum.ADMIN.name(), UserRoleEnum.USER.name()))
+                        .recipients(List.of())
+                        .title("ISEP calculado: {questionnaireName} — Faixa {band}")
+                        .body("O ISEP do questionário {questionnaireName} no projeto {projectName} foi calculado: {isepPercent}% (Faixa {band}). Encerrado por: {closedBy}.")
+                        .templateLink("users/questionnaire-isep-calculated.ftl")
                         .channels(List.of(NotificationChannel.INTERNAL.name(), NotificationChannel.EMAIL.name()))
                         .build()
         );

@@ -11,9 +11,9 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.U
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.notification.SendNotificationUseCase;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.notification.command.SendNotificationCommand;
 import com.ethicalsoft.ethicalsoft_complience.exception.UserNotFoundException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -39,8 +39,14 @@ class PasswordRecoveryServiceTest {
     @Mock
     private SendNotificationUseCase sendNotificationUseCase;
 
-    @InjectMocks
     private PasswordRecoveryAdapter passwordRecoveryService;
+
+    @BeforeEach
+    void setUp() {
+        passwordRecoveryService = new PasswordRecoveryAdapter(
+                userRepository, passwordEncoder, recoveryCodeRepository, sendNotificationUseCase
+        );
+    }
 
     @Test
     void requestRecovery_success() {

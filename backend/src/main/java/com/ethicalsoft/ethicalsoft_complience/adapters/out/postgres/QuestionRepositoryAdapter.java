@@ -21,8 +21,13 @@ public class QuestionRepositoryAdapter implements QuestionRepositoryPort {
     }
 
     @Override
-    public Page<Question> searchByQuestionnaireId(Integer questionnaireId, String questionText, String roleName, java.util.List<Long> roleIds, Pageable pageable) {
-        return delegate.searchByQuestionnaireId(questionnaireId, questionText, roleName, roleIds, pageable);
+    public Page<Question> searchByQuestionnaireId(Integer questionnaireId, String questionText, String roleName, Pageable pageable) {
+        return delegate.searchByQuestionnaireId(questionnaireId, questionText, roleName, pageable);
+    }
+
+    @Override
+    public Page<Question> searchByQuestionnaireIdAndRoleIds(Integer questionnaireId, String questionText, String roleName, java.util.List<Long> roleIds, Pageable pageable) {
+        return delegate.searchByQuestionnaireIdAndRoleIds(questionnaireId, questionText, roleName, roleIds, pageable);
     }
 
     @Override
