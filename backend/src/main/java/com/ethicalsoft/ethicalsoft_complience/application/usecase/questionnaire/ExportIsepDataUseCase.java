@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -108,8 +109,18 @@ public class ExportIsepDataUseCase {
                 result.getBand(),
                 IsepMath.toPercent(result.getTeamSimpleAverage()),
                 IsepMath.toPercent(result.getTeamStandardDeviation()),
+                toPercent(result.getEthicsScore()),
+                toPercent(result.getProcessScore()),
+                toPercent(result.getFairnessScore()),
+                toPercent(result.getEsgScore()),
+                toPercent(result.getEthicsDebtScore()),
+                toPercent(result.getTechDebtScore()),
                 memberRows
         );
+    }
+
+    private BigDecimal toPercent(BigDecimal value) {
+        return value != null ? IsepMath.toPercent(value) : null;
     }
 
     @Transactional(readOnly = true)

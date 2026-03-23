@@ -10,8 +10,16 @@ public record ProjectIsepDashboardDTO(
         BigDecimal projectIsep,
         BigDecimal projectIsepPercent,
         String projectBand,
+        BigDecimal teamSimpleAveragePercent,
+        BigDecimal teamStandardDeviationPercent,
         List<IsepHistoryItemDTO> isepHistory,
         int totalQuestionnaires,
-        int completedQuestionnaires
+        int completedQuestionnaires,
+        BigDecimal ethicsScorePercent,
+        BigDecimal processScorePercent,
+        BigDecimal fairnessScorePercent,
+        BigDecimal esgScorePercent,
+        BigDecimal ethicsDebtPercent,
+        BigDecimal techDebtPercent
 ) {}
 

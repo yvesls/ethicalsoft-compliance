@@ -98,7 +98,13 @@ public class ExportIsepCsvUseCase {
                 row.append(IsepMath.toPercent(mcr.getIcp()).toPlainString()).append(DELIMITER);
                 row.append(escapeCsv(mcr.getBand())).append(DELIMITER);
                 row.append(IsepMath.toPercent(result.getIsep()).toPlainString()).append(DELIMITER);
-                row.append(escapeCsv(result.getBand()));
+                row.append(escapeCsv(result.getBand())).append(DELIMITER);
+                row.append(percentOrEmpty(result.getEthicsScore())).append(DELIMITER);
+                row.append(percentOrEmpty(result.getProcessScore())).append(DELIMITER);
+                row.append(percentOrEmpty(result.getFairnessScore())).append(DELIMITER);
+                row.append(percentOrEmpty(result.getEsgScore())).append(DELIMITER);
+                row.append(percentOrEmpty(result.getEthicsDebtScore())).append(DELIMITER);
+                row.append(percentOrEmpty(result.getTechDebtScore()));
 
                 Map<Integer, BigDecimal> repIem = iemByRepByStage.getOrDefault(mcr.getRepresentativeId(), Map.of());
                 for (Stage stage : stages.stream().sorted(Comparator.comparing(Stage::getId)).toList()) {
@@ -176,7 +182,13 @@ public class ExportIsepCsvUseCase {
             row.append(IsepMath.toPercent(mcr.getIcp()).toPlainString()).append(DELIMITER);
             row.append(escapeCsv(mcr.getBand())).append(DELIMITER);
             row.append(IsepMath.toPercent(result.getIsep()).toPlainString()).append(DELIMITER);
-            row.append(escapeCsv(result.getBand()));
+            row.append(escapeCsv(result.getBand())).append(DELIMITER);
+            row.append(percentOrEmpty(result.getEthicsScore())).append(DELIMITER);
+            row.append(percentOrEmpty(result.getProcessScore())).append(DELIMITER);
+            row.append(percentOrEmpty(result.getFairnessScore())).append(DELIMITER);
+            row.append(percentOrEmpty(result.getEsgScore())).append(DELIMITER);
+            row.append(percentOrEmpty(result.getEthicsDebtScore())).append(DELIMITER);
+            row.append(percentOrEmpty(result.getTechDebtScore()));
 
             Map<Integer, BigDecimal> repIem = iemByRepByStage.getOrDefault(mcr.getRepresentativeId(), Map.of());
             for (Stage stage : stages) {
@@ -202,7 +214,13 @@ public class ExportIsepCsvUseCase {
                 "ICP (%)" + DELIMITER +
                 "Faixa ICP" + DELIMITER +
                 "ISEP Iteração (%)" + DELIMITER +
-                "Faixa ISEP"
+                "Faixa ISEP" + DELIMITER +
+                "Ética (%)" + DELIMITER +
+                "Processo (%)" + DELIMITER +
+                "Equidade (%)" + DELIMITER +
+                "ESG (%)" + DELIMITER +
+                "Dívida Ética (%)" + DELIMITER +
+                "Dívida Técnica (%)"
         );
         for (String stage : stageNames) {
             header.append(DELIMITER).append("IEM ").append(escapeCsv(stage)).append(" (%)");
@@ -216,6 +234,10 @@ public class ExportIsepCsvUseCase {
             return "\"" + value.replace("\"", "\"\"") + "\"";
         }
         return value;
+    }
+
+    private String percentOrEmpty(BigDecimal value) {
+        return value != null ? IsepMath.toPercent(value).toPlainString() : "";
     }
 }
 

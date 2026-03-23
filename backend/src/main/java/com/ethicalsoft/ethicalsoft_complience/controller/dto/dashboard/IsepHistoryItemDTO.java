@@ -11,6 +11,8 @@ public record IsepHistoryItemDTO(
         BigDecimal isep,
         BigDecimal isepPercent,
         String band,
-        LocalDateTime calculatedAt
+        LocalDateTime calculatedAt,
+        BigDecimal ethicsDebtPercent,
+        BigDecimal techDebtPercent
 ) {}
 

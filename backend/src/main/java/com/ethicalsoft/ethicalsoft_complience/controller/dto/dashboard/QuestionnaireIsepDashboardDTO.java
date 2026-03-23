@@ -21,6 +21,12 @@ public record QuestionnaireIsepDashboardDTO(
         Map<String, Long> bandDistribution,
         List<MemberComplianceDTO> memberResults,
         List<StageComplianceDTO> stageResults,
-        List<String> justificationTexts
+        List<String> justificationTexts,
+        BigDecimal ethicsScorePercent,
+        BigDecimal processScorePercent,
+        BigDecimal fairnessScorePercent,
+        BigDecimal esgScorePercent,
+        BigDecimal ethicsDebtPercent,
+        BigDecimal techDebtPercent
 ) {}
 

@@ -123,7 +123,9 @@ public class GetIndividualDashboardUseCase {
                                     m.getIcp(),
                                     IsepMath.toPercent(m.getIcp()),
                                     m.getBand(),
-                                    r.getCalculatedAt()
+                                    r.getCalculatedAt(),
+                                    toPercent(r.getEthicsDebtScore()),
+                                    toPercent(r.getTechDebtScore())
                             );
                         }))
                 .sorted(Comparator.comparing(IsepHistoryItemDTO::calculatedAt,
@@ -144,6 +146,10 @@ public class GetIndividualDashboardUseCase {
         );
     }
 
+    private BigDecimal toPercent(BigDecimal value) {
+        return value != null ? IsepMath.toPercent(value) : null;
+    }
+
     private BigDecimal computeIcpFromRaw(QuestionnaireResponse response) {
         if (response.getAnswers() == null || response.getAnswers().isEmpty()) {
             return BigDecimal.ZERO;
@@ -154,3 +160,4 @@ public class GetIndividualDashboardUseCase {
         return IsepMath.ratio(simCount, response.getAnswers().size());
     }
 }
+

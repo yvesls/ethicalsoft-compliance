@@ -45,6 +45,24 @@ public class QuestionnaireResult {
     @Column(name = "calculated_at", nullable = false)
     private LocalDateTime calculatedAt;
 
+    @Column(name = "ethics_score", precision = 7, scale = 4)
+    private BigDecimal ethicsScore;
+
+    @Column(name = "process_score", precision = 7, scale = 4)
+    private BigDecimal processScore;
+
+    @Column(name = "fairness_score", precision = 7, scale = 4)
+    private BigDecimal fairnessScore;
+
+    @Column(name = "esg_score", precision = 7, scale = 4)
+    private BigDecimal esgScore;
+
+    @Column(name = "ethics_debt_score", precision = 7, scale = 4)
+    private BigDecimal ethicsDebtScore;
+
+    @Column(name = "tech_debt_score", precision = 7, scale = 4)
+    private BigDecimal techDebtScore;
+
     @OneToMany(mappedBy = "result", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MemberComplianceResult> memberResults = new ArrayList<>();
 

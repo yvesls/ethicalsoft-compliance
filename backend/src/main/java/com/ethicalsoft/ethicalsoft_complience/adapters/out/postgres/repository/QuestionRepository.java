@@ -6,6 +6,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
+import java.util.Optional;
+
 public interface QuestionRepository extends JpaRepository<Question, Long> {
 
     Page<Question> findByQuestionnaireIdOrderByIdAsc(Integer questionnaireId, Pageable pageable);
@@ -23,11 +26,10 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
             "and (:questionText is null or lower(cast(q.value as string)) like lower(concat('%', cast(:questionText as string), '%'))) " +
             "and (:roleName is null or lower(cast(r.name as string)) like lower(concat('%', cast(:roleName as string), '%'))) " +
             "and r.id in :roleIds")
-    Page<Question> searchByQuestionnaireIdAndRoleIds(Integer questionnaireId, String questionText, String roleName, java.util.List<Long> roleIds, Pageable pageable);
+    Page<Question> searchByQuestionnaireIdAndRoleIds(Integer questionnaireId, String questionText, String roleName, List<Long> roleIds, Pageable pageable);
 
-    @Query("select distinct q from Question q " +
-            "join q.roles r " +
-            "where q.questionnaire.id = :questionnaireId " +
-            "and r.id in :roleIds")
-    Page<Question> findByQuestionnaireIdAndRoleIds(Integer questionnaireId, java.util.List<Long> roleIds, Pageable pageable);
+    @Query("select distinct q from Question q join q.roles r where q.questionnaire.id = :questionnaireId and r.id in :roleIds")
+    Page<Question> findByQuestionnaireIdAndRoleIds(Integer questionnaireId, List<Long> roleIds, Pageable pageable);
+
+    Optional<Question> findById(Long id);
 }

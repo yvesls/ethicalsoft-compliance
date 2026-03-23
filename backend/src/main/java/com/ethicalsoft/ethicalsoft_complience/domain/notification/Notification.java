@@ -11,10 +11,16 @@ public record Notification(
         NotificationStatus status,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
-        String templateKey
+        String templateKey,
+        String governanceEvent
 ) {
+    public Notification(String id, NotificationParty sender, NotificationParty recipient,
+                        String title, String content, NotificationStatus status,
+                        LocalDateTime createdAt, LocalDateTime updatedAt, String templateKey) {
+        this(id, sender, recipient, title, content, status, createdAt, updatedAt, templateKey, templateKey);
+    }
+
     public Notification withStatus(NotificationStatus newStatus, LocalDateTime updatedAt) {
-        return new Notification(id, sender, recipient, title, content, newStatus, createdAt, updatedAt, templateKey);
+        return new Notification(id, sender, recipient, title, content, newStatus, createdAt, updatedAt, templateKey, governanceEvent);
     }
 }
-

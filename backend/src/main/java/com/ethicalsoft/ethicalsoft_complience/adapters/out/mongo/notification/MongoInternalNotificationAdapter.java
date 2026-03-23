@@ -87,6 +87,7 @@ public class MongoInternalNotificationAdapter implements InternalNotificationPor
                 .createdAt(n.createdAt())
                 .updatedAt(n.updatedAt())
                 .templateKey(n.templateKey())
+                .governanceEvent(n.governanceEvent())
                 .build();
     }
 
@@ -112,7 +113,8 @@ public class MongoInternalNotificationAdapter implements InternalNotificationPor
                 d.getStatus(),
                 d.getCreatedAt(),
                 d.getUpdatedAt(),
-                d.getTemplateKey()
+                d.getTemplateKey(),
+                d.getGovernanceEvent()
         );
     }
 

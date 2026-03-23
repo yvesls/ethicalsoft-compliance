@@ -117,9 +117,14 @@ class ProcessExpiredProjectIsepUseCaseTest {
         when(isepResultQueryPort.findByProjectId(100L))
                 .thenReturn(List.of(result1, result2));
 
-        ProjectIsepResult saved = new ProjectIsepResult(
-                1L, 100L, BigDecimal.valueOf(0.80), EthicalComplianceBand.B.name(),
-                2, LocalDateTime.now(), "Sistema (Scheduler)");
+        ProjectIsepResult saved = new ProjectIsepResult();
+        saved.setId(1L);
+        saved.setProjectId(100L);
+        saved.setIsep(BigDecimal.valueOf(0.80));
+        saved.setBand(EthicalComplianceBand.B.name());
+        saved.setQuestionnaireCount(2);
+        saved.setCalculatedAt(LocalDateTime.now());
+        saved.setClosedBy("Sistema (Scheduler)");
         when(projectIsepResultCommandPort.save(any())).thenReturn(saved);
         when(projectRepository.save(any())).thenReturn(project);
         doNothing().when(sendNotificationUseCase).execute(any());
@@ -168,9 +173,14 @@ class ProcessExpiredProjectIsepUseCaseTest {
 
         when(isepResultQueryPort.findByProjectId(100L))
                 .thenReturn(List.of(result1));
-        ProjectIsepResult saved = new ProjectIsepResult(
-                1L, 100L, BigDecimal.valueOf(0.90), EthicalComplianceBand.A.name(),
-                1, LocalDateTime.now(), "admin@example.com");
+        ProjectIsepResult saved = new ProjectIsepResult();
+        saved.setId(1L);
+        saved.setProjectId(100L);
+        saved.setIsep(BigDecimal.valueOf(0.90));
+        saved.setBand(EthicalComplianceBand.A.name());
+        saved.setQuestionnaireCount(1);
+        saved.setCalculatedAt(LocalDateTime.now());
+        saved.setClosedBy("admin@example.com");
         when(projectIsepResultCommandPort.save(any())).thenReturn(saved);
         when(projectRepository.save(any())).thenReturn(project);
         doNothing().when(sendNotificationUseCase).execute(any());
@@ -226,9 +236,14 @@ class ProcessExpiredProjectIsepUseCaseTest {
         when(projectIsepResultQueryPort.existsByProjectId(100L)).thenReturn(false);
         when(isepResultQueryPort.findByProjectId(100L)).thenReturn(List.of(result1, result2));
 
-        ProjectIsepResult saved = new ProjectIsepResult(
-                1L, 100L, BigDecimal.valueOf(0.80), EthicalComplianceBand.B.name(),
-                2, LocalDateTime.now(), "Sistema (auto-finalização)");
+        ProjectIsepResult saved = new ProjectIsepResult();
+        saved.setId(1L);
+        saved.setProjectId(100L);
+        saved.setIsep(BigDecimal.valueOf(0.80));
+        saved.setBand(EthicalComplianceBand.B.name());
+        saved.setQuestionnaireCount(2);
+        saved.setCalculatedAt(LocalDateTime.now());
+        saved.setClosedBy("Sistema (auto-finalização)");
         when(projectIsepResultCommandPort.save(any())).thenReturn(saved);
         when(projectRepository.save(any())).thenReturn(project);
         doNothing().when(sendNotificationUseCase).execute(any());

@@ -14,6 +14,7 @@ import com.ethicalsoft.ethicalsoft_complience.exception.UserNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -39,8 +40,8 @@ class PasswordRecoveryServiceTest {
     @Mock
     private SendNotificationUseCase sendNotificationUseCase;
 
+    @InjectMocks
     private PasswordRecoveryAdapter passwordRecoveryService;
-
     @BeforeEach
     void setUp() {
         passwordRecoveryService = new PasswordRecoveryAdapter(
@@ -52,8 +53,11 @@ class PasswordRecoveryServiceTest {
     void requestRecovery_success() {
         User user = new User();
         user.setEmail("test@example.com");
+        user.setPassword("encodedPassword");
+
         PasswordRecoveryDTO passwordRecoveryDTO = new PasswordRecoveryDTO();
         passwordRecoveryDTO.setEmail("test@example.com");
+
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
         doNothing().when(sendNotificationUseCase).execute(any(SendNotificationCommand.class));
 

@@ -160,18 +160,38 @@ public class ProcessExpiredProjectIsepUseCase {
         BigDecimal isepPercent = IsepMath.toPercent(consolidatedIsep);
         EthicalComplianceBand band = EthicalComplianceBand.classify(isepPercent);
 
+        Collection<BigDecimal> isepValues = questionnaireResults.stream()
+                .map(QuestionnaireResult::getIsep)
+                .toList();
+        BigDecimal teamAvg = IsepMath.simpleAverage(isepValues);
+        BigDecimal teamStdDev = IsepMath.standardDeviation(isepValues);
+
+        BigDecimal avgEthics = averageNonNull(questionnaireResults.stream().map(QuestionnaireResult::getEthicsScore).toList());
+        BigDecimal avgProcess = averageNonNull(questionnaireResults.stream().map(QuestionnaireResult::getProcessScore).toList());
+        BigDecimal avgFairness = averageNonNull(questionnaireResults.stream().map(QuestionnaireResult::getFairnessScore).toList());
+        BigDecimal avgEsg = averageNonNull(questionnaireResults.stream().map(QuestionnaireResult::getEsgScore).toList());
+        BigDecimal avgEthicsDebt = averageNonNull(questionnaireResults.stream().map(QuestionnaireResult::getEthicsDebtScore).toList());
+        BigDecimal avgTechDebt = averageNonNull(questionnaireResults.stream().map(QuestionnaireResult::getTechDebtScore).toList());
+
         log.info("[project-isep-scheduler] ISEP Consolidado do Projeto id={}: {}% (Faixa {})",
                 project.getId(), isepPercent, band.name());
 
-        ProjectIsepResult result = new ProjectIsepResult(
-                null,
-                project.getId(),
-                consolidatedIsep,
-                band.name(),
-                questionnaireResults.size(),
-                LocalDateTime.now(),
-                closedBy
-        );
+        ProjectIsepResult result = new ProjectIsepResult();
+        result.setProjectId(project.getId());
+        result.setIsep(consolidatedIsep);
+        result.setBand(band.name());
+        result.setQuestionnaireCount(questionnaireResults.size());
+        result.setCalculatedAt(LocalDateTime.now());
+        result.setClosedBy(closedBy);
+        result.setTeamSimpleAverage(teamAvg);
+        result.setTeamStandardDeviation(teamStdDev);
+        result.setEthicsScore(avgEthics);
+        result.setProcessScore(avgProcess);
+        result.setFairnessScore(avgFairness);
+        result.setEsgScore(avgEsg);
+        result.setEthicsDebtScore(avgEthicsDebt);
+        result.setTechDebtScore(avgTechDebt);
+
         ProjectIsepResult saved = projectIsepResultCommandPort.save(result);
 
         project.setStatus(ProjectStatusEnum.CONCLUIDO);
@@ -182,6 +202,13 @@ public class ProcessExpiredProjectIsepUseCase {
         notifyProjectIsepCalculated(project, saved);
 
         return saved;
+    }
+
+    private BigDecimal averageNonNull(List<BigDecimal> values) {
+        List<BigDecimal> nonNull = values.stream()
+                .filter(Objects::nonNull)
+                .toList();
+        return nonNull.isEmpty() ? null : IsepMath.simpleAverage(nonNull);
     }
 
     private void markProjectAsDelayed(Project project) {
@@ -235,6 +262,19 @@ public class ProcessExpiredProjectIsepUseCase {
             context.put("calculatedAt", result.getCalculatedAt());
             context.put("calculatedAtFormatted", result.getCalculatedAt() != null ? result.getCalculatedAt().toString() : "");
             context.put("projectLink", "/projects/" + project.getId());
+
+            if (result.getEthicsDebtScore() != null) {
+                context.put("ethicsDebtPercent", IsepMath.toPercent(result.getEthicsDebtScore()).toPlainString());
+            }
+            if (result.getTechDebtScore() != null) {
+                context.put("techDebtPercent", IsepMath.toPercent(result.getTechDebtScore()).toPlainString());
+            }
+            if (result.getEthicsScore() != null) {
+                context.put("ethicsScorePercent", IsepMath.toPercent(result.getEthicsScore()).toPlainString());
+            }
+            if (result.getProcessScore() != null) {
+                context.put("processScorePercent", IsepMath.toPercent(result.getProcessScore()).toPlainString());
+            }
             context.put("recipients", recipients);
 
             sendNotificationUseCase.execute(new SendNotificationCommand(

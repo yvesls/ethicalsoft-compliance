@@ -6,6 +6,7 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Questi
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.QuestionnaireResultRepository;
 import com.ethicalsoft.ethicalsoft_complience.application.port.questionnaire.IsepResultCommandPort;
 import com.ethicalsoft.ethicalsoft_complience.application.port.questionnaire.IsepResultQueryPort;
+import com.ethicalsoft.ethicalsoft_complience.domain.isep.DomainScores;
 import com.ethicalsoft.ethicalsoft_complience.domain.isep.EthicalComplianceBand;
 import com.ethicalsoft.ethicalsoft_complience.domain.isep.IsepCalculationResult;
 import com.ethicalsoft.ethicalsoft_complience.domain.isep.IsepMath;
@@ -74,6 +75,16 @@ public class IsepResultAdapter implements IsepResultCommandPort, IsepResultQuery
         entity.setTeamSimpleAverage(result.teamSimpleAverage());
         entity.setTeamStandardDeviation(result.teamStandardDeviation());
         entity.setCalculatedAt(LocalDateTime.now());
+
+        DomainScores ds = result.domainScores();
+        if (ds != null) {
+            entity.setEthicsScore(ds.ethicsScore());
+            entity.setProcessScore(ds.processScore());
+            entity.setFairnessScore(ds.fairnessScore());
+            entity.setEsgScore(ds.esgScore());
+            entity.setEthicsDebtScore(ds.ethicsDebtScore());
+            entity.setTechDebtScore(ds.techDebtScore());
+        }
 
         List<MemberComplianceResult> memberResults = buildMemberResults(entity, result.memberPersonalComplianceIndex());
         entity.setMemberResults(memberResults);

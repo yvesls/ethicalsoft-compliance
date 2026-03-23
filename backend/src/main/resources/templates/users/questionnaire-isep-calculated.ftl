@@ -10,6 +10,17 @@
     <li>Calculado em: ${calculatedAtFormatted!""}</li>
     <li>Encerrado por: ${closedBy!""}</li>
   </ul>
+  <#if ethicsDebtPercent?? || techDebtPercent??>
+  <p><strong>Indicadores de Dívida (Governança):</strong></p>
+  <ul>
+    <#if ethicsDebtPercent??>
+      <li>Dívida Ética: <strong>${ethicsDebtPercent}%</strong></li>
+    </#if>
+    <#if techDebtPercent??>
+      <li>Dívida Técnica/Processo: <strong>${techDebtPercent}%</strong></li>
+    </#if>
+  </ul>
+  </#if>
   <p>
     O Índice de Saúde Ética do Projeto (ISEP) representa a conformidade ética ponderada dos membros para este questionário.
     Acesse o painel de gestão para visualizar os detalhes estatísticos (gráficos, heatmap, desvio padrão).

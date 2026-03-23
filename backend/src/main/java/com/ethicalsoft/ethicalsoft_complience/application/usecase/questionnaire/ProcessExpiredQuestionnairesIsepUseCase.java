@@ -172,6 +172,13 @@ public class ProcessExpiredQuestionnairesIsepUseCase {
             context.put("calculatedAt", calculatedAt);
             context.put("calculatedAtFormatted", calculatedAt.toString());
             context.put("projectLink", "/projects/" + projectId);
+
+            if (result.getEthicsDebtScore() != null) {
+                context.put("ethicsDebtPercent", IsepMath.toPercent(result.getEthicsDebtScore()).toPlainString());
+            }
+            if (result.getTechDebtScore() != null) {
+                context.put("techDebtPercent", IsepMath.toPercent(result.getTechDebtScore()).toPlainString());
+            }
             if (adminEmail != null) {
                 context.put("recipients", List.of(adminEmail));
             }

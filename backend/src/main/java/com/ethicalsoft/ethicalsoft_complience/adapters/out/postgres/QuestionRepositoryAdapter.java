@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -26,17 +27,17 @@ public class QuestionRepositoryAdapter implements QuestionRepositoryPort {
     }
 
     @Override
-    public Page<Question> searchByQuestionnaireIdAndRoleIds(Integer questionnaireId, String questionText, String roleName, java.util.List<Long> roleIds, Pageable pageable) {
+    public Page<Question> searchByQuestionnaireIdAndRoleIds(Integer questionnaireId, String questionText, String roleName, List<Long> roleIds, Pageable pageable) {
         return delegate.searchByQuestionnaireIdAndRoleIds(questionnaireId, questionText, roleName, roleIds, pageable);
+    }
+
+    @Override
+    public Page<Question> findByQuestionnaireIdAndRoleIds(Integer questionnaireId, List<Long> roleIds, Pageable pageable) {
+        return delegate.findByQuestionnaireIdAndRoleIds(questionnaireId, roleIds, pageable);
     }
 
     @Override
     public Optional<Question> findById(Long id) {
         return delegate.findById(id);
-    }
-
-    @Override
-    public Page<Question> findByQuestionnaireIdAndRoleIds(Integer questionnaireId, java.util.List<Long> roleIds, Pageable pageable) {
-        return delegate.findByQuestionnaireIdAndRoleIds(questionnaireId, roleIds, pageable);
     }
 }

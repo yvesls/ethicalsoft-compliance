@@ -17,9 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -57,7 +55,9 @@ public class GetProjectIsepDashboardUseCase {
                             r.getIsep(),
                             IsepMath.toPercent(r.getIsep()),
                             r.getBand(),
-                            r.getCalculatedAt()
+                            r.getCalculatedAt(),
+                            toPercent(r.getEthicsDebtScore()),
+                            toPercent(r.getTechDebtScore())
                     );
                 })
                 .collect(Collectors.toList());
@@ -65,6 +65,15 @@ public class GetProjectIsepDashboardUseCase {
         BigDecimal projectIsep = null;
         String projectBand = null;
         BigDecimal projectIsepPercent = null;
+        BigDecimal teamAvgPercent = null;
+        BigDecimal teamStdDevPercent = null;
+
+        BigDecimal ethicsPercent = null;
+        BigDecimal processPercent = null;
+        BigDecimal fairnessPercent = null;
+        BigDecimal esgPercent = null;
+        BigDecimal ethicsDebtPercent = null;
+        BigDecimal techDebtPercent = null;
 
         if (!completedResults.isEmpty()) {
             List<IsepMath.WeightedValue> weightedValues = completedResults.stream()
@@ -81,6 +90,19 @@ public class GetProjectIsepDashboardUseCase {
             projectIsepPercent = IsepMath.toPercent(projectIsep);
             projectBand = EthicalComplianceBand.classify(projectIsepPercent).name();
 
+            // Estatísticas de equipe
+            Collection<BigDecimal> isepValues = completedResults.stream()
+                    .map(QuestionnaireResult::getIsep).toList();
+            teamAvgPercent = IsepMath.toPercent(IsepMath.simpleAverage(isepValues));
+            teamStdDevPercent = IsepMath.toPercent(IsepMath.standardDeviation(isepValues));
+
+            ethicsPercent = averagePercentNonNull(completedResults.stream().map(QuestionnaireResult::getEthicsScore).toList());
+            processPercent = averagePercentNonNull(completedResults.stream().map(QuestionnaireResult::getProcessScore).toList());
+            fairnessPercent = averagePercentNonNull(completedResults.stream().map(QuestionnaireResult::getFairnessScore).toList());
+            esgPercent = averagePercentNonNull(completedResults.stream().map(QuestionnaireResult::getEsgScore).toList());
+            ethicsDebtPercent = averagePercentNonNull(completedResults.stream().map(QuestionnaireResult::getEthicsDebtScore).toList());
+            techDebtPercent = averagePercentNonNull(completedResults.stream().map(QuestionnaireResult::getTechDebtScore).toList());
+
             log.info("[dashboard-project] ISEP Consolidado projeto={} isep={}% faixa={}",
                     projectId, projectIsepPercent, projectBand);
         }
@@ -92,10 +114,27 @@ public class GetProjectIsepDashboardUseCase {
                 projectIsep,
                 projectIsepPercent,
                 projectBand,
+                teamAvgPercent,
+                teamStdDevPercent,
                 history,
                 allQuestionnaires.size(),
-                completedResults.size()
+                completedResults.size(),
+                ethicsPercent,
+                processPercent,
+                fairnessPercent,
+                esgPercent,
+                ethicsDebtPercent,
+                techDebtPercent
         );
+    }
+
+    private BigDecimal toPercent(BigDecimal value) {
+        return value != null ? IsepMath.toPercent(value) : null;
+    }
+
+    private BigDecimal averagePercentNonNull(List<BigDecimal> values) {
+        List<BigDecimal> nonNull = values.stream().filter(Objects::nonNull).toList();
+        return nonNull.isEmpty() ? null : IsepMath.toPercent(IsepMath.simpleAverage(nonNull));
     }
 }
 

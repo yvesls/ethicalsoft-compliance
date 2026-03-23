@@ -14,7 +14,8 @@ public record IsepCalculationResult(
         BigDecimal teamSimpleAverage,
         BigDecimal teamStandardDeviation,
         Map<EthicalComplianceBand, Long> bandDistribution,
-        List<String> justificationTexts
+        List<String> justificationTexts,
+        DomainScores domainScores
 ) {
 }
 

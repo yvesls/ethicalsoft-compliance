@@ -15,6 +15,12 @@ public record IsepDataExportDTO(
         String band,
         BigDecimal teamAveragePercent,
         BigDecimal standardDeviationPercent,
+        BigDecimal ethicsScorePercent,
+        BigDecimal processScorePercent,
+        BigDecimal fairnessScorePercent,
+        BigDecimal esgScorePercent,
+        BigDecimal ethicsDebtPercent,
+        BigDecimal techDebtPercent,
         List<MemberExportRow> members
 ) {
 
