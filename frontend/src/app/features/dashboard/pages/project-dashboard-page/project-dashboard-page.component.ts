@@ -9,6 +9,9 @@ import {
 import { BandBadgeComponent } from '../../components/band-badge/band-badge.component';
 import { IsepKpiCardComponent } from '../../components/isep-kpi-card/isep-kpi-card.component';
 import { IsepEvolutionChartComponent } from '../../components/isep-evolution-chart/isep-evolution-chart.component';
+import { DebtEvolutionChartComponent } from '../../components/debt-evolution-chart/debt-evolution-chart.component';
+import { GovernanceDimensionsChartComponent } from '../../components/governance-dimensions-chart/governance-dimensions-chart.component';
+import { DebtIndicatorsWidgetComponent } from '../../components/debt-indicators-widget/debt-indicators-widget.component';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { AuthenticationService } from '../../../../core/services/authentication.service';
 import { RouterService } from '../../../../core/services/router.service';
@@ -23,6 +26,9 @@ import { RoleEnum } from '../../../../shared/enums/role.enum';
     BandBadgeComponent,
     IsepKpiCardComponent,
     IsepEvolutionChartComponent,
+    DebtEvolutionChartComponent,
+    GovernanceDimensionsChartComponent,
+    DebtIndicatorsWidgetComponent,
   ],
   templateUrl: './project-dashboard-page.component.html',
   styleUrl: './project-dashboard-page.component.scss',

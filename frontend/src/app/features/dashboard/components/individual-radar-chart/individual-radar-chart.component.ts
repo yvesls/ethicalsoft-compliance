@@ -6,19 +6,8 @@ import type { EChartsOption } from 'echarts';
   selector: 'app-individual-radar-chart',
   standalone: true,
   imports: [NgxEchartsDirective],
-  template: `
-    <div
-      echarts
-      [options]="chartOptions"
-      class="radar-chart"
-    ></div>
-  `,
-  styles: [`
-    .radar-chart {
-      width: 100%;
-      height: 320px;
-    }
-  `],
+  templateUrl: './individual-radar-chart.component.html',
+  styleUrl: './individual-radar-chart.component.scss',
 })
 export class IndividualRadarChartComponent implements OnChanges {
   @Input({ required: true }) personalIcpPercent!: number;

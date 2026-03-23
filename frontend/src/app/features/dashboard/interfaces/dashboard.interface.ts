@@ -7,6 +7,8 @@ export interface IsepHistoryEntry {
   isepPercent: number;
   band: Band;
   calculatedAt: string;
+  ethicsDebtPercent: number | null;
+  techDebtPercent: number | null;
 }
 
 export interface ProjectIsepDashboardDTO {
@@ -16,9 +18,17 @@ export interface ProjectIsepDashboardDTO {
   projectIsep: number | null;
   projectIsepPercent: number | null;
   projectBand: Band | null;
+  teamSimpleAveragePercent: number | null;
+  teamStandardDeviationPercent: number | null;
   isepHistory: IsepHistoryEntry[];
   totalQuestionnaires: number;
   completedQuestionnaires: number;
+  ethicsScorePercent: number | null;
+  processScorePercent: number | null;
+  fairnessScorePercent: number | null;
+  esgScorePercent: number | null;
+  ethicsDebtPercent: number | null;
+  techDebtPercent: number | null;
 }
 export interface MemberResult {
   representativeId: number;
@@ -55,6 +65,12 @@ export interface QuestionnaireIsepDashboardDTO {
   memberResults: MemberResult[];
   stageResults: StageResult[];
   justificationTexts: string[];
+  ethicsScorePercent: number | null;
+  processScorePercent: number | null;
+  fairnessScorePercent: number | null;
+  esgScorePercent: number | null;
+  ethicsDebtPercent: number | null;
+  techDebtPercent: number | null;
 }
 
 export interface StageIemEntry {
@@ -81,6 +97,8 @@ export interface WordCloudDTO {
   wordFrequency: Record<string, number>;
   topWords: WordEntry[];
   totalJustifications: number;
+  categoryWordFrequency: Record<string, Record<string, number>> | null;
+  topThemeInsights: Record<string, string> | null;
 }
 
 export interface PersonalEvolutionEntry {
@@ -92,6 +110,8 @@ export interface PersonalEvolutionEntry {
   isepPercent: number;
   band: Band;
   calculatedAt: string;
+  ethicsDebtPercent: number | null;
+  techDebtPercent: number | null;
 }
 
 export interface IndividualDashboardDTO {
@@ -135,6 +155,12 @@ export interface IsepDataExportDTO {
   band: Band;
   teamAveragePercent: number;
   standardDeviationPercent: number;
+  ethicsScorePercent: number | null;
+  processScorePercent: number | null;
+  fairnessScorePercent: number | null;
+  esgScorePercent: number | null;
+  ethicsDebtPercent: number | null;
+  techDebtPercent: number | null;
   members: ExportMemberResult[];
 }
 

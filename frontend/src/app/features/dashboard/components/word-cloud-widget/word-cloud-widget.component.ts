@@ -7,19 +7,8 @@ import { WordEntry } from '../../interfaces/dashboard.interface';
   selector: 'app-word-cloud-widget',
   standalone: true,
   imports: [NgxEchartsDirective],
-  template: `
-    <div
-      echarts
-      [options]="chartOptions"
-      class="word-cloud"
-    ></div>
-  `,
-  styles: [`
-    .word-cloud {
-      width: 100%;
-      height: 380px;
-    }
-  `],
+  templateUrl: './word-cloud-widget.component.html',
+  styleUrl: './word-cloud-widget.component.scss',
 })
 export class WordCloudWidgetComponent implements OnChanges {
   @Input({ required: true }) words: WordEntry[] = [];

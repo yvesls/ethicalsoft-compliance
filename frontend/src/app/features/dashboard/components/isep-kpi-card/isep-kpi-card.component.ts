@@ -7,19 +7,8 @@ import { BandBadgeComponent } from '../band-badge/band-badge.component';
   selector: 'app-isep-kpi-card',
   standalone: true,
   imports: [DecimalPipe, BandBadgeComponent],
-  template: `
-    <div class="kpi-card">
-      <p class="kpi-label">{{ label }}</p>
-      @if (value !== null) {
-        <p class="kpi-value">{{ value | number: '1.2-2' }}%</p>
-      } @else {
-        <p class="kpi-value kpi-value--empty">—</p>
-      }
-      @if (band) { <app-band-badge [band]="band" /> }
-      @if (secondary) { <p class="kpi-secondary">{{ secondary }}</p> }
-    </div>
-  `,
-  styles: [':host { display: block; min-width: 0; }'],
+  templateUrl: './isep-kpi-card.component.html',
+  styleUrl: './isep-kpi-card.component.scss',
 })
 export class IsepKpiCardComponent {
   @Input({ required: true }) label!: string;

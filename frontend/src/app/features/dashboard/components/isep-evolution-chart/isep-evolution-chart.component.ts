@@ -1,29 +1,18 @@
 import { Component, Input, OnChanges } from '@angular/core';
 import { NgxEchartsDirective } from 'ngx-echarts';
 import type { EChartsOption } from 'echarts';
-import { IsepHistoryEntry } from '../../interfaces/dashboard.interface';
+import { IsepHistoryEntry, PersonalEvolutionEntry } from '../../interfaces/dashboard.interface';
 import { BAND_META } from '../../interfaces/dashboard.interface';
 
 @Component({
   selector: 'app-isep-evolution-chart',
   standalone: true,
   imports: [NgxEchartsDirective],
-  template: `
-    <div
-      echarts
-      [options]="chartOptions"
-      class="evolution-chart"
-    ></div>
-  `,
-  styles: [`
-    .evolution-chart {
-      width: 100%;
-      height: 320px;
-    }
-  `],
+  templateUrl: './isep-evolution-chart.component.html',
+  styleUrl: './isep-evolution-chart.component.scss',
 })
 export class IsepEvolutionChartComponent implements OnChanges {
-  @Input({ required: true }) entries: IsepHistoryEntry[] = [];
+  @Input({ required: true }) entries: (IsepHistoryEntry | PersonalEvolutionEntry)[] = [];
   @Input() title = 'Evolução do ISEP';
 
   chartOptions: EChartsOption = {};

@@ -269,6 +269,21 @@
                               }
                             </button>
                           }
+
+                          @if (canForceCloseQuestionnaire(questionnaire)) {
+                            <button
+                              type="button"
+                              class="questionnaire-card__action-button questionnaire-card__action-button--danger"
+                              [disabled]="isForceClosing(questionnaire.id)"
+                              (click)="onForceCloseQuestionnaire(questionnaire)"
+                            >
+                              @if (isForceClosing(questionnaire.id)) {
+                                Encerrando questionário...
+                              } @else {
+                                Encerrar questionário manualmente
+                              }
+                            </button>
+                          }
                         }
 
                         @if (canCurrentUserRespond(questionnaire)) {

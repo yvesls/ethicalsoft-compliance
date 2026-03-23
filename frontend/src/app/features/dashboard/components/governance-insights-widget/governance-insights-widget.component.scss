@@ -1,0 +1,46 @@
+.gi-widget {
+  padding: 0;
+}
+
+.gi-widget__title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: #051937;
+}
+
+.gi-widget__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.gi-card {
+  background: #f7f8fa;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+  border-left: 4px solid #9e9e9e;
+  padding: 0.75rem 1rem;
+}
+
+.gi-card__header {
+  margin-bottom: 0.4rem;
+}
+
+.gi-card__badge {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 99px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.gi-card__text {
+  font-size: 0.875rem;
+  color: #333;
+  line-height: 1.5;
+  margin: 0;
+}

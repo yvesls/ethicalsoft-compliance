@@ -1,0 +1,30 @@
+<div class="cwc">
+  <h3 class="cwc__title">Nuvem de Palavras das Justificativas</h3>
+
+  <div class="cwc__tabs">
+    <button
+      class="cwc__tab"
+      [class.cwc__tab--active]="activeTab === 'GERAL'"
+      (click)="selectTab('GERAL')"
+    >
+      Geral
+    </button>
+    @for (cat of categoryKeys; track cat) {
+      <button
+        class="cwc__tab"
+        [class.cwc__tab--active]="activeTab === cat"
+        (click)="selectTab(cat)"
+      >
+        {{ domainLabel(cat) }}
+      </button>
+    }
+  </div>
+
+  <p class="cwc__meta">{{ totalJustifications }} justificativas analisadas</p>
+
+  @if (chartOptions) {
+    <div echarts [options]="chartOptions" class="cwc__chart"></div>
+  } @else {
+    <div class="cwc__empty">Nenhuma palavra encontrada para este domínio.</div>
+  }
+</div>

@@ -1,0 +1,22 @@
+@if (insightEntries.length > 0) {
+  <div class="gi-widget">
+    <h3 class="gi-widget__title">
+      ⚠️ Insights de Governança
+    </h3>
+    <div class="gi-widget__list">
+      @for (entry of insightEntries; track entry.domain) {
+        <div class="gi-card" [style.border-left-color]="domainColor(entry.domain)">
+          <div class="gi-card__header">
+            <span
+              class="gi-card__badge"
+              [style.background]="domainColor(entry.domain)"
+            >
+              {{ domainLabel(entry.domain) }}
+            </span>
+          </div>
+          <p class="gi-card__text">{{ entry.insight }}</p>
+        </div>
+      }
+    </div>
+  </div>
+}

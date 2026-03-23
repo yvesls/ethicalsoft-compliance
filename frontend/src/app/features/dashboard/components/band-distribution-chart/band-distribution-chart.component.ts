@@ -7,19 +7,8 @@ import { Band, BAND_META } from '../../interfaces/dashboard.interface';
   selector: 'app-band-distribution-chart',
   standalone: true,
   imports: [NgxEchartsDirective],
-  template: `
-    <div
-      echarts
-      [options]="chartOptions"
-      class="band-chart"
-    ></div>
-  `,
-  styles: [`
-    .band-chart {
-      width: 100%;
-      height: 300px;
-    }
-  `],
+  templateUrl: './band-distribution-chart.component.html',
+  styleUrl: './band-distribution-chart.component.scss',
 })
 export class BandDistributionChartComponent implements OnChanges {
   @Input({ required: true }) distribution: Record<Band, number> = { A: 0, B: 0, C: 0, D: 0, E: 0 };

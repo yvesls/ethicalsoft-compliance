@@ -40,6 +40,7 @@ import { ProjectContextService } from '../../../../core/services/project-context
 import { QuestionnaireResponseStatus } from '../../../../shared/enums/questionnaire-response-status.enum';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { environment } from '../../../../enviroments/environments';
+import { DashboardService } from '../../../dashboard/services/dashboard.service';
 
 interface ProjectState {
   data: Project | null;
@@ -86,10 +87,12 @@ export class ProjectDetailPageComponent implements OnInit {
   private readonly authService = inject(AuthenticationService);
   private readonly projectContext = inject(ProjectContextService);
   private readonly notification = inject(NotificationService);
+  private readonly dashboardService = inject(DashboardService);
 
   private readonly questionnairesPageSize = 5;
   private currentProjectId: string | null = null;
   private readonly sendingReminderIds = signal<Set<number>>(new Set());
+  private readonly forceClosingIds = signal<Set<number>>(new Set());
 
   private readonly userRoles = signal<string[]>([]);
   private readonly currentUser = signal<UserInterface | null>(null);
@@ -315,6 +318,69 @@ export class ProjectDetailPageComponent implements OnInit {
       'dashboard',
       'individual',
     ]);
+  }
+
+  // ── Force Close Questionário ─────────────────────────────────────
+
+  canForceCloseQuestionnaire(questionnaire: ProjectQuestionnaireSummary): boolean {
+    return (
+      this.isAdmin() &&
+      !this.isQuestionnaireCompleted(questionnaire) &&
+      questionnaire.pendingRespondents === 0 &&
+      questionnaire.totalRespondents > 0
+    );
+  }
+
+  isForceClosing(questionnaireId: number): boolean {
+    return this.forceClosingIds().has(questionnaireId);
+  }
+
+  onForceCloseQuestionnaire(questionnaire: ProjectQuestionnaireSummary): void {
+    if (!this.currentProjectId) return;
+
+    this.notification.showConfirm(
+      `Deseja encerrar o questionário "${questionnaire.name}" e calcular o ISEP com as respostas existentes?`,
+      () => this.executeForceClose(questionnaire)
+    );
+  }
+
+  private executeForceClose(questionnaire: ProjectQuestionnaireSummary): void {
+    if (!this.currentProjectId) return;
+
+    this.forceClosingIds.update((ids) => {
+      const next = new Set(ids);
+      next.add(questionnaire.id);
+      return next;
+    });
+
+    this.dashboardService
+      .forceCloseQuestionnaire(Number(this.currentProjectId), questionnaire.id)
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          this.removeForceClosingId(questionnaire.id);
+          this.notification.showSuccess(
+            `Questionário "${questionnaire.name}" encerrado. O ISEP foi calculado.`
+          );
+          this.loadQuestionnaires(
+            this.questionnairesState().pagination.currentPage || 1
+          );
+        },
+        error: () => {
+          this.removeForceClosingId(questionnaire.id);
+          this.notification.showError(
+            'Erro ao encerrar o questionário. Verifique se ele possui respostas registradas.'
+          );
+        },
+      });
+  }
+
+  private removeForceClosingId(questionnaireId: number): void {
+    this.forceClosingIds.update((ids) => {
+      const next = new Set(ids);
+      next.delete(questionnaireId);
+      return next;
+    });
   }
 
   navigateToQuestionnaire(

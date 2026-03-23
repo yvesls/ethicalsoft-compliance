@@ -7,19 +7,8 @@ import { RoleStageComplianceDTO } from '../../interfaces/dashboard.interface';
   selector: 'app-role-stage-heatmap',
   standalone: true,
   imports: [NgxEchartsDirective],
-  template: `
-    <div
-      echarts
-      [options]="chartOptions"
-      class="heatmap-chart"
-    ></div>
-  `,
-  styles: [`
-    .heatmap-chart {
-      width: 100%;
-      height: 400px;
-    }
-  `],
+  templateUrl: './role-stage-heatmap.component.html',
+  styleUrl: './role-stage-heatmap.component.scss',
 })
 export class RoleStageHeatmapComponent implements OnChanges {
   @Input({ required: true }) roleStageData: RoleStageComplianceDTO[] = [];

@@ -24,7 +24,20 @@
 									@for (n of notifications; track n.id) {
 										<li class="notification-item">
 											<div class="notification-item__text">
-												<strong [class.unread]="n.status === 'UNREAD'">{{ n.title }}</strong>
+												<div class="notification-item__title-row">
+													<strong [class.unread]="n.status === 'UNREAD'">{{ n.title }}</strong>
+													@if (n.governanceEvent) {
+														<span class="governance-badge"
+															[class.governance-badge--red]="n.governanceEvent === 'QUESTIONNAIRE_OVERDUE' || n.governanceEvent === 'PROJECT_OVERDUE'"
+															[class.governance-badge--green]="n.governanceEvent === 'QUESTIONNAIRE_ISEP_CALCULATED' || n.governanceEvent === 'PROJECT_ISEP_CALCULATED'"
+														>
+															@if (n.governanceEvent === 'QUESTIONNAIRE_OVERDUE') { 🔴 APO12 }
+															@else if (n.governanceEvent === 'QUESTIONNAIRE_ISEP_CALCULATED') { 🟢 MEA01 }
+															@else if (n.governanceEvent === 'PROJECT_OVERDUE') { 🔴 EDM02 }
+															@else if (n.governanceEvent === 'PROJECT_ISEP_CALCULATED') { 🟢 EDM02 }
+														</span>
+													}
+												</div>
 												<p>{{ n.content }}</p>
 												<small>{{ n.createdAt | date: 'short' }}</small>
 											</div>

@@ -1,0 +1,58 @@
+<div class="debt-widget">
+  <h3 class="debt-widget__title">Indicadores de Dívida</h3>
+  <div class="debt-widget__grid">
+
+    <div class="debt-indicator">
+      <div class="debt-indicator__header">
+        <span class="debt-indicator__label">Dívida Ética</span>
+        <span
+          class="debt-indicator__dot"
+          [class.dot--green]="ethicsColor === 'green'"
+          [class.dot--yellow]="ethicsColor === 'yellow'"
+          [class.dot--red]="ethicsColor === 'red'"
+          [class.dot--gray]="ethicsColor === 'gray'"
+        ></span>
+      </div>
+      <div class="debt-indicator__value"
+        [class.value--green]="ethicsColor === 'green'"
+        [class.value--yellow]="ethicsColor === 'yellow'"
+        [class.value--red]="ethicsColor === 'red'"
+        [class.value--gray]="ethicsColor === 'gray'"
+      >
+        {{ ethicsDebtPercent !== null ? (ethicsDebtPercent | number:'1.1-1') + '%' : '--' }}
+      </div>
+      <div class="debt-indicator__thresholds">
+        <span class="threshold green">Verde &lt; 10%</span>
+        <span class="threshold yellow">Amarelo 10–30%</span>
+        <span class="threshold red">Vermelho &gt; 30%</span>
+      </div>
+    </div>
+
+    <div class="debt-indicator">
+      <div class="debt-indicator__header">
+        <span class="debt-indicator__label">Dívida Técnica</span>
+        <span
+          class="debt-indicator__dot"
+          [class.dot--green]="techColor === 'green'"
+          [class.dot--yellow]="techColor === 'yellow'"
+          [class.dot--red]="techColor === 'red'"
+          [class.dot--gray]="techColor === 'gray'"
+        ></span>
+      </div>
+      <div class="debt-indicator__value"
+        [class.value--green]="techColor === 'green'"
+        [class.value--yellow]="techColor === 'yellow'"
+        [class.value--red]="techColor === 'red'"
+        [class.value--gray]="techColor === 'gray'"
+      >
+        {{ techDebtPercent !== null ? (techDebtPercent | number:'1.1-1') + '%' : '--' }}
+      </div>
+      <div class="debt-indicator__thresholds">
+        <span class="threshold green">Verde &lt; 15%</span>
+        <span class="threshold yellow">Amarelo 15–35%</span>
+        <span class="threshold red">Vermelho &gt; 35%</span>
+      </div>
+    </div>
+
+  </div>
+</div>

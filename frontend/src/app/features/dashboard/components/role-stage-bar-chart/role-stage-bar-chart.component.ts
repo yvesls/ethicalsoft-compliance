@@ -12,19 +12,8 @@ const ROLE_COLORS = [
   selector: 'app-role-stage-bar-chart',
   standalone: true,
   imports: [NgxEchartsDirective],
-  template: `
-    <div
-      echarts
-      [options]="chartOptions"
-      class="bar-chart"
-    ></div>
-  `,
-  styles: [`
-    .bar-chart {
-      width: 100%;
-      height: 380px;
-    }
-  `],
+  templateUrl: './role-stage-bar-chart.component.html',
+  styleUrl: './role-stage-bar-chart.component.scss',
 })
 export class RoleStageBarChartComponent implements OnChanges {
   @Input({ required: true }) roleStageData: RoleStageComplianceDTO[] = [];

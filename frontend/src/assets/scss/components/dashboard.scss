@@ -47,6 +47,18 @@
 	gap: var(--spacing-r-xl);
 }
 
+// --- Linha Dimensoes de Governanca + Indicadores de Divida ---
+
+.dash-governance-row {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: var(--spacing-r-xl);
+
+	@media (max-width: 768px) {
+		grid-template-columns: 1fr;
+	}
+}
+
 // --- Cards genericos (grafico / historico) ---
 
 .dash-card {
