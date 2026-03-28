@@ -14,6 +14,7 @@ import { take } from 'rxjs';
 
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
 import { QuestionnaireResponseService } from '../../services/questionnaire-response.service';
+import { QuestionnaireAnswerCacheService } from '../../services/questionnaire-answer-cache.service';
 import { QuestionnaireResponseStatus } from '../../../../shared/enums/questionnaire-response-status.enum';
 import {
   QuestionnaireAnswerDocument,
@@ -43,12 +44,14 @@ type PageMode = 'respond' | 'view';
   imports: [CommonModule, PaginationComponent],
   templateUrl: './questionnaire-response-page.component.html',
   styleUrls: ['./questionnaire-response-page.component.scss'],
+  providers: [QuestionnaireAnswerCacheService],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class QuestionnaireResponsePageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly responseService = inject(QuestionnaireResponseService);
+  private readonly answerCache = inject(QuestionnaireAnswerCacheService);
   private readonly modalService = inject(ModalService);
   private readonly notification = inject(NotificationService);
   private readonly projectContext = inject(ProjectContextService);
@@ -109,6 +112,7 @@ export class QuestionnaireResponsePageComponent implements OnInit {
   }
 
   onPageChange(page: number): void {
+    this.persistCurrentPageToCache();
     this.loadResponse(page);
   }
 
@@ -117,11 +121,13 @@ export class QuestionnaireResponsePageComponent implements OnInit {
       return;
     }
 
-    this.updateAnswer(answer.questionId, {
+    const partial: Partial<QuestionnaireAnswerDocument> = {
       response: value,
       justification: value ? null : answer.justification ?? null,
       evidence: value ? answer.evidence ?? null : null,
-    });
+    };
+
+    this.updateAnswer(answer.questionId, partial);
   }
 
   openAttachmentModal(answer: QuestionnaireAnswerDocument): void {
@@ -181,6 +187,9 @@ export class QuestionnaireResponsePageComponent implements OnInit {
       .pipe(take(1))
       .subscribe({
         next: () => {
+          const submittedIds = currentAnswers.map((a) => a.questionId);
+          this.answerCache.clearSubmitted(submittedIds);
+
           this.notification.showSuccess('Página enviada com sucesso.');
           const paginationData = this.pagination();
           const hasNextPage = paginationData && this.currentPage() < paginationData.totalPages;
@@ -330,6 +339,7 @@ export class QuestionnaireResponsePageComponent implements OnInit {
         }
 
         this.projectContext.setCurrentProjectId(this.projectId);
+        this.answerCache.reset();
         this.loadResponse(1);
       });
   }
@@ -339,7 +349,7 @@ export class QuestionnaireResponsePageComponent implements OnInit {
       return;
     }
 
-    this.state.set({ status: 'loading', error: null, data: null });
+    this.state.update((current) => ({ ...current, status: 'loading', error: null }));
 
     this.currentPage.set(page);
     const zeroBasedPage = Math.max(page - 1, 0);
@@ -358,7 +368,14 @@ export class QuestionnaireResponsePageComponent implements OnInit {
           const resolvedMode = this.resolvePageMode(payload);
           this.pageMode.set(resolvedMode);
           this.pageSize = payload.pagination.pageSize;
-          this.state.set({ status: 'loaded', error: null, data: payload });
+
+          const mergedAnswers = this.answerCache.applyCache(payload.response.answers);
+          const mergedPayload: QuestionnaireResponsePayload = {
+            ...payload,
+            response: { ...payload.response, answers: mergedAnswers },
+          };
+
+          this.state.set({ status: 'loaded', error: null, data: mergedPayload });
         },
         error: () => {
           this.state.set({ status: 'error', error: 'Não foi possível carregar o questionário.', data: null });
@@ -395,6 +412,13 @@ export class QuestionnaireResponsePageComponent implements OnInit {
     );
   }
 
+  private persistCurrentPageToCache(): void {
+    const currentAnswers = this.answers();
+    if (currentAnswers.length) {
+      this.answerCache.savePageAnswers(currentAnswers);
+    }
+  }
+
   private updateAnswer(questionId: number, partial: Partial<QuestionnaireAnswerDocument>): void {
     this.state.update((current) => {
       if (!current.data) {
@@ -413,6 +437,11 @@ export class QuestionnaireResponsePageComponent implements OnInit {
       const status = answers.every((answer) => answer.response !== null)
         ? QuestionnaireResponseStatus.Completed
         : QuestionnaireResponseStatus.InProgress;
+
+      const updatedAnswer = answers.find((a) => a.questionId === questionId);
+      if (updatedAnswer) {
+        this.answerCache.markDirty(questionId, updatedAnswer);
+      }
 
       return {
         ...current,
