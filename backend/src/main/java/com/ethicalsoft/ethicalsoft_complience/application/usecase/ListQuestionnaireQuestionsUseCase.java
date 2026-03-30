@@ -16,35 +16,44 @@ public class ListQuestionnaireQuestionsUseCase {
     private final QuestionnaireQueryPort questionnaireQueryPort;
     private final RepresentativeAccessPolicy representativeAccessPolicy;
 
-    public Page<QuestionnaireQuestionResponseDTO> execute(Long projectId,
-                                                          Integer questionnaireId,
-                                                          Pageable pageable,
-                                                          String questionText,
-                                                          String roleName,
-                                                          Long representativeId) {
+
+    public Page<QuestionnaireQuestionResponseDTO> executeForRepresentative(Long projectId,
+                                                                            Integer questionnaireId,
+                                                                            Pageable pageable,
+                                                                            String questionText,
+                                                                            String roleName,
+                                                                            Long representativeId) {
         QuestionSearchFilterDTO filter = new QuestionSearchFilterDTO();
         filter.setQuestionText(questionText);
         filter.setRoleName(roleName);
 
-        if (projectId != null && representativeAccessPolicy.isAdminOrOwner(projectId)) {
-            filter.setRoleIds(null);
-        } else {
-            Long effectiveRepresentativeId = representativeId;
-            if (effectiveRepresentativeId == null && projectId != null) {
-                effectiveRepresentativeId = representativeAccessPolicy.resolveRepresentativeIdForResponse(projectId);
-            }
-            filter.setRoleIds(effectiveRepresentativeId != null
-                    ? questionnaireQueryPort.findRepresentativeRoleIds(projectId, effectiveRepresentativeId)
-                    : null);
+        Long effectiveRepresentativeId = representativeId;
+        if (effectiveRepresentativeId == null && projectId != null) {
+            effectiveRepresentativeId = representativeAccessPolicy.resolveRepresentativeIdForResponse(projectId);
         }
+        filter.setRoleIds(effectiveRepresentativeId != null
+                ? questionnaireQueryPort.findRepresentativeRoleIds(projectId, effectiveRepresentativeId)
+                : null);
 
         return questionnaireQueryPort.searchQuestions(questionnaireId, filter, pageable);
     }
 
-    public Page<QuestionnaireQuestionResponseDTO> execute(Integer questionnaireId,
-                                                          Pageable pageable,
-                                                          String questionText,
-                                                          String roleName) {
-        return execute(null, questionnaireId, pageable, questionText, roleName, null);
+    public Page<QuestionnaireQuestionResponseDTO> executeForAdmin(Long projectId,
+                                                                   Integer questionnaireId,
+                                                                   Pageable pageable,
+                                                                   String questionText,
+                                                                   String roleName) {
+        if (projectId != null && !representativeAccessPolicy.isAdminOrOwner(projectId)) {
+            throw new com.ethicalsoft.ethicalsoft_complience.exception.BusinessException(
+                    "Acesso negado: apenas administradores ou donos do projeto podem listar todas as perguntas.");
+        }
+
+        QuestionSearchFilterDTO filter = new QuestionSearchFilterDTO();
+        filter.setQuestionText(questionText);
+        filter.setRoleName(roleName);
+        filter.setRoleIds(null);
+
+        return questionnaireQueryPort.searchQuestions(questionnaireId, filter, pageable);
     }
+
 }

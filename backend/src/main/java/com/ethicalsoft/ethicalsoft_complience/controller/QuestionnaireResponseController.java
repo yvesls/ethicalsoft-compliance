@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("api/projects/{projectId}/questionnaires/{questionnaireId}")
+@RequestMapping("/api/projects/{projectId}/questionnaires/{questionnaireId}")
 @RequiredArgsConstructor
 @Slf4j
 public class QuestionnaireResponseController {
@@ -38,13 +38,27 @@ public class QuestionnaireResponseController {
 
     @GetMapping("/questions")
     @PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")
-    public Page<QuestionnaireQuestionResponseDTO> listQuestions(@PathVariable Long projectId,
-                                                                @PathVariable Integer questionnaireId,
-                                                                @PageableDefault(size = 10) Pageable pageable,
-                                                                @RequestParam(required = false) String questionText,
-                                                                @RequestParam(required = false) String roleName,
-                                                                @RequestParam(required = false) Long representativeId) {
-        return listQuestionnaireQuestionsUseCase.execute(projectId, questionnaireId, pageable, questionText, roleName, representativeId);
+    public Page<QuestionnaireQuestionResponseDTO> listQuestionsForRepresentative(
+            @PathVariable Long projectId,
+            @PathVariable Integer questionnaireId,
+            @PageableDefault(size = 10) Pageable pageable,
+            @RequestParam(required = false) String questionText,
+            @RequestParam(required = false) String roleName,
+            @RequestParam(required = false) Long representativeId) {
+        return listQuestionnaireQuestionsUseCase.executeForRepresentative(
+                projectId, questionnaireId, pageable, questionText, roleName, representativeId);
+    }
+
+    @GetMapping("/questions/all")
+    @PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")
+    public Page<QuestionnaireQuestionResponseDTO> listAllQuestionsForAdmin(
+            @PathVariable Long projectId,
+            @PathVariable Integer questionnaireId,
+            @PageableDefault(size = 10) Pageable pageable,
+            @RequestParam(required = false) String questionText,
+            @RequestParam(required = false) String roleName) {
+        return listQuestionnaireQuestionsUseCase.executeForAdmin(
+                projectId, questionnaireId, pageable, questionText, roleName);
     }
 
     @GetMapping("/responses")
