@@ -45,7 +45,8 @@ export class RouterService {
 	async navigateTo<T extends GenericParams>(
 		url: string,
 		navigateParams?: NavigateParams<T>,
-		isFormDirty = false
+		isFormDirty = false,
+		replaceUrl = false
 	): Promise<boolean> {
 		const { params = {}, queryParams = {} } = navigateParams || {}
 
@@ -54,7 +55,7 @@ export class RouterService {
 				this.notificationService.showConfirm(
 					'Os dados não salvos serão perdidos. Deseja continuar?',
 					async () => {
-						const result = await this._redirectTo(url, queryParams)
+						const result = await this._redirectTo(url, queryParams, replaceUrl)
 						resolve(result)
 					},
 					() => resolve(false)
@@ -65,7 +66,7 @@ export class RouterService {
 		this._createPageData<T>(url, params, queryParams)
 		this.navigationSourceService.setInternalNavigation(true)
 
-		return this._redirectTo(url, queryParams)
+		return this._redirectTo(url, queryParams, replaceUrl)
 	}
 
 	navigateToNewTab<T extends GenericParams>(url: string, navigateParams?: NavigateParams<T>): void {
@@ -166,8 +167,8 @@ export class RouterService {
 		}
 	}
 
-	private async _redirectTo(uri: string, queryParams?: Params | null): Promise<boolean> {
-		return this.router.navigate([uri], { queryParams })
+	private async _redirectTo(uri: string, queryParams?: Params | null, replaceUrl = false): Promise<boolean> {
+		return this.router.navigate([uri], { queryParams, replaceUrl })
 	}
 
 	private _createPageData<T extends GenericParams>(url: string, params: RouteParams<T>, queryParams: Params): void {

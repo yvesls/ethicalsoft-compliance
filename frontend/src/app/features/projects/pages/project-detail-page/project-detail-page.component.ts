@@ -496,10 +496,6 @@ export class ProjectDetailPageComponent implements OnInit {
   }
 
   canCurrentUserView(questionnaire: ProjectQuestionnaireSummary): boolean {
-    if (this.isAdmin()) {
-      return this.isCurrentUserRespondent(questionnaire);
-    }
-
     const respondent = this.getCurrentRespondent(questionnaire);
     if (!respondent) {
       return false;

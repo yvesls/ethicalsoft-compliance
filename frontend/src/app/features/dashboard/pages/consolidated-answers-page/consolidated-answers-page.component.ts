@@ -15,6 +15,7 @@ import { SelectComponent, SelectOption } from '../../../../shared/components/sel
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { ResponseDetailModalComponent } from '../../components/response-detail-modal/response-detail-modal.component';
 import { ModalService } from '../../../../core/services/modal.service';
+import { RoleService } from '../../../../core/services/role.service';
 
 interface UniqueMember {
   representativeId: number;
@@ -42,6 +43,7 @@ export class ConsolidatedAnswersPageComponent implements OnInit {
   private readonly dashboardService = inject(DashboardService);
   private readonly notificationService = inject(NotificationService);
   private readonly modalService = inject(ModalService);
+  private readonly roleService = inject(RoleService);
 
   projectId!: number;
   questionnaireId: number | null = null;
@@ -72,6 +74,8 @@ export class ConsolidatedAnswersPageComponent implements OnInit {
     }
     return Array.from(seen.values());
   });
+
+  roleOptions = signal<SelectOption[]>([]);
 
   filterForm!: FormGroup;
 
@@ -106,7 +110,18 @@ export class ConsolidatedAnswersPageComponent implements OnInit {
       ...(this.mode === 'project' ? { questionnaireId: [null] } : {}),
     });
 
+    this.loadRoles();
     this.load();
+  }
+
+  private loadRoles(): void {
+    this.roleService.getRoles().subscribe({
+      next: (roles) => {
+        this.roleOptions.set(
+          roles.map(r => ({ value: r.id.toString(), label: r.name }))
+        );
+      },
+    });
   }
 
   load(): void {

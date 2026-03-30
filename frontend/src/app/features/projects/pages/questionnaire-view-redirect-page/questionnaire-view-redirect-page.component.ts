@@ -70,7 +70,7 @@ export class QuestionnaireViewRedirectPageComponent implements OnInit {
                   mode: ActionType.VIEW,
                   returnTo,
                 },
-              });
+              }, false, true);
             },
             error: () => {
               void this.routerService.navigateTo('/projects');

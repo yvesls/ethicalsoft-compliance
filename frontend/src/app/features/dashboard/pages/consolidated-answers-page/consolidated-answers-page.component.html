@@ -28,9 +28,11 @@
         [formControl]="$any(filterForm.get('representativeId'))"
       />
 
-      <app-input
-        label="ID Papel"
-        placeholder="Ex: 3"
+      <app-select
+        label="Papel"
+        placeholder="Todos"
+        [options]="roleOptions()"
+        [allowClear]="true"
         [control]="filterForm.get('roleId')!"
         [formControl]="$any(filterForm.get('roleId'))"
       />
@@ -83,7 +85,7 @@
           <div class="consolidated__members-grid">
             @for (member of uniqueMembers(); track member.representativeId) {
               <div class="consolidated__member-chip">
-                <span class="consolidated__member-name">{{ member.representativeName }}</span>
+                <span class="consolidated__member-name">{{ member.representativeId }} - {{ member.representativeName }}</span>
                 <button class="dash-link" (click)="viewMemberResponses(member)">
                   Ver Respostas →
                 </button>
@@ -112,7 +114,7 @@
             <tbody>
               @for (row of page().content; track $index) {
                 <tr>
-                  <td class="text-nowrap">{{ row.representativeName }}</td>
+                  <td class="text-nowrap">{{ row.representativeId }} - {{ row.representativeName }}</td>
                   <td>
                     @for (role of row.roles; track role) {
                       <span class="consolidated__role-tag">{{ role }}</span>

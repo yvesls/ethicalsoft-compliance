@@ -184,7 +184,7 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
     this.isLoadingQuestions.set(true);
 
     this.questionnaireQueryStore
-      .searchQuestions(projectId, questionnaireId, null, page, this.pageSize())
+      .listAllQuestions(projectId, questionnaireId, page, this.pageSize())
       .pipe(take(1))
       .subscribe({
         next: (result) => {

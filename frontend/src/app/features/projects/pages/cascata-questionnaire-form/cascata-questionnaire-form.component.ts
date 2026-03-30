@@ -204,8 +204,11 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
     this.currentPage.set(page);
     this.isLoadingQuestions.set(true);
 
+    const questionText = this.searchTerm?.trim() || null;
+    const roleName = this.selectedRole || null;
+
     this.questionnaireQueryStore
-      .searchQuestions(projectId, questionnaireId, null, page, this.pageSize())
+      .listAllQuestions(projectId, questionnaireId, page, this.pageSize(), questionText, roleName)
       .pipe(take(1))
       .subscribe({
         next: (result) => {
@@ -235,11 +238,22 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
     this.fetchQuestionsPage(targetPage);
   }
 
+  onFilterChange(): void {
+    if (this.isViewMode()) {
+      this.currentPage.set(0);
+      this.fetchQuestionsPage(0);
+    }
+  }
+
   getControl(controlName: string) {
     return this.form.get(controlName);
   }
 
   get filteredQuestions(): QuestionData[] {
+    if (this.isViewMode()) {
+      return this.questions();
+    }
+
     let filtered = this.questions();
     const term = this.searchTerm.toLowerCase().trim();
     const role = this.selectedRole;

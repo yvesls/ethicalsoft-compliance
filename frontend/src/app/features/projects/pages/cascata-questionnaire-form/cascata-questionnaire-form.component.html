@@ -52,6 +52,7 @@
           placeholder="Digite para buscar..."
           [(ngModel)]="searchTerm"
           [ngModelOptions]="{standalone: true}"
+          (ngModelChange)="onFilterChange()"
         ></app-input>
 
         <app-select
@@ -62,6 +63,7 @@
           [ngModelOptions]="{standalone: true}"
           [options]="roleFilterOptions"
           [allowClear]="true"
+          (ngModelChange)="onFilterChange()"
         ></app-select>
       </div>
 
