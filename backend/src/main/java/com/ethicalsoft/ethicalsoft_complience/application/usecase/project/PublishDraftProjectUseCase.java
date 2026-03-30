@@ -2,6 +2,7 @@ package com.ethicalsoft.ethicalsoft_complience.application.usecase.project;
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Project;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Representative;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Role;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.ProjectResponseDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.ProjectStatusEnum;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.TimelineStatusEnum;
@@ -49,8 +50,7 @@ public class PublishDraftProjectUseCase {
         project.setStatus(ProjectStatusEnum.ABERTO);
         project.setTimelineStatus(TimelineStatusEnum.PENDENTE);
 
-        var questionnaires = questionnaireRepository.findAllByProjectIdWithQuestions(project.getId())
-                .stream().collect(Collectors.toSet());
+        var questionnaires = new HashSet<>(questionnaireRepository.findAllByProjectIdWithQuestions(project.getId()));
         project.setQuestionnaires(questionnaires);
 
         projectTimelineStatusPolicy.updateProjectTimeline(project);
@@ -90,7 +90,7 @@ public class PublishDraftProjectUseCase {
             Set<Long> representativeRoleIds = Optional.ofNullable(rep.getRoles())
                     .orElseGet(Set::of)
                     .stream()
-                    .map(role -> role.getId())
+                    .map(Role::getId)
                     .filter(Objects::nonNull)
                     .collect(Collectors.toSet());
             for (var questionnaire : project.getQuestionnaires()) {
@@ -98,7 +98,7 @@ public class PublishDraftProjectUseCase {
                         .orElseGet(Set::of)
                         .stream()
                         .flatMap(question -> Optional.ofNullable(question.getRoles()).orElseGet(Set::of).stream())
-                        .map(role -> role.getId())
+                        .map(Role::getId)
                         .filter(Objects::nonNull)
                         .anyMatch(representativeRoleIds::contains);
                 if (!hasMatchingRole) {

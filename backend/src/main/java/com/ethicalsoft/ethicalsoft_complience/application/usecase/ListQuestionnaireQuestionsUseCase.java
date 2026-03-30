@@ -22,17 +22,22 @@ public class ListQuestionnaireQuestionsUseCase {
                                                           String questionText,
                                                           String roleName,
                                                           Long representativeId) {
-        Long effectiveRepresentativeId = representativeId;
-        if (effectiveRepresentativeId == null && projectId != null) {
-            effectiveRepresentativeId = representativeAccessPolicy.resolveRepresentativeIdForResponse(projectId);
-        }
-
         QuestionSearchFilterDTO filter = new QuestionSearchFilterDTO();
         filter.setQuestionText(questionText);
         filter.setRoleName(roleName);
-        filter.setRoleIds(effectiveRepresentativeId != null
-                ? questionnaireQueryPort.findRepresentativeRoleIds(projectId, effectiveRepresentativeId)
-                : null);
+
+        if (projectId != null && representativeAccessPolicy.isAdminOrOwner(projectId)) {
+            filter.setRoleIds(null);
+        } else {
+            Long effectiveRepresentativeId = representativeId;
+            if (effectiveRepresentativeId == null && projectId != null) {
+                effectiveRepresentativeId = representativeAccessPolicy.resolveRepresentativeIdForResponse(projectId);
+            }
+            filter.setRoleIds(effectiveRepresentativeId != null
+                    ? questionnaireQueryPort.findRepresentativeRoleIds(projectId, effectiveRepresentativeId)
+                    : null);
+        }
+
         return questionnaireQueryPort.searchQuestions(questionnaireId, filter, pageable);
     }
 

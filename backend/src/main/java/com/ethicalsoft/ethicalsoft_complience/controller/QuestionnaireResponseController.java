@@ -88,11 +88,12 @@ public class QuestionnaireResponseController {
             @RequestParam(required = false) Long representativeId,
             @RequestParam(required = false) Long questionId,
             @RequestParam(required = false) Long roleId,
+            @RequestParam(required = false) String roleName,
             @RequestParam(required = false) Boolean response,
             @RequestParam(required = false) String questionText,
             @PageableDefault(size = 20) Pageable pageable) {
         log.info("[controller] Respostas consolidadas questionário={} projeto={}", questionnaireId, projectId);
         return getConsolidatedAnswersUseCase.executeForQuestionnaire(
-                projectId, questionnaireId, representativeId, questionId, roleId, response, questionText, pageable);
+                projectId, questionnaireId, representativeId, questionId, roleId, roleName, response, questionText, pageable);
     }
 }

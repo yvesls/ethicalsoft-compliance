@@ -38,6 +38,12 @@ public class RepresentativeAccessPolicy {
                 .orElse(null);
     }
 
+    public boolean isAdminOrOwner(Long projectId) {
+        User authenticated = currentUserPort.getCurrentUser();
+        return UserRoleEnum.ADMIN.equals(authenticated.getRole())
+                || projectRepository.existsByIdAndOwnerId(projectId, authenticated.getId());
+    }
+
     public void ensureRepresentativeBelongsToProject(Long representativeId, Project project) {
         Representative representative = representativeRepository.findById(representativeId)
                 .orElseThrow(() -> new BusinessException("Representante não encontrado"));

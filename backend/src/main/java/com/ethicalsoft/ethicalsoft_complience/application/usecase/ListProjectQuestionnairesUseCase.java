@@ -23,6 +23,10 @@ public class ListProjectQuestionnairesUseCase {
     public Page<QuestionnaireSummaryResponseDTO> execute(Long projectId,
                                                          Pageable pageable,
                                                          QuestionnaireSearchFilter filter) {
+        if (representativeAccessPolicy.isAdminOrOwner(projectId)) {
+            return projectQuestionnaireQueryPort.listQuestionnaires(projectId, pageable, filter, null);
+        }
+
         Long representativeId = representativeAccessPolicy.resolveRepresentativeIdForResponse(projectId);
         List<Long> roleIds = null;
         if (representativeId != null) {

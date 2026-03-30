@@ -22,14 +22,21 @@ public class SearchQuestionnaireQuestionsUseCase {
                                                           Integer questionnaireId,
                                                           QuestionSearchFilterDTO filter,
                                                           Pageable pageable) {
-        Long representativeId = representativeAccessPolicy.resolveRepresentativeIdForResponse(projectId);
-        if (representativeId != null) {
-            List<Long> roleIds = questionnaireQueryPort.findRepresentativeRoleIds(projectId, representativeId);
+        if (projectId != null && representativeAccessPolicy.isAdminOrOwner(projectId)) {
             if (filter == null) {
                 filter = new QuestionSearchFilterDTO();
             }
-            if (filter.getRoleIds() == null || filter.getRoleIds().isEmpty()) {
-                filter.setRoleIds(roleIds);
+            filter.setRoleIds(null);
+        } else {
+            Long representativeId = representativeAccessPolicy.resolveRepresentativeIdForResponse(projectId);
+            if (representativeId != null) {
+                List<Long> roleIds = questionnaireQueryPort.findRepresentativeRoleIds(projectId, representativeId);
+                if (filter == null) {
+                    filter = new QuestionSearchFilterDTO();
+                }
+                if (filter.getRoleIds() == null || filter.getRoleIds().isEmpty()) {
+                    filter.setRoleIds(roleIds);
+                }
             }
         }
         return questionnaireQueryPort.searchQuestions(questionnaireId, filter, pageable);

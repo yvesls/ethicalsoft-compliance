@@ -32,16 +32,17 @@ public class GetConsolidatedAnswersUseCase {
                                                                 Long representativeId,
                                                                 Long questionId,
                                                                 Long roleId,
+                                                                String roleName,
                                                                 Boolean responseFilter,
                                                                 String questionText,
                                                                 Pageable pageable) {
-        log.info("[consolidated-answers] questionário={} projeto={} filtros: rep={} q={} role={} resp={} text={}",
-                questionnaireId, projectId, representativeId, questionId, roleId, responseFilter, questionText);
+        log.info("[consolidated-answers] questionário={} projeto={} filtros: rep={} q={} roleId={} role={} resp={} text={}",
+                questionnaireId, projectId, representativeId, questionId, roleId, roleName, responseFilter, questionText);
 
         List<QuestionnaireResponse> responses = questionnaireResponseRepository
                 .findByProjectIdAndQuestionnaireId(projectId, questionnaireId);
 
-        return buildPage(projectId, responses, representativeId, questionId, roleId, responseFilter, questionText, pageable);
+        return buildPage(projectId, responses, representativeId, questionId, roleId, roleName, responseFilter, questionText, pageable);
     }
 
     public Page<ConsolidatedAnswerDTO> executeForProject(Long projectId,
@@ -49,11 +50,12 @@ public class GetConsolidatedAnswersUseCase {
                                                           Long representativeId,
                                                           Long questionId,
                                                           Long roleId,
+                                                          String roleName,
                                                           Boolean responseFilter,
                                                           String questionText,
                                                           Pageable pageable) {
-        log.info("[consolidated-answers] projeto={} filtros: qnr={} rep={} q={} role={} resp={} text={}",
-                projectId, questionnaireIdFilter, representativeId, questionId, roleId, responseFilter, questionText);
+        log.info("[consolidated-answers] projeto={} filtros: qnr={} rep={} q={} roleId={} role={} resp={} text={}",
+                projectId, questionnaireIdFilter, representativeId, questionId, roleId, roleName, responseFilter, questionText);
 
         List<QuestionnaireResponse> responses;
         if (questionnaireIdFilter != null) {
@@ -62,7 +64,7 @@ public class GetConsolidatedAnswersUseCase {
             responses = questionnaireResponseRepository.findByProjectId(projectId);
         }
 
-        return buildPage(projectId, responses, representativeId, questionId, roleId, responseFilter, questionText, pageable);
+        return buildPage(projectId, responses, representativeId, questionId, roleId, roleName, responseFilter, questionText, pageable);
     }
 
     private Page<ConsolidatedAnswerDTO> buildPage(Long projectId,
@@ -70,6 +72,7 @@ public class GetConsolidatedAnswersUseCase {
                                                    Long representativeIdFilter,
                                                    Long questionIdFilter,
                                                    Long roleIdFilter,
+                                                   String roleNameFilter,
                                                    Boolean responseFilter,
                                                    String questionTextFilter,
                                                    Pageable pageable) {
@@ -77,10 +80,39 @@ public class GetConsolidatedAnswersUseCase {
         Map<Long, Representative> representativeMap = representativeRepository.findByProjectId(projectId).stream()
                 .collect(Collectors.toMap(Representative::getId, Function.identity()));
 
+        Set<Long> representativesWithRole = null;
+
+        if (roleIdFilter != null) {
+            final Long finalRoleIdFilter = roleIdFilter;
+            representativesWithRole = representativeMap.values().stream()
+                    .filter(rep -> rep.getRoles() != null &&
+                            rep.getRoles().stream()
+                                    .anyMatch(role -> finalRoleIdFilter.equals(role.getId())))
+                    .map(Representative::getId)
+                    .collect(Collectors.toSet());
+            log.debug("[consolidated-answers] Representantes com roleId={}: {}", roleIdFilter, representativesWithRole);
+        } else if (roleNameFilter != null && !roleNameFilter.isBlank()) {
+            String normalizedFilter = roleNameFilter.trim().toLowerCase();
+            representativesWithRole = representativeMap.values().stream()
+                    .filter(rep -> rep.getRoles() != null &&
+                            rep.getRoles().stream()
+                                    .anyMatch(role -> role.getName().toLowerCase().contains(normalizedFilter)))
+                    .map(Representative::getId)
+                    .collect(Collectors.toSet());
+            log.debug("[consolidated-answers] Representantes com role '{}': {}", roleNameFilter, representativesWithRole);
+        }
+        final Set<Long> finalRepresentativesWithRole = representativesWithRole;
+
         List<ConsolidatedAnswerDTO> allRows = new ArrayList<>();
 
         for (QuestionnaireResponse response : responses) {
+            // Filtro por representante específico
             if (representativeIdFilter != null && !representativeIdFilter.equals(response.getRepresentativeId())) {
+                continue;
+            }
+
+            if (finalRepresentativesWithRole != null &&
+                    !finalRepresentativesWithRole.contains(response.getRepresentativeId())) {
                 continue;
             }
 
@@ -100,18 +132,13 @@ public class GetConsolidatedAnswersUseCase {
                     continue;
                 }
 
-                if (roleIdFilter != null) {
-                    boolean matchesRole = ans.getRoleIds() != null && ans.getRoleIds().contains(roleIdFilter);
-                    if (!matchesRole) continue;
-                }
-
                 if (responseFilter != null && !responseFilter.equals(ans.getResponse())) {
                     continue;
                 }
 
                 if (questionTextFilter != null && !questionTextFilter.isBlank()) {
                     String text = ans.getQuestionText() != null ? ans.getQuestionText() : "";
-                    if (!text.toLowerCase().contains(questionTextFilter.toLowerCase())) {
+                    if (!text.toLowerCase().contains(questionTextFilter.trim().toLowerCase())) {
                         continue;
                     }
                 }
@@ -146,4 +173,3 @@ public class GetConsolidatedAnswersUseCase {
         return new PageImpl<>(pageContent, pageable, allRows.size());
     }
 }
-
