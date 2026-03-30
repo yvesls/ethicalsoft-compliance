@@ -9,6 +9,7 @@ import { NotificationService } from './notification.service'
 import { RouterService } from './router.service'
 import { StorageService } from './storage.service'
 import { LoggerService } from './logger.service'
+import { SessionExpirationService } from './session-expiration.service'
 
 @Injectable({
 	providedIn: 'root',
@@ -20,11 +21,13 @@ export class AuthenticationService {
 
 	private readonly SESSION_REFRESH_TOKEN_KEY = 'refresh_token_session'
 	private readonly KEEP_SESSION_KEY = 'keep_session'
+	private readonly FIRST_ACCESS_COMPLETED_KEY = 'first_access_completed'
 
 	private readonly authStore = inject(AuthStore)
 	private readonly routerService = inject(RouterService)
 	private readonly notificationService = inject(NotificationService)
 	private readonly storageService = inject(StorageService)
+	private readonly sessionExpirationService = inject(SessionExpirationService)
 	private readonly platformId = inject(PLATFORM_ID)
 
 	userRoles$ = new BehaviorSubject<string[]>([])
@@ -32,6 +35,7 @@ export class AuthenticationService {
 	currentUser$ = new BehaviorSubject<UserInterface | null>(null)
 
 	constructor() {
+		this.sessionExpirationService.registerLogoutHandler(() => this.logout())
 		this.loadStoredToken()
 	}
 
@@ -126,6 +130,7 @@ export class AuthenticationService {
 			.refreshToken({ refreshToken: this._authToken.refreshToken })
 			.pipe(
 			tap((tokenData: AuthTokenInterface) => {
+				this.sessionExpirationService.cancelWarning()
 				this.setAuthToken(tokenData, localStorage.getItem(this.KEEP_SESSION_KEY) === 'true')
 			}),
 			map(() => true),
@@ -146,12 +151,11 @@ export class AuthenticationService {
 
 			sessionStorage.clear()
 			localStorage.clear()
-
-			this._authToken = null
 			this._user = null
 		this.emitUserState()
 
 			this.cancelRefreshTimer()
+			this.sessionExpirationService.cancelWarning()
 
 			if (refreshToken) {
 				this.authStore.logout(refreshToken).subscribe({
@@ -249,6 +253,7 @@ export class AuthenticationService {
 		if (timeUntilExpiration > 0) {
 			const delay = Math.max(timeUntilExpiration - 60000, 0)
 			this.scheduleTokenRefresh(delay)
+			this.sessionExpirationService.scheduleWarning(expirationTime)
 		}
 	}
 
@@ -275,7 +280,16 @@ export class AuthenticationService {
 	}
 
 	isFirstAccessPending(): boolean {
+		if (this.hasFirstAccessBeenCompleted()) {
+			return false
+		}
 		return this._user?.isFirstAccess ?? false
+	}
+
+	private hasFirstAccessBeenCompleted(): boolean {
+		if (!this.isBrowser()) return false
+		return sessionStorage.getItem(this.FIRST_ACCESS_COMPLETED_KEY) === 'true'
+			|| localStorage.getItem(this.FIRST_ACCESS_COMPLETED_KEY) === 'true'
 	}
 
 	markFirstAccessCompleted(): void {
@@ -283,7 +297,16 @@ export class AuthenticationService {
 			return
 		}
 		this._user = { ...this._user, isFirstAccess: false }
+		this.persistFirstAccessCompleted()
 		this.emitUserState()
+	}
+
+	private persistFirstAccessCompleted(): void {
+		if (!this.isBrowser()) return
+		sessionStorage.setItem(this.FIRST_ACCESS_COMPLETED_KEY, 'true')
+		if (localStorage.getItem(this.KEEP_SESSION_KEY) === 'true') {
+			localStorage.setItem(this.FIRST_ACCESS_COMPLETED_KEY, 'true')
+		}
 	}
 
 	private shouldForcePasswordReset(): boolean {

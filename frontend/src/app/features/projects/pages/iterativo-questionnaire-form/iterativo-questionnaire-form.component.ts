@@ -406,10 +406,6 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
     this.navigateBack({ questionnaireUpdate: finalData });
   }
 
-  onCancel(): void {
-    this.navigateBack();
-  }
-
   private normalizeStageNamesList(stageNames?: string[]): string[] {
     if (!Array.isArray(stageNames)) {
       return [];

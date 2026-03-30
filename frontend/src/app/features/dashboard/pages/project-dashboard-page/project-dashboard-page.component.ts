@@ -77,6 +77,10 @@ export class ProjectDashboardPageComponent implements OnInit {
     this.routerService.rawNavigate(`/projects/${this.projectId}/questionnaires/${questionnaireId}/dashboard`);
   }
 
+  navigateToConsolidatedResponses(): void {
+    this.routerService.rawNavigate(`/projects/${this.projectId}/responses`);
+  }
+
   downloadCsv(): void {
     const url = this.dashboardService.getProjectCsvUrl(this.projectId);
     window.open(url, '_blank');

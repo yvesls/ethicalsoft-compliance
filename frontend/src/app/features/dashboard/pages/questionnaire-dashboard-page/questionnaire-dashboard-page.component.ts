@@ -20,6 +20,8 @@ import { CategoryWordCloudWidgetComponent } from '../../components/category-word
 import { GovernanceInsightsWidgetComponent } from '../../components/governance-insights-widget/governance-insights-widget.component';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { AuthenticationService } from '../../../../core/services/authentication.service';
+import { ModalService } from '../../../../core/services/modal.service';
+import { ResponseDetailModalComponent } from '../../components/response-detail-modal/response-detail-modal.component';
 import { RouterService } from '../../../../core/services/router.service';
 import { RoleEnum } from '../../../../shared/enums/role.enum';
 
@@ -47,7 +49,8 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
   private readonly dashboardService = inject(DashboardService);
   private readonly notificationService = inject(NotificationService);
   private readonly authService = inject(AuthenticationService);
-  readonly routerService = inject(RouterService);
+  private readonly modalService = inject(ModalService);
+  private readonly routerService = inject(RouterService);
 
   projectId!: number;
   questionnaireId!: number;
@@ -131,6 +134,21 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
     });
   }
 
+  viewMemberResponses(representativeId: number, representativeName: string): void {
+    this.modalService.open(ResponseDetailModalComponent, 'large-card', {
+      projectId: this.projectId,
+      questionnaireId: this.questionnaireId,
+      representativeId,
+      representativeName,
+    });
+  }
+
+  navigateToConsolidatedResponses(): void {
+    this.routerService.rawNavigate(
+      `/projects/${this.projectId}/questionnaires/${this.questionnaireId}/responses`
+    );
+  }
+
   forceClose(): void {
     if (!confirm('Tem certeza que deseja encerrar o questionário? O ISEP será calculado com as respostas existentes.')) return;
     this.forceClosing.set(true);
@@ -145,9 +163,5 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
         this.forceClosing.set(false);
       },
     });
-  }
-
-  goBack(): void {
-    this.routerService.rawNavigate(`/projects/${this.projectId}/dashboard`);
   }
 }

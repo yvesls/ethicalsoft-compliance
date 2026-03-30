@@ -121,6 +121,29 @@ export class ProjectStore extends BaseStore {
     );
   }
 
+  updateDraft(projectId: string | number, payload: ProjectCreationPayload): Observable<ProjectCreationResponse> {
+    const normalizedPayload: ProjectCreationPayload = {
+      ...payload,
+      templateId: this.normalizeTemplateId(payload.templateId),
+      status: 'RASCUNHO',
+    };
+
+    return this.requestService.makePut<ProjectCreationResponse>(
+      this.getUrl(`${projectId}/draft`),
+      {
+        useAuth: true,
+        data: normalizedPayload,
+      }
+    );
+  }
+
+  publishProject(projectId: string | number): Observable<ProjectCreationResponse> {
+    return this.requestService.makePost<ProjectCreationResponse>(
+      this.getUrl(`${projectId}/publish`),
+      { useAuth: true }
+    );
+  }
+
   private normalizeTemplateId(templateId: ProjectCreationPayload['templateId']): number | null {
     if (typeof templateId === 'number' && Number.isFinite(templateId)) {
       return templateId;

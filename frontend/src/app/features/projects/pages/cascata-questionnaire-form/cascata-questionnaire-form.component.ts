@@ -343,10 +343,6 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
     this.navigateBack({ questionnaireUpdate: finalData });
   }
 
-  onCancel(): void {
-    this.navigateBack();
-  }
-
   private navigateBack(updatedParams?: GenericParams): void {
     this.skipStatePersistence = true;
     if (this.returnTo) {

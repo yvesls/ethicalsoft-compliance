@@ -93,12 +93,20 @@ export class ProjectDetailPageComponent implements OnInit {
   private currentProjectId: string | null = null;
   private readonly sendingReminderIds = signal<Set<number>>(new Set());
   private readonly forceClosingIds = signal<Set<number>>(new Set());
+  private readonly expandedRespondentLists = signal<Set<number>>(new Set());
 
   private readonly userRoles = signal<string[]>([]);
   private readonly currentUser = signal<UserInterface | null>(null);
   readonly isAdmin = computed(() =>
     this.userRoles().includes(RoleEnum.ADMIN)
   );
+
+  readonly isDraft = computed(() => {
+    const project = this.projectState().data;
+    return project?.status === ProjectStatus.Rascunho;
+  });
+
+  readonly isPublishing = signal(false);
 
   readonly projectState = signal<ProjectState>({
     data: null,
@@ -178,6 +186,38 @@ export class ProjectDetailPageComponent implements OnInit {
     this.router.navigate(['/projects/create'], {
       queryParams: { type: project.type, projectId: project.id },
     });
+  }
+
+  publishProject(): void {
+    const project = this.projectState().data;
+    if (!project || !this.isDraft() || this.isPublishing()) {
+      return;
+    }
+
+    this.notification.showConfirm(
+      'Tem certeza que deseja publicar este projeto? Ele será ativado e os questionários ficarão disponíveis para resposta.',
+      () => {
+        this.isPublishing.set(true);
+
+        this.projectStore
+          .publishProject(project.id)
+          .pipe(
+            take(1),
+          )
+          .subscribe({
+            next: () => {
+              this.isPublishing.set(false);
+              this.notification.showSuccess('Projeto publicado com sucesso.');
+              this.loadProject(project.id);
+            },
+            error: (error) => {
+              this.isPublishing.set(false);
+              this.notification.showError(error);
+            },
+          });
+      },
+      () => { /* cancelado */ }
+    );
   }
 
   onRetryLoadProject(): void {
@@ -319,8 +359,6 @@ export class ProjectDetailPageComponent implements OnInit {
       'individual',
     ]);
   }
-
-  // ── Force Close Questionário ─────────────────────────────────────
 
   canForceCloseQuestionnaire(questionnaire: ProjectQuestionnaireSummary): boolean {
     return (
@@ -525,6 +563,22 @@ export class ProjectDetailPageComponent implements OnInit {
 
   canDisplayRespondents(): boolean {
     return this.isAdmin();
+  }
+
+  isRespondentListExpanded(questionnaireId: number): boolean {
+    return this.expandedRespondentLists().has(questionnaireId);
+  }
+
+  toggleRespondentList(questionnaireId: number): void {
+    this.expandedRespondentLists.update((ids) => {
+      const next = new Set(ids);
+      if (next.has(questionnaireId)) {
+        next.delete(questionnaireId);
+      } else {
+        next.add(questionnaireId);
+      }
+      return next;
+    });
   }
 
   copyQuestionnaireLink(questionnaire: ProjectQuestionnaireSummary): void {

@@ -12,6 +12,13 @@
           <button class="dash-btn dash-btn--neutral" (click)="downloadCsv()">
             <i class="bi bi-download"></i> Relatório de Governança (CSV)
           </button>
+          <button
+            class="dash-btn dash-btn--neutral"
+            [disabled]="d.projectIsep === null"
+            (click)="navigateToConsolidatedResponses()"
+          >
+            <i class="bi bi-list-check"></i> Ver Todas as Respostas
+          </button>
           @if (isAdmin) {
             <button
               class="dash-btn dash-btn--danger"

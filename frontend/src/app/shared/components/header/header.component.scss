@@ -24,6 +24,45 @@ header {
 		min-height: 50px;
 	}
 
+	.header-left {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		min-width: 0;
+		flex: 1;
+
+		@include for-phone-only {
+			gap: 0.5rem;
+		}
+	}
+
+	.back-btn {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 6px;
+		border-radius: $radius-default;
+		transition: $transition-default;
+		flex-shrink: 0;
+
+		&:hover {
+			background: rgba(0, 0, 0, 0.06);
+		}
+
+		img {
+			height: 18px;
+			display: block;
+
+			@include for-tablet-down {
+				height: 16px;
+			}
+
+			@include for-phone-only {
+				height: 14px;
+			}
+		}
+	}
+
 	h2 {
 		padding: 0;
 		margin: 0;
@@ -130,6 +169,32 @@ header {
 				font-weight: 600;
 			}
 
+			&__header-actions {
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+
+				.icon-btn {
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					padding: 4px;
+					border-radius: $radius-default;
+					transition: $transition-default;
+					opacity: 0.7;
+
+					&:hover:not(:disabled) {
+						opacity: 1;
+						background: rgba(0, 0, 0, 0.06);
+					}
+
+					&:disabled {
+						opacity: 0.3;
+						cursor: not-allowed;
+					}
+				}
+			}
+
 			&__body {
 				max-height: 360px;
 				overflow-y: auto;
@@ -210,8 +275,28 @@ header {
 				display: flex;
 				flex-direction: column;
 				gap: 0.25rem;
-				min-width: 96px;
+				min-width: auto;
 				align-items: flex-end;
+
+				.icon-btn {
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					padding: 4px;
+					border-radius: $radius-default;
+					transition: $transition-default;
+					opacity: 0.6;
+
+					&:hover:not(:disabled) {
+						opacity: 1;
+						background: rgba(0, 0, 0, 0.06);
+					}
+
+					&:disabled {
+						opacity: 0.25;
+						cursor: not-allowed;
+					}
+				}
 			}
 		}
 

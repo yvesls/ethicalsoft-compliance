@@ -50,6 +50,32 @@
   }
 }
 
+.draft-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-radius: $radius-default;
+  background-color: #fff8e1;
+  border: 1px solid #f9a825;
+  color: #5d4037;
+
+  &__icon {
+    font-size: 1.4rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  &__text {
+    font-size: 0.9rem;
+    line-height: 1.4;
+
+    strong {
+      font-weight: 600;
+    }
+  }
+}
+
 .status-chip {
   display: inline-flex;
   align-items: center;
@@ -212,11 +238,18 @@
     flex-wrap: wrap;
   }
 
+  &__left-column {
+    flex: 1 1 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-width: 0;
+  }
+
   &__meta {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 1rem;
-    flex: 1 1 280px;
 
     .meta-label {
       display: block;
@@ -361,9 +394,20 @@
   }
 }
 
-.respondent-list__hint {
+.respondent-list__toggle {
+  background: none;
+  border: none;
+  padding: 0.25rem 0;
   font-size: $text-xsm;
-  color: $gray-secundary;
+  color: $blue-primary;
+  cursor: pointer;
+  font-weight: 600;
+  text-align: left;
+  transition: color 0.2s ease;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 .progress-track {

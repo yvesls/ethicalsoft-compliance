@@ -164,6 +164,71 @@ export interface IsepDataExportDTO {
   members: ExportMemberResult[];
 }
 
+export interface JustificationDTO {
+  descricao: string;
+  url: string | null;
+}
+
+export interface AnswerDTO {
+  questionId: number;
+  questionText: string;
+  stageIds: number[];
+  roleIds: number[];
+  response: boolean;
+  justification: JustificationDTO | null;
+  evidence: JustificationDTO | null;
+  attachments: string[];
+}
+
+export interface RepresentativeResponseDTO {
+  representativeId: number;
+  representativeName: string;
+  questionnaireId: number;
+  status: string;
+  submissionDate: string;
+  totalQuestions: number;
+  answeredQuestions: number;
+  yesCount: number;
+  noCount: number;
+  answers: AnswerDTO[];
+}
+
+export interface ConsolidatedAnswerDTO {
+  representativeId: number;
+  representativeName: string;
+  roles: string[];
+  questionnaireId: number;
+  responseStatus: string;
+  submissionDate: string;
+  questionId: number;
+  questionText: string;
+  stageIds: number[];
+  response: boolean;
+  justification: JustificationDTO | null;
+  evidence: JustificationDTO | null;
+  attachments: string[];
+}
+
+export interface Page<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+}
+
+export interface ConsolidatedAnswerFilters {
+  representativeId?: number | null;
+  questionId?: number | null;
+  roleId?: number | null;
+  response?: boolean | null;
+  questionText?: string | null;
+  questionnaireId?: number | null;
+  page: number;
+  size: number;
+  sort?: string | null;
+}
+
 export type Band = 'A' | 'B' | 'C' | 'D' | 'E';
 
 export interface BandMeta {

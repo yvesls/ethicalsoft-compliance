@@ -1,0 +1,153 @@
+import { Injectable, inject, OnDestroy } from '@angular/core';
+import { Subject, Subscription, timer } from 'rxjs';
+import { NotificationService } from './notification.service';
+import { LoggerService } from './logger.service';
+
+@Injectable({ providedIn: 'root' })
+export class SessionExpirationService implements OnDestroy {
+  private readonly notification = inject(NotificationService);
+
+  private readonly WARNING_BEFORE_EXPIRY_MS = 2 * 60 * 1000;
+
+  private readonly GRACE_PERIOD_MS = 60 * 1000;
+
+  private warningTimerSub: Subscription | null = null;
+  private graceTimerSub: Subscription | null = null;
+  private isWarningVisible = false;
+
+  private readonly _sessionExpiring$ = new Subject<void>();
+  readonly sessionExpiring$ = this._sessionExpiring$.asObservable();
+
+  private readonly _sessionExpired$ = new Subject<void>();
+  readonly sessionExpired$ = this._sessionExpired$.asObservable();
+
+  private pendingDraftSaver: (() => Promise<void> | void) | null = null;
+
+  private logoutHandler: (() => void) | null = null;
+
+  ngOnDestroy(): void {
+    this.cancelTimers();
+    this._sessionExpiring$.complete();
+    this._sessionExpired$.complete();
+  }
+
+  registerLogoutHandler(handler: () => void): void {
+    this.logoutHandler = handler;
+  }
+
+  scheduleWarning(tokenExpirationMs: number): void {
+    this.cancelTimers();
+
+    const now = Date.now();
+    const timeUntilExpiry = tokenExpirationMs - now;
+
+    if (timeUntilExpiry <= 0) {
+      LoggerService.warn('SessionExpirationService: Token já expirado.');
+      return;
+    }
+
+    const warningDelay = Math.max(timeUntilExpiry - this.WARNING_BEFORE_EXPIRY_MS, 0);
+
+    LoggerService.info(
+      `SessionExpirationService: Aviso de expiração agendado para ${Math.round(warningDelay / 1000)}s.`
+    );
+
+    this.warningTimerSub = timer(warningDelay).subscribe(() => {
+      this.showExpirationWarning();
+    });
+  }
+
+  registerDraftSaver(saver: () => Promise<void> | void): void {
+    this.pendingDraftSaver = saver;
+  }
+
+  unregisterDraftSaver(): void {
+    this.pendingDraftSaver = null;
+  }
+
+  cancelWarning(): void {
+    this.cancelTimers();
+    if (this.isWarningVisible) {
+      this.notification.closeModal();
+      this.isWarningVisible = false;
+    }
+  }
+
+  private showExpirationWarning(): void {
+    this.isWarningVisible = true;
+    this._sessionExpiring$.next();
+
+    LoggerService.warn('SessionExpirationService: Exibindo aviso de expiração de sessão.');
+
+    if (this.pendingDraftSaver) {
+      this.notification.showConfirm(
+        'Sua sessão está prestes a expirar. Deseja salvar suas alterações como rascunho antes de ser desconectado?',
+        () => this.onUserAcceptedSave(),
+        () => this.onUserDeclinedSave()
+      );
+    } else {
+      this.notification.showWarning(
+        'Sua sessão expirou. Você será redirecionado para o login.'
+      );
+      setTimeout(() => this.forceLogout(), 3000);
+      return;
+    }
+
+    this.graceTimerSub = timer(this.GRACE_PERIOD_MS).subscribe(() => {
+      LoggerService.warn('SessionExpirationService: Grace period expirado. Forçando logout.');
+      this.forceLogout();
+    });
+  }
+
+  private async onUserAcceptedSave(): Promise<void> {
+    this.cancelGraceTimer();
+
+    try {
+      if (this.pendingDraftSaver) {
+        await this.pendingDraftSaver();
+        this.notification.showSuccess('Rascunho salvo com sucesso. Você será redirecionado para o login.');
+      }
+    } catch (error) {
+      LoggerService.error('SessionExpirationService: Erro ao salvar rascunho.', error);
+      this.notification.showWarning('Não foi possível salvar o rascunho. Seus dados não salvos podem ser perdidos.');
+    }
+
+    setTimeout(() => this.forceLogout(), 2000);
+  }
+
+  private onUserDeclinedSave(): void {
+    this.cancelGraceTimer();
+    this.forceLogout();
+  }
+
+  private forceLogout(): void {
+    this.cancelTimers();
+    this.isWarningVisible = false;
+    this._sessionExpired$.next();
+
+    if (this.logoutHandler) {
+      this.logoutHandler();
+    } else {
+      LoggerService.error('SessionExpirationService: Nenhum handler de logout registrado!');
+    }
+  }
+
+  private cancelTimers(): void {
+    this.cancelWarningTimer();
+    this.cancelGraceTimer();
+  }
+
+  private cancelWarningTimer(): void {
+    if (this.warningTimerSub) {
+      this.warningTimerSub.unsubscribe();
+      this.warningTimerSub = null;
+    }
+  }
+
+  private cancelGraceTimer(): void {
+    if (this.graceTimerSub) {
+      this.graceTimerSub.unsubscribe();
+      this.graceTimerSub = null;
+    }
+  }
+}

@@ -3,11 +3,15 @@ import { Observable } from 'rxjs';
 import { RequestService } from '../../../core/services/request.service';
 import { environment } from '../../../enviroments/environments';
 import {
+  ConsolidatedAnswerDTO,
+  ConsolidatedAnswerFilters,
   IndividualDashboardDTO,
   IsepDataExportDTO,
+  Page,
   ProjectCloseResultDTO,
   ProjectIsepDashboardDTO,
   QuestionnaireIsepDashboardDTO,
+  RepresentativeResponseDTO,
   RoleStageComplianceDTO,
   WordCloudDTO,
 } from '../interfaces/dashboard.interface';
@@ -120,5 +124,56 @@ export class DashboardService {
       `api/projects/${projectId}/close`,
       { useAuth: true }
     );
+  }
+
+  getRepresentativeResponses(
+    projectId: number,
+    questionnaireId: number,
+    representativeId: number
+  ): Observable<RepresentativeResponseDTO> {
+    return this.requestService.makeGet<RepresentativeResponseDTO>(
+      `api/projects/${projectId}/questionnaires/${questionnaireId}/responses/representative/${representativeId}`,
+      { useAuth: true }
+    );
+  }
+
+  getQuestionnaireConsolidatedResponses(
+    projectId: number,
+    questionnaireId: number,
+    filters: ConsolidatedAnswerFilters
+  ): Observable<Page<ConsolidatedAnswerDTO>> {
+    const params = this.buildFilterParams(filters);
+    return this.requestService.makeGet<Page<ConsolidatedAnswerDTO>>(
+      `api/projects/${projectId}/questionnaires/${questionnaireId}/responses/consolidated`,
+      { useAuth: true },
+      ...params
+    );
+  }
+
+  getProjectConsolidatedResponses(
+    projectId: number,
+    filters: ConsolidatedAnswerFilters
+  ): Observable<Page<ConsolidatedAnswerDTO>> {
+    const params = this.buildFilterParams(filters);
+    return this.requestService.makeGet<Page<ConsolidatedAnswerDTO>>(
+      `api/projects/${projectId}/responses/consolidated`,
+      { useAuth: true },
+      ...params
+    );
+  }
+
+  private buildFilterParams(filters: ConsolidatedAnswerFilters): UrlParameter[] {
+    const params: UrlParameter[] = [
+      { key: 'page', value: filters.page },
+      { key: 'size', value: filters.size },
+    ];
+    if (filters.sort) params.push({ key: 'sort', value: filters.sort });
+    if (filters.representativeId != null) params.push({ key: 'representativeId', value: filters.representativeId });
+    if (filters.questionId != null) params.push({ key: 'questionId', value: filters.questionId });
+    if (filters.roleId != null) params.push({ key: 'roleId', value: filters.roleId });
+    if (filters.response != null) params.push({ key: 'response', value: filters.response });
+    if (filters.questionText) params.push({ key: 'questionText', value: filters.questionText });
+    if (filters.questionnaireId != null) params.push({ key: 'questionnaireId', value: filters.questionnaireId });
+    return params;
   }
 }

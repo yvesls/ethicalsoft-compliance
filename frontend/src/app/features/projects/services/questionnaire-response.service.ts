@@ -4,10 +4,10 @@ import { QuestionnaireResponseStatus } from '../../../shared/enums/questionnaire
 import {
   QuestionnaireAttachmentLink,
   QuestionnaireAnswerDocument,
-  QuestionnaireAnswerPageRequest,
-  QuestionnaireAnswerPageResponse,
+  QuestionnaireAnswerListResponse,
   QuestionnaireAnswerRequest,
   QuestionnaireAnswerResponse,
+  QuestionnaireAnswerSubmitRequest,
   QuestionnaireQuestion,
   QuestionnaireResponseDocument,
   QuestionnaireResponsePayload,
@@ -25,17 +25,14 @@ import { ProjectQuestionnaireSummary } from '../../../shared/interfaces/project/
 export class QuestionnaireResponseService {
   private readonly requestService = inject(RequestService);
   private readonly projectStore = inject(ProjectStore);
-  private readonly defaultPageSize = 10;
 
   constructor() {
     this.requestService.apiUrl = environment.apiBaseUrl;
   }
 
-  loadResponsePage(
+  loadResponses(
     projectId: string,
     questionnaireId: number,
-    page: number,
-    size: number = this.defaultPageSize,
     representativeEmail?: string | null
   ): Observable<QuestionnaireResponsePayload> {
     return this.projectStore.getQuestionnaireSummary(projectId, questionnaireId).pipe(
@@ -43,16 +40,16 @@ export class QuestionnaireResponseService {
         const representativeId = this.resolveRepresentativeId(questionnaire, representativeEmail);
 
         return forkJoin({
-          questionsPage: this.listQuestions(projectId, questionnaireId, page, size, representativeId),
-          answersPage: this.getAnswerPage(projectId, questionnaireId, page, size, representativeId),
+          questions: this.listQuestions(projectId, questionnaireId, representativeId),
+          answersData: this.getAnswers(projectId, questionnaireId, representativeId),
         }).pipe(
-          map(({ questionsPage, answersPage }) => {
+          map(({ questions, answersData }) => {
             const answerDocuments = this.mergeQuestionsAndAnswers(
-              questionsPage.content,
-              answersPage.answers
+              questions,
+              answersData.answers
             );
 
-            const status = answersPage.completed
+            const status = answersData.completed
               ? QuestionnaireResponseStatus.Completed
               : QuestionnaireResponseStatus.InProgress;
 
@@ -68,13 +65,7 @@ export class QuestionnaireResponseService {
             return {
               questionnaire,
               response,
-              pagination: {
-                pageNumber: answersPage.pageNumber,
-                pageSize: answersPage.pageSize,
-                totalPages: answersPage.totalPages,
-                totalElements: questionsPage.totalElements,
-                completed: answersPage.completed,
-              },
+              completed: answersData.completed,
             };
           })
         );
@@ -107,35 +98,43 @@ export class QuestionnaireResponseService {
       .pipe(map((questionnaire) => ({ questionnaire })));
   }
 
-  submitPage(
+  submitResponses(
     projectId: string,
     questionnaireId: number,
     payload: QuestionnaireResponseSubmission,
-    pagination: { pageNumber: number; pageSize: number },
     representativeEmail?: string | null,
-    representativeId?: number | null
+    representativeId?: number | null,
+    draft = false
   ): Observable<QuestionnaireResponseDocument> {
-    const requestPayload: QuestionnaireAnswerPageRequest = {
-      pageNumber: pagination.pageNumber,
-      pageSize: pagination.pageSize,
+    const requestPayload: QuestionnaireAnswerSubmitRequest = {
       answers: payload.answers.map((answer) => this.mapToAnswerRequest(answer)),
+      draft,
     };
 
     if (typeof representativeId === 'number' && Number.isFinite(representativeId)) {
       requestPayload.representativeId = representativeId;
     }
 
-    return this.submitAnswerPage(projectId, questionnaireId, requestPayload).pipe(
-      map((responsePage) => ({
-        projectId: Number(projectId),
-        questionnaireId,
-        representativeEmail: representativeEmail ?? null,
-        status: responsePage.completed
-          ? QuestionnaireResponseStatus.Completed
-          : QuestionnaireResponseStatus.InProgress,
-        submissionDate: new Date().toISOString(),
-        answers: payload.answers,
-      }))
+    return this.submitAllAnswers(projectId, questionnaireId, requestPayload).pipe(
+      map((responseData) => {
+        let resolvedStatus: QuestionnaireResponseStatus;
+        if (draft) {
+          resolvedStatus = QuestionnaireResponseStatus.InProgress;
+        } else {
+          resolvedStatus = responseData.completed
+            ? QuestionnaireResponseStatus.Completed
+            : QuestionnaireResponseStatus.InProgress;
+        }
+
+        return {
+          projectId: Number(projectId),
+          questionnaireId,
+          representativeEmail: representativeEmail ?? null,
+          status: resolvedStatus,
+          submissionDate: new Date().toISOString(),
+          answers: payload.answers,
+        };
+      })
     );
   }
 
@@ -152,13 +151,11 @@ export class QuestionnaireResponseService {
   private listQuestions(
     projectId: string,
     questionnaireId: number,
-    page: number,
-    size: number,
     representativeId?: number | null
-  ): Observable<Page<QuestionnaireQuestion>> {
+  ): Observable<QuestionnaireQuestion[]> {
     const params: UrlParameter[] = [
-      { key: 'page', value: page },
-      { key: 'size', value: size },
+      { key: 'page', value: 0 },
+      { key: 'size', value: 10000 },
     ];
 
     if (representativeId) {
@@ -169,39 +166,34 @@ export class QuestionnaireResponseService {
       this.buildUrl(projectId, questionnaireId, 'questions'),
       { useAuth: true },
       ...params
-    );
+    ).pipe(map((page) => page.content));
   }
 
-  private getAnswerPage(
+  private getAnswers(
     projectId: string,
     questionnaireId: number,
-    page: number,
-    size: number,
     representativeId?: number | null
-  ): Observable<QuestionnaireAnswerPageResponse> {
-    const params: UrlParameter[] = [
-      { key: 'page', value: page },
-      { key: 'size', value: size },
-    ];
+  ): Observable<QuestionnaireAnswerListResponse> {
+    const params: UrlParameter[] = [];
 
     if (representativeId) {
       params.push({ key: 'representativeId', value: representativeId });
     }
 
-    return this.requestService.makeGet<QuestionnaireAnswerPageResponse>(
-      this.buildUrl(projectId, questionnaireId, 'responses/page'),
+    return this.requestService.makeGet<QuestionnaireAnswerListResponse>(
+      this.buildUrl(projectId, questionnaireId, 'responses'),
       { useAuth: true },
       ...params
     );
   }
 
-  submitAnswerPage(
+  private submitAllAnswers(
     projectId: string,
     questionnaireId: number,
-    payload: QuestionnaireAnswerPageRequest
-  ): Observable<QuestionnaireAnswerPageResponse> {
-    return this.requestService.makePost<QuestionnaireAnswerPageResponse>(
-      this.buildUrl(projectId, questionnaireId, 'responses/page'),
+    payload: QuestionnaireAnswerSubmitRequest
+  ): Observable<QuestionnaireAnswerListResponse> {
+    return this.requestService.makePost<QuestionnaireAnswerListResponse>(
+      this.buildUrl(projectId, questionnaireId, 'responses'),
       {
         useAuth: true,
         data: payload,
@@ -233,7 +225,6 @@ export class QuestionnaireResponseService {
         justification: this.normalizeLink(answer?.justification),
         evidence: this.normalizeLink(answer?.evidence),
         attachments: this.normalizeAttachments(answer?.attachments),
-        pageNumber: answer?.pageNumber ?? undefined,
       };
     });
   }

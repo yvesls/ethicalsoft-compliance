@@ -60,6 +60,8 @@ import {
 import { finalize, switchMap, take } from 'rxjs/operators';
 import { RoleService } from '../../../../core/services/role.service';
 import { RoleSummary } from '../../../../shared/interfaces/role/role-summary.interface';
+import { DraftCacheService } from '../../../../core/services/draft-cache.service';
+import { SessionExpirationService } from '../../../../core/services/session-expiration.service';
 
 export interface Representative {
   id?: number | string | null;
@@ -143,11 +145,14 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
   private modalService = inject(ModalService);
   private notificationService = inject(NotificationService);
   private roleService = inject(RoleService);
+  private draftCacheService = inject(DraftCacheService);
+  private sessionExpirationService = inject(SessionExpirationService);
   public override routerService = inject(RouterService);
 
   public ProjectType = ProjectType;
   public projectForm!: FormGroup;
   public isSubmitting = false;
+  public isSavingDraft = false;
   public showQuestionnaireQuestionErrors = false;
   public panelStates: PanelStates = {
     project: true,
@@ -210,6 +215,9 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
     this.setupIterationCountCalculation();
     this.setupIterationListener();
     this.loadRoles();
+
+    this.sessionExpirationService.registerDraftSaver(() => this.saveDraftLocally());
+    this.destroyRef.onDestroy(() => this.sessionExpirationService.unregisterDraftSaver());
   }
 
   protected override loadParams(params: RouteParams<IterativoProjectRouteParams>): void {
@@ -995,6 +1003,93 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
           this.notificationService.showError(error);
         },
       });
+  }
+
+  /**
+   * Salva o projeto como rascunho (RASCUNHO).
+   * Não exige que todos os campos obrigatórios estejam preenchidos.
+   */
+  saveDraft(): void {
+    if (this.isSavingDraft || this.isSubmitting) {
+      return;
+    }
+
+    const formValue = this.projectForm.getRawValue() as IterativoProjectFormValue;
+    const projectName = (formValue.name || '').trim();
+
+    if (!projectName) {
+      this.notificationService.showWarning('Informe ao menos o nome do projeto para salvar como rascunho.');
+      return;
+    }
+
+    let payload: ProjectCreationPayload;
+    try {
+      payload = this.buildDraftPayload();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Erro ao preparar os dados do rascunho.';
+      this.notificationService.showError(message);
+      return;
+    }
+
+    this.isSavingDraft = true;
+    this.cdr.markForCheck();
+
+    const draftKey = this.draftCacheService.projectDraftKey('iterativo');
+    this.draftCacheService.save(draftKey, formValue, 'project-creation', { type: 'iterativo' });
+
+    this.projectStore
+      .createProject(payload)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => {
+          this.isSavingDraft = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe({
+        next: () => {
+          this.draftCacheService.remove(draftKey);
+          this.notificationService.showSuccess('Rascunho salvo com sucesso.');
+          this.routerService.navigateTo('/projects');
+        },
+        error: (error) => {
+          this.notificationService.showError(error);
+        },
+      });
+  }
+
+  private buildDraftPayload(): ProjectCreationPayload {
+    const formValue = this.projectForm.getRawValue() as IterativoProjectFormValue;
+    const projectName = (formValue.name || '').trim();
+    const iterationDuration = Number(formValue.iterationDuration) || 0;
+    const iterationCount = Number(formValue.iterationCount ?? 0);
+
+    const stages = this.buildStagePayload();
+    const iterations = this.buildIterationPayload();
+    const questionnaires = this.buildQuestionnairePayload();
+    const representatives = this.buildRepresentativePayload();
+
+    return {
+      name: projectName || 'Rascunho sem nome',
+      templateId: formValue.template ?? null,
+      type: ProjectType.Iterativo,
+      startDate: formValue.startDate ?? '',
+      deadline: formValue.deadline || null,
+      status: 'RASCUNHO',
+      iterationDuration: iterationDuration > 0 ? iterationDuration : undefined,
+      iterationCount: iterationCount > 0 ? iterationCount : undefined,
+      stages: stages.length ? stages : undefined,
+      iterations: iterations.length ? iterations : undefined,
+      questionnaires: questionnaires.length ? questionnaires : undefined,
+      representatives: representatives.length ? representatives : undefined,
+    };
+  }
+
+  /** Salva apenas no localStorage (usado pelo SessionExpirationService antes do logout) */
+  private saveDraftLocally(): void {
+    const formValue = this.projectForm.getRawValue();
+    const draftKey = this.draftCacheService.projectDraftKey('iterativo');
+    this.draftCacheService.save(draftKey, formValue, 'project-creation', { type: 'iterativo' });
   }
 
   private buildProjectCreationPayload(): ProjectCreationPayload {

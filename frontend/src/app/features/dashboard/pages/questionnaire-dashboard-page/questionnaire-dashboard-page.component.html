@@ -4,9 +4,6 @@
 
       <div class="dash-header">
         <div>
-          <button class="dash-link dash-link--back" (click)="goBack()">
-            ← Voltar ao Projeto
-          </button>
           <h1 class="dash-title">{{ d.questionnaireName }}</h1>
           <span class="dash-sub">
             Etapa: {{ d.stageName }}
@@ -16,6 +13,9 @@
         </div>
 
         <div class="dash-actions">
+          <button class="dash-btn dash-btn--neutral" (click)="navigateToConsolidatedResponses()">
+            <i class="bi bi-list-check"></i> Ver Todas as Respostas
+          </button>
           <button class="dash-btn dash-btn--neutral" (click)="downloadCsv()">
             <i class="bi bi-download"></i> Relatório de Governança (CSV)
           </button>
@@ -117,6 +117,7 @@
                 <th>Membro</th>
                 <th>ICP (%)</th>
                 <th>Faixa</th>
+                <th class="text-center">Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -125,6 +126,11 @@
                   <td>{{ m.representativeName }}</td>
                   <td>{{ m.icpPercent | number:'1.2-2' }}%</td>
                   <td><app-band-badge [band]="m.band" /></td>
+                  <td class="text-center">
+                    <button class="dash-link" (click)="viewMemberResponses(m.representativeId, m.representativeName)">
+                      Ver Respostas →
+                    </button>
+                  </td>
                 </tr>
               }
             </tbody>
@@ -148,9 +154,6 @@
     <div class="dash-page">
       <div class="dash-header">
         <div>
-          <button class="dash-link dash-link--back" (click)="goBack()">
-            ← Voltar ao Projeto
-          </button>
           <h1 class="dash-title">Dashboard do Questionário</h1>
         </div>
       </div>

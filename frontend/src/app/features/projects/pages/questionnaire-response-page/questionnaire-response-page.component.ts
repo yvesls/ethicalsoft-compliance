@@ -12,7 +12,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { take } from 'rxjs';
 
-import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
 import { QuestionnaireResponseService } from '../../services/questionnaire-response.service';
 import { QuestionnaireAnswerCacheService } from '../../services/questionnaire-answer-cache.service';
 import { QuestionnaireResponseStatus } from '../../../../shared/enums/questionnaire-response-status.enum';
@@ -29,6 +28,8 @@ import { NotificationService } from '../../../../core/services/notification.serv
 import { ProjectContextService } from '../../../../core/services/project-context.service';
 import { AuthenticationService, UserInterface } from '../../../../core/services/authentication.service';
 import { RoleEnum } from '../../../../shared/enums/role.enum';
+import { DraftCacheService } from '../../../../core/services/draft-cache.service';
+import { SessionExpirationService } from '../../../../core/services/session-expiration.service';
 
 interface QuestionnaireResponseState {
   status: 'loading' | 'loaded' | 'error';
@@ -41,7 +42,7 @@ type PageMode = 'respond' | 'view';
 @Component({
   selector: 'app-questionnaire-response-page',
   standalone: true,
-  imports: [CommonModule, PaginationComponent],
+  imports: [CommonModule],
   templateUrl: './questionnaire-response-page.component.html',
   styleUrls: ['./questionnaire-response-page.component.scss'],
   providers: [QuestionnaireAnswerCacheService],
@@ -58,6 +59,8 @@ export class QuestionnaireResponsePageComponent implements OnInit {
   private readonly location = inject(Location);
   private readonly authService = inject(AuthenticationService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly draftCacheService = inject(DraftCacheService);
+  private readonly sessionExpirationService = inject(SessionExpirationService);
 
   private projectId: string | null = null;
   private questionnaireId: number | null = null;
@@ -75,13 +78,11 @@ export class QuestionnaireResponsePageComponent implements OnInit {
   });
 
   readonly pageMode = signal<PageMode>('respond');
-  readonly currentPage = signal(1);
-  pageSize = 10;
+  readonly isSavingDraft = signal(false);
 
   readonly questionnaire = computed(() => this.state().data?.questionnaire ?? null);
   readonly answers = computed(() => this.state().data?.response.answers ?? []);
-  readonly pagination = computed(() => this.state().data?.pagination ?? null);
-  readonly totalQuestions = computed(() => this.pagination()?.totalElements ?? 0);
+  readonly totalQuestions = computed(() => this.answers().length);
   readonly answeredCount = computed(() =>
     this.answers().filter((answer) => answer.response !== null).length
   );
@@ -96,6 +97,9 @@ export class QuestionnaireResponsePageComponent implements OnInit {
   ngOnInit(): void {
     this.listenToAuthState();
     this.listenToRoute();
+
+    this.sessionExpirationService.registerDraftSaver(() => this.saveDraftLocally());
+    this.destroyRef.onDestroy(() => this.sessionExpirationService.unregisterDraftSaver());
   }
 
   onNavigateBack(): void {
@@ -109,11 +113,6 @@ export class QuestionnaireResponsePageComponent implements OnInit {
     }
 
     this.router.navigateByUrl(fallback);
-  }
-
-  onPageChange(page: number): void {
-    this.persistCurrentPageToCache();
-    this.loadResponse(page);
   }
 
   onSelectAnswer(answer: QuestionnaireAnswerDocument, value: boolean): void {
@@ -159,11 +158,6 @@ export class QuestionnaireResponsePageComponent implements OnInit {
     }
 
     const currentAnswers = this.answers();
-    const pagination = this.pagination();
-    if (!pagination) {
-      this.notification.showError('Não foi possível determinar a página atual.');
-      return;
-    }
 
     const submission: QuestionnaireResponseSubmission = {
       status: QuestionnaireResponseStatus.Completed,
@@ -176,11 +170,10 @@ export class QuestionnaireResponsePageComponent implements OnInit {
     }
 
     this.responseService
-      .submitPage(
+      .submitResponses(
         this.projectId,
         this.questionnaireId,
         submission,
-        { pageNumber: pagination.pageNumber, pageSize: pagination.pageSize },
         this.currentUser()?.email,
         this.isAdmin() ? this.getCurrentRespondent()?.representativeId : undefined
       )
@@ -190,18 +183,102 @@ export class QuestionnaireResponsePageComponent implements OnInit {
           const submittedIds = currentAnswers.map((a) => a.questionId);
           this.answerCache.clearSubmitted(submittedIds);
 
-          this.notification.showSuccess('Página enviada com sucesso.');
-          const paginationData = this.pagination();
-          const hasNextPage = paginationData && this.currentPage() < paginationData.totalPages;
-          const nextPage = hasNextPage ? this.currentPage() + 1 : this.currentPage();
-          this.loadResponse(nextPage);
+          this.notification.showSuccess('Respostas enviadas com sucesso.');
+          this.loadResponse();
         },
         error: (msg) => this.notification.showError(msg),
       });
   }
 
+  saveDraftResponses(): void {
+    if (this.isSavingDraft() || this.pageMode() !== 'respond') {
+      return;
+    }
+
+    const currentAnswers = this.answers();
+    if (!this.projectId || this.questionnaireId === null) {
+      this.notification.showError('Dados insuficientes para salvar o rascunho.');
+      return;
+    }
+
+    const answersWithContent = currentAnswers.filter(
+      (a) => a.response !== null || a.justification?.descricao || a.evidence?.descricao
+    );
+
+    if (!answersWithContent.length) {
+      this.notification.showWarning('Nenhuma resposta para salvar como rascunho.');
+      return;
+    }
+
+    const submission: QuestionnaireResponseSubmission = {
+      status: QuestionnaireResponseStatus.InProgress,
+      answers: currentAnswers,
+    };
+
+    this.isSavingDraft.set(true);
+
+    this.saveDraftLocally();
+
+    this.responseService
+      .submitResponses(
+        this.projectId,
+        this.questionnaireId,
+        submission,
+        this.currentUser()?.email,
+        this.isAdmin() ? this.getCurrentRespondent()?.representativeId : undefined,
+        true
+      )
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          this.isSavingDraft.set(false);
+          const submittedIds = currentAnswers.map((a) => a.questionId);
+          this.answerCache.clearSubmitted(submittedIds);
+
+          if (this.projectId && this.questionnaireId !== null) {
+            const draftKey = this.draftCacheService.responseDraftKey(
+              this.projectId,
+              this.questionnaireId,
+              this.currentUser()?.email
+            );
+            this.draftCacheService.remove(draftKey);
+          }
+
+          this.notification.showSuccess('Rascunho salvo com sucesso.');
+        },
+        error: (msg) => {
+          this.isSavingDraft.set(false);
+          this.notification.showError(msg);
+        },
+      });
+  }
+
+  private saveDraftLocally(): void {
+    if (!this.projectId || this.questionnaireId === null) return;
+
+    const currentAnswers = this.answers();
+    if (!currentAnswers.length) return;
+
+    const draftKey = this.draftCacheService.responseDraftKey(
+      this.projectId,
+      this.questionnaireId,
+      this.currentUser()?.email
+    );
+
+    this.draftCacheService.save(
+      draftKey,
+      { answers: currentAnswers },
+      'questionnaire-response',
+      {
+        projectId: this.projectId,
+        questionnaireId: this.questionnaireId,
+        email: this.currentUser()?.email,
+      }
+    );
+  }
+
   getQuestionOrdinal(index: number): number {
-    return (this.currentPage() - 1) * this.pageSize + index + 1;
+    return index + 1;
   }
 
   getRespondentStatusLabel(): string {
@@ -229,7 +306,7 @@ export class QuestionnaireResponsePageComponent implements OnInit {
       return false;
     }
 
-    if (this.pagination()?.completed) {
+    if (this.state().data?.completed) {
       return false;
     }
 
@@ -317,7 +394,7 @@ export class QuestionnaireResponsePageComponent implements OnInit {
           !!this.projectId &&
           this.questionnaireId !== null
         ) {
-          this.loadResponse(this.currentPage() || 1);
+          this.loadResponse();
         }
       });
   }
@@ -340,26 +417,21 @@ export class QuestionnaireResponsePageComponent implements OnInit {
 
         this.projectContext.setCurrentProjectId(this.projectId);
         this.answerCache.reset();
-        this.loadResponse(1);
+        this.loadResponse();
       });
   }
 
-  loadResponse(page: number = this.currentPage()): void {
+  loadResponse(): void {
     if (!this.projectId || this.questionnaireId === null) {
       return;
     }
 
     this.state.update((current) => ({ ...current, status: 'loading', error: null }));
 
-    this.currentPage.set(page);
-    const zeroBasedPage = Math.max(page - 1, 0);
-
     this.responseService
-      .loadResponsePage(
+      .loadResponses(
         this.projectId,
         this.questionnaireId,
-        zeroBasedPage,
-        this.pageSize,
         this.isAdmin() ? this.currentUser()?.email : undefined
       )
       .pipe(take(1))
@@ -367,7 +439,6 @@ export class QuestionnaireResponsePageComponent implements OnInit {
         next: (payload: QuestionnaireResponsePayload) => {
           const resolvedMode = this.resolvePageMode(payload);
           this.pageMode.set(resolvedMode);
-          this.pageSize = payload.pagination.pageSize;
 
           const mergedAnswers = this.answerCache.applyCache(payload.response.answers);
           const mergedPayload: QuestionnaireResponsePayload = {
@@ -410,13 +481,6 @@ export class QuestionnaireResponsePageComponent implements OnInit {
         respondent.email?.toLowerCase() === email
       ) ?? null
     );
-  }
-
-  private persistCurrentPageToCache(): void {
-    const currentAnswers = this.answers();
-    if (currentAnswers.length) {
-      this.answerCache.savePageAnswers(currentAnswers);
-    }
   }
 
   private updateAnswer(questionId: number, partial: Partial<QuestionnaireAnswerDocument>): void {

@@ -24,7 +24,21 @@ export const PROJECTS_ROUTES: Routes = [
     component: IterativoQuestionnaireFormComponent,
   },
 
-  // ── Dashboard ─────────────────────────────────────────────────────
+  {
+    path: ':projectId/questionnaires/:questionnaireId/responses',
+    loadComponent: () =>
+      import('../../features/dashboard/pages/consolidated-answers-page/consolidated-answers-page.component').then(
+        (m) => m.ConsolidatedAnswersPageComponent
+      ),
+  },
+
+  {
+    path: ':projectId/responses',
+    loadComponent: () =>
+      import('../../features/dashboard/pages/consolidated-answers-page/consolidated-answers-page.component').then(
+        (m) => m.ConsolidatedAnswersPageComponent
+      ),
+  },
 
   {
     path: ':projectId/questionnaires/:questionnaireId/dashboard/individual',

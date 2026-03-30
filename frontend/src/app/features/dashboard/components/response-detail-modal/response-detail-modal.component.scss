@@ -1,0 +1,168 @@
+@use '../../../../../assets/scss/base/vars' as *;
+
+.response-modal {
+  display: flex;
+  flex-direction: column;
+  max-height: 75vh;
+
+  &__loading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 0.75rem;
+    padding: 3rem;
+    color: $neutral-text-light;
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 3rem;
+  }
+
+  &__header {
+    padding-bottom: 1rem;
+    border-bottom: 1px solid $gray-quaternary;
+    margin-bottom: 1rem;
+  }
+
+  &__title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: $blue-primary;
+    margin: 0 0 0.75rem;
+  }
+
+  &__meta {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  &__meta-item {
+    font-size: 0.8rem;
+    color: $neutral-text-light;
+  }
+
+  &__badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: $gray-quaternary;
+    color: $neutral-text;
+
+    &--completed {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+  }
+
+  &__counters {
+    display: flex;
+    gap: 1.5rem;
+  }
+
+  &__counter {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.15rem;
+
+    &-value {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: $blue-primary;
+    }
+
+    &-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: $neutral-text-light;
+      letter-spacing: 0.04em;
+    }
+
+    &--yes .response-modal__counter-value {
+      color: #2e7d32;
+    }
+
+    &--no .response-modal__counter-value {
+      color: $red;
+    }
+  }
+
+  &__body {
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  &__table {
+    font-size: 0.85rem;
+
+    thead th {
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: $neutral-text-light;
+      white-space: nowrap;
+      border-bottom: 2px solid $gray-quaternary;
+    }
+
+    td {
+      vertical-align: top;
+      padding: 0.65rem 0.5rem;
+    }
+  }
+
+  &__question-text {
+    max-width: 360px;
+    line-height: 1.4;
+  }
+
+  &__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    font-size: 0.8rem;
+    color: $blue-secundary;
+    text-decoration: none;
+    margin-left: 0.4rem;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  &__footer {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 1rem;
+    border-top: 1px solid $gray-quaternary;
+  }
+}
+
+.response-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+
+  &--yes {
+    background: #e8f5e9;
+    color: #2e7d32;
+  }
+
+  &--no {
+    background: #fbe9e7;
+    color: $red;
+  }
+}

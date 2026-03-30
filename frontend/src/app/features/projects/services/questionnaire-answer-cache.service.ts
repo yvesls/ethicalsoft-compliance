@@ -7,7 +7,7 @@ export class QuestionnaireAnswerCacheService {
 
   private readonly dirtyIds = new Set<number>();
 
-  savePageAnswers(answers: readonly QuestionnaireAnswerDocument[]): void {
+  saveAnswers(answers: readonly QuestionnaireAnswerDocument[]): void {
     for (const answer of answers) {
       this.answerCache.set(answer.questionId, { ...answer });
     }

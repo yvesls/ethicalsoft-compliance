@@ -1,5 +1,12 @@
 <header>
-	<h2>{{ routerPath }}</h2>
+	<div class="header-left">
+		@if (canGoBack) {
+			<button class="unstyled-btn back-btn" (click)="goBack()" aria-label="Voltar">
+				<img src="../../../../assets/icons/arrow-left.svg" alt="Voltar" height="18px" />
+			</button>
+		}
+		<h2>{{ routerPath }}</h2>
+	</div>
 	<div class="notification-section">
 		<ul>
 			<li>
@@ -13,7 +20,16 @@
 					<div class="notification-panel">
 						<div class="notification-panel__header">
 							<span>Notificações</span>
-							<button class="link-btn" (click)="loadNotifications()" [disabled]="isLoading">Recarregar</button>
+							<div class="notification-panel__header-actions">
+								@if (unreadCount > 0) {
+									<button class="unstyled-btn icon-btn" title="Marcar todas como lidas" (click)="markAllAsRead()" [disabled]="isLoading || isMarkingAll">
+										<img src="../../../../assets/icons/envelopes-bulkl.svg" alt="Marcar todas como lidas" height="18px" />
+									</button>
+								}
+								<button class="unstyled-btn icon-btn" title="Recarregar" (click)="loadNotifications()" [disabled]="isLoading">
+									<img src="../../../../assets/icons/reload-arrow.svg" alt="Recarregar" height="16px" />
+								</button>
+							</div>
 						</div>
 						@if (!isLoading) {
 							@if (errorMessage) {
@@ -42,7 +58,9 @@
 												<small>{{ n.createdAt | date: 'short' }}</small>
 											</div>
 											<div class="notification-item__actions">
-												<button class="btn-notification" (click)="markAsRead(n)" [disabled]="n.status === 'READ'">Marcar lida</button>
+												<button class="unstyled-btn icon-btn" title="Marcar como lida" (click)="markAsRead(n)" [disabled]="n.status === 'READ'">
+													<img src="../../../../assets/icons/envelope-open.svg" alt="Marcar como lida" height="16px" />
+												</button>
 											</div>
 										</li>
 									}

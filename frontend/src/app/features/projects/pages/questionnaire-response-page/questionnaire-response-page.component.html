@@ -6,19 +6,13 @@
     @case ('error') {
       <div class="page-state page-state--error">
         <p>{{ state().error }}</p>
-        <button type="button" class="btn btn-primary" (click)="loadResponse(1)">
+        <button type="button" class="btn btn-primary" (click)="loadResponse()">
           Tentar novamente
         </button>
       </div>
     }
     @case ('loaded') {
       @if (questionnaire(); as questionnaireData) {
-        <div class="response-page__breadcrumb">
-          <button type="button" class="link-btn" (click)="onNavigateBack()">
-            ← Voltar para o projeto
-          </button>
-        </div>
-
         <section class="response-summary card-surface">
           <header class="response-summary__header">
             <div>
@@ -43,15 +37,15 @@
 
           <div class="response-summary__stats">
             <div class="stat-card">
-              <span class="stat-card__label">Respondidas nesta página</span>
-              <strong class="stat-card__value">{{ answeredCount() }}/{{ answers().length }}</strong>
+              <span class="stat-card__label">Respondidas</span>
+              <strong class="stat-card__value">{{ answeredCount() }}/{{ totalQuestions() }}</strong>
             </div>
             <div class="stat-card">
               <span class="stat-card__label">Total de perguntas</span>
               <strong class="stat-card__value">{{ totalQuestions() }}</strong>
             </div>
             <div class="stat-card stat-card--progress">
-              <span class="stat-card__label">Progresso da página</span>
+              <span class="stat-card__label">Progresso</span>
               <div class="progress-track">
                 <div class="progress-track__fill" [style.width.%]="progressPercentage()"></div>
               </div>
@@ -146,21 +140,20 @@
                 </article>
               }
             </div>
-
-            <div class="pagination-wrapper" aria-label="Paginação das perguntas">
-              <app-pagination
-                [currentPage]="currentPage()"
-                [totalItems]="totalQuestions()"
-                [pageSize]="pagination()?.pageSize || pageSize"
-                (pageChange)="onPageChange($event)"
-              ></app-pagination>
-            </div>
           }
           </section>
 
         @if (pageMode() === 'respond' && totalQuestions() > 0) {
           <footer class="page-footer">
-            <button type="button" class="btn btn-primary btn-lg" [disabled]="!canSubmit()" (click)="submitResponses()">
+            <button
+              type="button"
+              class="btn btn-cancel mx-2"
+              [disabled]="isSavingDraft()"
+              (click)="saveDraftResponses()"
+            >
+              {{ isSavingDraft() ? 'Salvando rascunho...' : 'Salvar Rascunho' }}
+            </button>
+            <button type="button" class="btn btn-primary" [disabled]="!canSubmit() || isSavingDraft()" (click)="submitResponses()">
               Enviar respostas
             </button>
           </footer>

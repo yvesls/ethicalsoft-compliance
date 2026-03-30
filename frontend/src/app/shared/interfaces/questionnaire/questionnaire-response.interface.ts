@@ -19,7 +19,6 @@ export interface QuestionnaireAnswerDocument {
   justification?: QuestionnaireAttachmentLink | null;
   evidence?: QuestionnaireAttachmentLink | null;
   attachments: QuestionnaireAttachmentLink[];
-  pageNumber?: number;
 }
 
 export interface QuestionnaireAnswerRequest {
@@ -36,21 +35,16 @@ export interface QuestionnaireAnswerResponse {
   justification?: QuestionnaireAttachmentLink | string | null;
   evidence?: QuestionnaireAttachmentLink | string | null;
   attachments: QuestionnaireAttachmentLink[] | string[];
-  pageNumber: number;
 }
 
-export interface QuestionnaireAnswerPageResponse {
-  pageNumber: number;
-  pageSize: number;
-  totalPages: number;
+export interface QuestionnaireAnswerListResponse {
   completed: boolean;
   answers: QuestionnaireAnswerResponse[];
 }
 
-export interface QuestionnaireAnswerPageRequest {
+export interface QuestionnaireAnswerSubmitRequest {
   representativeId?: number | null;
-  pageNumber: number;
-  pageSize: number;
+  draft?: boolean;
   answers: QuestionnaireAnswerRequest[];
 }
 
@@ -72,18 +66,10 @@ export interface QuestionnaireResponseDocument {
   answers: QuestionnaireAnswerDocument[];
 }
 
-export interface QuestionnaireResponsePagination {
-  pageNumber: number;
-  pageSize: number;
-  totalPages: number;
-  totalElements: number;
-  completed: boolean;
-}
-
 export interface QuestionnaireResponsePayload {
   questionnaire: ProjectQuestionnaireSummary;
   response: QuestionnaireResponseDocument;
-  pagination: QuestionnaireResponsePagination;
+  completed: boolean;
 }
 
 export interface QuestionnaireResponseSubmission {

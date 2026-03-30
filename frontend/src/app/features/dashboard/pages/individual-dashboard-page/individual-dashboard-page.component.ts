@@ -10,7 +10,6 @@ import { IsepEvolutionChartComponent } from '../../components/isep-evolution-cha
 import { IndividualRadarChartComponent } from '../../components/individual-radar-chart/individual-radar-chart.component';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { AuthenticationService } from '../../../../core/services/authentication.service';
-import { RouterService } from '../../../../core/services/router.service';
 import { ProjectStore } from '../../../../shared/stores/project.store';
 
 @Component({
@@ -32,7 +31,6 @@ export class IndividualDashboardPageComponent implements OnInit {
   private readonly notificationService = inject(NotificationService);
   private readonly authService = inject(AuthenticationService);
   private readonly projectStore = inject(ProjectStore);
-  readonly routerService = inject(RouterService);
 
   projectId!: number;
   questionnaireId!: number;
@@ -86,9 +84,5 @@ export class IndividualDashboardPageComponent implements OnInit {
           this.loading.set(false);
         },
       });
-  }
-
-  goBack(): void {
-    this.routerService.rawNavigate(`/projects/${this.projectId}/questionnaires/${this.questionnaireId}/dashboard`);
   }
 }
