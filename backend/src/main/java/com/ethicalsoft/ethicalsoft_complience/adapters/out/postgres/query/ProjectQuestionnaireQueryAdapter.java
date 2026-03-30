@@ -19,6 +19,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -70,9 +71,9 @@ public class ProjectQuestionnaireQueryAdapter implements ProjectQuestionnaireQue
     }
 
     @Override
-    public Page<QuestionnaireSummaryResponseDTO> listQuestionnaires(Long projectId, Pageable pageable, QuestionnaireSearchFilter filter) {
+    public Page<QuestionnaireSummaryResponseDTO> listQuestionnaires(Long projectId, Pageable pageable, QuestionnaireSearchFilter filter, List<Long> representativeRoleIds) {
         try {
-            log.info("[project-questionnaire] Listando questionários do projeto={} pagina={}", projectId, pageable.getPageNumber());
+            log.info("[project-questionnaire] Listando questionários do projeto={} pagina={} roleIds={}", projectId, pageable.getPageNumber(), representativeRoleIds);
             Project project = projectRepository.findById(projectId)
                     .orElseThrow(() -> new EntityNotFoundException("Projeto não encontrado: " + projectId));
 
@@ -81,6 +82,18 @@ public class ProjectQuestionnaireQueryAdapter implements ProjectQuestionnaireQue
                     .collect(Collectors.toMap(Representative::getId, rep -> rep));
 
             Specification<Questionnaire> spec = Specification.where((root, query, cb) -> cb.equal(root.get("project").get("id"), projectId));
+
+            if (representativeRoleIds != null && !representativeRoleIds.isEmpty()) {
+                spec = spec.and((root, query, cb) -> {
+                    var questionJoin = root.join("questions", jakarta.persistence.criteria.JoinType.INNER);
+                    var roleJoin = questionJoin.join("roles", jakarta.persistence.criteria.JoinType.INNER);
+                    if (query != null) {
+                        query.distinct(true);
+                    }
+                    return roleJoin.get("id").in(representativeRoleIds);
+                });
+            }
+
             if (filter != null) {
                 if (StringUtils.hasText(filter.name())) {
                     spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("name")), "%" + filter.name().toLowerCase() + "%"));

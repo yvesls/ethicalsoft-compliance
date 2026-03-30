@@ -22,4 +22,6 @@ public interface QuestionnaireResponseRepository extends MongoRepository<Questio
 
     @Query(value = "{ 'projectId': ?0, 'questionnaireId': ?1 }", fields = "{ 'representativeId': 1, 'status': 1, 'submissionDate': 1 }")
     List<QuestionnaireResponse> findSummariesByProjectAndQuestionnaire(Long projectId, Integer questionnaireId);
+
+    List<QuestionnaireResponse> findByProjectId(Long projectId);
 }

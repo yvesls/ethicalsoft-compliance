@@ -35,11 +35,11 @@ public class Project {
 	@Enumerated(EnumType.STRING)
 	private ProjectTypeEnum type;
 
-	@Column(name = "start_date", nullable = false)
+	@Column(name = "start_date")
 	@Temporal(TemporalType.DATE)
 	private LocalDate startDate;
 
-	@Column(name = "deadline", nullable = false)
+	@Column(name = "deadline")
 	@Temporal(TemporalType.DATE)
 	private LocalDate deadline;
 

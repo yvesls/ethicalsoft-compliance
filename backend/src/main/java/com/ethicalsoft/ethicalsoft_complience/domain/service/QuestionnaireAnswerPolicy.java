@@ -3,8 +3,8 @@ package com.ethicalsoft.ethicalsoft_complience.domain.service;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.QuestionnaireResponse;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.LinkDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.QuestionnaireAnswerRequestDTO;
-import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
 import com.ethicalsoft.ethicalsoft_complience.common.util.ObjectUtils;
+import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -21,16 +21,27 @@ public class QuestionnaireAnswerPolicy {
 
     public void applyAnswer(QuestionnaireAnswerRequestDTO dto,
                             Map<Long, QuestionnaireResponse.AnswerDocument> answerMap) {
+        applyAnswer(dto, answerMap, false);
+    }
+
+    public void applyAnswer(QuestionnaireAnswerRequestDTO dto,
+                            Map<Long, QuestionnaireResponse.AnswerDocument> answerMap,
+                            boolean draft) {
         QuestionnaireResponse.AnswerDocument answer = answerMap.get(dto.getQuestionId());
         if (answer == null) {
             throw new BusinessException("Questão inválida para este questionário");
         }
 
-        if (Boolean.TRUE.equals(dto.getResponse()) && CollectionUtils.isEmpty(dto.getAttachments())) {
-            throw new BusinessException("Anexos são obrigatórios quando a resposta é 'Sim'.");
-        }
-        if (Boolean.FALSE.equals(dto.getResponse()) && ObjectUtils.isNullOrEmpty(dto.getJustification())) {
-            throw new BusinessException("Justificativa é obrigatória quando a resposta é 'Não'.");
+        if (!draft) {
+            if (dto.getResponse() == null) {
+                throw new BusinessException("Resposta é obrigatória quando não estiver em modo rascunho.");
+            }
+            if (dto.getResponse() && CollectionUtils.isEmpty(dto.getAttachments())) {
+                throw new BusinessException("Anexos são obrigatórios quando a resposta é 'Sim'.");
+            }
+            if (Boolean.FALSE.equals(dto.getResponse()) && ObjectUtils.isNullOrEmpty(dto.getJustification())) {
+                throw new BusinessException("Justificativa é obrigatória quando a resposta é 'Não'.");
+            }
         }
 
         answer.setResponse(dto.getResponse());

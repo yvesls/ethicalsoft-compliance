@@ -31,6 +31,13 @@ public class RepresentativeAccessPolicy {
         return representative.getId();
     }
 
+    public Long resolveRepresentativeIdForResponse(Long projectId) {
+        User authenticated = currentUserPort.getCurrentUser();
+        return representativeRepository.findByUserIdAndProjectId(authenticated.getId(), projectId)
+                .map(Representative::getId)
+                .orElse(null);
+    }
+
     public void ensureRepresentativeBelongsToProject(Long representativeId, Project project) {
         Representative representative = representativeRepository.findById(representativeId)
                 .orElseThrow(() -> new BusinessException("Representante não encontrado"));

@@ -1,11 +1,12 @@
 package com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres;
 
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Representative;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.RepresentativeRepository;
 import com.ethicalsoft.ethicalsoft_complience.domain.repository.RepresentativeRepositoryPort;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Representative;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -32,5 +33,10 @@ public class RepresentativeRepositoryAdapter implements RepresentativeRepository
     @Override
     public Optional<Representative> findById(Long id) {
         return delegate.findById(id);
+    }
+
+    @Override
+    public List<Representative> findByProjectId(Long projectId) {
+        return delegate.findByProjectId(projectId);
     }
 }

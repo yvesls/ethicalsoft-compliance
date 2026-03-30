@@ -41,8 +41,13 @@ public class BaseQuestionnaireTemplateInitializer {
 
     @PostConstruct
     public void seed() {
-        insertIfMissing(buildCascataBase());
-        insertIfMissing(buildIterativoBase());
+        try {
+            insertIfMissing(buildCascataBase());
+            insertIfMissing(buildIterativoBase());
+        } catch (Exception e) {
+            log.warn("[template-init] Não foi possível inicializar templates base no MongoDB. " +
+                    "A aplicação continuará normalmente. Erro: {}", e.getMessage());
+        }
     }
 
     private void insertIfMissing(ProjectTemplate t) {

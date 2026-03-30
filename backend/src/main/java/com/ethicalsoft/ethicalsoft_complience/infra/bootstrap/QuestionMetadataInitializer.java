@@ -31,16 +31,21 @@ public class QuestionMetadataInitializer {
 
     @PostConstruct
     public void seedMetadata() {
-        List<QuestionMetadataDocument> seeds = defaultMetadata();
-        int inserted = 0;
-        for (QuestionMetadataDocument doc : seeds) {
-            if (!repository.existsByQuestionId(doc.getQuestionId())) {
-                repository.save(doc);
-                inserted++;
+        try {
+            List<QuestionMetadataDocument> seeds = defaultMetadata();
+            int inserted = 0;
+            for (QuestionMetadataDocument doc : seeds) {
+                if (!repository.existsByQuestionId(doc.getQuestionId())) {
+                    repository.save(doc);
+                    inserted++;
+                }
             }
-        }
-        if (inserted > 0) {
-            log.info("[question-metadata-init] {} metadados de perguntas inseridos.", inserted);
+            if (inserted > 0) {
+                log.info("[question-metadata-init] {} metadados de perguntas inseridos.", inserted);
+            }
+        } catch (Exception e) {
+            log.warn("[question-metadata-init] Não foi possível inicializar metadados de perguntas no MongoDB. " +
+                    "A aplicação continuará normalmente. Erro: {}", e.getMessage());
         }
     }
 

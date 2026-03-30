@@ -19,6 +19,8 @@ public interface QuestionnaireResponseRepositoryPort {
 
     List<QuestionnaireResponse> findSummariesByProjectAndQuestionnaire(Long projectId, Integer questionnaireId);
 
+    List<QuestionnaireResponse> findByProjectId(Long projectId);
+
     QuestionnaireResponse save(QuestionnaireResponse response);
 }
 

@@ -4,6 +4,9 @@ import com.ethicalsoft.ethicalsoft_complience.application.usecase.questionnaire.
 import com.ethicalsoft.ethicalsoft_complience.controller.dto.dashboard.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +28,7 @@ public class IsepDashboardController {
     private final GetJustificationWordCloudUseCase wordCloudUseCase;
     private final ExportIsepDataUseCase exportIsepDataUseCase;
     private final ExportIsepCsvUseCase exportIsepCsvUseCase;
+    private final GetConsolidatedAnswersUseCase consolidatedAnswersUseCase;
 
     @GetMapping("/dashboard")
     @PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")
@@ -119,5 +123,21 @@ public class IsepDashboardController {
                         "attachment; filename=\"isep-questionario-" + questionnaireId + ".csv\"")
                 .contentType(MediaType.parseMediaType("text/csv; charset=UTF-8"))
                 .body(csv);
+    }
+
+    @GetMapping("/responses/consolidated")
+    @PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")
+    public Page<ConsolidatedAnswerDTO> getProjectConsolidatedAnswers(
+            @PathVariable Long projectId,
+            @RequestParam(required = false) Integer questionnaireId,
+            @RequestParam(required = false) Long representativeId,
+            @RequestParam(required = false) Long questionId,
+            @RequestParam(required = false) Long roleId,
+            @RequestParam(required = false) Boolean response,
+            @RequestParam(required = false) String questionText,
+            @PageableDefault(size = 20) Pageable pageable) {
+        log.info("[dashboard-controller] Respostas consolidadas projeto={}", projectId);
+        return consolidatedAnswersUseCase.executeForProject(
+                projectId, questionnaireId, representativeId, questionId, roleId, response, questionText, pageable);
     }
 }

@@ -46,6 +46,11 @@ public class QuestionnaireResponseRepositoryAdapter implements QuestionnaireResp
     }
 
     @Override
+    public List<QuestionnaireResponse> findByProjectId(Long projectId) {
+        return delegate.findByProjectId(projectId);
+    }
+
+    @Override
     public QuestionnaireResponse save(QuestionnaireResponse response) {
         return delegate.save(response);
     }

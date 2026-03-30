@@ -447,3 +447,184 @@ Questionnaire concluído → verifica se TODOS os questionários do projeto têm
 | `calculated_at` | `TIMESTAMP` | Data/hora do cálculo |
 | `closed_by` | `VARCHAR(255)` | Quem encerrou (usuário ou "Sistema (Scheduler)") |
 ---
+
+## Novos Endpoints – Visualização de Respostas por Representante e Consolidadas
+
+### 1. Respostas Detalhadas de um Representante Específico
+
+Permite ao administrador visualizar **todas as respostas** de um representante selecionado em um questionário.
+
+> **Botão no frontend:** "Ver Respostas" ao lado de cada membro na tabela **Resultados por Membro** (imagem com ICP/Faixa por membro).
+
+```
+GET /api/projects/{projectId}/questionnaires/{questionnaireId}/responses/representative/{representativeId}
+```
+
+**Resposta:** `RepresentativeResponseDTO`
+
+```json
+{
+  "representativeId": 14,
+  "representativeName": "Gabriel Nama",
+  "questionnaireId": 13,
+  "status": "COMPLETED",
+  "submissionDate": "2026-03-07T16:20:33",
+  "totalQuestions": 15,
+  "answeredQuestions": 15,
+  "yesCount": 13,
+  "noCount": 2,
+  "answers": [
+    {
+      "questionId": 101,
+      "questionText": "As decisões de design consideram impacto ético?",
+      "stageIds": [1],
+      "roleIds": [3, 5],
+      "response": true,
+      "justification": { "descricao": "Revisão de pares", "url": null },
+      "evidence": null,
+      "attachments": []
+    },
+    {
+      "questionId": 102,
+      "questionText": "A privacidade dos dados foi avaliada?",
+      "stageIds": [1],
+      "roleIds": [3],
+      "response": false,
+      "justification": { "descricao": "Prazo apertado impediu análise completa", "url": null },
+      "evidence": null,
+      "attachments": []
+    }
+  ]
+}
+```
+
+**Campos importantes:**
+| Campo | Descrição |
+|---|---|
+| `totalQuestions` | Total de perguntas atribuídas ao representante |
+| `answeredQuestions` | Quantas possuem resposta (SIM ou NÃO) |
+| `yesCount` / `noCount` | Contagem de SIM/NÃO |
+| `answers[].stageIds` | Etapas associadas à pergunta |
+| `answers[].roleIds` | Papéis associados à pergunta |
+| `answers[].justification` | Justificativa (preenchida quando resposta = NÃO) |
+
+---
+
+### 2. Respostas Consolidadas do Questionário (Paginadas + Filtros)
+
+Listagem paginada de **todas as respostas de todos os representantes** de um questionário específico. Cada linha = 1 resposta de 1 representante a 1 pergunta.
+
+> **Botão no frontend:** "Ver Todas as Respostas" no dashboard do questionário (Nível 2).
+
+```
+GET /api/projects/{projectId}/questionnaires/{questionnaireId}/responses/consolidated
+```
+
+**Parâmetros de filtro (query params):**
+
+| Parâmetro | Tipo | Descrição |
+|---|---|---|
+| `representativeId` | `Long` | Filtrar por representante específico |
+| `questionId` | `Long` | Filtrar por pergunta específica |
+| `roleId` | `Long` | Filtrar por papel (role) associado à pergunta |
+| `response` | `Boolean` | Filtrar por resposta: `true` (SIM) ou `false` (NÃO) |
+| `questionText` | `String` | Busca parcial no texto da pergunta (case-insensitive) |
+| `page` | `int` | Página (default: 0) |
+| `size` | `int` | Itens por página (default: 20) |
+| `sort` | `String` | Ordenação (ex: `questionId,asc`) |
+
+**Resposta:** `Page<ConsolidatedAnswerDTO>`
+
+```json
+{
+  "content": [
+    {
+      "representativeId": 14,
+      "representativeName": "Gabriel Nama",
+      "roles": ["Desenvolvedor", "Testador"],
+      "questionnaireId": 13,
+      "responseStatus": "COMPLETED",
+      "submissionDate": "2026-03-07T16:20:33",
+      "questionId": 101,
+      "questionText": "As decisões de design consideram impacto ético?",
+      "stageIds": [1],
+      "response": true,
+      "justification": null,
+      "evidence": null,
+      "attachments": []
+    }
+  ],
+  "totalElements": 150,
+  "totalPages": 8,
+  "size": 20,
+  "number": 0
+}
+```
+
+**Exemplos de uso com filtros:**
+```bash
+# Todas as respostas NÃO (com justificativas)
+GET .../responses/consolidated?response=false&page=0&size=20
+
+# Respostas de um representante específico
+GET .../responses/consolidated?representativeId=14&page=0&size=20
+
+# Busca por texto da pergunta
+GET .../responses/consolidated?questionText=privacidade&page=0&size=20
+
+# Filtro combinado: role + resposta NÃO
+GET .../responses/consolidated?roleId=3&response=false&page=0&size=10
+```
+
+---
+
+### 3. Respostas Consolidadas do Projeto (Todos os Questionários)
+
+Mesma estrutura do endpoint anterior, mas abrange **todos os questionários do projeto**.
+
+> **Botão no frontend:** "Ver Todas as Respostas do Projeto" no dashboard consolidado do projeto (Nível 3).
+
+```
+GET /api/projects/{projectId}/responses/consolidated
+```
+
+**Parâmetros adicionais:**
+
+| Parâmetro | Tipo | Descrição |
+|---|---|---|
+| `questionnaireId` | `Integer` | Filtrar por questionário específico (dentro do projeto) |
+
+Demais filtros iguais ao endpoint 2 (`representativeId`, `questionId`, `roleId`, `response`, `questionText`, paginação).
+
+**Resposta:** `Page<ConsolidatedAnswerDTO>` (mesma estrutura do endpoint 2)
+
+---
+
+### Frontend – Instruções de Implementação
+
+#### Tela: Dashboard ISEP do Questionário (tabela "Resultados por Membro")
+
+1. **Botão "Ver Respostas"** ao lado de cada linha de membro:
+   - Ao clicar, abrir modal ou nova tela com:
+     - Header: nome do membro, status, data submissão, contadores (total/respondidas/SIM/NÃO)
+     - Tabela de respostas com colunas: Pergunta, Resposta (SIM/NÃO badge), Justificativa, Evidência, Anexos
+   - Endpoint: `GET .../responses/representative/{representativeId}`
+
+2. **Botão "Ver Todas as Respostas"** no topo do dashboard do questionário:
+   - Abre tela com tabela paginada e barra de filtros
+   - Filtros: dropdown de Representante, dropdown de Role, toggle SIM/NÃO/TODOS, campo de busca por texto
+   - Cada linha mostra: Nome do membro, Roles, Pergunta, Resposta, Justificativa
+   - Endpoint: `GET .../responses/consolidated`
+
+#### Tela: Dashboard Consolidado do Projeto
+
+3. **Botão "Ver Todas as Respostas do Projeto"**:
+   - Mesma estrutura do item 2, mas com filtro adicional de Questionário (dropdown)
+   - Endpoint: `GET /api/projects/{projectId}/responses/consolidated`
+
+#### Componentes sugeridos:
+- `ResponseDetailModal` – modal para respostas individuais de um membro
+- `ConsolidatedAnswersTable` – tabela paginada com filtros para respostas consolidadas
+- `AnswerFilters` – barra de filtros (representante, role, resposta, texto, questionário)
+
+

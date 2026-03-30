@@ -6,11 +6,13 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.
 import com.ethicalsoft.ethicalsoft_complience.domain.notification.NotificationChannel;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@Slf4j
 @Component
 @Profile("!test")
 @RequiredArgsConstructor
@@ -30,7 +32,12 @@ public class NotificationTemplateInitializer {
 
     @PostConstruct
     public void seedTemplates() {
-        templatesToSeed().forEach(this::insertIfMissing);
+        try {
+            templatesToSeed().forEach(this::insertIfMissing);
+        } catch (Exception e) {
+            log.warn("[notification-template-init] Não foi possível inicializar templates de notificação no MongoDB. " +
+                    "A aplicação continuará normalmente. Erro: {}", e.getMessage());
+        }
     }
 
     private List<NotificationTemplateDocument> templatesToSeed() {

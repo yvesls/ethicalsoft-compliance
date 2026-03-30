@@ -10,10 +10,7 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.re
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.ListProjectQuestionnairesUseCase;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.ListRolesUseCase;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.notification.SendNotificationUseCase;
-import com.ethicalsoft.ethicalsoft_complience.application.usecase.project.CloseProjectManuallyUseCase;
-import com.ethicalsoft.ethicalsoft_complience.application.usecase.project.CreateProjectUseCase;
-import com.ethicalsoft.ethicalsoft_complience.application.usecase.project.GetProjectByIdUseCase;
-import com.ethicalsoft.ethicalsoft_complience.application.usecase.project.SearchProjectsUseCase;
+import com.ethicalsoft.ethicalsoft_complience.application.usecase.project.*;
 import com.ethicalsoft.ethicalsoft_complience.domain.isep.IsepMath;
 import com.ethicalsoft.ethicalsoft_complience.domain.notification.NotificationType;
 import jakarta.validation.Valid;
@@ -40,6 +37,8 @@ public class ProjectController {
     private final ListProjectQuestionnairesUseCase listProjectQuestionnairesUseCase;
     private final SendNotificationUseCase sendNotificationUseCase;
     private final CloseProjectManuallyUseCase closeProjectManuallyUseCase;
+    private final PublishDraftProjectUseCase publishDraftProjectUseCase;
+    private final UpdateDraftProjectUseCase updateDraftProjectUseCase;
 
     @GetMapping("/roles")
     public List<RoleSummaryResponseDTO> listRoles() {
@@ -77,6 +76,19 @@ public class ProjectController {
                         "recipients", requestDTO.emails()
                 )
         ));
+    }
+
+    @PostMapping("/{projectId}/publish")
+    @PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")
+    public ProjectResponseDTO publishDraftProject(@PathVariable Long projectId) {
+        return publishDraftProjectUseCase.execute(projectId);
+    }
+
+    @PutMapping("/{projectId}/draft")
+    @PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")
+    public ProjectResponseDTO updateDraftProject(@PathVariable Long projectId,
+                                                  @Valid @RequestBody ProjectCreationRequestDTO request) {
+        return updateDraftProjectUseCase.execute(projectId, request);
     }
 
     @PostMapping("/{projectId}/close")

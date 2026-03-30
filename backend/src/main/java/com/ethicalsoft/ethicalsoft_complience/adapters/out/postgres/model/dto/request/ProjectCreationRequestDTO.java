@@ -14,6 +14,7 @@ import java.util.Set;
 
 @Data
 public class ProjectCreationRequestDTO {
+	private Long id;
 	private String name;
     @NotEmpty
 	private String type;

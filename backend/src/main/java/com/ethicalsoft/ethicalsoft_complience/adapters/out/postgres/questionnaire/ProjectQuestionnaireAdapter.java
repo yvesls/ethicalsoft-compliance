@@ -161,11 +161,42 @@ public class ProjectQuestionnaireAdapter implements ProjectQuestionnaireCommandP
             return;
         }
 
-        List<QuestionnaireResponse> responseDocuments = representatives.stream()
-                .map(rep -> buildResponse(project, questionnaire, rep.getId(), answerTemplate))
-                .toList();
+        List<QuestionnaireResponse> responseDocuments = new ArrayList<>();
+        for (Representative rep : representatives) {
+            Set<Long> repRoleIds = Optional.ofNullable(rep.getRoles())
+                    .orElse(Collections.emptySet())
+                    .stream()
+                    .map(Role::getId)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
 
-        questionnaireResponseRepository.saveAll(responseDocuments);
+            List<QuestionnaireResponse.AnswerDocument> filtered = filterTemplateByRoles(answerTemplate, repRoleIds);
+            if (filtered.isEmpty()) {
+                log.warn("[questionnaire] Representante id={} não possui roles vinculadas a perguntas do questionário '{}'. Ignorando.",
+                        rep.getId(), questionnaire.getName());
+                continue;
+            }
+            responseDocuments.add(buildResponse(project, questionnaire, rep.getId(), filtered));
+        }
+
+        if (!responseDocuments.isEmpty()) {
+            questionnaireResponseRepository.saveAll(responseDocuments);
+        }
+    }
+
+    private List<QuestionnaireResponse.AnswerDocument> filterTemplateByRoles(
+            List<QuestionnaireResponse.AnswerDocument> template,
+            Set<Long> representativeRoleIds) {
+        if (template == null || template.isEmpty()) {
+            return Collections.emptyList();
+        }
+        if (representativeRoleIds == null || representativeRoleIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return template.stream()
+                .filter(answer -> answer.getRoleIds() != null
+                        && answer.getRoleIds().stream().anyMatch(representativeRoleIds::contains))
+                .toList();
     }
 
     private QuestionnaireResponse buildResponse(Project project,
