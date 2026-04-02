@@ -3,10 +3,8 @@ package com.ethicalsoft.ethicalsoft_complience.controller;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.ProjectCreationRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.ProjectSearchRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.QuestionnaireReminderRequestDTO;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.ProjectDetailResponseDTO;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.ProjectResponseDTO;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.ProjectSummaryResponseDTO;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.RoleSummaryResponseDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.UpdateProjectRequestDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.*;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.ListProjectQuestionnairesUseCase;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.ListRolesUseCase;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.notification.SendNotificationUseCase;
@@ -26,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping( "api/projects" )
+@RequestMapping("/api/projects")
 @RequiredArgsConstructor
 public class ProjectController {
 
@@ -39,6 +37,8 @@ public class ProjectController {
     private final CloseProjectManuallyUseCase closeProjectManuallyUseCase;
     private final PublishDraftProjectUseCase publishDraftProjectUseCase;
     private final UpdateDraftProjectUseCase updateDraftProjectUseCase;
+    private final UpdateProjectUseCase updateProjectUseCase;
+    private final GetProjectEditSnapshotUseCase getProjectEditSnapshotUseCase;
 
     @GetMapping("/roles")
     public List<RoleSummaryResponseDTO> listRoles() {
@@ -61,6 +61,12 @@ public class ProjectController {
     @PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")
     public ProjectDetailResponseDTO getProjectById(@PathVariable Long projectId) {
         return getProjectByIdUseCase.execute(projectId);
+    }
+
+    @GetMapping("/{projectId}/edit")
+    @PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")
+    public ProjectEditSnapshotDTO getProjectEditSnapshot(@PathVariable Long projectId) {
+        return getProjectEditSnapshotUseCase.execute(projectId);
     }
 
     @PostMapping("/{projectId}/questionnaires/{questionnaireId}/reminders")
@@ -89,6 +95,13 @@ public class ProjectController {
     public ProjectResponseDTO updateDraftProject(@PathVariable Long projectId,
                                                   @Valid @RequestBody ProjectCreationRequestDTO request) {
         return updateDraftProjectUseCase.execute(projectId, request);
+    }
+
+    @PutMapping("/{projectId}")
+    @PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")
+    public UpdateProjectResponseDTO updateProject(@PathVariable Long projectId,
+                                                   @Valid @RequestBody UpdateProjectRequestDTO request) {
+        return updateProjectUseCase.execute(projectId, request);
     }
 
     @PostMapping("/{projectId}/close")

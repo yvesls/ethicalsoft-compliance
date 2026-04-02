@@ -9,6 +9,11 @@ import {
   ProjectCreationPayload,
   ProjectCreationResponse,
 } from '../interfaces/project/project-creation.interface';
+import {
+  UpdateProjectRequest,
+  UpdateProjectResponse,
+  ProjectEditData,
+} from '../interfaces/project/project-update.interface';
 import { RoleSummary } from '../interfaces/role/role-summary.interface';
 import {
   ProjectQuestionnaireFilters,
@@ -141,6 +146,22 @@ export class ProjectStore extends BaseStore {
     return this.requestService.makePost<ProjectCreationResponse>(
       this.getUrl(`${projectId}/publish`),
       { useAuth: true }
+    );
+  }
+
+  getProjectForEdit(projectId: string | number): Observable<ProjectEditData> {
+    return this.requestService.makeGet<ProjectEditData>(this.getUrl(`${projectId}/edit`), {
+      useAuth: true,
+    });
+  }
+
+  updateProject(projectId: string | number, payload: UpdateProjectRequest): Observable<UpdateProjectResponse> {
+    return this.requestService.makePut<UpdateProjectResponse>(
+      this.getUrl(`${projectId}`),
+      {
+        useAuth: true,
+        data: payload,
+      }
     );
   }
 

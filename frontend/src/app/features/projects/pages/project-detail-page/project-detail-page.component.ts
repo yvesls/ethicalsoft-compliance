@@ -183,9 +183,15 @@ export class ProjectDetailPageComponent implements OnInit {
       return;
     }
 
-    this.router.navigate(['/projects/create'], {
-      queryParams: { type: project.type, projectId: project.id },
-    });
+    if (this.isDraft()) {
+      this.router.navigate(['/projects/create'], {
+        queryParams: { type: project.type, projectId: project.id },
+      });
+    } else {
+      this.router.navigate(['/projects', project.id, 'edit'], {
+        queryParams: { type: project.type },
+      });
+    }
   }
 
   publishProject(): void {
@@ -315,8 +321,6 @@ export class ProjectDetailPageComponent implements OnInit {
 
     return start ? `A partir de ${start}` : `Até ${end}`;
   }
-
-  // ── Navegação Dashboard ──────────────────────────────────────────
 
   isQuestionnaireCompleted(questionnaire: ProjectQuestionnaireSummary): boolean {
     const status = (questionnaire.status ?? '').toString().toUpperCase();

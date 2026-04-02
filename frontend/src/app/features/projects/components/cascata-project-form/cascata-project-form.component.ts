@@ -816,7 +816,6 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
     }
     const projectName = this.projectForm.get('name')?.value || 'Novo Projeto';
 
-    // Buscar as perguntas do template correspondente
     const questions = this.getQuestionsForQuestionnaire(questionnaire);
 
     this.routerService.navigateTo('/projects/questionnaire/cascata', {
@@ -848,7 +847,6 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
       return [];
     }
 
-    // Encontrar o questionário correspondente no template pela etapa
     const templateQuestionnaire = this.selectedTemplateData.questionnaires.find(
       (tq: TemplateQuestionnaireDTO) => tq.stageName === questionnaire.stageName || tq.name === questionnaire.name
     );
@@ -857,7 +855,6 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
       return [];
     }
 
-    // Mapear as perguntas do template para o formato esperado pelo componente
     return templateQuestionnaire.questions.map((question: TemplateQuestionDTO, index: number) => {
       const stageNames = this.getTemplateQuestionStageNames(question);
       return {

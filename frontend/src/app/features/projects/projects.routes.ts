@@ -76,6 +76,13 @@ export const PROJECTS_ROUTES: Routes = [
     component: QuestionnaireViewRedirectPageComponent,
   },
   {
+    path: ':projectId/edit',
+    loadComponent: () =>
+      import('./pages/edit-project-page/edit-project-page.component').then(
+        (m) => m.EditProjectPageComponent
+      ),
+  },
+  {
     path: ':id',
     loadComponent: () =>
       import('./pages/project-detail-page/project-detail-page.component').then(

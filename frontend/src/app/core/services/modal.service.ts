@@ -154,7 +154,6 @@ export class ModalService implements OnDestroy {
 			this.modalElement = null
 		}
 
-		// Emite evento de modal fechado
 		this.modalClosedSubject.next()
 	}
 

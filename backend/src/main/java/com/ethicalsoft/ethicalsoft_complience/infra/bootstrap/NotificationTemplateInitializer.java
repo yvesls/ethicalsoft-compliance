@@ -27,6 +27,9 @@ public class NotificationTemplateInitializer {
     private static final String DEADLINE_REMINDER = "DEADLINE_REMINDER";
     private static final String QUESTIONNAIRE_OVERDUE = "QUESTIONNAIRE_OVERDUE";
     private static final String QUESTIONNAIRE_ISEP_CALCULATED = "QUESTIONNAIRE_ISEP_CALCULATED";
+    private static final String PROJECT_UNASSIGNMENT = "PROJECT_UNASSIGNMENT";
+    private static final String REPRESENTATIVE_EMAIL_CHANGED = "REPRESENTATIVE_EMAIL_CHANGED";
+    private static final String PROJECT_UPDATED = "PROJECT_UPDATED";
 
     private final NotificationTemplateRepository repository;
 
@@ -122,6 +125,33 @@ public class NotificationTemplateInitializer {
                         .body("O ISEP do questionário {questionnaireName} no projeto {projectName} foi calculado: {isepPercent}% (Faixa {band}). Encerrado por: {closedBy}.")
                         .templateLink("users/questionnaire-isep-calculated.ftl")
                         .channels(List.of(NotificationChannel.INTERNAL.name(), NotificationChannel.EMAIL.name()))
+                        .build(),
+                NotificationTemplateDocument.builder()
+                        .key(PROJECT_UNASSIGNMENT)
+                        .whoCanSend(List.of(UserRoleEnum.ADMIN.name(), "SYSTEM"))
+                        .recipients(List.of())
+                        .title("Você foi removido do projeto {projectName}")
+                        .body("Olá {firstName}, você foi removido do projeto {projectName}. Caso tenha dúvidas, entre em contato com o administrador do projeto.")
+                        .templateLink("")
+                        .channels(List.of(NotificationChannel.INTERNAL.name(), NotificationChannel.EMAIL.name()))
+                        .build(),
+                NotificationTemplateDocument.builder()
+                        .key(REPRESENTATIVE_EMAIL_CHANGED)
+                        .whoCanSend(List.of(UserRoleEnum.ADMIN.name(), "SYSTEM"))
+                        .recipients(List.of())
+                        .title("Alteração de email no projeto {projectName}")
+                        .body("O email de acesso ao projeto {projectName} foi alterado de {oldEmail} para {newEmail}. Se você não reconhece esta alteração, entre em contato com o administrador.")
+                        .templateLink("")
+                        .channels(List.of(NotificationChannel.EMAIL.name()))
+                        .build(),
+                NotificationTemplateDocument.builder()
+                        .key(PROJECT_UPDATED)
+                        .whoCanSend(List.of(UserRoleEnum.ADMIN.name(), "SYSTEM"))
+                        .recipients(List.of())
+                        .title("Projeto atualizado: {projectName}")
+                        .body("O projeto {projectName} foi atualizado pelo administrador. Verifique se há novas perguntas ou alterações nos questionários.")
+                        .templateLink("")
+                        .channels(List.of(NotificationChannel.INTERNAL.name()))
                         .build()
         );
     }
