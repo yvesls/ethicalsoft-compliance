@@ -1,0 +1,99 @@
+<div class="update-preview-modal">
+  <h3 class="update-preview-modal__title">{{ title }}</h3>
+
+  @if (blockedReasons.length > 0) {
+    <div class="update-preview-modal__blocked">
+      <span class="update-preview-modal__blocked-icon">&#9940;</span>
+      <strong>Operação bloqueada</strong>
+      <ul class="update-preview-modal__blocked-list">
+        @for (reason of blockedReasons; track reason) {
+          <li>{{ reason }}</li>
+        }
+      </ul>
+    </div>
+  }
+
+  @if (warnings.length > 0) {
+    <div class="update-preview-modal__warnings">
+      <span class="update-preview-modal__warnings-icon">&#9888;</span>
+      <strong>Avisos</strong>
+      <ul class="update-preview-modal__warnings-list">
+        @for (warning of warnings; track warning) {
+          <li>{{ warning }}</li>
+        }
+      </ul>
+    </div>
+  }
+
+  @if (hasNoChanges && blockedReasons.length === 0) {
+    <p class="update-preview-modal__no-changes">Nenhuma alteração detectada.</p>
+  } @else {
+    @if (summaryLines.length > 0) {
+      <div class="update-preview-modal__summary">
+        <p class="update-preview-modal__subtitle">Resumo das mudanças:</p>
+        <table class="update-preview-modal__table">
+          <thead>
+            <tr>
+              <th>Entidade</th>
+              <th>Adicionados</th>
+              <th>Atualizados</th>
+              <th>Removidos</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (line of summaryLines; track line.label) {
+              <tr>
+                <td>{{ line.label }}</td>
+                <td class="cell-added">{{ line.added > 0 ? '+' + line.added : '—' }}</td>
+                <td class="cell-updated">{{ line.updated > 0 ? line.updated : '—' }}</td>
+                <td class="cell-removed">{{ line.removed > 0 ? '-' + line.removed : '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    @if (hasResponseChanges) {
+      <div class="update-preview-modal__responses">
+        <p class="update-preview-modal__subtitle">Impacto em respostas:</p>
+        <ul>
+          @if (summary!.responsesCreated > 0) {
+            <li><strong>{{ summary!.responsesCreated }}</strong> resposta(s) criada(s)</li>
+          }
+          @if (summary!.responsesUpdated > 0) {
+            <li><strong>{{ summary!.responsesUpdated }}</strong> resposta(s) atualizada(s)</li>
+          }
+          @if (summary!.responsesDeleted > 0) {
+            <li><strong>{{ summary!.responsesDeleted }}</strong> resposta(s) removida(s)</li>
+          }
+        </ul>
+      </div>
+    }
+
+    @if (hasNotifications) {
+      <p class="update-preview-modal__notifications">
+        <strong>{{ summary!.notificationsSent }}</strong> notificação(ões) será(ão) enviada(s).
+      </p>
+    }
+  }
+
+  <div class="update-preview-modal__actions">
+    <button
+      type="button"
+      class="update-preview-modal__btn update-preview-modal__btn--cancel"
+      (click)="onCancel()"
+    >
+      {{ cancelLabel }}
+    </button>
+    @if (!isBlocked) {
+      <button
+        type="button"
+        class="update-preview-modal__btn update-preview-modal__btn--confirm"
+        (click)="onConfirm()"
+      >
+        {{ confirmLabel }}
+      </button>
+    }
+  </div>
+</div>

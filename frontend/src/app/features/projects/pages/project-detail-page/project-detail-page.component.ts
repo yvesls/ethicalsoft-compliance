@@ -172,9 +172,47 @@ export class ProjectDetailPageComponent implements OnInit {
       return;
     }
 
-    this.router.navigate(['/projects/create'], {
-      queryParams: { type: project.type, projectId: project.id },
-    });
+    if (this.isDraft()) {
+      this.router.navigate(['/projects/create'], {
+        queryParams: { type: project.type, projectId: project.id },
+      });
+    } else {
+      this.router.navigate(['/projects', project.id, 'edit'], {
+        queryParams: { type: project.type },
+      });
+    }
+  }
+
+  publishProject(): void {
+    const project = this.projectState().data;
+    if (!project || !this.isDraft() || this.isPublishing()) {
+      return;
+    }
+
+    this.notification.showConfirm(
+      'Tem certeza que deseja publicar este projeto? Ele será ativado e os questionários ficarão disponíveis para resposta.',
+      () => {
+        this.isPublishing.set(true);
+
+        this.projectStore
+          .publishProject(project.id)
+          .pipe(
+            take(1),
+          )
+          .subscribe({
+            next: () => {
+              this.isPublishing.set(false);
+              this.notification.showSuccess('Projeto publicado com sucesso.');
+              this.loadProject(project.id);
+            },
+            error: (error) => {
+              this.isPublishing.set(false);
+              this.notification.showError(error);
+            },
+          });
+      },
+      () => { /* cancelado */ }
+    );
   }
 
   onRetryLoadProject(): void {
@@ -271,6 +309,109 @@ export class ProjectDetailPageComponent implements OnInit {
     }
 
     return start ? `A partir de ${start}` : `Até ${end}`;
+  }
+
+  isQuestionnaireCompleted(questionnaire: ProjectQuestionnaireSummary): boolean {
+    const status = (questionnaire.status ?? '').toString().toUpperCase();
+    return status === TimelineStatus.Concluido || status === 'COMPLETED';
+  }
+
+  navigateToProjectDashboard(): void {
+    const projectId = this.currentProjectId ?? this.projectState().data?.id;
+    if (!projectId) {
+      return;
+    }
+    void this.router.navigate(['/projects', projectId, 'dashboard']);
+  }
+
+  navigateToQuestionnaireDashboard(questionnaire: ProjectQuestionnaireSummary): void {
+    const projectId = this.currentProjectId ?? this.projectState().data?.id;
+    if (!projectId) {
+      return;
+    }
+    void this.router.navigate([
+      '/projects',
+      projectId,
+      'questionnaires',
+      questionnaire.id,
+      'dashboard',
+    ]);
+  }
+
+  navigateToIndividualDashboard(questionnaire: ProjectQuestionnaireSummary): void {
+    const projectId = this.currentProjectId ?? this.projectState().data?.id;
+    if (!projectId) {
+      return;
+    }
+    void this.router.navigate([
+      '/projects',
+      projectId,
+      'questionnaires',
+      questionnaire.id,
+      'dashboard',
+      'individual',
+    ]);
+  }
+
+  canForceCloseQuestionnaire(questionnaire: ProjectQuestionnaireSummary): boolean {
+    return (
+      this.isAdmin() &&
+      !this.isQuestionnaireCompleted(questionnaire) &&
+      questionnaire.pendingRespondents === 0 &&
+      questionnaire.totalRespondents > 0
+    );
+  }
+
+  isForceClosing(questionnaireId: number): boolean {
+    return this.forceClosingIds().has(questionnaireId);
+  }
+
+  onForceCloseQuestionnaire(questionnaire: ProjectQuestionnaireSummary): void {
+    if (!this.currentProjectId) return;
+
+    this.notification.showConfirm(
+      `Deseja encerrar o questionário "${questionnaire.name}" e calcular o ISEP com as respostas existentes?`,
+      () => this.executeForceClose(questionnaire)
+    );
+  }
+
+  private executeForceClose(questionnaire: ProjectQuestionnaireSummary): void {
+    if (!this.currentProjectId) return;
+
+    this.forceClosingIds.update((ids) => {
+      const next = new Set(ids);
+      next.add(questionnaire.id);
+      return next;
+    });
+
+    this.dashboardService
+      .forceCloseQuestionnaire(Number(this.currentProjectId), questionnaire.id)
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          this.removeForceClosingId(questionnaire.id);
+          this.notification.showSuccess(
+            `Questionário "${questionnaire.name}" encerrado. O ISEP foi calculado.`
+          );
+          this.loadQuestionnaires(
+            this.questionnairesState().pagination.currentPage || 1
+          );
+        },
+        error: () => {
+          this.removeForceClosingId(questionnaire.id);
+          this.notification.showError(
+            'Erro ao encerrar o questionário. Verifique se ele possui respostas registradas.'
+          );
+        },
+      });
+  }
+
+  private removeForceClosingId(questionnaireId: number): void {
+    this.forceClosingIds.update((ids) => {
+      const next = new Set(ids);
+      next.delete(questionnaireId);
+      return next;
+    });
   }
 
   navigateToQuestionnaire(
