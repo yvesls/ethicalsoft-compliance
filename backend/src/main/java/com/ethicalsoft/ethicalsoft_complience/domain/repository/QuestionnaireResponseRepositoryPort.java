@@ -13,6 +13,8 @@ public interface QuestionnaireResponseRepositoryPort {
 
     List<QuestionnaireResponse> findByProjectIdAndQuestionnaireId(Long projectId, Integer questionnaireId);
 
+    List<QuestionnaireResponse> findByProjectIdAndQuestionnaireIdExcludingTemplates(Long projectId, Integer questionnaireId);
+
     List<QuestionnaireResponse> findPendingResponses(Long projectId, Integer questionnaireId);
 
     Optional<QuestionnaireResponse> findByProjectIdAndQuestionnaireIdAndRepresentativeId(Long projectId, Integer questionnaireId, Long representativeId);
@@ -20,6 +22,8 @@ public interface QuestionnaireResponseRepositoryPort {
     List<QuestionnaireResponse> findSummariesByProjectAndQuestionnaire(Long projectId, Integer questionnaireId);
 
     List<QuestionnaireResponse> findByProjectId(Long projectId);
+
+    List<QuestionnaireResponse> findByProjectIdExcludingTemplates(Long projectId);
 
     QuestionnaireResponse save(QuestionnaireResponse response);
 }

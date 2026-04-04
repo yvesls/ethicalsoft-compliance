@@ -45,6 +45,16 @@
                   Dashboard do projeto
                 </button>
               }
+              @if (canDeleteProject()) {
+                <button
+                  type="button"
+                  class="btn btn-danger mx-2"
+                  [disabled]="isDeleting()"
+                  (click)="deleteProject()"
+                >
+                  {{ isDeleting() ? 'Excluindo...' : 'Excluir Projeto' }}
+                </button>
+              }
             </div>
           }
         </section>
@@ -363,6 +373,21 @@
                                 Encerrando questionário...
                               } @else {
                                 Encerrar questionário manualmente
+                              }
+                            </button>
+                          }
+
+                          @if (canRescheduleQuestionnaire(questionnaire)) {
+                            <button
+                              type="button"
+                              class="questionnaire-card__action-button questionnaire-card__action-button--primary"
+                              [disabled]="isRescheduling(questionnaire.id)"
+                              (click)="onRescheduleQuestionnaire(questionnaire)"
+                            >
+                              @if (isRescheduling(questionnaire.id)) {
+                                Reagendando...
+                              } @else {
+                                Reagendar
                               }
                             </button>
                           }

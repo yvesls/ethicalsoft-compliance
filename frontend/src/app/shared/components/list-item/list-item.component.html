@@ -51,5 +51,18 @@
         }
       </span>
     </div>
+
+    @if (canDelete) {
+      <div class="column-actions">
+        <button
+          type="button"
+          class="btn-icon btn-delete"
+          title="Excluir projeto"
+          (click)="onDeleteClick($event)"
+        >
+          <img src="assets/icons/trash.svg" alt="Excluir" class="delete-icon" />
+        </button>
+      </div>
+    }
   </div>
 </div>

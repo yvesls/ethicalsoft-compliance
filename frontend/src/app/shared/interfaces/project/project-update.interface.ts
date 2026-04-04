@@ -122,7 +122,7 @@ export interface ProjectIterationDetail {
 
 export interface ProjectQuestionDetail {
   id: number;
-  value: string;
+  text: string;
   roleIds: number[];
   roleNames?: string[];
   stageNames?: string[];

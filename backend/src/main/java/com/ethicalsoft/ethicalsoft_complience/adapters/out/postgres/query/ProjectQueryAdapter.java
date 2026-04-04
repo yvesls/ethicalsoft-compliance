@@ -56,7 +56,7 @@ public class ProjectQueryAdapter implements ProjectQueryPort {
             Integer currentIteration = null;
 
             if (project.getType() == ProjectTypeEnum.CASCATA) {
-                currentStage = projectCurrentStagePolicy.findCurrentStageName(project.getQuestionnaires(), now);
+                currentStage = projectCurrentStagePolicy.findCurrentStageName(project.getStages(), now);
             } else if (project.getType() == ProjectTypeEnum.ITERATIVO) {
                 currentIteration = projectCurrentIterationPolicy.findCurrentIterationNumber(project.getIterations(), now);
             }
@@ -92,7 +92,7 @@ public class ProjectQueryAdapter implements ProjectQueryPort {
         Integer currentIteration = null;
 
         if (project.getType() == ProjectTypeEnum.CASCATA) {
-            currentStage = projectCurrentStagePolicy.findCurrentStageName(project.getQuestionnaires(), now);
+            currentStage = projectCurrentStagePolicy.findCurrentStageName(project.getStages(), now);
         } else if (project.getType() == ProjectTypeEnum.ITERATIVO) {
             currentIteration = projectCurrentIterationPolicy.findCurrentIterationNumber(project.getIterations(), now);
         }

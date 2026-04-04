@@ -49,6 +49,7 @@ public class ForceCloseQuestionnaireUseCase {
 
         String closedBy = resolveClosedBy();
         processExpiredQuestionnairesIsepUseCase.notifyIsepCalculated(questionnaire, projectId, closedBy);
+        processExpiredQuestionnairesIsepUseCase.notifyNextQuestionnaireStartingSoon(questionnaire, projectId);
     }
 
     private String resolveClosedBy() {

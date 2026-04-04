@@ -37,3 +37,24 @@ export interface ProjectQuestionnaireFilters {
 export interface QuestionnaireReminderRequest {
   emails: string[];
 }
+
+export interface RescheduleQuestionnairePayload {
+  newApplicationStartDate: string;
+  newApplicationEndDate: string;
+}
+
+export interface RescheduleQuestionnaireResponse {
+  questionnaireId: number;
+  questionnaireName: string;
+  oldStartDate: string;
+  oldEndDate: string;
+  newStartDate: string;
+  newEndDate: string;
+  newStatus: string;
+  stageOrIterationName: string | null;
+  stageOrIterationNewStart: string | null;
+  stageOrIterationNewEnd: string | null;
+  projectDeadlineExceeded: boolean;
+  projectDeadlineWarning: string | null;
+  notificationsSent: string[];
+}

@@ -316,7 +316,7 @@
     <button
       type="submit"
       class="btn btn-primary"
-      [disabled]="projectForm.invalid || isSubmitting || isSavingDraft"
+      [disabled]="isSubmitting || isSavingDraft"
     >
       {{ isSubmitting ? 'Salvando...' : 'Salvar projeto' }}
     </button>

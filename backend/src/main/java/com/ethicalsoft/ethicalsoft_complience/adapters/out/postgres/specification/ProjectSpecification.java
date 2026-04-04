@@ -23,6 +23,8 @@ public class ProjectSpecification {
 			query.distinct(true);
 			List<Predicate> predicates = new ArrayList<>();
 
+			predicates.add(cb.notEqual(root.get("status"), ProjectStatusEnum.EXCLUIDO));
+
 			if (StringUtils.hasText(filters.getName())) {
 				predicates.add(cb.like(cb.lower(root.get("name")), "%" + filters.getName().toLowerCase() + "%"));
 			}

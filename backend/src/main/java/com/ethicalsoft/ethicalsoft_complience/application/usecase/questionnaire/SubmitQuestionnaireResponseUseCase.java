@@ -73,7 +73,7 @@ public class SubmitQuestionnaireResponseUseCase {
         if (!projectRepository.existsById(projectId)) {
             throw new EntityNotFoundException("Projeto não encontrado: " + projectId);
         }
-        return questionnaireResponseRepository.findByProjectIdAndQuestionnaireId(projectId, questionnaireId.intValue());
+        return questionnaireResponseRepository.findByProjectIdAndQuestionnaireIdExcludingTemplates(projectId, questionnaireId.intValue());
     }
 
     private void processResponses(Project project, Long questionnaireId, List<QuestionnaireResponse> responses) {

@@ -44,9 +44,9 @@
     font-size: 0.7rem;
     font-weight: 600;
     padding: 0.15rem 0.5rem;
-    border-radius: 999px;
-    background: #e3f2fd;
-    color: #1565c0;
+    border-radius: $radius-pill;
+    background: $semantic-blue-bg;
+    color: $semantic-blue;
     margin-right: 0.25rem;
     margin-bottom: 0.15rem;
     white-space: nowrap;
@@ -72,26 +72,6 @@
     font-size: 0.85rem;
     font-weight: 600;
     color: $neutral-text;
-  }
-}
-
-.response-badge {
-  display: inline-block;
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 0.2rem 0.65rem;
-  border-radius: 999px;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-
-  &--yes {
-    background: #e8f5e9;
-    color: #2e7d32;
-  }
-
-  &--no {
-    background: #fbe9e7;
-    color: $red;
   }
 }
 

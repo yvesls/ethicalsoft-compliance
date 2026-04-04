@@ -31,6 +31,11 @@ public class QuestionnaireResponseRepositoryAdapter implements QuestionnaireResp
     }
 
     @Override
+    public List<QuestionnaireResponse> findByProjectIdAndQuestionnaireIdExcludingTemplates(Long projectId, Integer questionnaireId) {
+        return delegate.findByProjectIdAndQuestionnaireIdExcludingTemplates(projectId, questionnaireId);
+    }
+
+    @Override
     public List<QuestionnaireResponse> findPendingResponses(Long projectId, Integer questionnaireId) {
         return delegate.findPendingResponses(projectId, questionnaireId);
     }
@@ -48,6 +53,11 @@ public class QuestionnaireResponseRepositoryAdapter implements QuestionnaireResp
     @Override
     public List<QuestionnaireResponse> findByProjectId(Long projectId) {
         return delegate.findByProjectId(projectId);
+    }
+
+    @Override
+    public List<QuestionnaireResponse> findByProjectIdExcludingTemplates(Long projectId) {
+        return delegate.findByProjectIdExcludingTemplates(projectId);
     }
 
     @Override

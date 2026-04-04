@@ -1205,7 +1205,8 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
   onSubmit(): void {
     if (this.projectForm.invalid) {
       this.projectForm.markAllAsTouched();
-      this.notificationService.showWarning('Revise os campos obrigatórios antes de salvar.');
+      const issues = this.collectValidationIssues();
+      this.notificationService.showWarning(issues);
       return;
     }
 
@@ -1218,6 +1219,54 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
     }
 
     this.openProjectCreationConfirmModal();
+  }
+
+  private collectValidationIssues(): string {
+    const issues: string[] = [];
+
+    const fieldLabels: Record<string, string> = {
+      template: 'Template',
+      name: 'Nome do projeto',
+      startDate: 'Data de início',
+      deadline: 'Prazo limite',
+    };
+
+    for (const [key, label] of Object.entries(fieldLabels)) {
+      if (this.projectForm.get(key)?.invalid) {
+        issues.push(label);
+      }
+    }
+
+    const groupErrors = this.projectForm.errors;
+    if (groupErrors?.['dateRange']) {
+      issues.push('A data de início não pode ser maior que o prazo limite');
+    }
+    if (groupErrors?.['stagesExceedDeadline']) {
+      issues.push('As etapas ultrapassam o prazo limite do projeto');
+    }
+    if (groupErrors?.['stageApplicationRangeExceedsDeadline']) {
+      issues.push('O período de aplicação das etapas excede o prazo limite');
+    }
+
+    const stepsArray = this.projectForm.get('steps') as FormArray;
+    if (!stepsArray || stepsArray.length === 0) {
+      issues.push('É necessário adicionar pelo menos uma etapa');
+    } else if (stepsArray.invalid) {
+      issues.push('Há etapas com campos inválidos');
+    }
+
+    const repsArray = this.projectForm.get('representatives') as FormArray;
+    if (!repsArray || repsArray.length === 0) {
+      issues.push('É necessário adicionar pelo menos um representante');
+    } else if (repsArray.invalid) {
+      issues.push('Há representantes com campos inválidos');
+    }
+
+    if (issues.length === 0) {
+      return 'Revise os campos obrigatórios antes de salvar.';
+    }
+
+    return 'Não é possível salvar. Corrija os seguintes problemas:<br>• ' + issues.join('<br>• ');
   }
 
   private openProjectCreationConfirmModal(): void {

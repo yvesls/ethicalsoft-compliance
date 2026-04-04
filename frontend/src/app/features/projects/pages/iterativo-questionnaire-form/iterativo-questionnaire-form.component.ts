@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormsModule, Validators } from '@angular/forms';
 
 import { BasePageComponent, RestoreParams } from '../../../../core/abstractions/base-page.component';
+import { LoggerService } from '../../../../core/services/logger.service';
 import { ModalService } from '../../../../core/services/modal.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { ActionType } from '../../../../shared/enums/action-type.enum';
@@ -33,7 +34,11 @@ interface IterativoQuestionnaireRouteParams extends GenericParams {
   questions?: QuestionData[];
   stages?: string[];
   returnTo?: string;
+  returnToEdit?: boolean;
+  editProjectId?: string;
 }
+
+const PENDING_QUESTIONNAIRE_UPDATE_KEY = 'pendingQuestionnaireUpdate';
 
 type IterativoQuestionnaireRestoreParams = RestoreParams<IterativoQuestionnaireRouteParams>;
 
@@ -106,7 +111,11 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
     this.isViewMode.set(incomingMode === ActionType.VIEW);
     this.viewProjectId.set(typeof data.projectId === 'string' ? data.projectId : null);
     this.viewQuestionnaireId.set(typeof data.questionnaireId === 'number' ? data.questionnaireId : null);
-  this.returnTo = typeof data.returnTo === 'string' ? data.returnTo : null;
+  if (typeof data.returnTo === 'string') {
+      this.returnTo = data.returnTo;
+    } else if (data.returnToEdit && typeof data.editProjectId === 'string') {
+      this.returnTo = `/projects/${data.editProjectId}/edit`;
+    }
 
     this.questionnaireIndex = typeof data.questionnaireIndex === 'number' ? data.questionnaireIndex : null;
     this.questionnaireMetadata = data;
@@ -378,20 +387,25 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
     return this.form.get(controlName);
   }
 
-  onSave(): void {
+  onConfirmAndGoBack(): void {
+    if (this.isViewMode()) {
+      this.navigateBack();
+      return;
+    }
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      this.notificationService.showWarning('Preencha os campos obrigatórios do questionário.');
       return;
     }
 
     if (!this.questions().length) {
-      this.notificationService.showWarning('Adicione ao menos uma pergunta antes de salvar o questionário.');
+      this.notificationService.showWarning('Adicione ao menos uma pergunta antes de confirmar o questionário.');
       return;
     }
 
     const hasInvalidStages = this.questions().some((question) => !this.hasValidStageSelection(question));
     if (hasInvalidStages) {
-      this.notificationService.showWarning('Associe ao menos uma etapa a cada pergunta antes de salvar.');
+      this.notificationService.showWarning('Associe ao menos uma etapa a cada pergunta antes de confirmar.');
       return;
     }
 
@@ -403,7 +417,17 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
       questions: this.questions()
     };
 
+    try {
+      sessionStorage.setItem(PENDING_QUESTIONNAIRE_UPDATE_KEY, JSON.stringify(finalData));
+    } catch (error) {
+      LoggerService.error('IterativoQuestionnaireForm: Erro ao persistir dados do questionário em sessionStorage', error);
+    }
+
     this.navigateBack({ questionnaireUpdate: finalData });
+  }
+
+  onCancel(): void {
+    this.navigateBack();
   }
 
   private normalizeStageNamesList(stageNames?: string[]): string[] {

@@ -29,6 +29,7 @@ import {
   ProjectQuestionnaireFilters,
   ProjectQuestionnaireSummary,
   QuestionnaireRespondentStatus,
+  RescheduleQuestionnairePayload,
 } from '../../../../shared/interfaces/project/project-questionnaire.interface';
 import { ProjectType } from '../../../../shared/enums/project-type.enum';
 import { ProjectStatus } from '../../../../shared/enums/project-status.enum';
@@ -40,7 +41,10 @@ import { ProjectContextService } from '../../../../core/services/project-context
 import { QuestionnaireResponseStatus } from '../../../../shared/enums/questionnaire-response-status.enum';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { environment } from '../../../../enviroments/environments';
+import { BusinessDaysUtils } from '../../../../core/utils/business-days-utils';
 import { DashboardService } from '../../../dashboard/services/dashboard.service';
+import { ModalService } from '../../../../core/services/modal.service';
+import { RescheduleQuestionnaireModalComponent } from '../../components/reschedule-questionnaire-modal/reschedule-questionnaire-modal.component';
 
 interface ProjectState {
   data: Project | null;
@@ -88,11 +92,13 @@ export class ProjectDetailPageComponent implements OnInit {
   private readonly projectContext = inject(ProjectContextService);
   private readonly notification = inject(NotificationService);
   private readonly dashboardService = inject(DashboardService);
+  private readonly modalService = inject(ModalService);
 
   private readonly questionnairesPageSize = 5;
   private currentProjectId: string | null = null;
   private readonly sendingReminderIds = signal<Set<number>>(new Set());
   private readonly forceClosingIds = signal<Set<number>>(new Set());
+  private readonly reschedulingIds = signal<Set<number>>(new Set());
   private readonly expandedRespondentLists = signal<Set<number>>(new Set());
 
   private readonly userRoles = signal<string[]>([]);
@@ -107,6 +113,12 @@ export class ProjectDetailPageComponent implements OnInit {
   });
 
   readonly isPublishing = signal(false);
+  readonly isDeleting = signal(false);
+
+  readonly canDeleteProject = computed(() => {
+    const project = this.projectState().data;
+    return this.isAdmin() && !!project && project.status !== ProjectStatus.Concluido;
+  });
 
   readonly projectState = signal<ProjectState>({
     data: null,
@@ -141,6 +153,7 @@ export class ProjectDetailPageComponent implements OnInit {
     RASCUNHO: ProjectStatus.Rascunho,
     CONCLUIDO: ProjectStatus.Concluido,
     ARQUIVADO: ProjectStatus.Arquivado,
+    EXCLUIDO: ProjectStatus.Excluido,
   };
 
   private readonly timelineStatusLabelMap: Record<TimelineStatus, string> = {
@@ -223,6 +236,35 @@ export class ProjectDetailPageComponent implements OnInit {
           });
       },
       () => { /* cancelado */ }
+    );
+  }
+
+  deleteProject(): void {
+    const project = this.projectState().data;
+    if (!project || this.isDeleting()) {
+      return;
+    }
+
+    this.notification.showConfirm(
+      `Tem certeza que deseja excluir o projeto "${project.name}"? Esta ação não pode ser desfeita.`,
+      () => {
+        this.isDeleting.set(true);
+
+        this.projectStore
+          .deleteProject(project.id)
+          .pipe(take(1))
+          .subscribe({
+            next: () => {
+              this.isDeleting.set(false);
+              this.notification.showSuccess('Projeto excluído com sucesso.');
+              this.router.navigate(['/projects']);
+            },
+            error: (error) => {
+              this.isDeleting.set(false);
+              this.notification.showError(error);
+            },
+          });
+      }
     );
   }
 
@@ -371,6 +413,139 @@ export class ProjectDetailPageComponent implements OnInit {
       questionnaire.pendingRespondents === 0 &&
       questionnaire.totalRespondents > 0
     );
+  }
+
+  canRescheduleQuestionnaire(questionnaire: ProjectQuestionnaireSummary): boolean {
+    if (!this.isAdmin()) {
+      return false;
+    }
+
+    if (this.normalizeStatus(questionnaire.status) !== TimelineStatus.Pendente) {
+      return false;
+    }
+
+    const items = this.questionnairesState().items;
+    if (!items.some((q) => this.isQuestionnaireCompleted(q))) {
+      return false;
+    }
+
+    const firstPending = this.getFirstPendingQuestionnaire(items);
+    return firstPending?.id === questionnaire.id;
+  }
+
+  isRescheduling(questionnaireId: number): boolean {
+    return this.reschedulingIds().has(questionnaireId);
+  }
+
+  onRescheduleQuestionnaire(questionnaire: ProjectQuestionnaireSummary): void {
+    if (!this.currentProjectId || !this.isAdmin()) {
+      return;
+    }
+
+    const project = this.projectState().data;
+    const startDate = questionnaire.applicationStartDate
+      ? this.toISODate(questionnaire.applicationStartDate)
+      : null;
+    const endDate = questionnaire.applicationEndDate
+      ? this.toISODate(questionnaire.applicationEndDate)
+      : null;
+    const projectStartDate = project?.startDate
+      ? this.toISODate(project.startDate)
+      : null;
+
+    this.modalService.open(RescheduleQuestionnaireModalComponent, 'small-card', {
+      questionnaireName: questionnaire.name,
+      currentStartDate: startDate,
+      currentEndDate: endDate,
+      projectStartDate: projectStartDate,
+    });
+
+    const modalInstance = this.modalService.getActiveInstance<RescheduleQuestionnaireModalComponent>();
+    if (!modalInstance) {
+      return;
+    }
+
+    modalInstance.confirmed.pipe(take(1)).subscribe((payload: RescheduleQuestionnairePayload) => {
+      this.modalService.close();
+      this.executeReschedule(questionnaire, payload);
+    });
+  }
+
+  private executeReschedule(
+    questionnaire: ProjectQuestionnaireSummary,
+    payload: RescheduleQuestionnairePayload
+  ): void {
+    if (!this.currentProjectId) {
+      return;
+    }
+
+    this.reschedulingIds.update((ids) => {
+      const next = new Set(ids);
+      next.add(questionnaire.id);
+      return next;
+    });
+
+    this.projectStore
+      .rescheduleQuestionnaire(this.currentProjectId, questionnaire.id, payload)
+      .pipe(take(1))
+      .subscribe({
+        next: (response) => {
+          this.removeReschedulingId(questionnaire.id);
+
+          const startFormatted = this.formatDate(response.newStartDate);
+          const endFormatted = this.formatDate(response.newEndDate);
+          this.notification.showSuccess(
+            `Questionário "${response.questionnaireName}" reagendado com sucesso. Novo período: ${startFormatted} até ${endFormatted}.`
+          );
+
+          if (response.projectDeadlineExceeded && response.projectDeadlineWarning) {
+            setTimeout(() => {
+              this.notification.showWarning(response.projectDeadlineWarning!);
+            }, 500);
+          }
+
+          this.loadQuestionnaires(
+            this.questionnairesState().pagination.currentPage || 1
+          );
+          this.loadProject(this.currentProjectId!);
+        },
+        error: (error: unknown) => {
+          this.removeReschedulingId(questionnaire.id);
+          this.notification.showError(error ?? 'Erro ao reagendar o questionário.');
+        },
+      });
+  }
+
+  private removeReschedulingId(questionnaireId: number): void {
+    this.reschedulingIds.update((ids) => {
+      const next = new Set(ids);
+      next.delete(questionnaireId);
+      return next;
+    });
+  }
+
+  private toISODate(date: NullableDateLike): string | null {
+    if (!date) {
+      return null;
+    }
+    const parsed = BusinessDaysUtils.parseISODate(date);
+    return Number.isNaN(parsed.getTime()) ? null : BusinessDaysUtils.formatDateISO(parsed);
+  }
+
+  private normalizeStatus(status: string | null | undefined): string {
+    return (status ?? '').toString().toUpperCase();
+  }
+
+  private getFirstPendingQuestionnaire(
+    items: ProjectQuestionnaireSummary[]
+  ): ProjectQuestionnaireSummary | undefined {
+    return items
+      .filter((q) => this.normalizeStatus(q.status) === TimelineStatus.Pendente)
+      .sort((a, b) => {
+        const aStart = a.applicationStartDate ? new Date(a.applicationStartDate).getTime() : Infinity;
+        const bStart = b.applicationStartDate ? new Date(b.applicationStartDate).getTime() : Infinity;
+        return aStart - bStart;
+      })[0];
   }
 
   isForceClosing(questionnaireId: number): boolean {

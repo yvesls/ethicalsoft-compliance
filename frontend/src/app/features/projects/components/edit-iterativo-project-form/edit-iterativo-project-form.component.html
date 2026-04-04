@@ -254,7 +254,7 @@
       <button
         type="button"
         class="btn btn-cancel"
-        [disabled]="isSubmitting || isLoadingPreview"
+        [disabled]="isSubmitting"
         (click)="goBack()"
       >
         Cancelar
@@ -262,11 +262,9 @@
       <button
         type="submit"
         class="btn btn-primary"
-        [disabled]="projectForm.invalid || isSubmitting || isLoadingPreview"
+        [disabled]="projectForm.invalid || isSubmitting"
       >
-        @if (isLoadingPreview) {
-          Verificando mudanças...
-        } @else if (isSubmitting) {
+        @if (isSubmitting) {
           Salvando...
         } @else {
           Salvar alterações

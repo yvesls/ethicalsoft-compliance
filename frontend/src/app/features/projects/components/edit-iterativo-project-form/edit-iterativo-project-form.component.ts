@@ -19,6 +19,8 @@ import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize, take } from 'rxjs/operators';
 
+import { LoggerService } from '../../../../core/services/logger.service';
+
 import { ProjectType } from '../../../../shared/enums/project-type.enum';
 import { ProjectStore } from '../../../../shared/stores/project.store';
 import { ModalService } from '../../../../core/services/modal.service';
@@ -47,7 +49,6 @@ import {
   UpdateQuestionnairePayload,
   UpdateQuestionPayload,
   UpdateRepresentativePayload,
-  ChangesSummary,
   UpdateProjectConflictError,
 } from '../../../../shared/interfaces/project/project-update.interface';
 
@@ -60,9 +61,7 @@ import {
   RepresentativeData,
 } from '../representative-modal/representative-modal.component';
 import { QuestionData } from '../question-modal/question-modal.component';
-import {
-  ProjectUpdatePreviewModalComponent,
-} from '../project-update-preview-modal/project-update-preview-modal.component';
+
 
 type PanelKey = 'project' | 'stages' | 'representatives' | 'questionnaires';
 type PanelStates = Record<PanelKey, boolean>;
@@ -95,7 +94,6 @@ export class EditIterativoProjectFormComponent implements OnInit {
   public ProjectType = ProjectType;
   public projectForm!: FormGroup;
   public isSubmitting = false;
-  public isLoadingPreview = false;
   public isLoadingProject = true;
   public loadError: string | null = null;
   public showQuestionnaireQuestionErrors = false;
@@ -286,6 +284,7 @@ export class EditIterativoProjectFormComponent implements OnInit {
       qArray.push(this.buildQuestionnaireFormGroup(q));
     }
 
+    this.applyPendingQuestionnaireUpdate();
     this.cdr.markForCheck();
   }
 
@@ -332,7 +331,7 @@ export class EditIterativoProjectFormComponent implements OnInit {
     const questions: QuestionData[] = (q.questions || []).map((question) => ({
       id: String(question.id),
       _entityId: question.id,
-      value: question.value,
+      value: question.text,
       roleIds: question.roleIds ?? [],
       roleNames: question.roleNames ?? [],
       stageNames: question.stageNames ?? [],
@@ -554,6 +553,43 @@ export class EditIterativoProjectFormComponent implements OnInit {
     );
   }
 
+  private applyPendingQuestionnaireUpdate(): void {
+    const PENDING_KEY = 'pendingQuestionnaireUpdate';
+    try {
+      const raw = sessionStorage.getItem(PENDING_KEY);
+      if (!raw) return;
+      sessionStorage.removeItem(PENDING_KEY);
+
+      const update = JSON.parse(raw);
+      if (!update || typeof update.questionnaireIndex !== 'number') return;
+
+      const questionnaireGroup = this.questionnairesFormArray.at(update.questionnaireIndex) as FormGroup | null;
+      if (!questionnaireGroup) return;
+
+      questionnaireGroup.patchValue(
+        {
+          name: update.name,
+          weight: update.weight,
+          iterationName: update.iteration || questionnaireGroup.get('iterationName')?.value,
+        },
+        { emitEvent: false }
+      );
+
+      const updatedQuestions = update.questions || [];
+      const questionsControl = questionnaireGroup.get('questions');
+      if (questionsControl) {
+        questionsControl.setValue(updatedQuestions);
+      } else {
+        questionnaireGroup.addControl('questions', this.fb.control(updatedQuestions));
+      }
+
+      questionnaireGroup.markAsDirty();
+      this.cdr.detectChanges();
+    } catch (error) {
+      LoggerService.error('EditIterativoProjectForm: Erro ao aplicar atualização pendente do questionário', error);
+    }
+  }
+
   shouldDisplayQuestionnaireQuestionError(index: number): boolean {
     return this.showQuestionnaireQuestionErrors && this.questionnaireQuestionErrors.has(index);
   }
@@ -678,7 +714,7 @@ export class EditIterativoProjectFormComponent implements OnInit {
     this.cdr.markForCheck();
   }
 
-  canOpenPanel(_panelKey: PanelKey): boolean {
+  canOpenPanel(): boolean {
     return true;
   }
 
@@ -695,68 +731,15 @@ export class EditIterativoProjectFormComponent implements OnInit {
     }
 
     if (!this.validateQuestionnairesHaveQuestions()) return;
-    if (this.isSubmitting || this.isLoadingPreview) return;
+    if (this.isSubmitting) return;
 
-    this.runDryRunPreview();
-  }
-
-  private runDryRunPreview(): void {
-    let payload: UpdateProjectRequest;
-    try {
-      payload = this.buildUpdatePayload(true);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Erro ao preparar os dados.';
-      this.notificationService.showError(message);
-      return;
-    }
-
-    this.isLoadingPreview = true;
-    this.cdr.markForCheck();
-
-    this.projectStore
-      .updateProject(this.projectId, payload)
-      .pipe(
-        take(1),
-        finalize(() => {
-          this.isLoadingPreview = false;
-          this.cdr.markForCheck();
-        })
-      )
-      .subscribe({
-        next: (response) => {
-          this.openPreviewModal(response.changesSummary);
-        },
-        error: (err) => {
-          this.handleUpdateError(err);
-        },
-      });
-  }
-
-  private openPreviewModal(summary: ChangesSummary): void {
-    const isBlocked = summary.blockedReasons.length > 0;
-
-    this.modalService.open(ProjectUpdatePreviewModalComponent, 'medium-card', {
-      summary,
-      isBlocked,
-    });
-
-    const modalInstance = this.modalService.getActiveInstance<ProjectUpdatePreviewModalComponent>();
-    if (!modalInstance) return;
-
-    modalInstance.confirmed.pipe(take(1)).subscribe(() => {
-      this.modalService.close();
-      this.applyUpdate();
-    });
-
-    modalInstance.canceled.pipe(take(1)).subscribe(() => {
-      this.modalService.close();
-    });
+    this.applyUpdate();
   }
 
   private applyUpdate(): void {
     let payload: UpdateProjectRequest;
     try {
-      payload = this.buildUpdatePayload(false);
+      payload = this.buildUpdatePayload();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Erro ao preparar os dados.';
       this.notificationService.showError(message);
@@ -777,20 +760,43 @@ export class EditIterativoProjectFormComponent implements OnInit {
       )
       .subscribe({
         next: (response) => {
-          const summary = response.changesSummary;
-          const totalChanges =
-            summary.stagesAdded + summary.stagesUpdated + summary.stagesRemoved +
-            summary.iterationsAdded + summary.iterationsUpdated + summary.iterationsRemoved +
-            summary.questionnairesAdded + summary.questionnairesUpdated + summary.questionnairesRemoved +
-            summary.questionsAdded + summary.questionsUpdated + summary.questionsRemoved +
-            summary.representativesAdded + summary.representativesUpdated + summary.representativesRemoved;
+          try {
+            if (!response?.changesSummary) {
+              this.notificationService.showSuccess('Projeto atualizado com sucesso.');
+              this.routerService.navigateTo(`/projects/${this.projectId}`);
+              return;
+            }
 
-          this.notificationService.showSuccess(
-            totalChanges > 0
-              ? `Projeto atualizado com sucesso. ${totalChanges} alteração(ões) aplicada(s).`
-              : 'Projeto atualizado com sucesso.'
-          );
-          this.routerService.navigateTo(`/projects/${this.projectId}`);
+            const summary = response.changesSummary;
+            const totalChanges =
+              summary.stagesAdded + summary.stagesUpdated + summary.stagesRemoved +
+              summary.iterationsAdded + summary.iterationsUpdated + summary.iterationsRemoved +
+              summary.questionnairesAdded + summary.questionnairesUpdated + summary.questionnairesRemoved +
+              summary.questionsAdded + summary.questionsUpdated + summary.questionsRemoved +
+              summary.representativesAdded + summary.representativesUpdated + summary.representativesRemoved;
+
+            if (summary.blockedReasons?.length) {
+              const reasons = summary.blockedReasons.join('\n• ');
+              this.notificationService.showError(`Atualização bloqueada:\n• ${reasons}`);
+              return;
+            }
+
+            if (summary.warnings?.length) {
+              const warns = summary.warnings.join('\n• ');
+              this.notificationService.showWarning(`Projeto atualizado com avisos:\n• ${warns}`);
+            } else {
+              this.notificationService.showSuccess(
+                totalChanges > 0
+                  ? `Projeto atualizado com sucesso. ${totalChanges} alteração(ões) aplicada(s).`
+                  : 'Projeto atualizado com sucesso.'
+              );
+            }
+
+            this.routerService.navigateTo(`/projects/${this.projectId}`);
+          } catch (error_) {
+            LoggerService.error('Erro inesperado ao processar resposta de atualização', error_);
+            this.notificationService.showError('Erro inesperado ao processar a resposta da atualização.');
+          }
         },
         error: (err) => {
           this.handleUpdateError(err);
@@ -828,7 +834,7 @@ export class EditIterativoProjectFormComponent implements OnInit {
     this.routerService.navigateTo(`/projects/${this.projectId}`);
   }
 
-  private buildUpdatePayload(dryRun: boolean): UpdateProjectRequest {
+  private buildUpdatePayload(): UpdateProjectRequest {
     const formValue = this.projectForm.getRawValue();
     const name = (formValue.name || '').trim();
     if (!name) throw new Error('Informe o nome do projeto.');
@@ -843,7 +849,7 @@ export class EditIterativoProjectFormComponent implements OnInit {
       deadline: formValue.deadline || null,
       iterationDuration,
       iterationCount,
-      dryRun,
+      dryRun: false,
       stages: this.buildStagePayloads(),
       iterations: this.buildIterationPayloads(),
       questionnaires: this.buildQuestionnairePayloads(),
@@ -899,8 +905,8 @@ export class EditIterativoProjectFormComponent implements OnInit {
     return questions.map((q) => ({
       id: this.normalizeEntityId((q as QuestionData & { _entityId?: number })._entityId ?? q.id),
       value: q.value,
-      roleIds: this.normalizeRoleIds(q.roleIds),
-      stageNames: q.stageNames?.length ? q.stageNames : undefined,
+      roleIds: this.normalizeRoleIds(q.roleIds).sort((a, b) => a - b),
+      stageNames: q.stageNames?.length ? [...q.stageNames].sort((a, b) => a.localeCompare(b)) : [],
     }));
   }
 

@@ -19,6 +19,8 @@ import {
   ProjectQuestionnaireFilters,
   ProjectQuestionnaireSummary,
   QuestionnaireReminderRequest,
+  RescheduleQuestionnairePayload,
+  RescheduleQuestionnaireResponse,
 } from '../interfaces/project/project-questionnaire.interface';
 import { UrlParameter } from '../../core/interfaces/url-parameter.interface';
 
@@ -158,6 +160,27 @@ export class ProjectStore extends BaseStore {
   updateProject(projectId: string | number, payload: UpdateProjectRequest): Observable<UpdateProjectResponse> {
     return this.requestService.makePut<UpdateProjectResponse>(
       this.getUrl(`${projectId}`),
+      {
+        useAuth: true,
+        data: payload,
+      }
+    );
+  }
+
+  deleteProject(projectId: string | number): Observable<{ projectId: number; status: string; message: string }> {
+    return this.requestService.makeDelete<{ projectId: number; status: string; message: string }>(
+      this.getUrl(`${projectId}`),
+      { useAuth: true }
+    );
+  }
+
+  rescheduleQuestionnaire(
+    projectId: string | number,
+    questionnaireId: number,
+    payload: RescheduleQuestionnairePayload
+  ): Observable<RescheduleQuestionnaireResponse> {
+    return this.requestService.makePut<RescheduleQuestionnaireResponse>(
+      this.getUrl(`${projectId}/questionnaires/${questionnaireId}/reschedule`),
       {
         useAuth: true,
         data: payload,

@@ -60,7 +60,7 @@ public class ProcessQuestionnaireIsepUseCase {
         }
 
         List<QuestionnaireResponse> responses = responseRepository
-                .findByProjectIdAndQuestionnaireId(projectId, questionnaireId);
+                .findByProjectIdAndQuestionnaireIdExcludingTemplates(projectId, questionnaireId);
 
         if (!isFullyCompleted(project, questionnaire, responses)) {
             log.info("[isep-orchestrator] Questionário={} ainda não possui 100% das respostas. Aguardando.", questionnaireId);
@@ -81,7 +81,7 @@ public class ProcessQuestionnaireIsepUseCase {
         if (questionnaire == null) return false;
 
         List<QuestionnaireResponse> responses = responseRepository
-                .findByProjectIdAndQuestionnaireId(projectId, questionnaireId);
+                .findByProjectIdAndQuestionnaireIdExcludingTemplates(projectId, questionnaireId);
 
         if (responses.isEmpty()) {
             log.warn("[isep-orchestrator] Nenhuma resposta encontrada para questionário={}", questionnaireId);

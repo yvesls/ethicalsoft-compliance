@@ -26,7 +26,7 @@ public class QuestionnaireSummaryBuilder {
 
     public QuestionnaireSummaryResponseDTO build(Questionnaire questionnaire, Map<Long, Representative> representativesById) {
         List<QuestionnaireResponse> responses = questionnaireResponseRepository
-                .findByProjectIdAndQuestionnaireId(questionnaire.getProject().getId(), questionnaire.getId());
+                .findByProjectIdAndQuestionnaireIdExcludingTemplates(questionnaire.getProject().getId(), questionnaire.getId());
 
         Map<Long, QuestionnaireResponse> responseByRep = responses.stream()
                 .filter(resp -> resp.getRepresentativeId() != null)

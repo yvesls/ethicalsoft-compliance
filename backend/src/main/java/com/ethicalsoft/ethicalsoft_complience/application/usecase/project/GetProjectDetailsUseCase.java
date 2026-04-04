@@ -3,10 +3,10 @@ package com.ethicalsoft.ethicalsoft_complience.application.usecase.project;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Project;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.ProjectDetailResponseDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.ProjectTypeEnum;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.ProjectRepository;
 import com.ethicalsoft.ethicalsoft_complience.domain.service.ProjectCurrentIterationPolicy;
 import com.ethicalsoft.ethicalsoft_complience.domain.service.ProjectCurrentStagePolicy;
 import com.ethicalsoft.ethicalsoft_complience.domain.service.ProjectSituationPolicy;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.ProjectRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,7 +51,7 @@ public class GetProjectDetailsUseCase {
         Integer currentIteration = null;
 
         if (project.getType() == ProjectTypeEnum.CASCATA) {
-            currentStage = projectCurrentStagePolicy.findCurrentStageName(project.getQuestionnaires(), now);
+            currentStage = projectCurrentStagePolicy.findCurrentStageName(project.getStages(), now);
         } else if (project.getType() == ProjectTypeEnum.ITERATIVO) {
             currentIteration = projectCurrentIterationPolicy.findCurrentIterationNumber(project.getIterations(), now);
         }

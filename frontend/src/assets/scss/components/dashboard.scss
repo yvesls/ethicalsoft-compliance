@@ -116,7 +116,6 @@
 }
 
 // --- Botoes de acao do dashboard ---
-// Padrao .classe.classe (alta especificidade) igual ao buttons.scss
 
 .dash-btn.dash-btn {
 	display: inline-flex;
@@ -188,5 +187,26 @@
 
 	&.dash-link--back {
 		margin-bottom: var(--spacing-r-md);
+	}
+}
+// --- Badge de resposta (Sim / Não) ---
+
+.response-badge {
+	display: inline-block;
+	font-size: 0.75rem;
+	font-weight: 700;
+	padding: 0.2rem 0.65rem;
+	border-radius: $radius-pill;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+
+	&--yes {
+		background: $semantic-green-bg;
+		color: $semantic-green;
+	}
+
+	&--no {
+		background: $semantic-red-bg-light;
+		color: $red;
 	}
 }

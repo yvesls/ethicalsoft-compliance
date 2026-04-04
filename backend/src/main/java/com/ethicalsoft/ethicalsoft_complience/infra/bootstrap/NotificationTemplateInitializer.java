@@ -30,6 +30,9 @@ public class NotificationTemplateInitializer {
     private static final String PROJECT_UNASSIGNMENT = "PROJECT_UNASSIGNMENT";
     private static final String REPRESENTATIVE_EMAIL_CHANGED = "REPRESENTATIVE_EMAIL_CHANGED";
     private static final String PROJECT_UPDATED = "PROJECT_UPDATED";
+    private static final String QUESTIONNAIRE_RESCHEDULED = "QUESTIONNAIRE_RESCHEDULED";
+    private static final String PROJECT_DEADLINE_EXCEEDED_WARNING = "PROJECT_DEADLINE_EXCEEDED_WARNING";
+    private static final String NEXT_QUESTIONNAIRE_STARTING_SOON = "NEXT_QUESTIONNAIRE_STARTING_SOON";
 
     private final NotificationTemplateRepository repository;
 
@@ -152,6 +155,33 @@ public class NotificationTemplateInitializer {
                         .body("O projeto {projectName} foi atualizado pelo administrador. Verifique se há novas perguntas ou alterações nos questionários.")
                         .templateLink("")
                         .channels(List.of(NotificationChannel.INTERNAL.name()))
+                        .build(),
+                NotificationTemplateDocument.builder()
+                        .key(QUESTIONNAIRE_RESCHEDULED)
+                        .whoCanSend(List.of(UserRoleEnum.ADMIN.name(), "SYSTEM"))
+                        .recipients(List.of())
+                        .title("Questionário reagendado: {questionnaireName}")
+                        .body("O questionário {questionnaireName} do projeto {projectName} foi reagendado. Novo período: {newStartDate} até {newEndDate}.")
+                        .templateLink("users/questionnaire-rescheduled.ftl")
+                        .channels(List.of(NotificationChannel.INTERNAL.name(), NotificationChannel.EMAIL.name()))
+                        .build(),
+                NotificationTemplateDocument.builder()
+                        .key(PROJECT_DEADLINE_EXCEEDED_WARNING)
+                        .whoCanSend(List.of(UserRoleEnum.ADMIN.name(), "SYSTEM"))
+                        .recipients(List.of())
+                        .title("⚠️ Prazo do projeto excedido: {projectName}")
+                        .body("O reagendamento do questionário {questionnaireName} faz com que a data de término ({newEndDate}) ultrapasse o prazo do projeto ({deadline}). Considere estender o prazo do projeto ou reduzir a duração das próximas etapas/iterações.")
+                        .templateLink("")
+                        .channels(List.of(NotificationChannel.INTERNAL.name(), NotificationChannel.EMAIL.name()))
+                        .build(),
+                NotificationTemplateDocument.builder()
+                        .key(NEXT_QUESTIONNAIRE_STARTING_SOON)
+                        .whoCanSend(List.of(UserRoleEnum.ADMIN.name(), "SYSTEM"))
+                        .recipients(List.of())
+                        .title("Próximo questionário: {nextQuestionnaireName} — Início em {daysUntilStart} dia(s)")
+                        .body("O questionário {closedQuestionnaireName} foi encerrado. O próximo questionário {nextQuestionnaireName} do projeto {projectName} iniciará em {nextStartDate}. Caso deseje adiantar o início, utilize o reagendamento no painel do projeto.")
+                        .templateLink("users/next-questionnaire-starting-soon.ftl")
+                        .channels(List.of(NotificationChannel.INTERNAL.name(), NotificationChannel.EMAIL.name()))
                         .build()
         );
     }

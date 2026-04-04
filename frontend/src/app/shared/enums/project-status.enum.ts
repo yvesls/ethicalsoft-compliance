@@ -3,4 +3,5 @@ export enum ProjectStatus {
   Rascunho = 'Rascunho',
   Arquivado = 'Arquivado',
   Concluido = 'Concluído',
+  Excluido = 'Excluído',
 }

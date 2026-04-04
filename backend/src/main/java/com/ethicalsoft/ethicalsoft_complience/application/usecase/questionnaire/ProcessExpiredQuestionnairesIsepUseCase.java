@@ -19,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,6 +72,7 @@ public class ProcessExpiredQuestionnairesIsepUseCase {
                     log.info("[isep-scheduler] ISEP calculado para questionário id={} projeto id={}",
                             questionnaire.getId(), projectId);
                     notifyIsepCalculated(questionnaire, projectId, "Sistema (Scheduler)");
+                    notifyNextQuestionnaireStartingSoon(questionnaire, projectId);
                     try {
                         processExpiredProjectIsepUseCase.tryFinalizeProjectAfterQuestionnaire(projectId);
                     } catch (Exception ex) {
@@ -83,6 +86,7 @@ public class ProcessExpiredQuestionnairesIsepUseCase {
                                     "Questionário e projeto id={} marcados como ATRASADO.",
                             questionnaire.getId(), projectId);
                     notifyOverdue(questionnaire, projectId);
+                    notifyNextQuestionnaireStartingSoon(questionnaire, projectId);
                 }
             } catch (Exception ex) {
                 skipped++;
@@ -113,7 +117,7 @@ public class ProcessExpiredQuestionnairesIsepUseCase {
                     : 0;
 
             List<QuestionnaireResponse> responses = questionnaireResponseRepository
-                    .findByProjectIdAndQuestionnaireId(projectId, questionnaire.getId());
+                    .findByProjectIdAndQuestionnaireIdExcludingTemplates(projectId, questionnaire.getId());
             long completedCount = responses.stream()
                     .filter(r -> QuestionnaireResponseStatus.COMPLETED.equals(r.getStatus()))
                     .map(QuestionnaireResponse::getRepresentativeId)
@@ -141,6 +145,55 @@ public class ProcessExpiredQuestionnairesIsepUseCase {
         } catch (Exception ex) {
             log.error("[isep-scheduler] Falha ao enviar notificação de ATRASADO para questionário={}: {}",
                     questionnaire.getId(), ex.getMessage());
+        }
+    }
+
+    void notifyNextQuestionnaireStartingSoon(Questionnaire closedQuestionnaire, Long projectId) {
+        try {
+            var project = closedQuestionnaire.getProject();
+            if (project == null) return;
+
+            List<Questionnaire> allQuestionnaires = questionnaireRepository.findByProjectId(projectId);
+            LocalDate today = LocalDate.now();
+
+            Questionnaire next = allQuestionnaires.stream()
+                    .filter(q -> q.getApplicationStartDate() != null)
+                    .filter(q -> q.getApplicationStartDate().isAfter(today) || q.getApplicationStartDate().isEqual(today))
+                    .filter(q -> q.getStatus() == TimelineStatusEnum.PENDENTE)
+                    .min(java.util.Comparator.comparing(Questionnaire::getApplicationStartDate))
+                    .orElse(null);
+
+            if (next == null) {
+                log.info("[isep-scheduler] Nenhum próximo questionário pendente encontrado após questionário id={}", closedQuestionnaire.getId());
+                return;
+            }
+
+            long daysUntilStart = ChronoUnit.DAYS.between(today, next.getApplicationStartDate());
+            String projectName = project.getName() != null ? project.getName() : "";
+            String adminEmail = (project.getOwner() != null) ? project.getOwner().getEmail() : null;
+            DateTimeFormatter brDate = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+            Map<String, Object> context = new HashMap<>();
+            context.put("projectId", projectId);
+            context.put("projectName", projectName);
+            context.put("nextQuestionnaireName", next.getName());
+            context.put("nextStartDate", next.getApplicationStartDate().format(brDate));
+            context.put("nextEndDate", next.getApplicationEndDate() != null ? next.getApplicationEndDate().format(brDate) : "N/A");
+            context.put("closedQuestionnaireName", closedQuestionnaire.getName());
+            context.put("daysUntilStart", String.valueOf(daysUntilStart));
+            context.put("projectLink", "/projects/" + projectId);
+            if (adminEmail != null) {
+                context.put("recipients", List.of(adminEmail));
+            }
+
+            sendNotificationUseCase.execute(new SendNotificationCommand(
+                    NotificationType.NEXT_QUESTIONNAIRE_STARTING_SOON, context));
+
+            log.info("[isep-scheduler] Notificação de próximo questionário enviada. próximo={} início={} diasAté={} projeto={}",
+                    next.getName(), next.getApplicationStartDate(), daysUntilStart, projectId);
+        } catch (Exception ex) {
+            log.error("[isep-scheduler] Falha ao enviar notificação de próximo questionário para projeto={}: {}",
+                    projectId, ex.getMessage());
         }
     }
 

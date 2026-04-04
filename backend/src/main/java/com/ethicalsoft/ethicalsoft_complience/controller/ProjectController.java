@@ -39,6 +39,7 @@ public class ProjectController {
     private final UpdateDraftProjectUseCase updateDraftProjectUseCase;
     private final UpdateProjectUseCase updateProjectUseCase;
     private final GetProjectEditSnapshotUseCase getProjectEditSnapshotUseCase;
+    private final DeleteProjectUseCase deleteProjectUseCase;
 
     @GetMapping("/roles")
     public List<RoleSummaryResponseDTO> listRoles() {
@@ -115,6 +116,17 @@ public class ProjectController {
                 "questionnaireCount", result.getQuestionnaireCount(),
                 "calculatedAt", result.getCalculatedAt().toString(),
                 "closedBy", result.getClosedBy() != null ? result.getClosedBy() : ""
+        ));
+    }
+
+    @DeleteMapping("/{projectId}")
+    @PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")
+    public ResponseEntity<Map<String, Object>> deleteProject(@PathVariable Long projectId) {
+        deleteProjectUseCase.execute(projectId);
+        return ResponseEntity.ok(Map.of(
+                "projectId", projectId,
+                "status", "EXCLUIDO",
+                "message", "Projeto excluído com sucesso."
         ));
     }
 }

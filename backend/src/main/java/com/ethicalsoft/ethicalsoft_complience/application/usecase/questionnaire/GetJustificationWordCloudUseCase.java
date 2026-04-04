@@ -70,7 +70,7 @@ public class GetJustificationWordCloudUseCase {
                         "Resultado ISEP ainda não disponível para o questionário: " + questionnaireId));
 
         List<QuestionnaireResponse> completedResponses = responseRepository
-                .findByProjectIdAndQuestionnaireId(projectId, questionnaireId)
+                .findByProjectIdAndQuestionnaireIdExcludingTemplates(projectId, questionnaireId)
                 .stream()
                 .filter(r -> QuestionnaireResponseStatus.COMPLETED.equals(r.getStatus()))
                 .toList();

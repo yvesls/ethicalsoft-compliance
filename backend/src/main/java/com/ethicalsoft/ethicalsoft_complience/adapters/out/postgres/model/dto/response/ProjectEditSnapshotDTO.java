@@ -39,6 +39,7 @@ public class ProjectEditSnapshotDTO {
         String name;
         BigDecimal weight;
         int sequence;
+        Integer durationDays;
         LocalDate applicationStartDate;
         LocalDate applicationEndDate;
         TimelineStatusEnum status;

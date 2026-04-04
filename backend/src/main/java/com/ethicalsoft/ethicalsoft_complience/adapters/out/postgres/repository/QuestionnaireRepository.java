@@ -31,6 +31,7 @@ public interface QuestionnaireRepository extends JpaRepository<Questionnaire, In
             SELECT q FROM Questionnaire q
             WHERE q.applicationEndDate < :today
               AND q.project.status <> com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.ProjectStatusEnum.RASCUNHO
+              AND q.project.status <> com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.ProjectStatusEnum.EXCLUIDO
               AND NOT EXISTS (
                   SELECT 1 FROM QuestionnaireResult qr WHERE qr.questionnaireId = q.id
               )

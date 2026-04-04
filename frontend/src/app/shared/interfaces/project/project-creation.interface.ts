@@ -1,6 +1,6 @@
 import { ProjectType } from '../../enums/project-type.enum';
 
-export type ProjectStatusCode = 'ABERTO' | 'RASCUNHO' | 'CONCLUIDO' | 'ARQUIVADO';
+export type ProjectStatusCode = 'ABERTO' | 'RASCUNHO' | 'CONCLUIDO' | 'ARQUIVADO' | 'EXCLUIDO';
 
 export interface StagePayload {
 	name: string;

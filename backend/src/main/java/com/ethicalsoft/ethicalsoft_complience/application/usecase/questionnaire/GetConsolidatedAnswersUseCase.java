@@ -40,7 +40,7 @@ public class GetConsolidatedAnswersUseCase {
                 questionnaireId, projectId, representativeId, questionId, roleId, roleName, responseFilter, questionText);
 
         List<QuestionnaireResponse> responses = questionnaireResponseRepository
-                .findByProjectIdAndQuestionnaireId(projectId, questionnaireId);
+                .findByProjectIdAndQuestionnaireIdExcludingTemplates(projectId, questionnaireId);
 
         return buildPage(projectId, responses, representativeId, questionId, roleId, roleName, responseFilter, questionText, pageable);
     }
@@ -59,9 +59,9 @@ public class GetConsolidatedAnswersUseCase {
 
         List<QuestionnaireResponse> responses;
         if (questionnaireIdFilter != null) {
-            responses = questionnaireResponseRepository.findByProjectIdAndQuestionnaireId(projectId, questionnaireIdFilter);
+            responses = questionnaireResponseRepository.findByProjectIdAndQuestionnaireIdExcludingTemplates(projectId, questionnaireIdFilter);
         } else {
-            responses = questionnaireResponseRepository.findByProjectId(projectId);
+            responses = questionnaireResponseRepository.findByProjectIdExcludingTemplates(projectId);
         }
 
         return buildPage(projectId, responses, representativeId, questionId, roleId, roleName, responseFilter, questionText, pageable);
@@ -106,7 +106,10 @@ public class GetConsolidatedAnswersUseCase {
         List<ConsolidatedAnswerDTO> allRows = new ArrayList<>();
 
         for (QuestionnaireResponse response : responses) {
-            // Filtro por representante específico
+            if (response.getRepresentativeId() == null) {
+                continue;
+            }
+
             if (representativeIdFilter != null && !representativeIdFilter.equals(response.getRepresentativeId())) {
                 continue;
             }

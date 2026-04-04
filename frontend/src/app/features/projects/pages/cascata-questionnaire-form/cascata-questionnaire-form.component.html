@@ -162,8 +162,9 @@
       </div>
 
       <div class="panel-actions mt-4 pt-3 border-top">
+        <button type="button" class="btn btn-secondary mx-2" (click)="onCancel()">Voltar</button>
         @if (!isViewMode()) {
-          <button type="button" class="btn btn-primary" (click)="onSave()">Salvar</button>
+          <button type="button" class="btn btn-primary" (click)="onConfirmAndGoBack()">Confirmar</button>
         }
       </div>
     </div>

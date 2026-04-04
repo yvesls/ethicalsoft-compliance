@@ -1,5 +1,6 @@
 package com.ethicalsoft.ethicalsoft_complience.application.usecase.project;
 
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.QuestionnaireResponse;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.repository.QuestionnaireResponseRepository;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.*;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.ProjectEditSnapshotDTO;
@@ -59,17 +60,18 @@ public class GetProjectEditSnapshotUseCase {
 
         Set<Integer> questionnairesWithResult = questionnaireResultRepository.findByProjectId(projectId)
                 .stream()
-                .map(qr -> qr.getQuestionnaireId())
+                .map(QuestionnaireResult::getQuestionnaireId)
                 .collect(Collectors.toSet());
 
         var allResponses = responseRepository.findByProjectId(projectId);
         Set<Long> representativesWithResponses = allResponses.stream()
-                .map(r -> r.getRepresentativeId())
+                .map(QuestionnaireResponse::getRepresentativeId)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
         String currentSituation = null;
         if (project.getType() == ProjectTypeEnum.CASCATA) {
-            String currentStage = projectCurrentStagePolicy.findCurrentStageName(project.getQuestionnaires(), LocalDate.now());
+            String currentStage = projectCurrentStagePolicy.findCurrentStageName(project.getStages(), LocalDate.now());
             currentSituation = projectSituationPolicy.buildCurrentSituation(project, currentStage, null);
         } else if (project.getType() == ProjectTypeEnum.ITERATIVO) {
             Integer currentIteration = projectCurrentIterationPolicy.findCurrentIterationNumber(project.getIterations(), LocalDate.now());
@@ -116,6 +118,7 @@ public class GetProjectEditSnapshotUseCase {
                             .name(stage.getName())
                             .weight(stage.getWeight())
                             .sequence(stage.getSequence())
+                            .durationDays(stage.getDurationDays())
                             .applicationStartDate(stage.getApplicationStartDate())
                             .applicationEndDate(stage.getApplicationEndDate())
                             .status(stage.getStatus())
@@ -137,8 +140,7 @@ public class GetProjectEditSnapshotUseCase {
                                     .anyMatch(q -> q.getIterationRef() != null
                                             && Objects.equals(q.getIterationRef().getId(), iter.getId())
                                             && questionnairesWithResult.contains(q.getId()));
-                    boolean locked = hasActiveQuestionnaire;
-                    String lockReason = locked ? "Iteração possui questionário(s) com resultado ISEP calculado." : null;
+                    String lockReason = hasActiveQuestionnaire ? "Iteração possui questionário(s) com resultado ISEP calculado." : null;
 
                     return IterationSnapshot.builder()
                             .id(iter.getId())
@@ -147,7 +149,7 @@ public class GetProjectEditSnapshotUseCase {
                             .applicationStartDate(iter.getApplicationStartDate())
                             .applicationEndDate(iter.getApplicationEndDate())
                             .status(iter.getStatus())
-                            .locked(locked)
+                            .locked(hasActiveQuestionnaire)
                             .lockReason(lockReason)
                             .build();
                 })
@@ -217,8 +219,7 @@ public class GetProjectEditSnapshotUseCase {
                 .sorted(Comparator.comparing(Representative::getId))
                 .map(rep -> {
                     boolean hasResponses = representativesWithResponses.contains(rep.getId());
-                    boolean locked = hasResponses;
-                    String lockReason = locked ? "Representante já possui respostas submetidas. Remoção não permitida." : null;
+                    String lockReason = hasResponses ? "Representante já possui respostas submetidas. Remoção não permitida." : null;
 
                     return RepresentativeSnapshot.builder()
                             .id(rep.getId())
@@ -234,7 +235,7 @@ public class GetProjectEditSnapshotUseCase {
                                     : List.of())
                             .weight(rep.getWeight())
                             .hasResponses(hasResponses)
-                            .locked(locked)
+                            .locked(hasResponses)
                             .lockReason(lockReason)
                             .build();
                 })

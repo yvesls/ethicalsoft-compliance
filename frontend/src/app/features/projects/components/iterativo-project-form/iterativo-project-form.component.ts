@@ -754,10 +754,8 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
     }
     const projectName = this.projectForm.get('name')?.value || 'Novo Projeto';
 
-    // Buscar as perguntas do template correspondente
   const questions = this.getQuestionsForQuestionnaire(questionnaire);
 
-    // Navegar para a página de edição de questionário com os parâmetros
     this.routerService.navigateTo('/projects/questionnaire/iterativo', {
       params: {
         p: {
@@ -1005,10 +1003,6 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
       });
   }
 
-  /**
-   * Salva o projeto como rascunho (RASCUNHO).
-   * Não exige que todos os campos obrigatórios estejam preenchidos.
-   */
   saveDraft(): void {
     if (this.isSavingDraft || this.isSubmitting) {
       return;

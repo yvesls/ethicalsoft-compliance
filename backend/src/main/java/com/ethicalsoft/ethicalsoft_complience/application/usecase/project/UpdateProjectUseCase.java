@@ -177,6 +177,9 @@ public class UpdateProjectUseCase {
                 newStage.setWeight(dto.getWeight());
                 newStage.setProject(project);
                 newStage.setSequence(sequence++);
+                newStage.setDurationDays(dto.getDurationDays());
+                newStage.setApplicationStartDate(dto.getApplicationStartDate());
+                newStage.setApplicationEndDate(dto.getApplicationEndDate());
                 newStage.setStatus(TimelineStatusEnum.PENDENTE);
                 stageRepository.save(newStage);
                 added++;
@@ -190,6 +193,18 @@ public class UpdateProjectUseCase {
                     }
                     if (dto.getWeight() != null && dto.getWeight().compareTo(existing.getWeight()) != 0) {
                         existing.setWeight(dto.getWeight());
+                        changed = true;
+                    }
+                    if (dto.getApplicationStartDate() != null && !dto.getApplicationStartDate().equals(existing.getApplicationStartDate())) {
+                        existing.setApplicationStartDate(dto.getApplicationStartDate());
+                        changed = true;
+                    }
+                    if (dto.getApplicationEndDate() != null && !dto.getApplicationEndDate().equals(existing.getApplicationEndDate())) {
+                        existing.setApplicationEndDate(dto.getApplicationEndDate());
+                        changed = true;
+                    }
+                    if (dto.getDurationDays() != null && !dto.getDurationDays().equals(existing.getDurationDays())) {
+                        existing.setDurationDays(dto.getDurationDays());
                         changed = true;
                     }
                     if (changed) {
@@ -322,54 +337,104 @@ public class UpdateProjectUseCase {
                 Questionnaire existing = existingById.get(dto.getId());
                 if (existing == null) continue;
 
+                boolean hasResult = qHasResult.getOrDefault(existing.getId(), false);
+                List<QuestionnaireResponse> qResponses = responsesByQ.getOrDefault(existing.getId(), List.of());
+
+                boolean hasNameChange = dto.getName() != null && !dto.getName().equals(existing.getName());
+                boolean hasWeightChange = dto.getWeight() != null && !dto.getWeight().equals(existing.getWeight());
+                boolean hasDomainChange = dto.getDomain() != null && !dto.getDomain().equals(existing.getDomain());
+                boolean hasDescriptionChange = dto.getDescription() != null && !dto.getDescription().equals(existing.getDescription());
+                boolean hasEndDateChange = dto.getApplicationEndDate() != null
+                        && !dto.getApplicationEndDate().equals(existing.getApplicationEndDate());
+                boolean hasStartDateChange = dto.getApplicationStartDate() != null
+                        && !dto.getApplicationStartDate().equals(existing.getApplicationStartDate());
+
+                boolean hasScalarChanges = hasNameChange || hasWeightChange || hasDomainChange
+                        || hasDescriptionChange || hasEndDateChange || hasStartDateChange;
+
+                boolean hasQuestionChanges = false;
+                if (dto.getQuestions() != null && existing.getQuestions() != null) {
+                    Set<Integer> existingQuestionIds = existing.getQuestions().stream()
+                            .filter(q -> q.getId() != null).map(Question::getId).collect(Collectors.toSet());
+                    Set<Integer> requestQuestionIds = dto.getQuestions().stream()
+                            .filter(q -> q.getId() != null).map(UpdateQuestionDTO::getId).collect(Collectors.toSet());
+
+                    boolean hasNewQuestions = dto.getQuestions().stream().anyMatch(q -> q.getId() == null);
+                    boolean hasRemovedQuestions = !requestQuestionIds.containsAll(existingQuestionIds);
+                    boolean hasEditedQuestions = dto.getQuestions().stream()
+                            .filter(q -> q.getId() != null)
+                            .anyMatch(q -> {
+                                Question eq = existing.getQuestions().stream()
+                                        .filter(ex -> Objects.equals(ex.getId(), q.getId())).findFirst().orElse(null);
+                                if (eq == null) return false;
+                                boolean textChanged = q.getValue() != null && !q.getValue().equals(eq.getValue());
+                                boolean roleChanged = q.getRoleIds() != null && !q.getRoleIds().equals(
+                                        eq.getRoles().stream().map(Role::getId).collect(Collectors.toSet()));
+                                return textChanged || roleChanged;
+                            });
+
+                    hasQuestionChanges = hasNewQuestions || hasRemovedQuestions || hasEditedQuestions;
+                } else if (dto.getQuestions() != null && existing.getQuestions() == null) {
+                    hasQuestionChanges = !dto.getQuestions().isEmpty();
+                }
+
+                if (!hasScalarChanges && !hasQuestionChanges) {
+                    continue;
+                }
+
                 boolean qChanged = false;
+                boolean isStructuralChange = hasWeightChange;
 
-                if (dto.getName() != null && !dto.getName().equals(existing.getName())) {
-                    existing.setName(dto.getName());
-                    qChanged = true;
-                }
-                if (dto.getWeight() != null && !dto.getWeight().equals(existing.getWeight())) {
-                    existing.setWeight(dto.getWeight());
-                    qChanged = true;
-                }
-                if (dto.getDomain() != null) {
-                    existing.setDomain(dto.getDomain());
-                    qChanged = true;
-                }
-                if (dto.getDescription() != null) {
-                    existing.setDescription(dto.getDescription());
-                    qChanged = true;
-                }
-
-                if (dto.getApplicationEndDate() != null
-                        && !dto.getApplicationEndDate().equals(existing.getApplicationEndDate())) {
-                    List<String> dateBlocked = validationPolicy.validateDatesChange(
-                            existing, dto.getApplicationEndDate(), responsesByQ.getOrDefault(existing.getId(), List.of()));
-                    if (!dateBlocked.isEmpty()) {
-                        blocked.addAll(dateBlocked);
-                    } else {
-                        existing.setApplicationEndDate(dto.getApplicationEndDate());
+                List<String> updateBlocked = validationPolicy.validateQuestionnaireUpdate(
+                        existing, hasResult, qResponses, isStructuralChange);
+                if (!updateBlocked.isEmpty()) {
+                    blocked.addAll(updateBlocked);
+                } else {
+                    if (hasNameChange) {
+                        existing.setName(dto.getName());
                         qChanged = true;
                     }
-                }
-                if (dto.getApplicationStartDate() != null
-                        && !dto.getApplicationStartDate().equals(existing.getApplicationStartDate())) {
-                    existing.setApplicationStartDate(dto.getApplicationStartDate());
-                    qChanged = true;
-                }
+                    if (hasWeightChange) {
+                        existing.setWeight(dto.getWeight());
+                        qChanged = true;
+                    }
+                    if (hasDomainChange) {
+                        existing.setDomain(dto.getDomain());
+                        qChanged = true;
+                    }
+                    if (hasDescriptionChange) {
+                        existing.setDescription(dto.getDescription());
+                        qChanged = true;
+                    }
 
-                if (qChanged) {
-                    questionnaireRepository.save(existing);
-                    qUpdated++;
-                }
+                    if (hasEndDateChange) {
+                        List<String> dateBlocked = validationPolicy.validateDatesChange(
+                                existing, dto.getApplicationEndDate(), qResponses);
+                        if (!dateBlocked.isEmpty()) {
+                            blocked.addAll(dateBlocked);
+                        } else {
+                            existing.setApplicationEndDate(dto.getApplicationEndDate());
+                            qChanged = true;
+                        }
+                    }
+                    if (hasStartDateChange) {
+                        existing.setApplicationStartDate(dto.getApplicationStartDate());
+                        qChanged = true;
+                    }
 
-                if (dto.getQuestions() != null) {
-                    int[] questResult = processQuestions(existing, dto.getQuestions(), project,
-                            responsesByQ.getOrDefault(existing.getId(), List.of()), blocked, warnings);
-                    questAdded += questResult[0];
-                    questRemoved += questResult[1];
-                    questUpdated += questResult[2];
-                    respUpdated += questResult[3];
+                    if (qChanged) {
+                        questionnaireRepository.save(existing);
+                        qUpdated++;
+                    }
+
+                    if (dto.getQuestions() != null && hasQuestionChanges) {
+                        int[] questResult = processQuestions(existing, dto.getQuestions(), project,
+                                qResponses, blocked, warnings);
+                        questAdded += questResult[0];
+                        questRemoved += questResult[1];
+                        questUpdated += questResult[2];
+                        respUpdated += questResult[3];
+                    }
                 }
             }
         }
@@ -417,9 +482,19 @@ public class UpdateProjectUseCase {
                 Question existing = existingById.get(dto.getId());
                 if (existing == null) continue;
 
+                boolean isTextChange = dto.getValue() != null && !dto.getValue().equals(existing.getValue());
+                boolean isRoleChange = dto.getRoleIds() != null;
+
+                List<String> editBlocked = validationPolicy.validateQuestionUpdate(
+                        existing, questionnaire, responses, isTextChange, isRoleChange);
+                if (!editBlocked.isEmpty()) {
+                    blocked.addAll(editBlocked);
+                    continue;
+                }
+
                 boolean changed = false;
 
-                if (dto.getValue() != null && !dto.getValue().equals(existing.getValue())) {
+                if (isTextChange) {
                     existing.setValue(dto.getValue());
                     responseSyncService.updateQuestionTextInResponses(questionnaire.getId(), existing.getId(), dto.getValue());
                     changed = true;
@@ -731,7 +806,9 @@ public class UpdateProjectUseCase {
 
     private Map<Integer, List<QuestionnaireResponse>> buildResponsesByQuestionnaireMap(Long projectId) {
         List<QuestionnaireResponse> all = responseRepository.findByProjectId(projectId);
-        return all.stream().collect(Collectors.groupingBy(QuestionnaireResponse::getQuestionnaireId));
+        return all.stream()
+                .filter(r -> r.getRepresentativeId() != null)
+                .collect(Collectors.groupingBy(QuestionnaireResponse::getQuestionnaireId));
     }
 
     private UpdateProjectResponseDTO buildResponse(Project project, int[] counters,

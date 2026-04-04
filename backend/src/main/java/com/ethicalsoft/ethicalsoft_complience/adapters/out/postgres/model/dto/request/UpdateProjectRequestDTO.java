@@ -28,6 +28,9 @@ public class UpdateProjectRequestDTO {
         private Integer id;
         private String name;
         private BigDecimal weight;
+        private Integer durationDays;
+        private LocalDate applicationStartDate;
+        private LocalDate applicationEndDate;
     }
 
     @Data

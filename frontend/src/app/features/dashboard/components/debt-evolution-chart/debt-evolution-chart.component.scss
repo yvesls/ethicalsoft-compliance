@@ -1,3 +1,5 @@
+@use '../../../../../assets/scss/base/vars' as *;
+
 .debt-evolution-chart {
   width: 100%;
   height: 320px;
@@ -8,6 +10,6 @@
   align-items: center;
   justify-content: center;
   height: 120px;
-  color: #9e9e9e;
+  color: $gray-muted;
   font-size: 0.875rem;
 }

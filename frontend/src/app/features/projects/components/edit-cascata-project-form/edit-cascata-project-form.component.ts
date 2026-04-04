@@ -19,6 +19,8 @@ import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize, take } from 'rxjs/operators';
 
+import { LoggerService } from '../../../../core/services/logger.service';
+
 import { ProjectType } from '../../../../shared/enums/project-type.enum';
 import { ProjectStore } from '../../../../shared/stores/project.store';
 import { ModalService } from '../../../../core/services/modal.service';
@@ -48,7 +50,6 @@ import {
   UpdateQuestionnairePayload,
   UpdateQuestionPayload,
   UpdateRepresentativePayload,
-  ChangesSummary,
   UpdateProjectConflictError,
 } from '../../../../shared/interfaces/project/project-update.interface';
 
@@ -61,9 +62,7 @@ import {
   RepresentativeData,
 } from '../representative-modal/representative-modal.component';
 import { QuestionData } from '../question-modal/question-modal.component';
-import {
-  ProjectUpdatePreviewModalComponent,
-} from '../project-update-preview-modal/project-update-preview-modal.component';
+
 
 type PanelKey = 'project' | 'steps' | 'representatives' | 'questionnaires';
 type PanelStates = Record<PanelKey, boolean>;
@@ -96,7 +95,6 @@ export class EditCascataProjectFormComponent implements OnInit {
   public ProjectType = ProjectType;
   public projectForm!: FormGroup;
   public isSubmitting = false;
-  public isLoadingPreview = false;
   public isLoadingProject = true;
   public loadError: string | null = null;
   public showQuestionnaireQuestionErrors = false;
@@ -241,7 +239,9 @@ export class EditCascataProjectFormComponent implements OnInit {
 
     const stepsArray = this.projectForm.get('steps') as FormArray;
     while (stepsArray.length > 0) stepsArray.removeAt(0);
-    for (const stage of (data.stages || []).sort((a, b) => a.sequence - b.sequence)) {
+    const sortedStages = (data.stages || []).sort((a, b) => a.sequence - b.sequence);
+    const stagesWithDuration = this.ensureStageDurationDays(sortedStages, data.startDate);
+    for (const stage of stagesWithDuration) {
       stepsArray.push(this.buildStageFormGroup(stage));
     }
 
@@ -257,6 +257,7 @@ export class EditCascataProjectFormComponent implements OnInit {
       qArray.push(this.buildQuestionnaireFormGroup(q));
     }
 
+    this.applyPendingQuestionnaireUpdate();
     this.cdr.markForCheck();
   }
 
@@ -296,7 +297,7 @@ export class EditCascataProjectFormComponent implements OnInit {
     const questions: QuestionData[] = (q.questions || []).map((question) => ({
       id: String(question.id),
       _entityId: question.id,
-      value: question.value,
+      value: question.text,
       roleIds: question.roleIds ?? [],
       roleNames: question.roleNames ?? [],
       stageNames: question.stageNames ?? [],
@@ -536,6 +537,45 @@ export class EditCascataProjectFormComponent implements OnInit {
     });
   }
 
+  private applyPendingQuestionnaireUpdate(): void {
+    const PENDING_KEY = 'pendingQuestionnaireUpdate';
+    try {
+      const raw = sessionStorage.getItem(PENDING_KEY);
+      if (!raw) return;
+      sessionStorage.removeItem(PENDING_KEY);
+
+      const update = JSON.parse(raw);
+      if (!update || typeof update.questionnaireIndex !== 'number') return;
+
+      const questionnaireGroup = this.questionnairesFormArray.at(update.questionnaireIndex) as FormGroup | null;
+      if (!questionnaireGroup) return;
+
+      questionnaireGroup.patchValue(
+        {
+          name: update.name,
+          sequence: update.sequence,
+          applicationStartDate: update.applicationStartDate,
+          applicationEndDate: update.applicationEndDate,
+          stageName: update.stageName || questionnaireGroup.get('stageName')?.value,
+        },
+        { emitEvent: false }
+      );
+
+      const updatedQuestions = update.questions || [];
+      const questionsControl = questionnaireGroup.get('questions');
+      if (questionsControl) {
+        questionsControl.setValue(updatedQuestions);
+      } else {
+        questionnaireGroup.addControl('questions', this.fb.control(updatedQuestions));
+      }
+
+      questionnaireGroup.markAsDirty();
+      this.cdr.detectChanges();
+    } catch (error) {
+      LoggerService.error('EditCascataProjectForm: Erro ao aplicar atualização pendente do questionário', error);
+    }
+  }
+
   shouldDisplayQuestionnaireQuestionError(index: number): boolean {
     return this.showQuestionnaireQuestionErrors && this.questionnaireQuestionErrors.has(index);
   }
@@ -566,7 +606,7 @@ export class EditCascataProjectFormComponent implements OnInit {
     return !hasErrors;
   }
 
-  canOpenPanel(_panelKey: PanelKey): boolean {
+  canOpenPanel(): boolean {
     return true;
   }
 
@@ -575,79 +615,73 @@ export class EditCascataProjectFormComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
-  onAttemptedToggle(_panelKey: PanelKey): void {
-  }
+  onAttemptedToggle(): void { /* empty */ }
 
   onSubmit(): void {
     if (this.projectForm.invalid) {
       this.projectForm.markAllAsTouched();
-      this.notificationService.showWarning('Revise os campos obrigatórios antes de salvar.');
+      const issues = this.collectValidationIssues();
+      this.notificationService.showWarning(issues);
       return;
     }
 
     if (!this.validateQuestionnairesHaveQuestions()) return;
-    if (this.isSubmitting || this.isLoadingPreview) return;
+    if (this.isSubmitting) return;
 
-    this.runDryRunPreview();
+    this.applyUpdate();
   }
 
-  private runDryRunPreview(): void {
-    let payload: UpdateProjectRequest;
-    try {
-      payload = this.buildUpdatePayload(true);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Erro ao preparar os dados.';
-      this.notificationService.showError(message);
-      return;
+  private collectValidationIssues(): string {
+    const issues: string[] = [];
+
+    const fieldLabels: Record<string, string> = {
+      name: 'Nome do projeto',
+      startDate: 'Data de início',
+      deadline: 'Prazo limite',
+    };
+
+    for (const [key, label] of Object.entries(fieldLabels)) {
+      if (this.projectForm.get(key)?.invalid) {
+        issues.push(label);
+      }
     }
 
-    this.isLoadingPreview = true;
-    this.cdr.markForCheck();
+    const groupErrors = this.projectForm.errors;
+    if (groupErrors?.['dateRange']) {
+      issues.push('A data de início não pode ser maior que o prazo limite');
+    }
+    if (groupErrors?.['stagesExceedDeadline']) {
+      issues.push('As etapas ultrapassam o prazo limite do projeto');
+    }
+    if (groupErrors?.['stageApplicationRangeExceedsDeadline']) {
+      issues.push('O período de aplicação das etapas excede o prazo limite');
+    }
 
-    this.projectStore
-      .updateProject(this.projectId, payload)
-      .pipe(
-        take(1),
-        finalize(() => {
-          this.isLoadingPreview = false;
-          this.cdr.markForCheck();
-        })
-      )
-      .subscribe({
-        next: (response) => {
-          this.openPreviewModal(response.changesSummary);
-        },
-        error: (err) => {
-          this.handleUpdateError(err);
-        },
-      });
-  }
+    const stepsArray = this.projectForm.get('steps') as FormArray;
+    if (!stepsArray || stepsArray.length === 0) {
+      issues.push('É necessário adicionar pelo menos uma etapa');
+    } else if (stepsArray.invalid) {
+      issues.push('Há etapas com campos inválidos');
+    }
 
-  private openPreviewModal(summary: ChangesSummary): void {
-    const isBlocked = summary.blockedReasons.length > 0;
+    const repsArray = this.projectForm.get('representatives') as FormArray;
+    if (!repsArray || repsArray.length === 0) {
+      issues.push('É necessário adicionar pelo menos um representante');
+    } else if (repsArray.invalid) {
+      issues.push('Há representantes com campos inválidos');
+    }
 
-    this.modalService.open(ProjectUpdatePreviewModalComponent, 'medium-card', {
-      summary,
-      isBlocked,
-    });
+    if (issues.length === 0) {
+      return 'Revise os campos obrigatórios antes de salvar.';
+    }
 
-    const modalInstance = this.modalService.getActiveInstance<ProjectUpdatePreviewModalComponent>();
-    if (!modalInstance) return;
-
-    modalInstance.confirmed.pipe(take(1)).subscribe(() => {
-      this.modalService.close();
-      this.applyUpdate();
-    });
-
-    modalInstance.canceled.pipe(take(1)).subscribe(() => {
-      this.modalService.close();
-    });
+    return 'Não é possível salvar. Corrija os seguintes problemas:<br>• ' + issues.join('<br>• ');
   }
 
   private applyUpdate(): void {
     let payload: UpdateProjectRequest;
     try {
-      payload = this.buildUpdatePayload(false);
+      payload = this.buildUpdatePayload();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Erro ao preparar os dados.';
       this.notificationService.showError(message);
@@ -668,19 +702,42 @@ export class EditCascataProjectFormComponent implements OnInit {
       )
       .subscribe({
         next: (response) => {
-          const summary = response.changesSummary;
-          const totalChanges =
-            summary.stagesAdded + summary.stagesUpdated + summary.stagesRemoved +
-            summary.questionnairesAdded + summary.questionnairesUpdated + summary.questionnairesRemoved +
-            summary.representativesAdded + summary.representativesUpdated + summary.representativesRemoved +
-            summary.questionsAdded + summary.questionsUpdated + summary.questionsRemoved;
+          try {
+            if (!response?.changesSummary) {
+              this.notificationService.showSuccess('Projeto atualizado com sucesso.');
+              this.routerService.navigateTo(`/projects/${this.projectId}`);
+              return;
+            }
 
-          this.notificationService.showSuccess(
-            totalChanges > 0
-              ? `Projeto atualizado com sucesso. ${totalChanges} alteração(ões) aplicada(s).`
-              : 'Projeto atualizado com sucesso.'
-          );
-          this.routerService.navigateTo(`/projects/${this.projectId}`);
+            const summary = response.changesSummary;
+            const totalChanges =
+              summary.stagesAdded + summary.stagesUpdated + summary.stagesRemoved +
+              summary.questionnairesAdded + summary.questionnairesUpdated + summary.questionnairesRemoved +
+              summary.representativesAdded + summary.representativesUpdated + summary.representativesRemoved +
+              summary.questionsAdded + summary.questionsUpdated + summary.questionsRemoved;
+
+            if (summary.blockedReasons?.length) {
+              const reasons = summary.blockedReasons.join('\n• ');
+              this.notificationService.showError(`Atualização bloqueada:\n• ${reasons}`);
+              return;
+            }
+
+            if (summary.warnings?.length) {
+              const warns = summary.warnings.join('\n• ');
+              this.notificationService.showWarning(`Projeto atualizado com avisos:\n• ${warns}`);
+            } else {
+              this.notificationService.showSuccess(
+                totalChanges > 0
+                  ? `Projeto atualizado com sucesso. ${totalChanges} alteração(ões) aplicada(s).`
+                  : 'Projeto atualizado com sucesso.'
+              );
+            }
+
+            this.routerService.navigateTo(`/projects/${this.projectId}`);
+          } catch (error_) {
+            LoggerService.error('Erro inesperado ao processar resposta de atualização', error_);
+            this.notificationService.showError('Erro inesperado ao processar a resposta da atualização.');
+          }
         },
         error: (err) => {
           this.handleUpdateError(err);
@@ -718,7 +775,7 @@ export class EditCascataProjectFormComponent implements OnInit {
     this.routerService.navigateTo(`/projects/${this.projectId}`);
   }
 
-  private buildUpdatePayload(dryRun: boolean): UpdateProjectRequest {
+  private buildUpdatePayload(): UpdateProjectRequest {
     const formValue = this.projectForm.getRawValue();
     const name = (formValue.name || '').trim();
     if (!name) throw new Error('Informe o nome do projeto.');
@@ -728,7 +785,7 @@ export class EditCascataProjectFormComponent implements OnInit {
       name,
       startDate: formValue.startDate,
       deadline: formValue.deadline || null,
-      dryRun,
+      dryRun: false,
       stages: this.buildStagePayloads(),
       iterations: this.buildIterationPayloads(),
       questionnaires: this.buildQuestionnairePayloads(),
@@ -784,8 +841,8 @@ export class EditCascataProjectFormComponent implements OnInit {
     return questions.map((q) => ({
       id: this.normalizeEntityId((q as QuestionData & { _entityId?: number })._entityId ?? q.id),
       value: q.value,
-      roleIds: this.normalizeRoleIds(q.roleIds),
-      stageNames: q.stageNames?.length ? q.stageNames : undefined,
+      roleIds: this.normalizeRoleIds(q.roleIds).sort((a, b) => a - b),
+      stageNames: q.stageNames?.length ? [...q.stageNames].sort((a, b) => a.localeCompare(b)) : [],
     }));
   }
 
@@ -830,6 +887,74 @@ export class EditCascataProjectFormComponent implements OnInit {
       durationDays: Number(control.get('durationDays')?.value) || 0,
       sequence: Number(control.get('sequence')?.value) || 1,
     }));
+  }
+
+  /**
+   * Garante que todos os stages tenham durationDays.
+   * Se o backend retornar durationDays, usa diretamente.
+   * Caso contrário (dados legados), calcula a partir das datas de aplicação
+   * e da data de início do projeto, revertendo a fórmula de 10%/90%.
+   */
+  private ensureStageDurationDays(
+    stages: ProjectStageDetail[],
+    projectStartDate: string
+  ): ProjectStageDetail[] {
+    if (!projectStartDate || !stages.length) return stages;
+
+    let stageStart = BusinessDaysUtils.parseISODate(projectStartDate);
+    const result: ProjectStageDetail[] = [];
+
+    for (const stage of stages) {
+      if (stage.durationDays && stage.durationDays > 0) {
+        result.push(stage);
+        stageStart = FormUtils.addBusinessDays(stageStart, stage.durationDays);
+        continue;
+      }
+
+      const estimated = this.estimateDurationDays(stageStart, stage.applicationStartDate, stage.applicationEndDate);
+      result.push({ ...stage, durationDays: estimated });
+      stageStart = FormUtils.addBusinessDays(stageStart, estimated);
+    }
+
+    return result;
+  }
+
+  /**
+   * Estima durationDays a partir do stageStart e as datas de aplicação.
+   * Reverte a fórmula:
+   *   applicationStartDate = stageStart + round(d * 0.1) dias úteis
+   *   applicationEndDate = stageStart + round(d * 0.9) dias úteis
+   */
+  private estimateDurationDays(
+    stageStart: Date,
+    applicationStartDate?: string | null,
+    applicationEndDate?: string | null
+  ): number {
+    if (!applicationStartDate || !applicationEndDate) return 0;
+
+    const appStart = BusinessDaysUtils.parseISODate(applicationStartDate);
+    const appEnd = BusinessDaysUtils.parseISODate(applicationEndDate);
+
+    if (Number.isNaN(appStart.getTime()) || Number.isNaN(appEnd.getTime()) || Number.isNaN(stageStart.getTime())) {
+      return 0;
+    }
+
+    const openingOffset = FormUtils.calculateBusinessDays(stageStart, appStart);
+    const closingOffset = FormUtils.calculateBusinessDays(stageStart, appEnd);
+
+    if (closingOffset <= 0) return 0;
+
+    const estimate = Math.round(closingOffset / 0.9);
+
+    for (let candidate = Math.max(1, estimate - 2); candidate <= estimate + 2; candidate++) {
+      const expectedOpen = Math.max(Math.round(candidate * 0.1), 0);
+      const expectedClose = Math.max(Math.round(candidate * 0.9), expectedOpen);
+      if (expectedOpen === openingOffset && expectedClose === closingOffset) {
+        return candidate;
+      }
+    }
+
+    return Math.max(estimate, 1);
   }
 
   private getExistingSequences(): number[] {

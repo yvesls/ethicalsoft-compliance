@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, Input, HostBinding, HostListener, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, Input, Output, EventEmitter, HostBinding, HostListener, inject } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { Project } from '../../interfaces/project/project.interface';
 import { ProjectStatus } from '../../enums/project-status.enum';
@@ -16,6 +16,8 @@ import { Router } from '@angular/router';
 export class ListItemComponent {
   @Input({ required: true }) item!: Project;
   @Input() navigateTo: string[] | null = null;
+  @Input() showDeleteButton = false;
+  @Output() deleteClicked = new EventEmitter<Project>();
   private readonly router = inject(Router);
 
   public ProjectType = ProjectType;
@@ -37,6 +39,7 @@ export class ListItemComponent {
     'RASCUNHO': 'assets/icons/clock.svg',
     'CONCLUIDO': 'assets/icons/circle-check.svg',
     'ARQUIVADO': 'assets/icons/box-archive.svg',
+    'EXCLUIDO': 'assets/icons/trash.svg',
   };
 
   statusDisplayMap: Record<string, string> = {
@@ -44,6 +47,7 @@ export class ListItemComponent {
     'RASCUNHO': ProjectStatus.Rascunho,
     'CONCLUIDO': ProjectStatus.Concluido,
     'ARQUIVADO': ProjectStatus.Arquivado,
+    'EXCLUIDO': ProjectStatus.Excluido,
   };
 
   get formattedCode(): string {
@@ -101,5 +105,15 @@ export class ListItemComponent {
 
     event.preventDefault();
     this.router.navigate(this.navigateTo);
+  }
+
+  get canDelete(): boolean {
+    return this.showDeleteButton && (this.item?.status as string) !== 'CONCLUIDO';
+  }
+
+  onDeleteClick(event: Event): void {
+    event.stopPropagation();
+    event.preventDefault();
+    this.deleteClicked.emit(this.item);
   }
 }

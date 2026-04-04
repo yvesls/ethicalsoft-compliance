@@ -137,6 +137,67 @@ public class ProjectUpdateValidationPolicy {
         return blocked;
     }
 
+    public List<String> validateQuestionnaireUpdate(Questionnaire questionnaire,
+                                                    boolean hasResult,
+                                                    List<QuestionnaireResponse> responses,
+                                                    boolean isStructuralChange) {
+        List<String> blocked = new ArrayList<>();
+
+        if (hasResult) {
+            blocked.add("Questionário '" + questionnaire.getName() + "' já possui resultado ISEP. Não pode ser editado.");
+            return blocked;
+        }
+
+        if (questionnaire.getStatus() == TimelineStatusEnum.CONCLUIDO) {
+            blocked.add("Questionário '" + questionnaire.getName() + "' já está CONCLUÍDO. Não pode ser editado.");
+            return blocked;
+        }
+
+        if (isStructuralChange && responses != null) {
+            boolean hasCompleted = responses.stream()
+                    .anyMatch(r -> r.getStatus() == QuestionnaireResponseStatus.COMPLETED);
+            if (hasCompleted) {
+                blocked.add("Questionário '" + questionnaire.getName() + "' possui respostas COMPLETED. Mudanças estruturais (peso) não são permitidas.");
+            }
+        }
+
+        return blocked;
+    }
+
+    public List<String> validateQuestionUpdate(Question question,
+                                               Questionnaire questionnaire,
+                                               List<QuestionnaireResponse> responses,
+                                               boolean isTextChange,
+                                               boolean isRoleChange) {
+        List<String> blocked = new ArrayList<>();
+
+        if (questionnaire.getStatus() == TimelineStatusEnum.CONCLUIDO) {
+            blocked.add("Não é possível editar pergunta '" + truncate(question.getValue()) + "' de questionário CONCLUÍDO '" + questionnaire.getName() + "'.");
+            return blocked;
+        }
+
+        if (responses != null) {
+            boolean hasCompleted = responses.stream()
+                    .anyMatch(r -> r.getStatus() == QuestionnaireResponseStatus.COMPLETED);
+
+            if (hasCompleted && isTextChange) {
+                blocked.add("Pergunta '" + truncate(question.getValue()) + "' já foi respondida (respostas COMPLETED). O texto não pode ser alterado.");
+            }
+
+            if (hasCompleted && isRoleChange) {
+                boolean questionAnswered = responses.stream()
+                        .filter(r -> r.getStatus() == QuestionnaireResponseStatus.COMPLETED)
+                        .anyMatch(r -> r.getAnswers() != null && r.getAnswers().stream()
+                                .anyMatch(a -> Objects.equals(a.getQuestionId(), Long.valueOf(question.getId())) && a.getResponse() != null));
+                if (questionAnswered) {
+                    blocked.add("Pergunta '" + truncate(question.getValue()) + "' já foi respondida. Os papéis vinculados não podem ser alterados.");
+                }
+            }
+        }
+
+        return blocked;
+    }
+
     public List<String> validateDatesChange(Questionnaire questionnaire,
                                             LocalDate newEndDate,
                                             List<QuestionnaireResponse> responses) {

@@ -43,7 +43,7 @@ public class Project {
 	@Temporal(TemporalType.DATE)
 	private LocalDate deadline;
 
-	@Column(name = "status", nullable = false, length = 20)
+	@Column(name = "status", nullable = false, length = 20, columnDefinition = "varchar(20)")
 	@Enumerated(EnumType.STRING)
 	private ProjectStatusEnum status;
 

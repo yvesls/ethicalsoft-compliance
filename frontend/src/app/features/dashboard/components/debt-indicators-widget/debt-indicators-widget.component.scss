@@ -1,3 +1,5 @@
+@use '../../../../../assets/scss/base/vars' as *;
+
 .debt-widget {
   padding: 0;
 }
@@ -6,7 +8,7 @@
   font-size: 1rem;
   font-weight: 700;
   margin-bottom: 1rem;
-  color: #051937;
+  color: $blue-primary;
 }
 
 .debt-widget__grid {
@@ -20,10 +22,10 @@
 }
 
 .debt-indicator {
-  background: #f7f8fa;
-  border-radius: 8px;
+  background: $gray-quaternary;
+  border-radius: $radius-sm;
   padding: 1rem 1.25rem;
-  border: 1.5px solid #e0e0e0;
+  border: 1.5px solid $gray-border;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -38,7 +40,7 @@
 .debt-indicator__label {
   font-size: 0.78rem;
   font-weight: 600;
-  color: #515151;
+  color: $gray-secundary;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -50,10 +52,10 @@
   flex-shrink: 0;
 }
 
-.dot--green  { background: #2e7d32; }
-.dot--yellow { background: #f57f17; }
-.dot--red    { background: #c62828; }
-.dot--gray   { background: #bdbdbd; }
+.dot--green  { background: $semantic-green; }
+.dot--yellow { background: $semantic-yellow; }
+.dot--red    { background: $semantic-red-dark; }
+.dot--gray   { background: $gray-disabled; }
 
 .debt-indicator__value {
   font-size: 2rem;
@@ -61,10 +63,10 @@
   line-height: 1;
 }
 
-.value--green  { color: #2e7d32; }
-.value--yellow { color: #f57f17; }
-.value--red    { color: #c62828; }
-.value--gray   { color: #9e9e9e; }
+.value--green  { color: $semantic-green; }
+.value--yellow { color: $semantic-yellow; }
+.value--red    { color: $semantic-red-dark; }
+.value--gray   { color: $gray-muted; }
 
 .debt-indicator__thresholds {
   display: flex;
@@ -76,10 +78,10 @@
 .threshold {
   font-size: 0.68rem;
   padding: 0.1rem 0.45rem;
-  border-radius: 99px;
+  border-radius: $radius-pill;
   font-weight: 500;
 
-  &.green  { background: #e8f5e9; color: #2e7d32; }
-  &.yellow { background: #fff8e1; color: #f57f17; }
-  &.red    { background: #ffebee; color: #c62828; }
+  &.green  { background: $semantic-green-bg; color: $semantic-green; }
+  &.yellow { background: $semantic-yellow-bg; color: $semantic-yellow; }
+  &.red    { background: $semantic-red-bg; color: $semantic-red-dark; }
 }

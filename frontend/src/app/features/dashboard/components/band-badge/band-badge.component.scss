@@ -1,14 +1,16 @@
+@use '../../../../../assets/scss/base/vars' as *;
+
 .band-badge {
   display: inline-block;
   padding: 0.25rem 0.75rem;
   border-radius: 1rem;
   font-weight: 700;
   font-size: 0.85rem;
-  color: #fff;
+  color: $white;
 }
 
-.band-a { background-color: #2e7d32; }
-.band-b { background-color: #1565c0; }
-.band-c { background-color: #f57f17; }
-.band-d { background-color: #e65100; }
-.band-e { background-color: #c62828; }
+.band-a { background-color: $band-a; }
+.band-b { background-color: $band-b; }
+.band-c { background-color: $band-c; }
+.band-d { background-color: $band-d; }
+.band-e { background-color: $band-e; }
