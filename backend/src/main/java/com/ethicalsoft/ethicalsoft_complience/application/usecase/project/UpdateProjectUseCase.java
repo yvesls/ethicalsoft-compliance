@@ -76,6 +76,16 @@ public class UpdateProjectUseCase {
 
         updateProjectScalars(project, request);
 
+        if (request.getQuestionnaires() != null) {
+            int[] qCounters = processQuestionnaires(project, request.getQuestionnaires(), questionnaireHasResult, responsesByQuestionnaire, allBlocked, warnings);
+            counters[6] = qCounters[0]; counters[7] = qCounters[1]; counters[8] = qCounters[2];
+            counters[9] = qCounters[3]; counters[10] = qCounters[4]; counters[11] = qCounters[5];
+            responsesUpdated += qCounters[6];
+            responsesDeleted += qCounters[7];
+        }
+
+        projectRepository.flush();
+
         counters[0] = counters[1] = counters[2] = 0;
         if (request.getStages() != null) {
             int[] stageCounters = processStages(project, request.getStages(), questionnaireHasResult, responsesByQuestionnaire, allBlocked, warnings);
@@ -85,14 +95,6 @@ public class UpdateProjectUseCase {
         if (request.getIterations() != null) {
             int[] iterCounters = processIterations(project, request.getIterations(), questionnaireHasResult, responsesByQuestionnaire, allBlocked, warnings);
             counters[3] = iterCounters[0]; counters[4] = iterCounters[1]; counters[5] = iterCounters[2];
-        }
-
-        if (request.getQuestionnaires() != null) {
-            int[] qCounters = processQuestionnaires(project, request.getQuestionnaires(), questionnaireHasResult, responsesByQuestionnaire, allBlocked, warnings);
-            counters[6] = qCounters[0]; counters[7] = qCounters[1]; counters[8] = qCounters[2];
-            counters[9] = qCounters[3]; counters[10] = qCounters[4]; counters[11] = qCounters[5];
-            responsesUpdated += qCounters[6];
-            responsesDeleted += qCounters[7];
         }
 
         if (request.getRepresentatives() != null) {
@@ -147,23 +149,42 @@ public class UpdateProjectUseCase {
                                 List<String> blocked, List<String> warnings) {
         int added = 0, removed = 0, updated = 0;
 
+        questionRepository.flush();
+
         Map<Integer, Stage> existingById = project.getStages() != null
                 ? project.getStages().stream().filter(s -> s.getId() != null).collect(Collectors.toMap(Stage::getId, Function.identity()))
                 : new HashMap<>();
 
         Set<Integer> requestIds = requestStages.stream()
-                .filter(s -> s.getId() != null).map(UpdateStageDTO::getId).collect(Collectors.toSet());
+                .map(UpdateStageDTO::getId).filter(Objects::nonNull).collect(Collectors.toSet());
 
         for (Stage existing : new ArrayList<>(existingById.values())) {
             if (!requestIds.contains(existing.getId())) {
-                boolean hasActiveQuestionnaires = project.getQuestionnaires() != null &&
-                        project.getQuestionnaires().stream()
-                                .anyMatch(q -> q.getStage() != null && Objects.equals(q.getStage().getId(), existing.getId())
-                                        && q.getStatus() != TimelineStatusEnum.PENDENTE);
-                if (hasActiveQuestionnaires) {
-                    blocked.add("Não é possível remover etapa '" + existing.getName() + "' com questionários ativos.");
+                List<Questionnaire> linkedQList = questionnaireRepository.findByStageId(existing.getId());
+                if (!linkedQList.isEmpty()) {
+                    List<String> linkedQNames = linkedQList.stream()
+                            .map(q -> "'" + q.getName() + "' (id=" + q.getId() + ")")
+                            .toList();
+                    blocked.add("Não é possível remover a etapa '" + existing.getName()
+                            + "' (id=" + existing.getId() + ") pois os seguintes questionários ainda estão vinculados: "
+                            + String.join(", ", linkedQNames)
+                            + ". Remova ou altere a etapa desses questionários antes de excluir esta etapa.");
                     continue;
                 }
+
+                List<Object[]> linkedQuestionRows = questionRepository.findQuestionIdAndTextByStageIdNative(existing.getId());
+                if (!linkedQuestionRows.isEmpty()) {
+                    Set<String> questionnaireNames = linkedQuestionRows.stream()
+                            .map(row -> row[3] != null ? String.valueOf(row[3]) : "id=" + ((Number) row[2]).longValue())
+                            .collect(Collectors.toCollection(LinkedHashSet::new));
+                    blocked.add("Não é possível remover a etapa '" + existing.getName()
+                            + "' (id=" + existing.getId() + ") pois ainda existem "
+                            + linkedQuestionRows.size() + " perguntas vinculadas, distribuídas nos questionários: "
+                            + String.join(", ", questionnaireNames)
+                            + ". Remova ou desvincule a etapa dessas perguntas antes de excluir esta etapa.");
+                    continue;
+                }
+
                 stageRepository.deleteById(Long.valueOf(existing.getId()));
                 removed++;
             }
@@ -229,18 +250,22 @@ public class UpdateProjectUseCase {
                 : new HashMap<>();
 
         Set<Integer> requestIds = requestIterations.stream()
-                .filter(i -> i.getId() != null).map(UpdateIterationDTO::getId).collect(Collectors.toSet());
+                .map(UpdateIterationDTO::getId).filter(Objects::nonNull).collect(Collectors.toSet());
 
         for (Iteration existing : new ArrayList<>(existingById.values())) {
             if (!requestIds.contains(existing.getId())) {
-                boolean hasActiveQuestionnaires = project.getQuestionnaires() != null &&
-                        project.getQuestionnaires().stream()
-                                .anyMatch(q -> q.getIterationRef() != null && Objects.equals(q.getIterationRef().getId(), existing.getId())
-                                        && q.getStatus() != TimelineStatusEnum.PENDENTE);
-                if (hasActiveQuestionnaires) {
-                    blocked.add("Não é possível remover iteração '" + existing.getName() + "' com questionários ativos.");
+                List<Questionnaire> linkedQList = questionnaireRepository.findByIterationRefId(existing.getId());
+                if (!linkedQList.isEmpty()) {
+                    List<String> linkedQNames = linkedQList.stream()
+                            .map(q -> "'" + q.getName() + "' (id=" + q.getId() + ", status=" + q.getStatus() + ")")
+                            .toList();
+                    blocked.add("Não é possível remover a iteração '" + existing.getName()
+                            + "' pois os seguintes questionários ainda estão vinculados: "
+                            + String.join(", ", linkedQNames)
+                            + ". Remova ou altere a iteração desses questionários antes de excluir esta iteração.");
                     continue;
                 }
+
                 iterationRepository.deleteById(Long.valueOf(existing.getId()));
                 removed++;
             }
@@ -301,7 +326,7 @@ public class UpdateProjectUseCase {
                 : new HashMap<>();
 
         Set<Integer> requestIds = requestQuestionnaires.stream()
-                .filter(q -> q.getId() != null).map(UpdateQuestionnaireDTO::getId).collect(Collectors.toSet());
+                .map(UpdateQuestionnaireDTO::getId).filter(Objects::nonNull).collect(Collectors.toSet());
 
         for (Questionnaire existing : new ArrayList<>(existingById.values())) {
             if (!requestIds.contains(existing.getId())) {
@@ -314,6 +339,12 @@ public class UpdateProjectUseCase {
                 }
                 respDeleted += responseSyncService.deleteResponsesForQuestionnaire(project.getId(), existing.getId());
                 if (existing.getQuestions() != null) {
+                    existing.getQuestions().forEach(q -> {
+                        q.getStages().clear();
+                        q.getRoles().clear();
+                        questionRepository.save(q);
+                    });
+                    questionRepository.flush();
                     existing.getQuestions().forEach(q -> questionRepository.deleteById(Long.valueOf(q.getId())));
                 }
                 questionnaireRepository.deleteById(existing.getId());
@@ -383,7 +414,8 @@ public class UpdateProjectUseCase {
                 }
 
                 boolean qChanged = false;
-                boolean isStructuralChange = hasWeightChange;
+                boolean isStructuralChange;
+                isStructuralChange = hasWeightChange;
 
                 List<String> updateBlocked = validationPolicy.validateQuestionnaireUpdate(
                         existing, hasResult, qResponses, isStructuralChange);
@@ -452,17 +484,27 @@ public class UpdateProjectUseCase {
                 : new HashMap<>();
 
         Set<Integer> requestIds = requestQuestions.stream()
-                .filter(q -> q.getId() != null).map(UpdateQuestionDTO::getId).collect(Collectors.toSet());
+                .map(UpdateQuestionDTO::getId).filter(Objects::nonNull).collect(Collectors.toSet());
+
+        Set<Representative> projectReps = project.getRepresentatives() != null
+                ? project.getRepresentatives().stream().filter(r -> r.getDeletionDate() == null).collect(Collectors.toSet())
+                : Set.of();
 
         for (Question existing : new ArrayList<>(existingById.values())) {
             if (!requestIds.contains(existing.getId())) {
-                List<String> blockReasons = validationPolicy.validateQuestionRemoval(existing, questionnaire, responses);
+                List<String> blockReasons = validationPolicy.validateQuestionRemoval(existing, questionnaire, responses, projectReps);
                 if (!blockReasons.isEmpty()) {
                     blocked.addAll(blockReasons);
                     continue;
                 }
                 respUpdated += responseSyncService.removeQuestionFromResponses(questionnaire.getId(), existing.getId());
+                existing.getStages().clear();
+                existing.getRoles().clear();
+                questionnaire.getQuestions().remove(existing);
+                questionRepository.save(existing);
+                questionRepository.flush();
                 questionRepository.deleteById(Long.valueOf(existing.getId()));
+                questionRepository.flush();
                 removed++;
             }
         }
@@ -475,7 +517,9 @@ public class UpdateProjectUseCase {
                     continue;
                 }
                 Question newQ = createQuestionFromDTO(questionnaire, dto, project);
-                Set<Representative> reps = project.getRepresentatives() != null ? project.getRepresentatives() : Set.of();
+                Set<Representative> reps = project.getRepresentatives() != null
+                        ? project.getRepresentatives().stream().filter(r -> r.getDeletionDate() == null).collect(Collectors.toSet())
+                        : Set.of();
                 respUpdated += responseSyncService.addQuestionToResponses(questionnaire.getId(), newQ, reps);
                 added++;
             } else {
@@ -483,10 +527,14 @@ public class UpdateProjectUseCase {
                 if (existing == null) continue;
 
                 boolean isTextChange = dto.getValue() != null && !dto.getValue().equals(existing.getValue());
-                boolean isRoleChange = dto.getRoleIds() != null;
+                boolean isRoleChange = false;
+                if (dto.getRoleIds() != null) {
+                    Set<Long> existingRoleIds = existing.getRoles().stream().map(Role::getId).collect(Collectors.toSet());
+                    isRoleChange = !existingRoleIds.equals(dto.getRoleIds());
+                }
 
                 List<String> editBlocked = validationPolicy.validateQuestionUpdate(
-                        existing, questionnaire, responses, isTextChange, isRoleChange);
+                        existing, questionnaire, responses, isTextChange, isRoleChange, projectReps);
                 if (!editBlocked.isEmpty()) {
                     blocked.addAll(editBlocked);
                     continue;
@@ -541,7 +589,7 @@ public class UpdateProjectUseCase {
                 : new HashMap<>();
 
         Set<Long> requestIds = requestReps.stream()
-                .filter(r -> r.getId() != null).map(UpdateRepresentativeDTO::getId).collect(Collectors.toSet());
+                .map(UpdateRepresentativeDTO::getId).filter(Objects::nonNull).collect(Collectors.toSet());
 
         for (Representative existing : new ArrayList<>(existingById.values())) {
             if (!requestIds.contains(existing.getId())) {

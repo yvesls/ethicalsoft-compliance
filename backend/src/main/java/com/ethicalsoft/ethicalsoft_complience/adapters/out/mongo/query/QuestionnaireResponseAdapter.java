@@ -48,7 +48,13 @@ public class QuestionnaireResponseAdapter implements QuestionnaireResponsePort {
             log.info("[questionnaire-response] Buscando respostas projeto={} questionario={}", projectId, questionnaireId);
             Long effectiveRepresentativeId = representativeAccessPolicy.resolveRepresentativeIdForResponse(projectId);
 
+            Questionnaire questionnaire = loadQuestionnaire(projectId, questionnaireId);
             QuestionnaireResponse response = loadResponse(projectId, questionnaireId, effectiveRepresentativeId);
+
+            if (answerPolicy.syncAnswers(response, questionnaire)) {
+                questionnaireResponseRepository.save(response);
+            }
+
             List<QuestionnaireResponse.AnswerDocument> allAnswers = Optional.ofNullable(response.getAnswers()).orElseGet(List::of);
 
             Set<Long> roleIds = resolveRepresentativeRoleIds(effectiveRepresentativeId);
@@ -88,6 +94,8 @@ public class QuestionnaireResponseAdapter implements QuestionnaireResponsePort {
             Questionnaire questionnaire = loadQuestionnaire(projectId, questionnaireId);
             Long effectiveRepresentativeId = resolveRepresentativeIdForSubmit(projectId, questionnaire, request);
             QuestionnaireResponse response = loadResponse(projectId, questionnaireId, effectiveRepresentativeId);
+
+            answerPolicy.syncAnswers(response, questionnaire);
 
             Map<Long, QuestionnaireResponse.AnswerDocument> answerMap = response.getAnswers().stream()
                     .collect(Collectors.toMap(QuestionnaireResponse.AnswerDocument::getQuestionId, ans -> ans));
@@ -134,6 +142,7 @@ public class QuestionnaireResponseAdapter implements QuestionnaireResponsePort {
     private QuestionnaireAnswerResponseDTO toAnswerResponse(QuestionnaireResponse.AnswerDocument answer) {
         return QuestionnaireAnswerResponseDTO.builder()
                 .questionId(answer.getQuestionId())
+                .questionText(answer.getQuestionText())
                 .response(answer.getResponse())
                 .justification(linkMapper.toDto(answer.getJustification()))
                 .evidence(linkMapper.toDto(answer.getEvidence()))

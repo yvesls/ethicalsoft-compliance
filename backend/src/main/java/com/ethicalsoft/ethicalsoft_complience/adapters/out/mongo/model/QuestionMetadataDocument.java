@@ -8,11 +8,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
 
-/** (EXCLUIR DEPOIS)
- * Metadados de governança associados a cada pergunta.
- * Permite categorizar perguntas por domínio (ETHICS, PROCESS, QUALITY, SECURITY, ESG, FAIRNESS),
- * tema específico, peso relativo e criticidade para cálculo de dívida ética/técnica.
- */
 @Getter
 @Setter
 @Builder

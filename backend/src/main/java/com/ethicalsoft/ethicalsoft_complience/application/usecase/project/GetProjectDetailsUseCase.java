@@ -69,7 +69,8 @@ public class GetProjectDetailsUseCase {
                 .timelineStatus(project.getTimelineStatus())
                 .iterationDuration(project.getIterationDuration())
                 .configuredIterationCount(project.getIterationCount())
-                .representativeCount(project.getRepresentatives() != null ? project.getRepresentatives().size() : 0)
+                .representativeCount(project.getRepresentatives() != null
+                        ? (int) project.getRepresentatives().stream().filter(r -> r.getDeletionDate() == null).count() : 0)
                 .stageCount(project.getStages() != null ? project.getStages().size() : 0)
                 .iterationCount(project.getIterations() != null ? project.getIterations().size() : 0)
                 .currentStage(currentStage)

@@ -33,12 +33,20 @@ public class QuestionnaireQuestionMapper {
                 .map(roles -> roles.stream().map(Role::getId).toList())
                 .orElseGet(List::of);
 
+        List<String> roleNames = Optional.ofNullable(question.getRoles())
+                .map(roles -> roles.stream()
+                        .sorted(Comparator.comparing(Role::getName, Comparator.nullsLast(String::compareToIgnoreCase)))
+                        .map(Role::getName)
+                        .toList())
+                .orElseGet(List::of);
+
         return QuestionnaireQuestionResponseDTO.builder()
                 .id(question.getId() != null ? question.getId().longValue() : null)
                 .text(question.getValue())
                 .stageIds(stageIds)
                 .stageNames(stageNames)
                 .roleIds(roleIds)
+                .roleNames(roleNames)
                 .order(question.getId())
                 .build();
     }

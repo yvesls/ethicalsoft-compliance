@@ -134,8 +134,8 @@ public class NotificationTemplateInitializer {
                         .whoCanSend(List.of(UserRoleEnum.ADMIN.name(), "SYSTEM"))
                         .recipients(List.of())
                         .title("Você foi removido do projeto {projectName}")
-                        .body("Olá {firstName}, você foi removido do projeto {projectName}. Caso tenha dúvidas, entre em contato com o administrador do projeto.")
-                        .templateLink("")
+                        .body("Olá {firstName}, você foi removido do projeto {projectName} pelo administrador {adminName}. Caso tenha dúvidas, entre em contato com o administrador do projeto.")
+                        .templateLink("users/project-unassignment.ftl")
                         .channels(List.of(NotificationChannel.INTERNAL.name(), NotificationChannel.EMAIL.name()))
                         .build(),
                 NotificationTemplateDocument.builder()

@@ -118,6 +118,7 @@ export class EditCascataProjectFormComponent implements OnInit {
   private projectData: ProjectEditData | null = null;
 
   private readonly PANEL_ORDER: PanelKey[] = ['project', 'steps', 'representatives', 'questionnaires'];
+  private static readonly FORM_STATE_CACHE_KEY = 'editCascataFormStateCache';
 
   ngOnInit(): void {
     this.route.params.pipe(take(1)).subscribe((params) => {
@@ -128,7 +129,10 @@ export class EditCascataProjectFormComponent implements OnInit {
       }
       this.initForm();
       this.loadRoles();
-      this.loadProjectForEdit();
+
+      if (!this.restoreFormFromCache()) {
+        this.loadProjectForEdit();
+      }
     });
   }
 
@@ -519,6 +523,8 @@ export class EditCascataProjectFormComponent implements OnInit {
     const projectName = this.projectForm.get('name')?.value || 'Projeto';
     const questions = questionnaire.questions || [];
 
+    this.saveFormStateToCache();
+
     this.routerService.navigateTo('/projects/questionnaire/cascata', {
       params: {
         p: {
@@ -608,6 +614,98 @@ export class EditCascataProjectFormComponent implements OnInit {
 
   canOpenPanel(): boolean {
     return true;
+  }
+
+  private saveFormStateToCache(): void {
+    try {
+      const state = {
+        formValue: this.projectForm.getRawValue(),
+        projectData: this.projectData,
+      };
+      sessionStorage.setItem(
+        EditCascataProjectFormComponent.FORM_STATE_CACHE_KEY,
+        JSON.stringify(state)
+      );
+    } catch (e) {
+      LoggerService.error('EditCascataProjectForm: Erro ao salvar cache do formulário', e);
+    }
+  }
+
+  private restoreFormFromCache(): boolean {
+    const raw = sessionStorage.getItem(EditCascataProjectFormComponent.FORM_STATE_CACHE_KEY);
+    if (!raw) return false;
+    sessionStorage.removeItem(EditCascataProjectFormComponent.FORM_STATE_CACHE_KEY);
+
+    try {
+      const cached = JSON.parse(raw);
+      if (!cached?.formValue) return false;
+
+      this.projectData = cached.projectData || null;
+      const fv = cached.formValue;
+
+      this.projectForm.patchValue({
+        name: fv.name,
+        type: fv.type,
+        startDate: fv.startDate,
+        deadline: fv.deadline,
+      }, { emitEvent: false });
+
+      const stepsArray = this.projectForm.get('steps') as FormArray;
+      while (stepsArray.length > 0) stepsArray.removeAt(0);
+      for (const s of fv.steps || []) {
+        stepsArray.push(this.fb.group({
+          _entityId: [s._entityId ?? null],
+          name: [s.name, Validators.required],
+          weight: [s.weight, [Validators.required, Validators.min(0)]],
+          sequence: [s.sequence, [Validators.required, Validators.min(1)]],
+          dateRange: [s.dateRange || ''],
+          durationDays: [s.durationDays],
+          applicationStartDate: [s.applicationStartDate],
+          applicationEndDate: [s.applicationEndDate],
+        }));
+      }
+
+      const repsArray = this.projectForm.get('representatives') as FormArray;
+      while (repsArray.length > 0) repsArray.removeAt(0);
+      for (const r of fv.representatives || []) {
+        repsArray.push(this.fb.group({
+          _entityId: [r._entityId ?? null],
+          firstName: [r.firstName, Validators.required],
+          lastName: [r.lastName, Validators.required],
+          email: [r.email, [Validators.required, Validators.email]],
+          weight: [r.weight, [Validators.required, Validators.min(1)]],
+          roleIds: [r.roleIds ?? [], [Validators.required, Validators.minLength(1)]],
+          roleNames: [r.roleNames ?? []],
+          userId: [r.userId ?? null],
+        }));
+      }
+
+      const qArray = this.projectForm.get('questionnaires') as FormArray;
+      while (qArray.length > 0) qArray.removeAt(0);
+      for (const q of fv.questionnaires || []) {
+        qArray.push(this.fb.group({
+          _entityId: [q._entityId ?? null],
+          name: [q.name, [Validators.required]],
+          sequence: [q.sequence],
+          stageName: [q.stageName],
+          iterationName: [q.iterationName ?? null],
+          domain: [q.domain ?? null],
+          description: [q.description ?? null],
+          applicationStartDate: [q.applicationStartDate],
+          applicationEndDate: [q.applicationEndDate],
+          weight: [q.weight ?? 0],
+          questions: [q.questions ?? []],
+        }));
+      }
+
+      this.applyPendingQuestionnaireUpdate();
+      this.isLoadingProject = false;
+      this.cdr.markForCheck();
+      return true;
+    } catch (e) {
+      LoggerService.error('EditCascataProjectForm: Erro ao restaurar cache do formulário', e);
+      return false;
+    }
   }
 
   onPanelToggled(panelKey: PanelKey, newState: boolean): void {
@@ -1026,10 +1124,11 @@ export class EditCascataProjectFormComponent implements OnInit {
 
   private syncQuestionnairesWithSteps(): void {
     const existingQuestionnaires = this.questionnairesFormArray.getRawValue() || [];
-    const queueByStage = new Map<string, Record<string, unknown>>();
+
+    const queueByName = new Map<string, Record<string, unknown>>();
     for (const q of existingQuestionnaires) {
-      const key = q['stageName'] || q['name'];
-      if (key) queueByStage.set(key, q);
+      const key = (q['stageName'] || q['name']) as string;
+      if (key) queueByName.set(key, q);
     }
 
     while (this.questionnairesFormArray.length > 0) {
@@ -1040,12 +1139,36 @@ export class EditCascataProjectFormComponent implements OnInit {
       .map((c, i) => ({ i, seq: c.get('sequence')?.value || 999 }))
       .sort((a, b) => a.seq - b.seq || a.i - b.i);
 
-    for (const item of sorted) {
+    let lastQuestionsTemplate: unknown[] = [];
+    for (const q of existingQuestionnaires) {
+      const questions = q['questions'];
+      if (Array.isArray(questions) && questions.length > 0) {
+        lastQuestionsTemplate = questions;
+      }
+    }
+
+    const usedNames = new Set<string>();
+
+    for (let pos = 0; pos < sorted.length; pos++) {
+      const item = sorted[pos];
       const step = this.stepsFormArray.at(item.i);
       const stepName = step.get('name')?.value;
       const startDate = step.get('applicationStartDate')?.value || '';
       const endDate = step.get('applicationEndDate')?.value || '';
-      const existing = queueByStage.get(stepName);
+
+      let existing = queueByName.get(stepName);
+      if (existing) {
+        usedNames.add(stepName);
+      }
+
+      if (!existing && pos < existingQuestionnaires.length) {
+        const posCandidate = existingQuestionnaires[pos];
+        const posName = (posCandidate['stageName'] || posCandidate['name']) as string;
+        if (posName && !usedNames.has(posName)) {
+          existing = posCandidate;
+          usedNames.add(posName);
+        }
+      }
 
       if (existing) {
         this.questionnairesFormArray.push(this.fb.group({
@@ -1062,6 +1185,9 @@ export class EditCascataProjectFormComponent implements OnInit {
           questions: [existing['questions'] ?? []],
         }));
       } else {
+        const fallbackQuestions = lastQuestionsTemplate.length > 0
+          ? JSON.parse(JSON.stringify(lastQuestionsTemplate))
+          : [];
         this.questionnairesFormArray.push(this.fb.group({
           _entityId: [null],
           name: [stepName, [Validators.required]],
@@ -1073,7 +1199,7 @@ export class EditCascataProjectFormComponent implements OnInit {
           applicationStartDate: [startDate],
           applicationEndDate: [endDate],
           weight: [0],
-          questions: [[]],
+          questions: [fallbackQuestions],
         }));
       }
     }

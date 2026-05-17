@@ -116,7 +116,7 @@ public class ProjectUpdateResponseSyncService {
         return updated;
     }
 
-    public int updateQuestionTextInResponses(Integer questionnaireId, Integer questionId, String newText) {
+    public void updateQuestionTextInResponses(Integer questionnaireId, Integer questionId, String newText) {
         List<QuestionnaireResponse> responses = responseRepository.findByQuestionnaireId(questionnaireId);
         int updated = 0;
 
@@ -135,7 +135,6 @@ public class ProjectUpdateResponseSyncService {
             }
         }
 
-        return updated;
     }
 
     public int deleteResponsesForQuestionnaire(Long projectId, Integer questionnaireId) {

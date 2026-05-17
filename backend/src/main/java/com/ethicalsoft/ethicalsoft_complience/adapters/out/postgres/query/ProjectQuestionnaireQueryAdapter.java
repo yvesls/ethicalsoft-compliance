@@ -44,7 +44,8 @@ public class ProjectQuestionnaireQueryAdapter implements ProjectQuestionnaireQue
             Questionnaire questionnaire = questionnaireRepository.findById(questionnaireId)
                     .orElseThrow(() -> new EntityNotFoundException("Questionário não encontrado: " + questionnaireId));
 
-            Set<Representative> projectRepresentatives = Optional.ofNullable(project.getRepresentatives()).orElse(Set.of());
+            Set<Representative> projectRepresentatives = Optional.ofNullable(project.getRepresentatives()).orElse(Set.of())
+                    .stream().filter(r -> r.getDeletionDate() == null).collect(Collectors.toSet());
             Map<Long, Representative> representativesById = projectRepresentatives.stream()
                     .collect(Collectors.toMap(Representative::getId, rep -> rep));
 
@@ -52,17 +53,17 @@ public class ProjectQuestionnaireQueryAdapter implements ProjectQuestionnaireQue
             return ProjectQuestionnaireSummaryDTO.builder()
                     .projectId(projectId)
                     .questionnaireId(questionnaireId)
-                    .questionnaireName(summary.getName())
-                    .stageName(summary.getStageName())
-                    .iterationName(summary.getIterationName())
-                    .applicationStartDate(summary.getApplicationStartDate())
-                    .applicationEndDate(summary.getApplicationEndDate())
-                    .overallStatus(summary.getProgressStatus())
-                    .totalRespondents(summary.getTotalRespondents())
-                    .responded(summary.getRespondedRespondents())
-                    .pending(summary.getPendingRespondents())
-                    .lastResponseAt(summary.getLastResponseAt())
-                    .respondents(summary.getRespondents())
+                    .questionnaireName(summary.name())
+                    .stageName(summary.stageName())
+                    .iterationName(summary.iterationName())
+                    .applicationStartDate(summary.applicationStartDate())
+                    .applicationEndDate(summary.applicationEndDate())
+                    .overallStatus(summary.progressStatus())
+                    .totalRespondents(summary.totalRespondents())
+                    .responded(summary.respondedRespondents())
+                    .pending(summary.pendingRespondents())
+                    .lastResponseAt(summary.lastResponseAt())
+                    .respondents(summary.respondents())
                     .build();
         } catch (Exception ex) {
             log.error("[project-questionnaire] Falha ao resumir questionário id={} projeto={}", questionnaireId, projectId, ex);
@@ -77,7 +78,8 @@ public class ProjectQuestionnaireQueryAdapter implements ProjectQuestionnaireQue
             Project project = projectRepository.findById(projectId)
                     .orElseThrow(() -> new EntityNotFoundException("Projeto não encontrado: " + projectId));
 
-            Set<Representative> projectRepresentatives = Optional.ofNullable(project.getRepresentatives()).orElse(Set.of());
+            Set<Representative> projectRepresentatives = Optional.ofNullable(project.getRepresentatives()).orElse(Set.of())
+                    .stream().filter(r -> r.getDeletionDate() == null).collect(Collectors.toSet());
             Map<Long, Representative> representativesById = projectRepresentatives.stream()
                     .collect(Collectors.toMap(Representative::getId, rep -> rep));
 

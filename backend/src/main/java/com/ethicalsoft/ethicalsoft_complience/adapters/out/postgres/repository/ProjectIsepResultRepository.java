@@ -11,4 +11,3 @@ public interface ProjectIsepResultRepository extends JpaRepository<ProjectIsepRe
 
     boolean existsByProjectId(Long projectId);
 }
-

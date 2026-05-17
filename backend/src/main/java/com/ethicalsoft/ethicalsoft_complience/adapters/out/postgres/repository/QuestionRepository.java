@@ -32,4 +32,14 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
     Page<Question> findByQuestionnaireIdAndRoleIds(Integer questionnaireId, List<Long> roleIds, Pageable pageable);
 
     Optional<Question> findById(Long id);
+
+    @Query("select distinct q from Question q join q.stages s where s.id = :stageId")
+    List<Question> findByStageId(Integer stageId);
+
+    @Query(value = "SELECT DISTINCT q.question_id, q.text, q.questionnaire_id, qn.name AS questionnaire_name " +
+            "FROM question q " +
+            "JOIN question_stage qs ON q.question_id = qs.question_id " +
+            "JOIN questionnaire qn ON q.questionnaire_id = qn.questionnaire_id " +
+            "WHERE qs.stage_id = :stageId", nativeQuery = true)
+    List<Object[]> findQuestionIdAndTextByStageIdNative(Integer stageId);
 }

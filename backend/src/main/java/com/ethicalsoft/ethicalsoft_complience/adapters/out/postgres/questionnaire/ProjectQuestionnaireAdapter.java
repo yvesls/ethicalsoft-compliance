@@ -154,7 +154,8 @@ public class ProjectQuestionnaireAdapter implements ProjectQuestionnaireCommandP
                                         Questionnaire questionnaire,
                                         List<QuestionnaireResponse.AnswerDocument> answerTemplate) {
 
-        Set<Representative> representatives = Optional.ofNullable(project.getRepresentatives()).orElse(Collections.emptySet());
+        Set<Representative> representatives = Optional.ofNullable(project.getRepresentatives()).orElse(Collections.emptySet())
+                .stream().filter(r -> r.getDeletionDate() == null).collect(Collectors.toSet());
 
         if (representatives.isEmpty()) {
             questionnaireResponseRepository.save(buildResponse(project, questionnaire, null, answerTemplate));

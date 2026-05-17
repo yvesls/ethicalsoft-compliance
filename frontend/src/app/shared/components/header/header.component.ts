@@ -3,7 +3,7 @@ import { NotificationResponse, NotificationStatus } from '../../interfaces/notif
 import { NotificationService } from '../../../core/services/notification.service'
 import { Component, OnInit, inject, DestroyRef, HostListener, OnDestroy, AfterViewInit } from '@angular/core'
 import { RouterService } from '../../../core/services/router.service'
-import { Router, NavigationEnd } from '@angular/router'
+import { Router, NavigationEnd, RouterModule } from '@angular/router'
 import { filter } from 'rxjs/operators'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { CommonModule, Location } from '@angular/common'
@@ -11,12 +11,13 @@ import { CommonModule, Location } from '@angular/common'
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',
 })
 export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
   routerPath = ''
+  routeSegments: { label: string; path: string; clickable: boolean }[] = []
   canGoBack = false
   isPanelOpen = false
   isLoading = false
@@ -37,12 +38,14 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnInit(): void {
     this.routerPath = this.routerService.getFormattedRoute()
+    this.routeSegments = this.routerService.getFormattedRouteSegments()
     this.canGoBack = this.computeCanGoBack(this.router.url)
 
     this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd), takeUntilDestroyed(this.destroyRef))
       .subscribe((event) => {
         this.routerPath = this.routerService.getFormattedRoute()
+        this.routeSegments = this.routerService.getFormattedRouteSegments()
         this.canGoBack = this.computeCanGoBack(event.urlAfterRedirects)
         this.closePanel()
       })

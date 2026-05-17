@@ -17,7 +17,7 @@ import {
   map,
   tap,
 } from 'rxjs/operators';
-import { take } from 'rxjs';
+import { forkJoin, take } from 'rxjs';
 
 import { FilterBarComponent } from '../../../../shared/components/filter-bar/filter-bar.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
@@ -25,6 +25,7 @@ import { ListComponent } from '../../../../shared/components/list/list.component
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
 import { ProjectStore } from '../../../../shared/stores/project.store';
 import { Project } from '../../../../shared/interfaces/project/project.interface';
+import { RoleService } from '../../../../core/services/role.service';
 import {
   ProjectQuestionnaireFilters,
   ProjectQuestionnaireSummary,
@@ -93,6 +94,7 @@ export class ProjectDetailPageComponent implements OnInit {
   private readonly notification = inject(NotificationService);
   private readonly dashboardService = inject(DashboardService);
   private readonly modalService = inject(ModalService);
+  private readonly roleService = inject(RoleService);
 
   private readonly questionnairesPageSize = 5;
   private currentProjectId: string | null = null;
@@ -103,6 +105,7 @@ export class ProjectDetailPageComponent implements OnInit {
 
   private readonly userRoles = signal<string[]>([]);
   private readonly currentUser = signal<UserInterface | null>(null);
+  readonly currentUserProjectRoles = signal<string[]>([]);
   readonly isAdmin = computed(() =>
     this.userRoles().includes(RoleEnum.ADMIN)
   );
@@ -1012,6 +1015,7 @@ export class ProjectDetailPageComponent implements OnInit {
       .subscribe({
         next: (project) => {
           this.projectState.set({ data: project, status: 'loaded', error: null });
+          this.loadCurrentUserRoles(projectId);
         },
         error: (error: unknown) => {
           const message =
@@ -1025,6 +1029,45 @@ export class ProjectDetailPageComponent implements OnInit {
           });
         },
       });
+  }
+
+  private loadCurrentUserRoles(projectId: string): void {
+    const user = this.currentUser();
+    if (!user?.email) {
+      this.currentUserProjectRoles.set([]);
+      return;
+    }
+
+    forkJoin([
+      this.projectStore.getProjectForEdit(projectId).pipe(take(1)),
+      this.roleService.getRoles().pipe(take(1)),
+    ]).subscribe({
+      next: ([editData, roles]) => {
+        const userEmail = user.email.toLowerCase();
+        const representative = editData.representatives.find(
+          (rep) => rep.email?.toLowerCase() === userEmail
+        );
+
+        if (!representative || !representative.roleIds?.length) {
+          this.currentUserProjectRoles.set([]);
+          return;
+        }
+
+        const roleMap = new Map(roles.map((r) => [r.id, r.name]));
+        const resolvedNames = representative.roleIds
+          .map((id) => roleMap.get(id))
+          .filter((name): name is string => !!name);
+
+        this.currentUserProjectRoles.set(
+          resolvedNames.length > 0
+            ? resolvedNames
+            : representative.roleNames ?? []
+        );
+      },
+      error: () => {
+        this.currentUserProjectRoles.set([]);
+      },
+    });
   }
 
   private loadQuestionnaires(page: number): void {

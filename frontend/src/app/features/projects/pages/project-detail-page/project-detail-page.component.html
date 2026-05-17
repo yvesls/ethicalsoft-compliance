@@ -121,6 +121,17 @@
           }
         </section>
 
+        @if (currentUserProjectRoles().length > 0) {
+          <section class="representative-roles">
+            <h3>Seus papéis neste projeto</h3>
+            <div class="role-badges">
+              @for (role of currentUserProjectRoles(); track role) {
+                <span class="role-badge">{{ role }}</span>
+              }
+            </div>
+          </section>
+        }
+
         <section class="questionnaires-section">
           <div class="section-header">
             <div>

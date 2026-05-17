@@ -18,11 +18,16 @@ import { GovernanceDimensionsChartComponent } from '../../components/governance-
 import { DebtIndicatorsWidgetComponent } from '../../components/debt-indicators-widget/debt-indicators-widget.component';
 import { CategoryWordCloudWidgetComponent } from '../../components/category-word-cloud-widget/category-word-cloud-widget.component';
 import { GovernanceInsightsWidgetComponent } from '../../components/governance-insights-widget/governance-insights-widget.component';
+import { AiInsightsWidgetComponent } from '../../components/ai-insights-widget/ai-insights-widget.component';
+import { AiExplainWidgetComponent } from '../../components/ai-explain-widget/ai-explain-widget.component';
+import { AiRiskReportWidgetComponent } from '../../components/ai-risk-report-widget/ai-risk-report-widget.component';
+import { AiChatWidgetComponent } from '../../components/ai-chat-widget/ai-chat-widget.component';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { AuthenticationService } from '../../../../core/services/authentication.service';
 import { ModalService } from '../../../../core/services/modal.service';
 import { ResponseDetailModalComponent } from '../../components/response-detail-modal/response-detail-modal.component';
 import { RouterService } from '../../../../core/services/router.service';
+import { ProjectContextService } from '../../../../core/services/project-context.service';
 import { RoleEnum } from '../../../../shared/enums/role.enum';
 
 @Component({
@@ -40,6 +45,10 @@ import { RoleEnum } from '../../../../shared/enums/role.enum';
     DebtIndicatorsWidgetComponent,
     CategoryWordCloudWidgetComponent,
     GovernanceInsightsWidgetComponent,
+    AiInsightsWidgetComponent,
+    AiExplainWidgetComponent,
+    AiRiskReportWidgetComponent,
+    AiChatWidgetComponent,
   ],
   templateUrl: './questionnaire-dashboard-page.component.html',
   styleUrl: './questionnaire-dashboard-page.component.scss',
@@ -51,6 +60,7 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
   private readonly authService = inject(AuthenticationService);
   private readonly modalService = inject(ModalService);
   private readonly routerService = inject(RouterService);
+  private readonly projectContextService = inject(ProjectContextService);
 
   projectId!: number;
   questionnaireId!: number;
@@ -74,6 +84,7 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
   ngOnInit(): void {
     this.projectId = Number(this.route.snapshot.paramMap.get('projectId'));
     this.questionnaireId = Number(this.route.snapshot.paramMap.get('questionnaireId'));
+    this.projectContextService.setCurrentProjectId(String(this.projectId));
     this.load();
   }
 
@@ -150,18 +161,22 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
   }
 
   forceClose(): void {
-    if (!confirm('Tem certeza que deseja encerrar o questionário? O ISEP será calculado com as respostas existentes.')) return;
-    this.forceClosing.set(true);
-    this.dashboardService.forceCloseQuestionnaire(this.projectId, this.questionnaireId).subscribe({
-      next: () => {
-        this.notificationService.showSuccess('Questionário encerrado. ISEP será calculado.');
-        this.load();
-        this.forceClosing.set(false);
-      },
-      error: () => {
-        this.notificationService.showError('Erro ao encerrar o questionário.');
-        this.forceClosing.set(false);
-      },
-    });
+    this.notificationService.showConfirm(
+      'Tem certeza que deseja encerrar o questionário? O ISEP será calculado com as respostas existentes.',
+      () => {
+        this.forceClosing.set(true);
+        this.dashboardService.forceCloseQuestionnaire(this.projectId, this.questionnaireId).subscribe({
+          next: () => {
+            this.notificationService.showSuccess('Questionário encerrado. ISEP será calculado.');
+            this.load();
+            this.forceClosing.set(false);
+          },
+          error: () => {
+            this.notificationService.showError('Erro ao encerrar o questionário.');
+            this.forceClosing.set(false);
+          },
+        });
+      }
+    );
   }
 }

@@ -58,6 +58,7 @@ public class SendProjectDeadlineRemindersUseCase {
             recipients.add(project.getOwner().getEmail());
         }
         for (Representative rep : project.getRepresentatives()) {
+            if (rep.getDeletionDate() != null) continue;
             if (rep.getUser() != null && rep.getUser().getEmail() != null) {
                 recipients.add(rep.getUser().getEmail());
             }

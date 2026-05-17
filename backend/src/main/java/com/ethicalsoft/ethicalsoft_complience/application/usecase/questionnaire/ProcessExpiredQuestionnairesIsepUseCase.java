@@ -113,7 +113,7 @@ public class ProcessExpiredQuestionnairesIsepUseCase {
                     : null;
 
             int totalCount = project != null && project.getRepresentatives() != null
-                    ? project.getRepresentatives().size()
+                    ? (int) project.getRepresentatives().stream().filter(r -> r.getDeletionDate() == null).count()
                     : 0;
 
             List<QuestionnaireResponse> responses = questionnaireResponseRepository

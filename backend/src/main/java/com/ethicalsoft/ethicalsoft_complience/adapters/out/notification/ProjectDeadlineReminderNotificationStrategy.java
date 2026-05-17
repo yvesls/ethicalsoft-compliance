@@ -99,7 +99,9 @@ public class ProjectDeadlineReminderNotificationStrategy implements Notification
         if (project.getOwner() != null && project.getOwner().getEmail() != null) {
             recipients.add(project.getOwner().getEmail());
         }
-        project.getRepresentatives().forEach(rep -> {
+        project.getRepresentatives().stream()
+                .filter(rep -> rep.getDeletionDate() == null)
+                .forEach(rep -> {
             if (rep.getUser() != null && rep.getUser().getEmail() != null) {
                 recipients.add(rep.getUser().getEmail());
             }

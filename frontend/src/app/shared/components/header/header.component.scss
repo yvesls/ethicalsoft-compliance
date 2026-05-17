@@ -86,6 +86,37 @@ header {
 		}
 	}
 
+	.breadcrumb {
+		display: flex;
+		align-items: center;
+	}
+
+	.breadcrumb-link {
+		color: inherit;
+		text-decoration: none;
+		opacity: 0.7;
+		transition: opacity 0.2s ease;
+		cursor: pointer;
+
+		&:hover {
+			opacity: 1;
+			text-decoration: underline;
+		}
+	}
+
+	.breadcrumb-separator {
+		opacity: 0.5;
+		margin: 0 0.15rem;
+	}
+
+	.breadcrumb-label {
+		opacity: 0.7;
+	}
+
+	.breadcrumb-current {
+		opacity: 1;
+	}
+
 	.notification-section {
 		width: auto;
 		padding-left: 1rem;

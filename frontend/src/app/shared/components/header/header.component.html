@@ -5,7 +5,20 @@
 				<img src="../../../../assets/icons/arrow-left.svg" alt="Voltar" height="18px" />
 			</button>
 		}
-		<h2>{{ routerPath }}</h2>
+		<h2 class="breadcrumb">
+			@for (segment of routeSegments; track segment.path; let last = $last) {
+				@if (!last) {
+					@if (segment.clickable) {
+						<a class="breadcrumb-link" [routerLink]="segment.path">{{ segment.label }}</a>
+					} @else {
+						<span class="breadcrumb-label">{{ segment.label }}</span>
+					}
+					<span class="breadcrumb-separator"> &gt; </span>
+				} @else {
+					<span class="breadcrumb-current">{{ segment.label }}</span>
+				}
+			}
+		</h2>
 	</div>
 	<div class="notification-section">
 		<ul>

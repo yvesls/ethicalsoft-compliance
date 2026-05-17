@@ -2,16 +2,10 @@ package com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.r
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.LinkDTO;
 import lombok.Builder;
-import lombok.Value;
 
 import java.util.List;
 
-@Value
 @Builder
-public class QuestionnaireAnswerResponseDTO {
-    Long questionId;
-    Boolean response;
-    LinkDTO justification;
-    LinkDTO evidence;
-    List<LinkDTO> attachments;
+public record QuestionnaireAnswerResponseDTO(Long questionId, String questionText, Boolean response,
+                                             LinkDTO justification, LinkDTO evidence, List<LinkDTO> attachments) {
 }

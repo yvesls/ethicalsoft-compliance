@@ -1,10 +1,7 @@
 package com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.query;
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.mapper.QuestionnaireQuestionMapper;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Project;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Question;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Questionnaire;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Representative;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.*;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.QuestionSearchFilterDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.QuestionnaireQuestionResponseDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.QuestionnaireRawResponseDTO;
@@ -115,7 +112,7 @@ public class QuestionnaireQueryAdapter implements QuestionnaireQueryPort {
         return java.util.Optional.ofNullable(representative.getRoles())
                 .orElse(java.util.Collections.emptySet())
                 .stream()
-                .map(role -> role.getId())
+                .map(Role::getId)
                 .filter(java.util.Objects::nonNull)
                 .toList();
     }

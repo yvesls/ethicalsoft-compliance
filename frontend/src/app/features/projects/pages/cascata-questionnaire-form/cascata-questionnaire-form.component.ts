@@ -79,6 +79,7 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
 
   searchTerm = '';
   selectedRole = '';
+  selectedQuestionIds = signal<Set<string>>(new Set());
 
   roleFilterOptions: SelectOption[] = [];
 
@@ -331,7 +332,68 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
     if (this.isViewMode()) {
         return;
     }
-    this.questions.update(qs => qs.filter(q => q.id !== question.id));
+    this.notificationService.showConfirm(
+      `Tem certeza que deseja excluir a pergunta: "${question.value}"?`,
+      () => {
+        this.questions.update(qs => qs.filter(q => q.id !== question.id));
+        this.clearSelection();
+        this.cdr.detectChanges();
+      }
+    );
+  }
+
+  toggleQuestionSelection(questionId: string): void {
+    const current = new Set(this.selectedQuestionIds());
+    if (current.has(questionId)) {
+      current.delete(questionId);
+    } else {
+      current.add(questionId);
+    }
+    this.selectedQuestionIds.set(current);
+  }
+
+  isQuestionSelected(questionId: string): boolean {
+    return this.selectedQuestionIds().has(questionId);
+  }
+
+  get isAllSelected(): boolean {
+    const visible = this.filteredQuestions;
+    return visible.length > 0 && visible.every(q => this.selectedQuestionIds().has(q.id!));
+  }
+
+  get hasSelectedQuestions(): boolean {
+    return this.selectedQuestionIds().size > 0;
+  }
+
+  get selectedCount(): number {
+    return this.selectedQuestionIds().size;
+  }
+
+  toggleSelectAll(): void {
+    const visible = this.filteredQuestions;
+    if (this.isAllSelected) {
+      this.selectedQuestionIds.set(new Set());
+    } else {
+      this.selectedQuestionIds.set(new Set(visible.map(q => q.id!)));
+    }
+  }
+
+  deleteSelectedQuestions(): void {
+    if (this.isViewMode()) return;
+    const count = this.selectedCount;
+    this.notificationService.showConfirm(
+      `Tem certeza que deseja excluir ${count} pergunta${count > 1 ? 's' : ''} selecionada${count > 1 ? 's' : ''}?`,
+      () => {
+        const ids = this.selectedQuestionIds();
+        this.questions.update(qs => qs.filter(q => !ids.has(q.id!)));
+        this.clearSelection();
+        this.cdr.detectChanges();
+      }
+    );
+  }
+
+  private clearSelection(): void {
+    this.selectedQuestionIds.set(new Set());
   }
 
   onConfirmAndGoBack(): void {

@@ -161,7 +161,7 @@ public class GlobalExceptionResponseHandler {
 	@ExceptionHandler( MissingServletRequestParameterException.class )
 	@ResponseStatus( HttpStatus.BAD_REQUEST )
 	public ExceptionResponseDTO missingServletRequestParameter( MissingServletRequestParameterException exception, HttpServletRequest request ) {
-		return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, null, request, HttpStatus.BAD_REQUEST );
+		return makeDefaultResponse( ErrorTypeEnum.ERROR, exception, exception.getMessage(), request, HttpStatus.BAD_REQUEST );
 	}
 
 	@ExceptionHandler( Exception.class )

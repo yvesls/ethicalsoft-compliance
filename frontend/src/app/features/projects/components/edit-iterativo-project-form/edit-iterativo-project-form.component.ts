@@ -115,6 +115,7 @@ export class EditIterativoProjectFormComponent implements OnInit {
 
   private projectId!: string;
   private projectData: ProjectEditData | null = null;
+  private static readonly FORM_STATE_CACHE_KEY = 'editIterativoFormStateCache';
 
   ngOnInit(): void {
     this.route.params.pipe(take(1)).subscribe((params) => {
@@ -125,7 +126,10 @@ export class EditIterativoProjectFormComponent implements OnInit {
       }
       this.initForm();
       this.loadRoles();
-      this.loadProjectForEdit();
+
+      if (!this.restoreFormFromCache()) {
+        this.loadProjectForEdit();
+      }
     });
   }
 
@@ -210,10 +214,36 @@ export class EditIterativoProjectFormComponent implements OnInit {
         next: (roles) => {
           this.availableRoles = roles ?? [];
           this.roleNameById = new Map(this.availableRoles.map((r) => [r.id, r.name]));
+          this.refreshQuestionnaireRoleNames();
           this.cdr.markForCheck();
         },
         error: (err) => console.error('Erro ao carregar roles:', err),
       });
+  }
+
+  private refreshQuestionnaireRoleNames(): void {
+    if (!this.roleNameById.size) return;
+    this.questionnairesFormArray.controls.forEach((control) => {
+      const questionsCtrl = control.get('questions');
+      const questions = questionsCtrl?.value as QuestionData[] | undefined;
+      if (!questions?.length) return;
+      const updated = questions.map((q) => ({
+        ...q,
+        roleNames: this.resolveRoleNames(q.roleIds, q.roleNames),
+      }));
+      questionsCtrl?.setValue(updated, { emitEvent: false });
+    });
+  }
+
+  private resolveRoleNames(roleIds?: number[], fallbackNames?: string[]): string[] {
+    const ids = Array.isArray(roleIds) ? roleIds : [];
+    if (ids.length && this.roleNameById.size) {
+      const names = ids
+        .map((id) => this.roleNameById.get(Number(id)))
+        .filter((name): name is string => Boolean(name));
+      if (names.length) return Array.from(new Set(names));
+    }
+    return Array.isArray(fallbackNames) ? [...fallbackNames] : [];
   }
 
   private loadProjectForEdit(): void {
@@ -280,7 +310,15 @@ export class EditIterativoProjectFormComponent implements OnInit {
 
     const qArray = this.projectForm.get('questionnaires') as FormArray;
     while (qArray.length > 0) qArray.removeAt(0);
-    for (const q of data.questionnaires || []) {
+    const sortedQuestionnaires = [...(data.questionnaires || [])].sort((a, b) => {
+      if (a.sequence != null && b.sequence != null) return a.sequence - b.sequence;
+      if (a.sequence != null) return -1;
+      if (b.sequence != null) return 1;
+      const dateA = a.applicationStartDate ?? '';
+      const dateB = b.applicationStartDate ?? '';
+      return dateA.localeCompare(dateB);
+    });
+    for (const q of sortedQuestionnaires) {
       qArray.push(this.buildQuestionnaireFormGroup(q));
     }
 
@@ -525,6 +563,8 @@ export class EditIterativoProjectFormComponent implements OnInit {
     const questions = questionnaire.questions || [];
     const stages = this.getAvailableStageNames();
 
+    this.saveFormStateToCache();
+
     this.routerService.navigateTo('/projects/questionnaire/iterativo', {
       params: {
         p: {
@@ -636,6 +676,14 @@ export class EditIterativoProjectFormComponent implements OnInit {
       if (key) qCacheByIteration.set(key, q);
     }
 
+    let lastQuestionsTemplate: unknown[] = [];
+    for (const q of existingQuestionnaires) {
+      const questions = q['questions'];
+      if (Array.isArray(questions) && questions.length > 0) {
+        lastQuestionsTemplate = questions;
+      }
+    }
+
     const existingIterations = this.iterationsFormArray.getRawValue() || [];
     const iterationIdByName = new Map<string, number | null>();
     for (const it of existingIterations) {
@@ -697,6 +745,10 @@ export class EditIterativoProjectFormComponent implements OnInit {
 
       const cached = qCacheByIteration.get(iterationName);
 
+      const fallbackQuestions = !cached && lastQuestionsTemplate.length > 0
+        ? JSON.parse(JSON.stringify(lastQuestionsTemplate))
+        : [];
+
       qArray.push(
         this.fb.group({
           _entityId: [cached?.['_entityId'] ?? null],
@@ -706,7 +758,7 @@ export class EditIterativoProjectFormComponent implements OnInit {
           dateRange: [cached?.['dateRange'] || qDateRange],
           applicationStartDate: [FormUtils.formatDateISO(qStartDate)],
           applicationEndDate: [FormUtils.formatDateISO(qEndDate)],
-          questions: [cached?.['questions'] ?? []],
+          questions: [cached?.['questions'] ?? fallbackQuestions],
         })
       );
     }
@@ -716,6 +768,106 @@ export class EditIterativoProjectFormComponent implements OnInit {
 
   canOpenPanel(): boolean {
     return true;
+  }
+
+  private saveFormStateToCache(): void {
+    try {
+      const state = {
+        formValue: this.projectForm.getRawValue(),
+        projectData: this.projectData,
+      };
+      sessionStorage.setItem(
+        EditIterativoProjectFormComponent.FORM_STATE_CACHE_KEY,
+        JSON.stringify(state)
+      );
+    } catch (e) {
+      LoggerService.error('EditIterativoProjectForm: Erro ao salvar cache do formulário', e);
+    }
+  }
+
+  private restoreFormFromCache(): boolean {
+    const raw = sessionStorage.getItem(EditIterativoProjectFormComponent.FORM_STATE_CACHE_KEY);
+    if (!raw) return false;
+    sessionStorage.removeItem(EditIterativoProjectFormComponent.FORM_STATE_CACHE_KEY);
+
+    try {
+      const cached = JSON.parse(raw);
+      if (!cached?.formValue) return false;
+
+      this.projectData = cached.projectData || null;
+      const fv = cached.formValue;
+
+      this.projectForm.patchValue({
+        name: fv.name,
+        type: fv.type,
+        startDate: fv.startDate,
+        deadline: fv.deadline,
+        iterationDuration: fv.iterationDuration,
+        iterationCount: fv.iterationCount,
+      }, { emitEvent: false });
+
+      const stagesArray = this.projectForm.get('stages') as FormArray;
+      while (stagesArray.length > 0) stagesArray.removeAt(0);
+      for (const s of fv.stages || []) {
+        stagesArray.push(this.fb.group({
+          _entityId: [s._entityId ?? null],
+          name: [s.name, Validators.required],
+          weight: [s.weight, [Validators.required, Validators.min(0)]],
+        }));
+      }
+
+      const iterationsArray = this.projectForm.get('iterations') as FormArray;
+      while (iterationsArray.length > 0) iterationsArray.removeAt(0);
+      for (const it of fv.iterations || []) {
+        iterationsArray.push(this.fb.group({
+          _entityId: [it._entityId ?? null],
+          name: [it.name, Validators.required],
+          weight: [it.weight ?? 0],
+          order: [it.order ?? 1],
+          applicationStartDate: [it.applicationStartDate, Validators.required],
+          applicationEndDate: [it.applicationEndDate, Validators.required],
+          dateRange: [it.dateRange || ''],
+        }));
+      }
+
+      const repsArray = this.projectForm.get('representatives') as FormArray;
+      while (repsArray.length > 0) repsArray.removeAt(0);
+      for (const r of fv.representatives || []) {
+        repsArray.push(this.fb.group({
+          _entityId: [r._entityId ?? null],
+          firstName: [r.firstName, Validators.required],
+          lastName: [r.lastName, Validators.required],
+          email: [r.email, [Validators.required, Validators.email]],
+          weight: [r.weight, [Validators.required, Validators.min(1)]],
+          roleIds: [r.roleIds ?? [], [Validators.required, Validators.minLength(1)]],
+          roleNames: [r.roleNames ?? []],
+          userId: [r.userId ?? null],
+        }));
+      }
+
+      const qArray = this.projectForm.get('questionnaires') as FormArray;
+      while (qArray.length > 0) qArray.removeAt(0);
+      for (const q of fv.questionnaires || []) {
+        qArray.push(this.fb.group({
+          _entityId: [q._entityId ?? null],
+          name: [q.name, [Validators.required]],
+          iterationName: [q.iterationName ?? q.name],
+          weight: [q.weight, [Validators.required, Validators.min(0)]],
+          dateRange: [q.dateRange || ''],
+          applicationStartDate: [q.applicationStartDate || ''],
+          applicationEndDate: [q.applicationEndDate || ''],
+          questions: [q.questions ?? []],
+        }));
+      }
+
+      this.applyPendingQuestionnaireUpdate();
+      this.isLoadingProject = false;
+      this.cdr.markForCheck();
+      return true;
+    } catch (e) {
+      LoggerService.error('EditIterativoProjectForm: Erro ao restaurar cache do formulário', e);
+      return false;
+    }
   }
 
   onPanelToggled(panelKey: PanelKey, newState: boolean): void {

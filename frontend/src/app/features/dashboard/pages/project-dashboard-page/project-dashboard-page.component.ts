@@ -15,6 +15,7 @@ import { DebtIndicatorsWidgetComponent } from '../../components/debt-indicators-
 import { NotificationService } from '../../../../core/services/notification.service';
 import { AuthenticationService } from '../../../../core/services/authentication.service';
 import { RouterService } from '../../../../core/services/router.service';
+import { ProjectContextService } from '../../../../core/services/project-context.service';
 import { RoleEnum } from '../../../../shared/enums/role.enum';
 
 @Component({
@@ -39,6 +40,7 @@ export class ProjectDashboardPageComponent implements OnInit {
   private readonly notificationService = inject(NotificationService);
   private readonly authService = inject(AuthenticationService);
   readonly routerService = inject(RouterService);
+  private readonly projectContextService = inject(ProjectContextService);
 
   isAdmin = this.authService.userRoles$.value.includes(RoleEnum.ADMIN);
 
@@ -56,6 +58,7 @@ export class ProjectDashboardPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.projectId = Number(this.route.snapshot.paramMap.get('projectId'));
+    this.projectContextService.setCurrentProjectId(String(this.projectId));
     this.load();
   }
 
@@ -87,19 +90,23 @@ export class ProjectDashboardPageComponent implements OnInit {
   }
 
   closeProject(): void {
-    if (!confirm('Tem certeza que deseja encerrar o projeto? O ISEP consolidado será calculado com os questionários disponíveis.')) return;
-    this.closing.set(true);
-    this.dashboardService.closeProject(this.projectId).subscribe({
-      next: (result) => {
-        this.closeResult.set(result);
-        this.notificationService.showSuccess(`Projeto encerrado. ISEP: ${result.isepPercent}% – Faixa ${result.band}`);
-        this.load();
-        this.closing.set(false);
-      },
-      error: () => {
-        this.notificationService.showError('Erro ao encerrar o projeto.');
-        this.closing.set(false);
-      },
-    });
+    this.notificationService.showConfirm(
+      'Tem certeza que deseja encerrar o projeto? O ISEP consolidado será calculado com os questionários disponíveis.',
+      () => {
+        this.closing.set(true);
+        this.dashboardService.closeProject(this.projectId).subscribe({
+          next: (result) => {
+            this.closeResult.set(result);
+            this.notificationService.showSuccess(`Projeto encerrado. ISEP: ${result.isepPercent}% – Faixa ${result.band}`);
+            this.load();
+            this.closing.set(false);
+          },
+          error: () => {
+            this.notificationService.showError('Erro ao encerrar o projeto.');
+            this.closing.set(false);
+          },
+        });
+      }
+    );
   }
 }

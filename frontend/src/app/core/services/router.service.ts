@@ -117,6 +117,60 @@ export class RouterService {
 		return segments.map((segment) => this.capitalizeWords(segment)).join(' > ')
 	}
 
+	getFormattedRouteSegments(): { label: string; path: string; clickable: boolean }[] {
+		const url = this.router.url.split('?')[0]
+		const segments = url.split('/').filter(Boolean)
+		if (!segments.length) return [{ label: 'Home', path: '/home', clickable: true }]
+
+		const navigablePatterns = this.collectNavigablePatterns()
+
+		return segments.map((segment, index) => {
+			const path = '/' + segments.slice(0, index + 1).join('/')
+			const isLast = index === segments.length - 1
+			const clickable = !isLast && navigablePatterns.some((pattern) => pattern.test(path))
+			return {
+				label: this.capitalizeWords(segment),
+				path,
+				clickable,
+			}
+		})
+	}
+
+	private collectNavigablePatterns(): RegExp[] {
+		return this.buildRoutePatterns(this.router.config, '')
+	}
+
+	private buildRoutePatterns(routes: unknown[], prefix: string): RegExp[] {
+		const patterns: RegExp[] = []
+		for (const r of routes) {
+			const route = r as Record<string, unknown>
+			const routePath = route['path'] as string | undefined
+			if (routePath === '**' || route['redirectTo'] !== undefined) continue
+
+			const pathStr = routePath || ''
+			let fullPath: string
+			if (pathStr === '') {
+				fullPath = prefix
+			} else {
+				fullPath = prefix ? prefix + '/' + pathStr : '/' + pathStr
+			}
+
+			if (route['component'] || route['loadComponent']) {
+				const regexStr = '^' + fullPath.replaceAll(/:[^/]+/g, '[^/]+') + '$'
+				patterns.push(new RegExp(regexStr))
+			}
+
+			const children =
+				(route['children'] as unknown[]) ||
+				(route['_loadedRoutes'] as unknown[]) ||
+				[]
+			if (Array.isArray(children) && children.length > 0) {
+				patterns.push(...this.buildRoutePatterns(children, fullPath))
+			}
+		}
+		return patterns
+	}
+
 	private capitalizeWords(str: string): string {
 		return str
 			.split('-')

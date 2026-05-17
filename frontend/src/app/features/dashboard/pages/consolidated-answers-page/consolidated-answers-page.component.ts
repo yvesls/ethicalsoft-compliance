@@ -180,7 +180,7 @@ export class ConsolidatedAnswersPageComponent implements OnInit {
   private buildFilters(): ConsolidatedAnswerFilters {
     const f = this.filterForm.value;
     return {
-      page: this.currentPage() - 1, // API é 0-based
+      page: this.currentPage() - 1,
       size: this.pageSize,
       questionText: f.questionText || null,
       representativeId: f.representativeId ? Number(f.representativeId) : null,

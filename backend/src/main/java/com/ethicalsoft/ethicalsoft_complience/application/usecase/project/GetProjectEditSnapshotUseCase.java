@@ -105,12 +105,11 @@ public class GetProjectEditSnapshotUseCase {
         return project.getStages().stream()
                 .sorted(Comparator.comparingInt(Stage::getSequence))
                 .map(stage -> {
-                    boolean hasActiveQuestionnaire = project.getQuestionnaires() != null &&
+                    boolean locked = project.getQuestionnaires() != null &&
                             project.getQuestionnaires().stream()
                                     .anyMatch(q -> q.getStage() != null
                                             && Objects.equals(q.getStage().getId(), stage.getId())
                                             && questionnairesWithResult.contains(q.getId()));
-                    boolean locked = hasActiveQuestionnaire;
                     String lockReason = locked ? "Etapa possui questionário(s) com resultado ISEP calculado." : null;
 
                     return StageSnapshot.builder()
@@ -163,8 +162,7 @@ public class GetProjectEditSnapshotUseCase {
                 .sorted(Comparator.comparing(Questionnaire::getId))
                 .map(q -> {
                     boolean hasResult = questionnairesWithResult.contains(q.getId());
-                    boolean locked = hasResult;
-                    String lockReason = locked ? "Questionário já possui resultado ISEP calculado." : null;
+                    String lockReason = hasResult ? "Questionário já possui resultado ISEP calculado." : null;
 
                     return QuestionnaireSnapshot.builder()
                             .id(q.getId())
@@ -180,7 +178,7 @@ public class GetProjectEditSnapshotUseCase {
                             .domain(q.getDomain())
                             .description(q.getDescription())
                             .hasIsepResult(hasResult)
-                            .locked(locked)
+                            .locked(hasResult)
                             .lockReason(lockReason)
                             .questions(buildQuestionSnapshots(q))
                             .build();
@@ -216,6 +214,7 @@ public class GetProjectEditSnapshotUseCase {
         if (project.getRepresentatives() == null) return List.of();
 
         return project.getRepresentatives().stream()
+                .filter(rep -> rep.getDeletionDate() == null)
                 .sorted(Comparator.comparing(Representative::getId))
                 .map(rep -> {
                     boolean hasResponses = representativesWithResponses.contains(rep.getId());

@@ -6,6 +6,7 @@ import { BasePageComponent, RestoreParams } from '../../../../core/abstractions/
 import { LoggerService } from '../../../../core/services/logger.service';
 import { ModalService } from '../../../../core/services/modal.service';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { ProjectType } from '../../../../shared/enums/project-type.enum';
 import { ActionType } from '../../../../shared/enums/action-type.enum';
 import { QuestionModalComponent, QuestionData, QuestionStageConfig } from '../../components/question-modal/question-modal.component';
 import { AccordionPanelComponent } from '../../../../shared/components/accordion-panel/accordion-panel.component';
@@ -83,6 +84,7 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
 
   searchTerm = '';
   selectedRole = '';
+  selectedQuestionIds = signal<Set<string>>(new Set());
 
   roleFilterOptions: SelectOption[] = [];
 
@@ -251,12 +253,24 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
             label: role.name,
           }));
           this.roleNameById = new Map((roles ?? []).map((role: RoleSummary) => [role.id, role.name]));
+          this.refreshQuestionRoleNames();
           this.cdr.markForCheck();
         },
         error: (error) => {
           console.error('Falha ao carregar roles para filtro de questionário iterativo', error);
         }
       });
+  }
+
+  private refreshQuestionRoleNames(): void {
+    if (!this.roleNameById.size) return;
+    const current = this.questions();
+    if (!current.length) return;
+    const updated = current.map((q) => ({
+      ...q,
+      roleNames: this.mapRoleIdsToNames(q.roleIds, q.roleNames),
+    }));
+    this.questions.set(updated);
   }
 
   toggleQuestionnaireDataAccordion(): void {
@@ -343,12 +357,70 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
     if (this.isViewMode()) {
       return;
     }
-    if (confirm(`Tem certeza que deseja excluir a pergunta: "${question.value}"?`)) {
-      const currentQuestions = this.questions();
-      const filtered = currentQuestions.filter(q => q.id !== question.id);
-      this.questions.set(filtered);
-      this.cdr.detectChanges();
+    this.notificationService.showConfirm(
+      `Tem certeza que deseja excluir a pergunta: "${question.value}"?`,
+      () => {
+        const currentQuestions = this.questions();
+        const filtered = currentQuestions.filter(q => q.id !== question.id);
+        this.questions.set(filtered);
+        this.clearSelection();
+        this.cdr.detectChanges();
+      }
+    );
+  }
+
+  toggleQuestionSelection(questionId: string): void {
+    const current = new Set(this.selectedQuestionIds());
+    if (current.has(questionId)) {
+      current.delete(questionId);
+    } else {
+      current.add(questionId);
     }
+    this.selectedQuestionIds.set(current);
+  }
+
+  isQuestionSelected(questionId: string): boolean {
+    return this.selectedQuestionIds().has(questionId);
+  }
+
+  get isAllSelected(): boolean {
+    const visible = this.filteredQuestions;
+    return visible.length > 0 && visible.every(q => this.selectedQuestionIds().has(q.id!));
+  }
+
+  get hasSelectedQuestions(): boolean {
+    return this.selectedQuestionIds().size > 0;
+  }
+
+  get selectedCount(): number {
+    return this.selectedQuestionIds().size;
+  }
+
+  toggleSelectAll(): void {
+    const visible = this.filteredQuestions;
+    if (this.isAllSelected) {
+      this.selectedQuestionIds.set(new Set());
+    } else {
+      this.selectedQuestionIds.set(new Set(visible.map(q => q.id!)));
+    }
+  }
+
+  deleteSelectedQuestions(): void {
+    if (this.isViewMode()) return;
+    const count = this.selectedCount;
+    this.notificationService.showConfirm(
+      `Tem certeza que deseja excluir ${count} pergunta${count > 1 ? 's' : ''} selecionada${count > 1 ? 's' : ''}?`,
+      () => {
+        const ids = this.selectedQuestionIds();
+        this.questions.update(qs => qs.filter(q => !ids.has(q.id!)));
+        this.clearSelection();
+        this.cdr.detectChanges();
+      }
+    );
+  }
+
+  private clearSelection(): void {
+    this.selectedQuestionIds.set(new Set());
   }
 
   protected override save(): RouteParams<IterativoQuestionnaireRouteParams> {
@@ -519,7 +591,10 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
   private navigateBack(updatedParams?: GenericParams): void {
     this.skipStatePersistence = true;
     if (this.returnTo) {
-      this.routerService.navigateTo(this.returnTo);
+      this.routerService.navigateTo(this.returnTo, {
+        params: {},
+        queryParams: { type: ProjectType.Iterativo },
+      });
       return;
     }
 

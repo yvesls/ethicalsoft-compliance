@@ -40,6 +40,12 @@ public interface QuestionnaireRepository extends JpaRepository<Questionnaire, In
 
     Optional<Questionnaire> findByIdAndProjectId(Integer questionnaireId, Long projectId);
 
+    @Query("select q from Questionnaire q where q.stage.id = :stageId")
+    List<Questionnaire> findByStageId(Integer stageId);
+
+    @Query("select q from Questionnaire q where q.iterationRef.id = :iterationId")
+    List<Questionnaire> findByIterationRefId(Integer iterationId);
+
     @Override
     Page<Questionnaire> findAll(Specification<Questionnaire> spec, Pageable pageable);
 }

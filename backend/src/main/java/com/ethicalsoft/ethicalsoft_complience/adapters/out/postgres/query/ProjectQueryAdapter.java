@@ -69,7 +69,8 @@ public class ProjectQueryAdapter implements ProjectQueryPort {
                     .timelineStatus(project.getTimelineStatus())
                     .deadline(project.getDeadline())
                     .startDate(project.getStartDate())
-                    .representativeCount(project.getRepresentatives() != null ? project.getRepresentatives().size() : 0)
+                    .representativeCount(project.getRepresentatives() != null
+                            ? (int) project.getRepresentatives().stream().filter(r -> r.getDeletionDate() == null).count() : 0)
                     .stageCount(project.getStages() != null ? project.getStages().size() : 0)
                     .iterationCount(project.getIterations() != null ? project.getIterations().size() : 0)
                     .currentStage(currentStage)
@@ -84,7 +85,8 @@ public class ProjectQueryAdapter implements ProjectQueryPort {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException("Projeto não encontrado: " + projectId));
 
-        int representativeCount = project.getRepresentatives() != null ? project.getRepresentatives().size() : 0;
+        int representativeCount = project.getRepresentatives() != null
+                ? (int) project.getRepresentatives().stream().filter(r -> r.getDeletionDate() == null).count() : 0;
         int stageCount = project.getStages() != null ? project.getStages().size() : 0;
         int iterationCount = project.getIterations() != null ? project.getIterations().size() : 0;
         LocalDate now = LocalDate.now();
@@ -124,7 +126,8 @@ public class ProjectQueryAdapter implements ProjectQueryPort {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException("Projeto não encontrado: " + projectId));
 
-        Set<Representative> reps = Optional.ofNullable(project.getRepresentatives()).orElse(Set.of());
+        Set<Representative> reps = Optional.ofNullable(project.getRepresentatives()).orElse(Set.of())
+                .stream().filter(r -> r.getDeletionDate() == null).collect(Collectors.toSet());
         Map<Long, Representative> representativesById = reps.stream()
                 .collect(Collectors.toMap(Representative::getId, rep -> rep));
 

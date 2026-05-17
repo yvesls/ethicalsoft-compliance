@@ -33,13 +33,22 @@ public class ProjectUnassignmentNotificationStrategy implements NotificationType
             String to = Optional.ofNullable(command.context().get("to")).map(Object::toString).orElse("");
             String firstName = Optional.ofNullable(command.context().get("firstName")).map(Object::toString).orElse("");
             String projectName = Optional.ofNullable(command.context().get("projectName")).map(Object::toString).orElse("");
+            String adminName = Optional.ofNullable(command.context().get("adminName")).map(Object::toString).orElse("");
+            String adminEmail = Optional.ofNullable(command.context().get("adminEmail")).map(Object::toString).orElse("");
+            Long userId = command.context().get("userId") != null
+                    ? Long.valueOf(command.context().get("userId").toString()) : null;
 
             Map<String, String> placeholders = new HashMap<>();
             placeholders.put("firstName", firstName);
             placeholders.put("projectName", projectName);
+            placeholders.put("adminName", adminName);
 
             channelSender.send(template, placeholders, builder ->
                     builder.recipientEmail(to)
+                            .recipientUserId(userId)
+                            .recipientName(firstName)
+                            .senderName(adminName)
+                            .senderEmail(adminEmail)
             );
 
             log.info("[notification] PROJECT_UNASSIGNMENT enviada para {}", to);

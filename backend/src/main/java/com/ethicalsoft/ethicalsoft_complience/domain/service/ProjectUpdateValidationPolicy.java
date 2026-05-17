@@ -1,10 +1,7 @@
 package com.ethicalsoft.ethicalsoft_complience.domain.service;
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.QuestionnaireResponse;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Project;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Question;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Questionnaire;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Representative;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.*;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.ProjectStatusEnum;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.QuestionnaireResponseStatus;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.TimelineStatusEnum;
@@ -12,10 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -67,20 +62,31 @@ public class ProjectUpdateValidationPolicy {
     public List<String> validateQuestionRemoval(Question question,
                                                 Questionnaire questionnaire,
                                                 List<QuestionnaireResponse> responses) {
+        return validateQuestionRemoval(question, questionnaire, responses, Collections.emptySet());
+    }
+
+    public List<String> validateQuestionRemoval(Question question,
+                                                Questionnaire questionnaire,
+                                                List<QuestionnaireResponse> responses,
+                                                Set<Representative> representatives) {
         List<String> blocked = new ArrayList<>();
 
         if (questionnaire.getStatus() == TimelineStatusEnum.CONCLUIDO) {
-            blocked.add("Não é possível remover pergunta '" + truncate(question.getValue()) + "' de questionário CONCLUÍDO.");
+            blocked.add("Não é possível remover pergunta id=" + question.getId() + " de questionário CONCLUÍDO.");
             return blocked;
         }
+
+        Set<Long> questionRoleIds = question.getRoles() != null
+                ? question.getRoles().stream().map(Role::getId).collect(Collectors.toSet())
+                : Set.of();
 
         if (responses != null) {
             for (QuestionnaireResponse resp : responses) {
                 if (resp.getStatus() == QuestionnaireResponseStatus.COMPLETED) {
                     boolean answered = resp.getAnswers() != null && resp.getAnswers().stream()
                             .anyMatch(a -> Objects.equals(a.getQuestionId(), Long.valueOf(question.getId())) && a.getResponse() != null);
-                    if (answered) {
-                        blocked.add("Pergunta '" + truncate(question.getValue()) + "' já foi respondida por representante (resposta COMPLETED). Não pode ser removida.");
+                    if (answered && representativeHasQuestionRole(resp.getRepresentativeId(), questionRoleIds, representatives)) {
+                        blocked.add("Pergunta id=" + question.getId() + " já foi respondida por representante com papel compatível (resposta COMPLETED). Não pode ser removida.");
                         break;
                     }
                 }
@@ -169,29 +175,39 @@ public class ProjectUpdateValidationPolicy {
                                                List<QuestionnaireResponse> responses,
                                                boolean isTextChange,
                                                boolean isRoleChange) {
+        return validateQuestionUpdate(question, questionnaire, responses, isTextChange, isRoleChange, Collections.emptySet());
+    }
+
+    public List<String> validateQuestionUpdate(Question question,
+                                               Questionnaire questionnaire,
+                                               List<QuestionnaireResponse> responses,
+                                               boolean isTextChange,
+                                               boolean isRoleChange,
+                                               Set<Representative> representatives) {
         List<String> blocked = new ArrayList<>();
 
         if (questionnaire.getStatus() == TimelineStatusEnum.CONCLUIDO) {
-            blocked.add("Não é possível editar pergunta '" + truncate(question.getValue()) + "' de questionário CONCLUÍDO '" + questionnaire.getName() + "'.");
+            blocked.add("Não é possível editar pergunta id=" + question.getId() + " de questionário CONCLUÍDO '" + questionnaire.getName() + "'.");
             return blocked;
         }
 
-        if (responses != null) {
-            boolean hasCompleted = responses.stream()
-                    .anyMatch(r -> r.getStatus() == QuestionnaireResponseStatus.COMPLETED);
+        Set<Long> questionRoleIds = question.getRoles() != null
+                ? question.getRoles().stream().map(Role::getId).collect(Collectors.toSet())
+                : Set.of();
 
-            if (hasCompleted && isTextChange) {
-                blocked.add("Pergunta '" + truncate(question.getValue()) + "' já foi respondida (respostas COMPLETED). O texto não pode ser alterado.");
+        if (responses != null) {
+            boolean questionAnsweredByMatchingRole = responses.stream()
+                    .filter(r -> r.getStatus() == QuestionnaireResponseStatus.COMPLETED)
+                    .filter(r -> representativeHasQuestionRole(r.getRepresentativeId(), questionRoleIds, representatives))
+                    .anyMatch(r -> r.getAnswers() != null && r.getAnswers().stream()
+                            .anyMatch(a -> Objects.equals(a.getQuestionId(), Long.valueOf(question.getId())) && a.getResponse() != null));
+
+            if (questionAnsweredByMatchingRole && isTextChange) {
+                blocked.add("Pergunta id=" + question.getId() + " já foi respondida. O texto não pode ser alterado.");
             }
 
-            if (hasCompleted && isRoleChange) {
-                boolean questionAnswered = responses.stream()
-                        .filter(r -> r.getStatus() == QuestionnaireResponseStatus.COMPLETED)
-                        .anyMatch(r -> r.getAnswers() != null && r.getAnswers().stream()
-                                .anyMatch(a -> Objects.equals(a.getQuestionId(), Long.valueOf(question.getId())) && a.getResponse() != null));
-                if (questionAnswered) {
-                    blocked.add("Pergunta '" + truncate(question.getValue()) + "' já foi respondida. Os papéis vinculados não podem ser alterados.");
-                }
+            if (questionAnsweredByMatchingRole && isRoleChange) {
+                blocked.add("Pergunta id=" + question.getId() + " já foi respondida. Os papéis vinculados não podem ser alterados.");
             }
         }
 
@@ -214,11 +230,19 @@ public class ProjectUpdateValidationPolicy {
 
         return blocked;
     }
-
-    private String truncate(String text) {
-        if (text == null) return "";
-        return text.length() > 60 ? text.substring(0, 57) + "..." : text;
+    
+    private boolean representativeHasQuestionRole(Long representativeId, Set<Long> questionRoleIds, Set<Representative> representatives) {
+        if (representatives == null || representatives.isEmpty() || questionRoleIds.isEmpty()) {
+            return true;
+        }
+        return representatives.stream()
+                .filter(r -> Objects.equals(r.getId(), representativeId))
+                .findFirst()
+                .map(rep -> rep.getRoles() != null && rep.getRoles().stream()
+                        .anyMatch(role -> questionRoleIds.contains(role.getId())))
+                .orElse(false);
     }
+
 
     public record ValidationResult(List<String> blocked, List<String> warnings) {
         public boolean isBlocked() {

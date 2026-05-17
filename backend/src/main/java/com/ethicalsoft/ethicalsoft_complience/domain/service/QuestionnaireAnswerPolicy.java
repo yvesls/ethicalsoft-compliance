@@ -1,23 +1,97 @@
 package com.ethicalsoft.ethicalsoft_complience.domain.service;
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.QuestionnaireResponse;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Question;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Questionnaire;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Role;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Stage;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.LinkDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.QuestionnaireAnswerRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.common.util.ObjectUtils;
 import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class QuestionnaireAnswerPolicy {
 
     private final LinkMapper linkMapper;
+
+    public boolean syncAnswers(QuestionnaireResponse response, Questionnaire questionnaire) {
+        Set<Question> pgQuestions = questionnaire.getQuestions();
+        if (pgQuestions == null || pgQuestions.isEmpty()) {
+            return false;
+        }
+
+        Set<Long> validQuestionIds = pgQuestions.stream()
+                .map(q -> q.getId().longValue())
+                .collect(Collectors.toSet());
+
+        List<QuestionnaireResponse.AnswerDocument> answers = response.getAnswers();
+        if (answers == null) {
+            answers = new ArrayList<>();
+            response.setAnswers(answers);
+        } else if (!(answers instanceof ArrayList)) {
+            answers = new ArrayList<>(answers);
+            response.setAnswers(answers);
+        }
+
+        boolean changed = false;
+
+        Iterator<QuestionnaireResponse.AnswerDocument> it = answers.iterator();
+        while (it.hasNext()) {
+            QuestionnaireResponse.AnswerDocument a = it.next();
+            if (!validQuestionIds.contains(a.getQuestionId())) {
+                log.info("[answer-policy] Removendo resposta órfã: questionId={} do questionário={}",
+                        a.getQuestionId(), response.getQuestionnaireId());
+                it.remove();
+                changed = true;
+            }
+        }
+
+        Set<Long> existingIds = answers.stream()
+                .map(QuestionnaireResponse.AnswerDocument::getQuestionId)
+                .collect(Collectors.toSet());
+
+        for (Question q : pgQuestions) {
+            Long qId = q.getId().longValue();
+            if (!existingIds.contains(qId)) {
+                QuestionnaireResponse.AnswerDocument newAnswer = new QuestionnaireResponse.AnswerDocument();
+                newAnswer.setQuestionId(qId);
+                newAnswer.setQuestionText(q.getValue());
+                newAnswer.setStageIds(Optional.ofNullable(q.getStages())
+                        .orElse(Collections.emptySet())
+                        .stream()
+                        .map(Stage::getId)
+                        .filter(Objects::nonNull)
+                        .toList());
+                newAnswer.setRoleIds(Optional.ofNullable(q.getRoles())
+                        .orElse(Collections.emptySet())
+                        .stream()
+                        .map(Role::getId)
+                        .filter(Objects::nonNull)
+                        .toList());
+                answers.add(newAnswer);
+                changed = true;
+                log.info("[answer-policy] Adicionando nova pergunta: questionId={} ao questionário={}",
+                        qId, response.getQuestionnaireId());
+            }
+        }
+
+        if (changed) {
+            log.info("[answer-policy] Sincronização concluída questionário={}: {} respostas válidas",
+                    response.getQuestionnaireId(), answers.size());
+        }
+
+        return changed;
+    }
 
     public void applyAnswer(QuestionnaireAnswerRequestDTO dto,
                             Map<Long, QuestionnaireResponse.AnswerDocument> answerMap) {

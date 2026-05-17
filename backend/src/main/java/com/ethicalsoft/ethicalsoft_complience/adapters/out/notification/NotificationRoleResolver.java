@@ -2,6 +2,7 @@ package com.ethicalsoft.ethicalsoft_complience.adapters.out.notification;
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Project;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Representative;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Role;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.UserRoleEnum;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.ProjectRepository;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.UserRepository;
@@ -49,7 +50,7 @@ public class NotificationRoleResolver {
                 .map(Representative::getRoles)
                 .filter(Objects::nonNull)
                 .flatMap(Set::stream)
-                .map(r -> r.getName())
+                .map(Role::getName)
                 .collect(Collectors.toList());
     }
 }

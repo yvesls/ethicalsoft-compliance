@@ -48,26 +48,23 @@ class ProcessExpiredQuestionnairesIsepUseCaseTest {
     @InjectMocks
     private ProcessExpiredQuestionnairesIsepUseCase useCase;
 
-    private Project project;
     private Questionnaire questionnaire;
-    private Representative representative;
-    private User user;
 
     @BeforeEach
     void setUp() {
-        user = new User();
+        User user = new User();
         user.setId(1L);
         user.setEmail("admin@example.com");
         user.setFirstName("Admin");
         user.setLastName("User");
 
-        project = new Project();
+        Project project = new Project();
         project.setId(10L);
         project.setName("Projeto Teste");
         project.setType(ProjectTypeEnum.ITERATIVO);
         project.setOwner(user);
 
-        representative = new Representative();
+        Representative representative = new Representative();
         representative.setId(100L);
         representative.setUser(user);
         representative.setProject(project);
@@ -126,13 +123,13 @@ class ProcessExpiredQuestionnairesIsepUseCaseTest {
         when(questionnaireRepository.findExpiredWithoutIsepResult(any())).thenReturn(List.of(questionnaire));
         when(processQuestionnaireIsepUseCase.processIfComplete(10L, 20)).thenReturn(false);
         when(questionnaireRepository.save(any())).thenReturn(questionnaire);
+        lenient().when(questionnaireRepository.findByProjectId(10L)).thenReturn(List.of(questionnaire));
 
         QuestionnaireResponse response = new QuestionnaireResponse();
         response.setRepresentativeId(100L);
         response.setStatus(QuestionnaireResponseStatus.COMPLETED);
-        when(questionnaireResponseRepository.findByProjectIdAndQuestionnaireId(10L, 20))
+        lenient().when(questionnaireResponseRepository.findByProjectIdAndQuestionnaireIdExcludingTemplates(10L, 20))
                 .thenReturn(List.of(response));
-        doNothing().when(sendNotificationUseCase).execute(any());
 
         useCase.execute();
 
@@ -140,4 +137,3 @@ class ProcessExpiredQuestionnairesIsepUseCaseTest {
         verify(sendNotificationUseCase, atLeastOnce()).execute(any());
     }
 }
-
