@@ -54,12 +54,24 @@
         />
       </div>
 
-      <div class="dash-card mt-4">
-        <app-ai-explain-widget
-          [projectId]="projectId"
-          [questionnaireId]="questionnaireId"
-        />
-      </div>
+      @if (aiAvailable() === false) {
+        <div class="ai-offline-notice mt-4">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          <p>
+            <strong>Inteligência artificial indisponível</strong>
+            Os recursos de análise por IA estão temporariamente offline. Tente novamente mais tarde.
+          </p>
+        </div>
+      }
+
+      @if (aiAvailable() !== false) {
+        <div class="dash-card mt-4">
+          <app-ai-explain-widget
+            [projectId]="projectId"
+            [questionnaireId]="questionnaireId"
+          />
+        </div>
+      }
 
       <div class="dash-card mt-4">
         <app-band-distribution-chart [distribution]="bandDistribution" />
@@ -115,19 +127,21 @@
         }
       }
 
-      <div class="dash-card mt-4">
-        <app-ai-insights-widget
-          [projectId]="projectId"
-          [questionnaireId]="questionnaireId"
-        />
-      </div>
+      @if (aiAvailable() !== false) {
+        <div class="dash-card mt-4">
+          <app-ai-insights-widget
+            [projectId]="projectId"
+            [questionnaireId]="questionnaireId"
+          />
+        </div>
 
-      <div class="dash-card mt-4">
-        <app-ai-risk-report-widget
-          [projectId]="projectId"
-          [questionnaireId]="questionnaireId"
-        />
-      </div>
+        <div class="dash-card mt-4">
+          <app-ai-risk-report-widget
+            [projectId]="projectId"
+            [questionnaireId]="questionnaireId"
+          />
+        </div>
+      }
 
       @if (d.memberResults.length) {
         <div class="dash-card mt-4">
@@ -172,10 +186,12 @@
 
     </div>
 
-    <app-ai-chat-widget
-      [projectId]="projectId"
-      [questionnaireId]="questionnaireId"
-    />
+    @if (aiAvailable() !== false) {
+      <app-ai-chat-widget
+        [projectId]="projectId"
+        [questionnaireId]="questionnaireId"
+      />
+    }
   } @else {
     <div class="dash-page">
       <div class="dash-header">

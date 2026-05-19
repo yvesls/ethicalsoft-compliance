@@ -125,3 +125,11 @@ $band-b: $semantic-blue;
 $band-c: $semantic-yellow;
 $band-d: $semantic-orange;
 $band-e: $semantic-red-dark;
+
+/* ----- AI Feature Colors ----- */
+
+$ai-color: $semantic-blue;
+$ai-color-dark: $blue-primary;
+$ai-color-bg: $semantic-blue-bg;
+$ai-color-border: rgba(21, 101, 192, 0.18);
+$ai-gradient: linear-gradient(135deg, $semantic-blue 0%, $blue-primary 100%);

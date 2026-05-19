@@ -1,9 +1,5 @@
 @use '../base/vars' as *;
 
-$ai-accent: #6366f1;
-$ai-accent-secondary: #a855f7;
-$ai-gradient: linear-gradient(135deg, $ai-accent, $ai-accent-secondary);
-
 .dash-btn--ai.dash-btn--ai {
 	background: $ai-gradient;
 	color: $white;
@@ -16,14 +12,15 @@ $ai-gradient: linear-gradient(135deg, $ai-accent, $ai-accent-secondary);
 	display: inline-flex;
 	align-items: center;
 	gap: 0.35rem;
-	transition: opacity 0.2s, transform 0.15s;
+	transition: opacity 0.2s ease, transform 0.15s ease;
 	height: auto;
 	min-height: auto;
-	box-shadow: none;
+	box-shadow: 0 2px 6px rgba($ai-color, 0.25);
 
 	&:hover {
-		opacity: 0.9;
+		opacity: 0.88;
 		transform: translateY(-1px);
+		box-shadow: 0 4px 10px rgba($ai-color, 0.35);
 	}
 
 	&:active {
@@ -31,9 +28,10 @@ $ai-gradient: linear-gradient(135deg, $ai-accent, $ai-accent-secondary);
 	}
 
 	&:disabled {
-		opacity: 0.5;
+		opacity: 0.45;
 		cursor: not-allowed;
 		transform: none;
+		box-shadow: none;
 	}
 }
 
@@ -43,9 +41,9 @@ $ai-gradient: linear-gradient(135deg, $ai-accent, $ai-accent-secondary);
 }
 
 .ai-panel {
-	border: 1.5px solid $gray-border;
+	border: 1.5px solid $ai-color-border;
 	border-radius: $radius-default;
-	background: linear-gradient(135deg, rgba($ai-accent, 0.03) 0%, rgba($ai-accent-secondary, 0.02) 100%);
+	background: linear-gradient(160deg, $ai-color-bg 0%, $white 60%);
 	overflow: hidden;
 
 	&__header {
@@ -58,7 +56,7 @@ $ai-gradient: linear-gradient(135deg, $ai-accent, $ai-accent-secondary);
 		transition: background 0.2s ease;
 
 		&:hover {
-			background: rgba($ai-accent, 0.04);
+			background: rgba($ai-color, 0.06);
 		}
 	}
 
@@ -68,8 +66,8 @@ $ai-gradient: linear-gradient(135deg, $ai-accent, $ai-accent-secondary);
 		gap: 0.5rem;
 
 		i {
-			font-size: 1.25rem;
-			color: $ai-accent;
+			font-size: 1.2rem;
+			color: $ai-color;
 		}
 	}
 
@@ -92,8 +90,8 @@ $ai-gradient: linear-gradient(135deg, $ai-accent, $ai-accent-secondary);
 		padding: 0.25rem;
 		cursor: pointer;
 		color: $neutral-text;
-		opacity: 0.6;
-		transition: opacity 0.2s;
+		opacity: 0.55;
+		transition: opacity 0.2s ease;
 
 		&:hover {
 			opacity: 1;
@@ -233,12 +231,41 @@ $ai-gradient: linear-gradient(135deg, $ai-accent, $ai-accent-secondary);
 	}
 
 	blockquote {
-		border-left: 3px solid $ai-accent;
+		border-left: 3px solid $ai-color;
 		margin: 0.75rem 0;
 		padding: 0.5rem 1rem;
 		color: $neutral-text-light;
-		background: $gray-quaternary;
+		background: $ai-color-bg;
 		border-radius: 0 $radius-sm $radius-sm 0;
+	}
+}
+
+.ai-offline-notice {
+	display: flex;
+	align-items: center;
+	gap: 0.85rem;
+	padding: 1rem 1.25rem;
+	background: $warning-bg;
+	border: 1.5px solid $warning-border;
+	border-radius: $radius-default;
+	color: $warning-text;
+
+	i {
+		font-size: 1.35rem;
+		flex-shrink: 0;
+	}
+
+	p {
+		margin: 0;
+		font-size: 0.9rem;
+		line-height: 1.5;
+
+		strong {
+			display: block;
+			font-weight: 700;
+			font-size: 0.95rem;
+			margin-bottom: 0.1rem;
+		}
 	}
 }
 
@@ -255,21 +282,22 @@ $ai-gradient: linear-gradient(135deg, $ai-accent, $ai-accent-secondary);
 	color: $white;
 	font-size: 1.3rem;
 	cursor: pointer;
-	box-shadow: 0 4px 16px rgba($ai-accent, 0.35);
+	box-shadow: 0 4px 14px rgba($ai-color, 0.4);
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	transition: transform 0.2s, box-shadow 0.2s;
+	transition: transform 0.2s ease, box-shadow 0.2s ease;
 
 	&:hover {
 		transform: scale(1.08);
-		box-shadow: 0 6px 24px rgba($ai-accent, 0.5);
+		box-shadow: 0 6px 20px rgba($ai-color, 0.55);
 	}
 
 	&--open {
 		background: $white;
 		color: $neutral-text;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+		border: 1.5px solid $gray-border;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 	}
 }
 
@@ -297,12 +325,8 @@ $ai-chat-height: 560px;
 		align-items: center;
 		justify-content: space-between;
 		padding: 0.75rem 1rem;
-		border-bottom: 1px solid $gray-border;
-		background: linear-gradient(
-			135deg,
-			rgba($ai-accent, 0.06) 0%,
-			rgba($ai-accent-secondary, 0.03) 100%
-		);
+		border-bottom: 1px solid $ai-color-border;
+		background: linear-gradient(135deg, $ai-color-bg 0%, $white 100%);
 	}
 
 	&__header-title {
@@ -314,7 +338,7 @@ $ai-chat-height: 560px;
 		color: $blue-primary;
 
 		i {
-			color: $ai-accent-secondary;
+			color: $ai-color;
 		}
 	}
 
@@ -327,15 +351,15 @@ $ai-chat-height: 560px;
 		background: none;
 		border: none;
 		color: $neutral-text;
-		opacity: 0.6;
+		opacity: 0.55;
 		cursor: pointer;
 		padding: 0.25rem 0.4rem;
 		border-radius: $radius-sm;
-		transition: opacity 0.2s, background 0.2s;
+		transition: opacity 0.2s ease, background 0.2s ease;
 
 		&:hover {
 			opacity: 1;
-			background: $gray-quaternary;
+			background: $ai-color-bg;
 		}
 	}
 
@@ -359,7 +383,7 @@ $ai-chat-height: 560px;
 
 		i {
 			font-size: 2rem;
-			color: $ai-accent-secondary;
+			color: $ai-color;
 		}
 
 		h4 {
@@ -386,18 +410,20 @@ $ai-chat-height: 560px;
 	}
 
 	&__suggestion {
-		background: rgba($ai-accent, 0.05);
-		border: 1px solid rgba($ai-accent, 0.12);
-		border-radius: 8px;
+		background: $ai-color-bg;
+		border: 1px solid $ai-color-border;
+		border-radius: $radius-sm;
 		padding: 0.5rem 0.75rem;
-		color: $neutral-text;
+		color: $blue-primary;
 		font-size: 0.8rem;
+		font-weight: 500;
 		text-align: left;
 		cursor: pointer;
-		transition: background 0.2s;
+		transition: background 0.2s ease, border-color 0.2s ease;
 
 		&:hover {
-			background: rgba($ai-accent, 0.1);
+			background: rgba($ai-color, 0.15);
+			border-color: rgba($ai-color, 0.3);
 		}
 	}
 
@@ -494,7 +520,7 @@ $ai-chat-height: 560px;
 			width: 6px;
 			height: 6px;
 			border-radius: 50%;
-			background: $ai-accent-secondary;
+			background: $ai-color;
 			animation: chatBounce 1.4s infinite ease-in-out both;
 
 			&:nth-child(1) {
@@ -521,12 +547,12 @@ $ai-chat-height: 560px;
 		background: rgba($red, 0.06);
 		color: $red;
 		border: 1px solid rgba($red, 0.15);
-		border-radius: 8px;
+		border-radius: $radius-sm;
 		padding: 0.35rem;
 		font-size: 0.8rem;
 		cursor: pointer;
 		margin-bottom: 0.5rem;
-		transition: background 0.2s;
+		transition: background 0.2s ease;
 
 		&:hover {
 			background: rgba($red, 0.1);
@@ -547,14 +573,15 @@ $ai-chat-height: 560px;
 		color: $neutral-text;
 		font-size: 0.88rem;
 		outline: none;
-		transition: border-color 0.2s;
+		transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
 		&::placeholder {
 			color: $neutral-text-light;
 		}
 
 		&:focus {
-			border-color: rgba($ai-accent, 0.5);
+			border-color: $ai-color;
+			box-shadow: 0 0 0 2px rgba($ai-color, 0.1);
 		}
 
 		&:disabled {
@@ -574,7 +601,7 @@ $ai-chat-height: 560px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		transition: opacity 0.2s;
+		transition: opacity 0.2s ease;
 
 		&:hover:not(:disabled) {
 			opacity: 0.85;

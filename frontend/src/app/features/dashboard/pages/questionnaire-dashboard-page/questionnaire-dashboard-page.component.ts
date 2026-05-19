@@ -22,6 +22,7 @@ import { AiInsightsWidgetComponent } from '../../components/ai-insights-widget/a
 import { AiExplainWidgetComponent } from '../../components/ai-explain-widget/ai-explain-widget.component';
 import { AiRiskReportWidgetComponent } from '../../components/ai-risk-report-widget/ai-risk-report-widget.component';
 import { AiChatWidgetComponent } from '../../components/ai-chat-widget/ai-chat-widget.component';
+import { AiDashboardService } from '../../services/ai-dashboard.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { AuthenticationService } from '../../../../core/services/authentication.service';
 import { ModalService } from '../../../../core/services/modal.service';
@@ -61,6 +62,7 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
   private readonly modalService = inject(ModalService);
   private readonly routerService = inject(RouterService);
   private readonly projectContextService = inject(ProjectContextService);
+  private readonly aiService = inject(AiDashboardService);
 
   projectId!: number;
   questionnaireId!: number;
@@ -72,6 +74,7 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
   loading = signal(true);
   loadError = signal(false);
   forceClosing = signal(false);
+  aiAvailable = signal<boolean | null>(null);
 
   isAdmin = this.authService.userRoles$.value.includes(RoleEnum.ADMIN);
 
@@ -86,6 +89,14 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
     this.questionnaireId = Number(this.route.snapshot.paramMap.get('questionnaireId'));
     this.projectContextService.setCurrentProjectId(String(this.projectId));
     this.load();
+    this.checkAiStatus();
+  }
+
+  private checkAiStatus(): void {
+    this.aiService.getAiStatus(this.projectId).subscribe({
+      next: (status) => this.aiAvailable.set(status.enabled),
+      error: () => this.aiAvailable.set(false),
+    });
   }
 
   load(): void {
