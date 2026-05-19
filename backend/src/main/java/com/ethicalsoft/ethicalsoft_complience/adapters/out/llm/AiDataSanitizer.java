@@ -46,6 +46,19 @@ public class AiDataSanitizer {
                     .toList();
         }
 
+        List<DashboardSnapshot.AnswerSummarySnapshot> sanitizedAnswerSummaries = null;
+        if (raw.getAnswerSummaries() != null) {
+            sanitizedAnswerSummaries = raw.getAnswerSummaries().stream()
+                    .map(a -> DashboardSnapshot.AnswerSummarySnapshot.builder()
+                            .questionText(sanitizeText(a.getQuestionText()))
+                            .domain(a.getDomain())
+                            .yesCount(a.getYesCount())
+                            .noCount(a.getNoCount())
+                            .compliancePercent(a.getCompliancePercent())
+                            .build())
+                    .toList();
+        }
+
         return DashboardSnapshot.builder()
                 .projectId(raw.getProjectId())
                 .projectName(raw.getProjectName())
@@ -70,6 +83,7 @@ public class AiDataSanitizer {
                 .roleStageHeatmap(raw.getRoleStageHeatmap())
                 .justifications(sanitizedJustifications)
                 .wordCloudTopTerms(raw.getWordCloudTopTerms())
+                .answerSummaries(sanitizedAnswerSummaries)
                 .build();
     }
 

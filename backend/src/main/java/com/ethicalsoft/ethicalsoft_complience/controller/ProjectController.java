@@ -9,7 +9,6 @@ import com.ethicalsoft.ethicalsoft_complience.application.usecase.ListProjectQue
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.ListRolesUseCase;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.notification.SendNotificationUseCase;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.project.*;
-import com.ethicalsoft.ethicalsoft_complience.domain.isep.IsepMath;
 import com.ethicalsoft.ethicalsoft_complience.domain.notification.NotificationType;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -107,16 +106,8 @@ public class ProjectController {
 
     @PostMapping("/{projectId}/close")
     @PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")
-    public ResponseEntity<Map<String, Object>> closeProject(@PathVariable Long projectId) {
-        var result = closeProjectManuallyUseCase.execute(projectId);
-        return ResponseEntity.ok(Map.of(
-                "projectId", projectId,
-                "isepPercent", IsepMath.toPercent(result.getIsep()).toPlainString(),
-                "band", result.getBand(),
-                "questionnaireCount", result.getQuestionnaireCount(),
-                "calculatedAt", result.getCalculatedAt().toString(),
-                "closedBy", result.getClosedBy() != null ? result.getClosedBy() : ""
-        ));
+    public ResponseEntity<CloseProjectResponseDTO> closeProject(@PathVariable Long projectId) {
+        return ResponseEntity.ok(closeProjectManuallyUseCase.execute(projectId));
     }
 
     @DeleteMapping("/{projectId}")

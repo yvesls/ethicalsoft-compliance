@@ -97,16 +97,26 @@ export class DashboardService {
     );
   }
 
-  getProjectCsvUrl(projectId: number, anonymize = true): string {
-    return `${environment.apiBaseUrl}/api/projects/${projectId}/dashboard/export/csv?anonymize=${anonymize}`;
+  exportProjectCsv(projectId: number, anonymize = true): Observable<Blob> {
+    const anonParam: UrlParameter = { key: 'anonymize', value: anonymize };
+    return this.requestService.makeGetBlob(
+      `api/projects/${projectId}/dashboard/export/csv`,
+      { useAuth: true },
+      anonParam
+    );
   }
 
-  getQuestionnaireCsvUrl(
+  exportQuestionnaireCsv(
     projectId: number,
     questionnaireId: number,
     anonymize = true
-  ): string {
-    return `${environment.apiBaseUrl}/api/projects/${projectId}/questionnaires/${questionnaireId}/dashboard/export/csv?anonymize=${anonymize}`;
+  ): Observable<Blob> {
+    const anonParam: UrlParameter = { key: 'anonymize', value: anonymize };
+    return this.requestService.makeGetBlob(
+      `api/projects/${projectId}/questionnaires/${questionnaireId}/dashboard/export/csv`,
+      { useAuth: true },
+      anonParam
+    );
   }
 
   forceCloseQuestionnaire(

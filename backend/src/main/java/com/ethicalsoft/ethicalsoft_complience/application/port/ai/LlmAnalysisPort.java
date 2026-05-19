@@ -4,6 +4,7 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.llm.model.AiInsightRe
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.llm.model.DashboardSnapshot;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 
 public interface LlmAnalysisPort {
@@ -14,6 +15,10 @@ public interface LlmAnalysisPort {
 
     CompletableFuture<AiInsightResult> explainIsepResults(DashboardSnapshot snapshot);
 
-    void askQuestion(String question, DashboardSnapshot snapshot, SseEmitter emitter);
+    void askQuestion(String question, DashboardSnapshot snapshot, SseEmitter emitter) throws IOException;
+
+    default boolean isAvailable() {
+        return false;
+    }
 }
 

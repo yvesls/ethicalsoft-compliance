@@ -42,6 +42,8 @@ public class DashboardSnapshot {
 
     private List<String> wordCloudTopTerms;
 
+    private List<AnswerSummarySnapshot> answerSummaries;
+
     @Getter
     @Builder
     public static class MemberSnapshot {
@@ -67,6 +69,16 @@ public class DashboardSnapshot {
         private String questionText;
         private String text;
         private Boolean response;
+    }
+
+    @Getter
+    @Builder
+    public static class AnswerSummarySnapshot {
+        private String questionText;
+        private String domain;
+        private long yesCount;
+        private long noCount;
+        private BigDecimal compliancePercent;
     }
 }
 

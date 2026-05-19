@@ -85,8 +85,17 @@ export class ProjectDashboardPageComponent implements OnInit {
   }
 
   downloadCsv(): void {
-    const url = this.dashboardService.getProjectCsvUrl(this.projectId);
-    window.open(url, '_blank');
+    this.dashboardService.exportProjectCsv(this.projectId).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `isep-projeto-${this.projectId}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+      error: () => this.notificationService.showError('Erro ao exportar CSV.'),
+    });
   }
 
   closeProject(): void {

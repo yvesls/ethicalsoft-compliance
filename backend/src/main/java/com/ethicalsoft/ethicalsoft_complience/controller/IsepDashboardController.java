@@ -3,7 +3,6 @@ package com.ethicalsoft.ethicalsoft_complience.controller;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.questionnaire.*;
 import com.ethicalsoft.ethicalsoft_complience.controller.dto.dashboard.*;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -18,7 +17,6 @@ import java.util.List;
 @RestController
 @RequestMapping("api/projects/{projectId}")
 @RequiredArgsConstructor
-@Slf4j
 public class IsepDashboardController {
 
     private final GetProjectIsepDashboardUseCase projectDashboardUseCase;
@@ -33,7 +31,6 @@ public class IsepDashboardController {
     @GetMapping("/dashboard")
     @PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")
     public ProjectIsepDashboardDTO getProjectDashboard(@PathVariable Long projectId) {
-        log.info("[dashboard-controller] Dashboard consolidado projeto={}", projectId);
         return projectDashboardUseCase.execute(projectId);
     }
 
@@ -42,7 +39,6 @@ public class IsepDashboardController {
     public QuestionnaireIsepDashboardDTO getQuestionnaireDashboard(
             @PathVariable Long projectId,
             @PathVariable Integer questionnaireId) {
-        log.info("[dashboard-controller] Dashboard iteração questionário={} projeto={}", questionnaireId, projectId);
         return questionnaireDashboardUseCase.execute(projectId, questionnaireId);
     }
 
@@ -51,7 +47,6 @@ public class IsepDashboardController {
     public List<RoleStageComplianceDTO> getRoleStageCompliance(
             @PathVariable Long projectId,
             @PathVariable Integer questionnaireId) {
-        log.info("[dashboard-controller] Heatmap/Gráfico4 questionário={} projeto={}", questionnaireId, projectId);
         return roleStageComplianceUseCase.execute(projectId, questionnaireId);
     }
 
@@ -60,7 +55,6 @@ public class IsepDashboardController {
     public WordCloudDTO getWordCloud(
             @PathVariable Long projectId,
             @PathVariable Integer questionnaireId) {
-        log.info("[dashboard-controller] Word Cloud questionário={} projeto={}", questionnaireId, projectId);
         return wordCloudUseCase.execute(projectId, questionnaireId);
     }
 
@@ -70,8 +64,6 @@ public class IsepDashboardController {
             @PathVariable Long projectId,
             @PathVariable Integer questionnaireId,
             @RequestParam Long representativeId) {
-        log.info("[dashboard-controller] Painel individual representante={} questionário={} projeto={}",
-                representativeId, questionnaireId, projectId);
         return individualDashboardUseCase.execute(projectId, questionnaireId, representativeId);
     }
 
@@ -80,7 +72,6 @@ public class IsepDashboardController {
     public List<IsepDataExportDTO> exportProjectData(
             @PathVariable Long projectId,
             @RequestParam(defaultValue = "true") boolean anonymize) {
-        log.info("[dashboard-controller] Exportação projeto={} anonymize={}", projectId, anonymize);
         return exportIsepDataUseCase.executeAll(projectId, anonymize);
     }
 
@@ -90,8 +81,6 @@ public class IsepDashboardController {
             @PathVariable Long projectId,
             @PathVariable Integer questionnaireId,
             @RequestParam(defaultValue = "true") boolean anonymize) {
-        log.info("[dashboard-controller] Exportação questionário={} projeto={} anonymize={}",
-                questionnaireId, projectId, anonymize);
         return exportIsepDataUseCase.execute(projectId, questionnaireId, anonymize);
     }
 
@@ -100,7 +89,6 @@ public class IsepDashboardController {
     public ResponseEntity<String> exportProjectCsv(
             @PathVariable Long projectId,
             @RequestParam(defaultValue = "true") boolean anonymize) {
-        log.info("[dashboard-controller] Exportação CSV projeto={} anonymize={}", projectId, anonymize);
         String csv = exportIsepCsvUseCase.executeAll(projectId, anonymize);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,
@@ -115,8 +103,6 @@ public class IsepDashboardController {
             @PathVariable Long projectId,
             @PathVariable Integer questionnaireId,
             @RequestParam(defaultValue = "true") boolean anonymize) {
-        log.info("[dashboard-controller] Exportação CSV questionário={} projeto={} anonymize={}",
-                questionnaireId, projectId, anonymize);
         String csv = exportIsepCsvUseCase.execute(projectId, questionnaireId, anonymize);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,
@@ -137,7 +123,6 @@ public class IsepDashboardController {
             @RequestParam(required = false) Boolean response,
             @RequestParam(required = false) String questionText,
             @PageableDefault(size = 20) Pageable pageable) {
-        log.info("[dashboard-controller] Respostas consolidadas projeto={}", projectId);
         return consolidatedAnswersUseCase.executeForProject(
                 projectId, questionnaireId, representativeId, questionId, roleId, roleName, response, questionText, pageable);
     }

@@ -97,11 +97,19 @@ public class SecurityFilter extends OncePerRequestFilter {
 
 	private String extractToken( HttpServletRequest request ) {
 		var authHeader = request.getHeader( "Authorization" );
-		return ( Objects.nonNull( authHeader ) && authHeader.startsWith( "Bearer " ) ) ? authHeader.substring( "Bearer ".length() ) : null;
+		if ( Objects.nonNull( authHeader ) && authHeader.startsWith( "Bearer " ) ) {
+			return authHeader.substring( "Bearer ".length() );
+		}
+		String tokenParam = request.getParameter( "token" );
+		return ObjectUtils.isEmpty( tokenParam ) ? null : tokenParam;
 	}
 
 	private Long extractProjectId( HttpServletRequest request ) {
 		String projectIdHeader = request.getHeader( "X-Project-Id" );
-		return ObjectUtils.isEmpty( projectIdHeader ) ? null : Long.valueOf( projectIdHeader );
+		if ( !ObjectUtils.isEmpty( projectIdHeader ) ) {
+			return Long.valueOf( projectIdHeader );
+		}
+		String projectIdParam = request.getParameter( "projectId" );
+		return ObjectUtils.isEmpty( projectIdParam ) ? null : Long.valueOf( projectIdParam );
 	}
 }

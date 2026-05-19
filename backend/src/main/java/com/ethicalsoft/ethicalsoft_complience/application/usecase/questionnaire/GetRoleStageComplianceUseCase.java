@@ -118,7 +118,7 @@ public class GetRoleStageComplianceUseCase {
 
                     return new RoleStageComplianceDTO(roleId, roleName, iemByStage);
                 })
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private Map<Integer, List<QuestionnaireResponse.AnswerDocument>> groupAnswersByStage(

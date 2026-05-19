@@ -6,6 +6,7 @@ import com.ethicalsoft.ethicalsoft_complience.application.port.ai.LlmAnalysisPor
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
@@ -33,15 +34,12 @@ public class NoOpLlmAdapter implements LlmAnalysisPort {
     }
 
     @Override
-    public void askQuestion(String question, DashboardSnapshot snapshot, SseEmitter emitter) {
+    public void askQuestion(String question, DashboardSnapshot snapshot, SseEmitter emitter) throws IOException {
         log.debug("[llm-noop] Q&A solicitado — IA desabilitada");
-        try {
-            emitter.send(SseEmitter.event()
-                    .name("error")
-                    .data(UNAVAILABLE_MSG));
-            emitter.complete();
-        } catch (Exception ignored) {
-        }
+        emitter.send(SseEmitter.event()
+                .name("error")
+                .data(UNAVAILABLE_MSG));
+        emitter.complete();
     }
 }
 

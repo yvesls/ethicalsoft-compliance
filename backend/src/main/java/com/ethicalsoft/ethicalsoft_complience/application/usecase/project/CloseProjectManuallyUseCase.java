@@ -1,7 +1,9 @@
 package com.ethicalsoft.ethicalsoft_complience.application.usecase.project;
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.ProjectIsepResult;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.CloseProjectResponseDTO;
 import com.ethicalsoft.ethicalsoft_complience.application.port.project.ProjectIsepResultQueryPort;
+import com.ethicalsoft.ethicalsoft_complience.domain.isep.IsepMath;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -18,7 +20,7 @@ public class CloseProjectManuallyUseCase {
     private final ProjectIsepResultQueryPort projectIsepResultQueryPort;
 
     @Transactional
-    public ProjectIsepResult execute(Long projectId) {
+    public CloseProjectResponseDTO execute(Long projectId) {
         if (projectIsepResultQueryPort.existsByProjectId(projectId)) {
             throw new IllegalStateException("O projeto id=" + projectId + " já possui ISEP consolidado calculado.");
         }
@@ -26,7 +28,15 @@ public class CloseProjectManuallyUseCase {
         String closedBy = resolveClosedBy();
         log.info("[close-project] Encerramento manual do projeto id={} por '{}'", projectId, closedBy);
 
-        return processExpiredProjectIsepUseCase.forceCloseProject(projectId, closedBy);
+        ProjectIsepResult result = processExpiredProjectIsepUseCase.forceCloseProject(projectId, closedBy);
+        return new CloseProjectResponseDTO(
+                projectId,
+                IsepMath.toPercent(result.getIsep()).toPlainString(),
+                result.getBand(),
+                result.getQuestionnaireCount(),
+                result.getCalculatedAt(),
+                result.getClosedBy() != null ? result.getClosedBy() : ""
+        );
     }
 
     private String resolveClosedBy() {

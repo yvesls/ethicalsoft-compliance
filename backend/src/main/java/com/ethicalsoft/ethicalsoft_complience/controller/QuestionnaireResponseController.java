@@ -14,7 +14,6 @@ import com.ethicalsoft.ethicalsoft_complience.controller.dto.dashboard.Consolida
 import com.ethicalsoft.ethicalsoft_complience.controller.dto.dashboard.RepresentativeResponseDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -26,7 +25,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/projects/{projectId}/questionnaires/{questionnaireId}")
 @RequiredArgsConstructor
-@Slf4j
 public class QuestionnaireResponseController {
 
     private final ListQuestionnaireQuestionsUseCase listQuestionnaireQuestionsUseCase;
@@ -89,8 +87,6 @@ public class QuestionnaireResponseController {
             @PathVariable Long projectId,
             @PathVariable Integer questionnaireId,
             @PathVariable Long representativeId) {
-        log.info("[controller] Busca respostas representante={} questionário={} projeto={}",
-                representativeId, questionnaireId, projectId);
         return getRepresentativeResponsesUseCase.execute(projectId, questionnaireId, representativeId);
     }
 
@@ -106,7 +102,6 @@ public class QuestionnaireResponseController {
             @RequestParam(required = false) Boolean response,
             @RequestParam(required = false) String questionText,
             @PageableDefault(size = 20) Pageable pageable) {
-        log.info("[controller] Respostas consolidadas questionário={} projeto={}", questionnaireId, projectId);
         return getConsolidatedAnswersUseCase.executeForQuestionnaire(
                 projectId, questionnaireId, representativeId, questionId, roleId, roleName, response, questionText, pageable);
     }

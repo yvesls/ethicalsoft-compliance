@@ -4,6 +4,7 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.llm.model.AiInsightRe
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.llm.model.DashboardSnapshot;
 import com.ethicalsoft.ethicalsoft_complience.application.port.ai.LlmAnalysisPort;
 import com.ethicalsoft.ethicalsoft_complience.infra.config.AiConfig;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ public class GroqLlmAdapter implements LlmAnalysisPort {
     private final AiDataSanitizer sanitizer;
     private final AiPromptBuilder promptBuilder;
     private final AiConfig aiConfig;
+    private final CircuitBreakerRegistry circuitBreakerRegistry;
 
     @Override
     @Async
@@ -105,8 +107,21 @@ public class GroqLlmAdapter implements LlmAnalysisPort {
                 emitter.send(SseEmitter.event()
                         .name("error")
                         .data("Análise de IA temporariamente indisponível. Tente novamente."));
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) { // NOSONAR
+            }
             emitter.complete();
+        }
+    }
+
+    @Override
+    public boolean isAvailable() {
+        try {
+            io.github.resilience4j.circuitbreaker.CircuitBreaker cb =
+                    circuitBreakerRegistry.circuitBreaker("llm");
+            return cb.getState() != io.github.resilience4j.circuitbreaker.CircuitBreaker.State.OPEN;
+        } catch (Exception e) {
+            log.warn("[llm-groq] Não foi possível verificar circuit breaker: {}", e.getMessage());
+            return true;
         }
     }
 

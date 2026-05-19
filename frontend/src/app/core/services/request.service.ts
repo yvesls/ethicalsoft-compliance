@@ -52,6 +52,23 @@ export class RequestService {
 		return this._makeRequest<T>(GET, this._getUrl(url, options.isBase, params), options)
 	}
 
+	makeGetBlob(url: string, options: RequestInputOptions, ...params: UrlParameter[]): Observable<Blob> {
+		const fullUrl = this._getUrl(url, options.isBase, params)
+		let headers = options.headers ?? new HttpHeaders()
+		options.context = (options.context ?? new HttpContext())
+			.set(USE_AUTH_CONTEXT, options.useAuth || false)
+		return this.http.get(fullUrl, {
+			headers,
+			responseType: 'blob',
+			context: options.context,
+		}).pipe(
+			catchError((error: unknown) => {
+				LoggerService.error('RequestService: Blob request failed', error)
+				return throwError(() => this.formatHttpError(error))
+			})
+		)
+	}
+
 	makePatch<T>(url: string, options: RequestInputOptions, ...params: UrlParameter[]): Observable<T> {
 		return this._makeRequest<T>(PATCH, this._getUrl(url, options.isBase, params), options)
 	}

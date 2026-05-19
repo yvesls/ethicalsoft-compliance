@@ -4,6 +4,7 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.llm.AiDataSanitizer;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.llm.AiPromptBuilder;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.llm.GroqLlmAdapter;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.llm.NoOpLlmAdapter;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import com.ethicalsoft.ethicalsoft_complience.application.port.ai.LlmAnalysisPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
@@ -34,9 +35,10 @@ public class LlmBeanConfiguration {
         public LlmAnalysisPort groqLlmAdapter(ChatModel chatModel,
                                                AiDataSanitizer sanitizer,
                                                AiPromptBuilder promptBuilder,
-                                               AiConfig aiConfig) {
+                                               AiConfig aiConfig,
+                                               CircuitBreakerRegistry circuitBreakerRegistry) {
             log.info("[llm-config] IA habilitada — Groq Cloud (modelo: {})", aiConfig.getModelName());
-            return new GroqLlmAdapter(chatModel, sanitizer, promptBuilder, aiConfig);
+            return new GroqLlmAdapter(chatModel, sanitizer, promptBuilder, aiConfig, circuitBreakerRegistry);
         }
     }
 }
