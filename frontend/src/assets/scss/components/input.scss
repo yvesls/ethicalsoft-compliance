@@ -37,6 +37,11 @@ $text-color-dark: $gray-secundary;
     @extend %form-control-base;
   }
 
+  .input-wrapper.is-invalid-border,
+  .select-trigger.is-invalid-border {
+    border-color: $red;
+  }
+
   .input-wrapper {
     input[type='text'],
     input[type='password'],
