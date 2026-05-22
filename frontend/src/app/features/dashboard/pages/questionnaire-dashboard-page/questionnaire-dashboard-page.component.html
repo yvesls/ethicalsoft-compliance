@@ -23,6 +23,24 @@
             <i class="bi bi-filetype-json"></i> Relatório do Resultado (JSON)
           </button>
           @if (isAdmin) {
+            @if (d.bulletinEligible) {
+              <button
+                class="dash-btn dash-btn--neutral"
+                [disabled]="downloadingBulletin()"
+                (click)="downloadBulletin()"
+              >
+                <i class="bi bi-file-earmark-pdf"></i>
+                {{ downloadingBulletin() ? 'Gerando...' : 'Baixar Boletim' }}
+              </button>
+              <button
+                class="dash-btn dash-btn--danger"
+                [disabled]="emittingBulletin()"
+                (click)="emitBulletin()"
+              >
+                <i class="bi bi-envelope-exclamation"></i>
+                {{ emittingBulletin() ? 'Emitindo...' : 'Emitir Boletim aos Representantes' }}
+              </button>
+            }
             <button
               class="dash-btn dash-btn--danger"
               [disabled]="forceClosing()"

@@ -3,6 +3,7 @@ package com.ethicalsoft.ethicalsoft_complience.application.usecase.questionnaire
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Project;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Questionnaire;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.QuestionnaireResult;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.ProjectStatusEnum;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.ProjectRepository;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.QuestionnaireRepository;
 import com.ethicalsoft.ethicalsoft_complience.application.port.questionnaire.IsepResultQueryPort;
@@ -107,6 +108,12 @@ public class GetProjectIsepDashboardUseCase {
                     projectId, projectIsepPercent, projectBand);
         }
 
+        boolean projectClosed = project.getStatus() == ProjectStatusEnum.CONCLUIDO;
+        boolean bulletinEligible = projectClosed && projectBand != null
+                && !EthicalComplianceBand.meetsMinimum(projectBand);
+        boolean certificateEligible = projectClosed && projectBand != null
+                && EthicalComplianceBand.meetsMinimum(projectBand);
+
         return new ProjectIsepDashboardDTO(
                 project.getId(),
                 project.getName(),
@@ -124,7 +131,9 @@ public class GetProjectIsepDashboardUseCase {
                 fairnessPercent,
                 esgPercent,
                 ethicsDebtPercent,
-                techDebtPercent
+                techDebtPercent,
+                bulletinEligible,
+                certificateEligible
         );
     }
 

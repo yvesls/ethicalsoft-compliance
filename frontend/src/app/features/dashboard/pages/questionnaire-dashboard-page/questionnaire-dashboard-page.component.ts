@@ -75,6 +75,8 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
   loadError = signal(false);
   forceClosing = signal(false);
   aiAvailable = signal<boolean | null>(null);
+  downloadingBulletin = signal(false);
+  emittingBulletin = signal(false);
 
   isAdmin = this.authService.userRoles$.value.includes(RoleEnum.ADMIN);
 
@@ -163,6 +165,51 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
       },
       error: () => this.notificationService.showError('Erro ao exportar JSON.'),
     });
+  }
+
+  downloadBulletin(): void {
+    this.downloadingBulletin.set(true);
+    this.dashboardService.downloadBulletin(this.projectId, this.questionnaireId).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `boletim-nao-conformidade-${this.projectId}-q${this.questionnaireId}.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
+        this.downloadingBulletin.set(false);
+      },
+      error: (err) => {
+        this.notificationService.showError(err?.message ?? 'Erro ao gerar o boletim de não conformidade.');
+        this.downloadingBulletin.set(false);
+      },
+    });
+  }
+
+  emitBulletin(): void {
+    this.notificationService.showConfirm(
+      'O boletim de não conformidade será enviado por e-mail, em anexo, a todos os representantes do projeto. Deseja continuar?',
+      () => {
+        this.emittingBulletin.set(true);
+        this.dashboardService.emitBulletin(this.projectId, this.questionnaireId).subscribe({
+          next: (result) => {
+            this.notificationService.showSuccess(
+              `Boletim emitido para ${result.sent} de ${result.totalRecipients} representantes.`
+            );
+            if (result.skipped > 0) {
+              this.notificationService.showWarning(
+                `${result.skipped} representante(s) não foram notificados por ausência de e-mail ou falha de envio.`
+              );
+            }
+            this.emittingBulletin.set(false);
+          },
+          error: (err) => {
+            this.notificationService.showError(err?.message ?? 'Erro ao emitir o boletim de não conformidade.');
+            this.emittingBulletin.set(false);
+          },
+        });
+      }
+    );
   }
 
   viewMemberResponses(representativeId: number, representativeName: string): void {

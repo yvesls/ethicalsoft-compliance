@@ -20,6 +20,16 @@
             <i class="bi bi-list-check"></i> Ver Todas as Respostas
           </button>
           @if (isAdmin) {
+            @if (d.certificateEligible) {
+              <button
+                class="dash-btn dash-btn--neutral"
+                [disabled]="downloadingCertificate()"
+                (click)="downloadCertificate()"
+              >
+                <i class="bi bi-award"></i>
+                {{ downloadingCertificate() ? 'Gerando...' : 'Baixar Certificado' }}
+              </button>
+            }
             <button
               class="dash-btn dash-btn--danger"
               [disabled]="closing() || d.projectIsep !== null"
@@ -60,6 +70,15 @@
         <div class="alert alert-success mt-3">
           Projeto encerrado em {{ r.calculatedAt | date: 'dd/MM/yyyy HH:mm' }} por <b>{{ r.closedBy }}</b>.
           ISEP: <b>{{ r.isepPercent }}%</b> – Faixa {{ r.band }} ({{ r.questionnaireCount }} questionários).
+        </div>
+      }
+
+      @if (isAdmin && d.bulletinEligible) {
+        <div class="alert alert-warning mt-3">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          <strong>Não conformidade detectada.</strong>
+          O ISEP consolidado ficou abaixo da faixa mínima aceitável. Acesse os questionários
+          não conformes para gerar e emitir os boletins de não conformidade aos representantes.
         </div>
       }
 

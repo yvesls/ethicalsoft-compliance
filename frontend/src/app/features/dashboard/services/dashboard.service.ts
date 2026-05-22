@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 import { RequestService } from '../../../core/services/request.service';
 import { environment } from '../../../enviroments/environments';
 import {
+  BulletinEmitResult,
   ConsolidatedAnswerDTO,
   ConsolidatedAnswerFilters,
   IndividualDashboardDTO,
@@ -116,6 +117,30 @@ export class DashboardService {
       `api/projects/${projectId}/questionnaires/${questionnaireId}/dashboard/export/csv`,
       { useAuth: true },
       anonParam
+    );
+  }
+
+  downloadBulletin(projectId: number, questionnaireId: number): Observable<Blob> {
+    return this.requestService.makeGetBlob(
+      `api/projects/${projectId}/questionnaires/${questionnaireId}/bulletin`,
+      { useAuth: true }
+    );
+  }
+
+  emitBulletin(
+    projectId: number,
+    questionnaireId: number
+  ): Observable<BulletinEmitResult> {
+    return this.requestService.makePost<BulletinEmitResult>(
+      `api/projects/${projectId}/questionnaires/${questionnaireId}/bulletin/emit`,
+      { useAuth: true }
+    );
+  }
+
+  downloadCertificate(projectId: number): Observable<Blob> {
+    return this.requestService.makeGetBlob(
+      `api/projects/${projectId}/certificate`,
+      { useAuth: true }
     );
   }
 

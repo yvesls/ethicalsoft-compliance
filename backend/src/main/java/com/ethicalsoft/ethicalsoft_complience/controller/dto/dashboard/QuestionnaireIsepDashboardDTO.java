@@ -27,6 +27,7 @@ public record QuestionnaireIsepDashboardDTO(
         BigDecimal fairnessScorePercent,
         BigDecimal esgScorePercent,
         BigDecimal ethicsDebtPercent,
-        BigDecimal techDebtPercent
+        BigDecimal techDebtPercent,
+        boolean bulletinEligible
 ) {}
 

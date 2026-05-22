@@ -49,6 +49,7 @@ export class ProjectDashboardPageComponent implements OnInit {
   loading = signal(true);
   closing = signal(false);
   closeResult = signal<ProjectCloseResultDTO | null>(null);
+  downloadingCertificate = signal(false);
 
   get completionPercent(): number {
     const d = this.dashboard();
@@ -95,6 +96,25 @@ export class ProjectDashboardPageComponent implements OnInit {
         URL.revokeObjectURL(url);
       },
       error: () => this.notificationService.showError('Erro ao exportar CSV.'),
+    });
+  }
+
+  downloadCertificate(): void {
+    this.downloadingCertificate.set(true);
+    this.dashboardService.downloadCertificate(this.projectId).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `certificado-conformidade-${this.projectId}.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
+        this.downloadingCertificate.set(false);
+      },
+      error: (err) => {
+        this.notificationService.showError(err?.message ?? 'Erro ao gerar o certificado de conformidade.');
+        this.downloadingCertificate.set(false);
+      },
     });
   }
 

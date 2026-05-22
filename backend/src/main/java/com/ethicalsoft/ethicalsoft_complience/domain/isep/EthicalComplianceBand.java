@@ -36,5 +36,26 @@ public enum EthicalComplianceBand {
     public String getLabel() {
         return label;
     }
+
+    public BigDecimal getMinInclusive() {
+        return minInclusive;
+    }
+
+    public static final EthicalComplianceBand MINIMUM_ACCEPTABLE = B;
+
+    public boolean meetsMinimum() {
+        return this.ordinal() <= MINIMUM_ACCEPTABLE.ordinal();
+    }
+
+    public static boolean meetsMinimum(String bandName) {
+        if (bandName == null || bandName.isBlank()) {
+            return false;
+        }
+        try {
+            return EthicalComplianceBand.valueOf(bandName.trim().toUpperCase()).meetsMinimum();
+        } catch (IllegalArgumentException ex) {
+            return false;
+        }
+    }
 }
 

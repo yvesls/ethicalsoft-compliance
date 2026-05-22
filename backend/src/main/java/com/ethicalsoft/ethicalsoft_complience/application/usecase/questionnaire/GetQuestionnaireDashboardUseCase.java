@@ -129,7 +129,8 @@ public class GetQuestionnaireDashboardUseCase {
                 toPercent(result.getFairnessScore()),
                 toPercent(result.getEsgScore()),
                 toPercent(result.getEthicsDebtScore()),
-                toPercent(result.getTechDebtScore())
+                toPercent(result.getTechDebtScore()),
+                !EthicalComplianceBand.meetsMinimum(result.getBand())
         );
     }
 

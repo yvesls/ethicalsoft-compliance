@@ -6,6 +6,7 @@ import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
@@ -27,6 +28,16 @@ public class NotificationEmailSender {
     private boolean emailEnabled;
 
     public void send(String to, String subject, String templatePath, Map<String, Object> model) {
+        dispatch(to, subject, templatePath, model, null, null);
+    }
+
+    public void sendWithAttachment(String to, String subject, String templatePath, Map<String, Object> model,
+                                   byte[] attachment, String attachmentFilename) {
+        dispatch(to, subject, templatePath, model, attachment, attachmentFilename);
+    }
+
+    private void dispatch(String to, String subject, String templatePath, Map<String, Object> model,
+                          byte[] attachment, String attachmentFilename) {
         if (!emailEnabled) {
             log.info("[notification-email] Envio desabilitado (app.email.enabled=false). Ignorando envio para {}", to);
             return;
@@ -41,6 +52,13 @@ public class NotificationEmailSender {
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(html, true);
+
+            if (attachment != null && attachment.length > 0) {
+                String fileName = attachmentFilename != null && !attachmentFilename.isBlank()
+                        ? attachmentFilename
+                        : "anexo.pdf";
+                helper.addAttachment(fileName, new ByteArrayResource(attachment), "application/pdf");
+            }
 
             mailSender.send(message);
         } catch (MessagingException | IOException | TemplateException e) {

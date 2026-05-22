@@ -29,6 +29,8 @@ export interface ProjectIsepDashboardDTO {
   esgScorePercent: number | null;
   ethicsDebtPercent: number | null;
   techDebtPercent: number | null;
+  bulletinEligible: boolean;
+  certificateEligible: boolean;
 }
 export interface MemberResult {
   representativeId: number;
@@ -71,6 +73,14 @@ export interface QuestionnaireIsepDashboardDTO {
   esgScorePercent: number | null;
   ethicsDebtPercent: number | null;
   techDebtPercent: number | null;
+  bulletinEligible: boolean;
+}
+
+export interface BulletinEmitResult {
+  documentCode: string;
+  totalRecipients: number;
+  sent: number;
+  skipped: number;
 }
 
 export interface StageIemEntry {

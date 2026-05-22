@@ -33,6 +33,7 @@ public class NotificationTemplateInitializer {
     private static final String QUESTIONNAIRE_RESCHEDULED = "QUESTIONNAIRE_RESCHEDULED";
     private static final String PROJECT_DEADLINE_EXCEEDED_WARNING = "PROJECT_DEADLINE_EXCEEDED_WARNING";
     private static final String NEXT_QUESTIONNAIRE_STARTING_SOON = "NEXT_QUESTIONNAIRE_STARTING_SOON";
+    private static final String NON_COMPLIANCE_BULLETIN_EMITTED = "NON_COMPLIANCE_BULLETIN_EMITTED";
 
     private final NotificationTemplateRepository repository;
 
@@ -182,6 +183,15 @@ public class NotificationTemplateInitializer {
                         .body("O questionário {closedQuestionnaireName} foi encerrado. O próximo questionário {nextQuestionnaireName} do projeto {projectName} iniciará em {nextStartDate}. Caso deseje adiantar o início, utilize o reagendamento no painel do projeto.")
                         .templateLink("users/next-questionnaire-starting-soon.ftl")
                         .channels(List.of(NotificationChannel.INTERNAL.name(), NotificationChannel.EMAIL.name()))
+                        .build(),
+                NotificationTemplateDocument.builder()
+                        .key(NON_COMPLIANCE_BULLETIN_EMITTED)
+                        .whoCanSend(List.of(UserRoleEnum.ADMIN.name()))
+                        .recipients(List.of(UserRoleEnum.USER.name()))
+                        .title("Boletim de Não Conformidade Ética: {questionnaireName}")
+                        .body("Foi emitido o Boletim de Não Conformidade Ética do questionário {questionnaireName} no projeto {projectName}. ISEP: {isepPercent}% (Faixa {band}). O boletim completo segue em anexo (PDF). Emitido por {emittedBy} em {emittedAtFormatted}.")
+                        .templateLink("users/non-compliance-bulletin-emitted.ftl")
+                        .channels(List.of(NotificationChannel.EMAIL.name()))
                         .build()
         );
     }
