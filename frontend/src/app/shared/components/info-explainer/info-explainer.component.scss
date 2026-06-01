@@ -1,20 +1,23 @@
 .info-explainer-container {
   position: relative;
-  display: inline-block;
+  display: inline-flex;
+  align-items: flex-start;
+  flex-shrink: 0;
 }
 
 .info-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   padding: 0;
-  margin: 0 4px;
+  margin: 0;
   border: none;
   background: transparent;
   cursor: pointer;
   transition: all 200ms ease-out;
+  flex-shrink: 0;
 
   &:hover {
     opacity: 0.8;
@@ -112,26 +115,25 @@
   font-style: italic;
 }
 
-/* Scrollbar customizado para navegadores Webkit */
-.popover::-webkit-scrollbar {
-  width: 6px;
-}
-
-.popover::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.popover::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.15);
-  border-radius: 3px;
-
-  &:hover {
-    background: rgba(0, 0, 0, 0.25);
-  }
-}
-
-/* Scrollbar para Firefox */
+/* Scrollbar customizado */
 .popover {
   scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
   scrollbar-width: thin;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 3px;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.25);
+    }
+  }
 }
