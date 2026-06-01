@@ -10,6 +10,7 @@ import {
   inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
 import {
   FormControl,
   FormGroup,
@@ -34,7 +35,7 @@ export interface RescheduleModalInput {
 @Component({
   selector: 'app-reschedule-questionnaire-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, InputComponent],
+  imports: [CommonModule, ReactiveFormsModule, InputComponent, TranslateModule],
   templateUrl: './reschedule-questionnaire-modal.component.html',
   styleUrls: ['./reschedule-questionnaire-modal.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,

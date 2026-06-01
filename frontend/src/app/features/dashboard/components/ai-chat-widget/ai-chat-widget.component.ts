@@ -1,5 +1,6 @@
 import { Component, inject, Input, signal, ElementRef, ViewChild, AfterViewChecked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TranslateModule } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 import { MarkdownPipe } from '../../../../shared/utils/markdown.pipe';
 import { AiDashboardService } from '../../services/ai-dashboard.service';
@@ -21,7 +22,7 @@ const SUGGESTED_QUESTIONS = [
 @Component({
   selector: 'app-ai-chat-widget',
   standalone: true,
-  imports: [FormsModule, MarkdownPipe],
+  imports: [FormsModule, MarkdownPipe, TranslateModule],
   templateUrl: './ai-chat-widget.component.html',
   styleUrl: './ai-chat-widget.component.scss',
 })

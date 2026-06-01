@@ -1,5 +1,5 @@
 <div class="card small-card">
-	<h1>Informe o código recebido por email</h1>
+	<h1>{{ 'auth.code_verification.title' | translate }}</h1>
 
 	<form class="code-form" [formGroup]="form" (ngSubmit)="verifyCode()">
 		<div class="code-inputs" formArrayName="code">
@@ -17,6 +17,6 @@
 			}
 		</div>
 
-		<button class="btn btn-primary" type="submit" [disabled]="form.invalid">Confirmar</button>
+		<button class="btn btn-primary" type="submit" [disabled]="form.invalid">{{ 'auth.code_verification.confirm' | translate }}</button>
 	</form>
 </div>

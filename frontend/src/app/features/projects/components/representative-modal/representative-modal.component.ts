@@ -1,5 +1,6 @@
 import { Component, Output, EventEmitter, inject, Input, ChangeDetectorRef, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BasePageComponent, RestoreParams } from '../../../../core/abstractions/base-page.component';
 import { ModalService } from '../../../../core/services/modal.service';
@@ -43,7 +44,7 @@ type RepresentativeRestoreState = RestoreParams<GenericParams> & Partial<Represe
 @Component({
   selector: 'app-representative-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, InputComponent, MultiSelectComponent],
+  imports: [CommonModule, ReactiveFormsModule, InputComponent, MultiSelectComponent, TranslateModule],
   templateUrl: './representative-modal.component.html',
   styleUrls: ['./representative-modal.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush

@@ -1,5 +1,6 @@
 import { Component, Input, forwardRef, OnInit } from '@angular/core'
 import { CommonModule } from '@angular/common'
+import { TranslateModule } from '@ngx-translate/core'
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, AbstractControl } from '@angular/forms'
 import { noop } from 'rxjs'
 import { capitalizeWords } from '../../../core/utils/common-utils'
@@ -9,7 +10,7 @@ type InputValue = string | number | null
 @Component({
   selector: 'app-input',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslateModule],
   templateUrl: './input.component.html',
   styleUrls: ['./input.component.scss'],
   providers: [

@@ -1,5 +1,7 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, inject, Input, OnChanges, OnDestroy, OnInit } from '@angular/core';
 import { NgxEchartsDirective } from 'ngx-echarts';
+import { TranslateService } from '@ngx-translate/core';
+import { Subscription } from 'rxjs';
 import type { EChartsOption } from 'echarts';
 import { RoleStageComplianceDTO } from '../../interfaces/dashboard.interface';
 
@@ -15,13 +17,24 @@ const ROLE_COLORS = [
   templateUrl: './role-stage-bar-chart.component.html',
   styleUrl: './role-stage-bar-chart.component.scss',
 })
-export class RoleStageBarChartComponent implements OnChanges {
+export class RoleStageBarChartComponent implements OnInit, OnChanges, OnDestroy {
   @Input({ required: true }) roleStageData: RoleStageComplianceDTO[] = [];
+
+  private readonly translate = inject(TranslateService);
+  private langSub!: Subscription;
 
   chartOptions: EChartsOption = {};
 
+  ngOnInit(): void {
+    this.langSub = this.translate.onLangChange.subscribe(() => this.buildChart());
+  }
+
   ngOnChanges(): void {
     this.buildChart();
+  }
+
+  ngOnDestroy(): void {
+    this.langSub?.unsubscribe();
   }
 
   private buildChart(): void {
@@ -46,7 +59,7 @@ export class RoleStageBarChartComponent implements OnChanges {
 
     this.chartOptions = {
       title: {
-        text: 'Percepção de Conformidade por Encargo',
+        text: this.translate.instant('dashboard.chart.bar_compliance_title'),
         left: 'center',
         textStyle: { fontSize: 14 },
       },

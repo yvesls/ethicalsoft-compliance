@@ -16,6 +16,7 @@ import { NotificationService } from '../../../core/services/notification.service
 import { InputComponent } from '../../../shared/components/input/input.component'
 import { AuthStore } from '../../../shared/stores/auth.store'
 import { createResetPassword, ResetPasswordInterface } from '../../../shared/interfaces/auth/reset-password.interface'
+import { TranslateModule, TranslateService } from '@ngx-translate/core'
 
 type ResetPasswordFormGroup = FormGroup<{
 	password: FormControl<string>
@@ -36,7 +37,7 @@ interface ResetPasswordFormValue {
 @Component({
 	selector: 'app-reset-password',
 	standalone: true,
-	imports: [CommonModule, ReactiveFormsModule, InputComponent],
+	imports: [CommonModule, ReactiveFormsModule, InputComponent, TranslateModule],
 	templateUrl: './reset-password.component.html',
 	styleUrl: './reset-password.component.scss',
 })
@@ -46,17 +47,21 @@ export class ResetPasswordComponent extends BasePageComponent<ResetPasswordRoute
 	private readonly formBuilder = inject(FormBuilder)
 	private readonly authStore = inject(AuthStore)
 	private readonly notificationService = inject(NotificationService)
+	private readonly translate = inject(TranslateService)
 
-	readonly passwordValidationMessages = {
-		required: 'Senha é obrigatória',
-		minlength: 'A senha deve ter pelo menos 8 caracteres',
-		weakPassword:
-			'A senha precisa ter letras maiúsculas, minúsculas, números e caracteres especiais',
+	get passwordValidationMessages() {
+		return {
+			required: this.translate.instant('auth.validation.password_required'),
+			minlength: this.translate.instant('settings.validation.min_length'),
+			weakPassword: this.translate.instant('settings.validation.weak_password'),
+		}
 	}
 
-	readonly confirmPasswordValidationMessages = {
-		required: 'Confirmação de senha é obrigatória',
-		passwordsMismatch: 'As senhas não coincidem',
+	get confirmPasswordValidationMessages() {
+		return {
+			required: this.translate.instant('auth.validation.confirm_password_required'),
+			passwordsMismatch: this.translate.instant('settings.validation.passwords_mismatch'),
+		}
 	}
 
 	protected override onInit(): void {
@@ -155,7 +160,7 @@ export class ResetPasswordComponent extends BasePageComponent<ResetPasswordRoute
 
 		this.authStore.resetPassword(this.resetPassword).subscribe({
 			next: () => {
-				this.notificationService.showSuccess('Senha redefinida com sucesso!')
+				this.notificationService.showSuccess(this.translate.instant('auth.messages.password_reset'))
 				this.routerService.navigateTo('login')
 			},
 			error: (error: unknown) => {

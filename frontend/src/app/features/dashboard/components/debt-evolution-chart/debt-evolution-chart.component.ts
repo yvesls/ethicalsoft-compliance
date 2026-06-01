@@ -1,24 +1,37 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, inject, Input, OnChanges, OnDestroy, OnInit } from '@angular/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { NgxEchartsDirective } from 'ngx-echarts';
+import { Subscription } from 'rxjs';
 import type { EChartsOption } from 'echarts';
 import { IsepHistoryEntry, PersonalEvolutionEntry } from '../../interfaces/dashboard.interface';
 
 @Component({
   selector: 'app-debt-evolution-chart',
   standalone: true,
-  imports: [NgxEchartsDirective],
+  imports: [NgxEchartsDirective, TranslateModule],
   templateUrl: './debt-evolution-chart.component.html',
   styleUrl: './debt-evolution-chart.component.scss',
 })
-export class DebtEvolutionChartComponent implements OnChanges {
+export class DebtEvolutionChartComponent implements OnInit, OnChanges, OnDestroy {
   @Input({ required: true }) entries: (IsepHistoryEntry | PersonalEvolutionEntry)[] = [];
-  @Input() title = 'Evolução da Dívida por Iteração';
+  @Input() title = '';
+
+  private readonly translate = inject(TranslateService);
+  private langSub!: Subscription;
 
   chartOptions: EChartsOption = {};
   hasData = false;
 
+  ngOnInit(): void {
+    this.langSub = this.translate.onLangChange.subscribe(() => this.buildChart());
+  }
+
   ngOnChanges(): void {
     this.buildChart();
+  }
+
+  ngOnDestroy(): void {
+    this.langSub?.unsubscribe();
   }
 
   private buildChart(): void {
@@ -28,12 +41,17 @@ export class DebtEvolutionChartComponent implements OnChanges {
     this.hasData = validEntries.length > 0;
     if (!this.hasData) return;
 
+    const t = (key: string) => this.translate.instant(key);
+    const chartTitle = this.title || t('dashboard.chart.debt_evolution_default');
+    const ethicsLabel = t('dashboard.chart.debt_ethics');
+    const techLabel = t('dashboard.chart.debt_tech');
+
     const labels = validEntries.map((e) => e.iterationName ?? e.stageName ?? e.questionnaireName);
     const ethicsData = validEntries.map((e) => e.ethicsDebtPercent);
     const techData = validEntries.map((e) => e.techDebtPercent);
 
     this.chartOptions = {
-      title: { text: this.title, left: 'center', textStyle: { fontSize: 14 } },
+      title: { text: chartTitle, left: 'center', textStyle: { fontSize: 14 } },
       tooltip: {
         trigger: 'axis',
         formatter: (params: unknown) => {
@@ -48,7 +66,7 @@ export class DebtEvolutionChartComponent implements OnChanges {
       },
       legend: {
         bottom: 8,
-        data: ['Dívida Ética', 'Dívida Técnica'],
+        data: [ethicsLabel, techLabel],
       },
       xAxis: {
         type: 'category',
@@ -65,7 +83,7 @@ export class DebtEvolutionChartComponent implements OnChanges {
       },
       series: [
         {
-          name: 'Dívida Ética',
+          name: ethicsLabel,
           type: 'line',
           data: ethicsData,
           symbol: 'circle',
@@ -76,7 +94,7 @@ export class DebtEvolutionChartComponent implements OnChanges {
           connectNulls: false,
         },
         {
-          name: 'Dívida Técnica',
+          name: techLabel,
           type: 'line',
           data: techData,
           symbol: 'circle',

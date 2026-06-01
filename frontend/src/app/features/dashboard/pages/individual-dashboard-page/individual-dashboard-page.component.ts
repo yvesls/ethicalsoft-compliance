@@ -1,6 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { switchMap } from 'rxjs';
 import { DashboardService } from '../../services/dashboard.service';
 import { IndividualDashboardDTO } from '../../interfaces/dashboard.interface';
@@ -17,6 +18,7 @@ import { ProjectStore } from '../../../../shared/stores/project.store';
   standalone: true,
   imports: [
     DecimalPipe,
+    TranslateModule,
     BandBadgeComponent,
     IsepKpiCardComponent,
     IsepEvolutionChartComponent,
@@ -29,6 +31,7 @@ export class IndividualDashboardPageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly dashboardService = inject(DashboardService);
   private readonly notificationService = inject(NotificationService);
+  private readonly translate = inject(TranslateService);
   private readonly authService = inject(AuthenticationService);
   private readonly projectStore = inject(ProjectStore);
 
@@ -48,7 +51,7 @@ export class IndividualDashboardPageComponent implements OnInit {
     const currentEmail = this.authService.getCurrentUser()?.email;
 
     if (!currentEmail) {
-      this.notificationService.showError('Usuário não autenticado.');
+      this.notificationService.showError(this.translate.instant('notifications.dashboard.not_authenticated'));
       this.loading.set(false);
       return;
     }

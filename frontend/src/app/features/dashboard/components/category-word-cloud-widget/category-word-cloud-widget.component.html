@@ -1,5 +1,5 @@
 <div class="cwc">
-  <h3 class="cwc__title">Nuvem de Palavras das Justificativas</h3>
+  <h3 class="cwc__title">{{ 'dashboard.cwc.title' | translate }}</h3>
 
   <div class="cwc__tabs">
     <button
@@ -7,7 +7,7 @@
       [class.cwc__tab--active]="activeTab === 'GERAL'"
       (click)="selectTab('GERAL')"
     >
-      Geral
+      {{ 'dashboard.cwc.general_tab' | translate }}
     </button>
     @for (cat of categoryKeys; track cat) {
       <button
@@ -20,11 +20,11 @@
     }
   </div>
 
-  <p class="cwc__meta">{{ totalJustifications }} justificativas analisadas</p>
+  <p class="cwc__meta">{{ 'dashboard.cwc.justifications_count' | translate: { count: totalJustifications } }}</p>
 
   @if (chartOptions) {
     <div echarts [options]="chartOptions" class="cwc__chart"></div>
   } @else {
-    <div class="cwc__empty">Nenhuma palavra encontrada para este domínio.</div>
+    <div class="cwc__empty">{{ 'dashboard.cwc.no_words' | translate }}</div>
   }
 </div>

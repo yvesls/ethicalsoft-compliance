@@ -1,5 +1,7 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, inject, Input, OnChanges, OnDestroy, OnInit } from '@angular/core';
 import { NgxEchartsDirective } from 'ngx-echarts';
+import { TranslateService } from '@ngx-translate/core';
+import { Subscription } from 'rxjs';
 import type { EChartsOption } from 'echarts';
 import { IsepHistoryEntry, PersonalEvolutionEntry } from '../../interfaces/dashboard.interface';
 import { BAND_META } from '../../interfaces/dashboard.interface';
@@ -11,23 +13,35 @@ import { BAND_META } from '../../interfaces/dashboard.interface';
   templateUrl: './isep-evolution-chart.component.html',
   styleUrl: './isep-evolution-chart.component.scss',
 })
-export class IsepEvolutionChartComponent implements OnChanges {
+export class IsepEvolutionChartComponent implements OnInit, OnChanges, OnDestroy {
   @Input({ required: true }) entries: (IsepHistoryEntry | PersonalEvolutionEntry)[] = [];
-  @Input() title = 'Evolução do ISEP';
+  @Input() title = '';
+
+  private readonly translate = inject(TranslateService);
+  private langSub!: Subscription;
 
   chartOptions: EChartsOption = {};
+
+  ngOnInit(): void {
+    this.langSub = this.translate.onLangChange.subscribe(() => this.buildChart());
+  }
 
   ngOnChanges(): void {
     this.buildChart();
   }
 
+  ngOnDestroy(): void {
+    this.langSub?.unsubscribe();
+  }
+
   private buildChart(): void {
+    const chartTitle = this.title || this.translate.instant('dashboard.chart.isep_evolution_default');
     const labels = this.entries.map((e) => e.iterationName ?? e.stageName ?? e.questionnaireName);
     const values = this.entries.map((e) => e.isepPercent);
     const colors = this.entries.map((e) => BAND_META[e.band]?.cssColor ?? '#6b7280');
 
     this.chartOptions = {
-      title: { text: this.title, left: 'center', textStyle: { fontSize: 14 } },
+      title: { text: chartTitle, left: 'center', textStyle: { fontSize: 14 } },
       tooltip: {
         trigger: 'axis',
         formatter: (params: unknown) => {

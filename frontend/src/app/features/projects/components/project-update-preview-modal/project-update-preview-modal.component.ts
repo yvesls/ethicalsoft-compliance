@@ -6,6 +6,7 @@ import {
   Output,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
 import { ChangesSummary } from '../../../../shared/interfaces/project/project-update.interface';
 
 interface SummaryLine {
@@ -18,7 +19,7 @@ interface SummaryLine {
 @Component({
   selector: 'app-project-update-preview-modal',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslateModule],
   templateUrl: './project-update-preview-modal.component.html',
   styleUrls: ['./project-update-preview-modal.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,

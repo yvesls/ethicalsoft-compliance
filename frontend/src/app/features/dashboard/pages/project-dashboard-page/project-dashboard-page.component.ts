@@ -17,6 +17,7 @@ import { AuthenticationService } from '../../../../core/services/authentication.
 import { RouterService } from '../../../../core/services/router.service';
 import { ProjectContextService } from '../../../../core/services/project-context.service';
 import { RoleEnum } from '../../../../shared/enums/role.enum';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-project-dashboard-page',
@@ -30,6 +31,7 @@ import { RoleEnum } from '../../../../shared/enums/role.enum';
     DebtEvolutionChartComponent,
     GovernanceDimensionsChartComponent,
     DebtIndicatorsWidgetComponent,
+    TranslateModule,
   ],
   templateUrl: './project-dashboard-page.component.html',
   styleUrl: './project-dashboard-page.component.scss',
@@ -41,6 +43,8 @@ export class ProjectDashboardPageComponent implements OnInit {
   private readonly authService = inject(AuthenticationService);
   readonly routerService = inject(RouterService);
   private readonly projectContextService = inject(ProjectContextService);
+
+  private readonly translate = inject(TranslateService);
 
   isAdmin = this.authService.userRoles$.value.includes(RoleEnum.ADMIN);
 
@@ -71,7 +75,7 @@ export class ProjectDashboardPageComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.notificationService.showError('Não foi possível carregar o dashboard do projeto.');
+        this.notificationService.showError(this.translate.instant('dashboard.errors.load_project'));
         this.loading.set(false);
       },
     });
@@ -95,7 +99,7 @@ export class ProjectDashboardPageComponent implements OnInit {
         a.click();
         URL.revokeObjectURL(url);
       },
-      error: () => this.notificationService.showError('Erro ao exportar CSV.'),
+      error: () => this.notificationService.showError(this.translate.instant('dashboard.errors.export_csv')),
     });
   }
 
@@ -112,7 +116,7 @@ export class ProjectDashboardPageComponent implements OnInit {
         this.downloadingCertificate.set(false);
       },
       error: (err) => {
-        this.notificationService.showError(err?.message ?? 'Erro ao gerar o certificado de conformidade.');
+        this.notificationService.showError(err?.message ?? this.translate.instant('dashboard.errors.certificate'));
         this.downloadingCertificate.set(false);
       },
     });
@@ -120,18 +124,20 @@ export class ProjectDashboardPageComponent implements OnInit {
 
   closeProject(): void {
     this.notificationService.showConfirm(
-      'Tem certeza que deseja encerrar o projeto? O ISEP consolidado será calculado com os questionários disponíveis.',
+      this.translate.instant('dashboard.project.close_confirm'),
       () => {
         this.closing.set(true);
         this.dashboardService.closeProject(this.projectId).subscribe({
           next: (result) => {
             this.closeResult.set(result);
-            this.notificationService.showSuccess(`Projeto encerrado. ISEP: ${result.isepPercent}% – Faixa ${result.band}`);
+            this.notificationService.showSuccess(
+              this.translate.instant('dashboard.project.closed_success', { isep: result.isepPercent, band: result.band })
+            );
             this.load();
             this.closing.set(false);
           },
           error: () => {
-            this.notificationService.showError('Erro ao encerrar o projeto.');
+            this.notificationService.showError(this.translate.instant('dashboard.errors.close_project'));
             this.closing.set(false);
           },
         });

@@ -1,10 +1,10 @@
 <div class="debt-widget">
-  <h3 class="debt-widget__title">Indicadores de Dívida</h3>
+  <h3 class="debt-widget__title">{{ 'dashboard.debt.title' | translate }}</h3>
   <div class="debt-widget__grid">
 
     <div class="debt-indicator">
       <div class="debt-indicator__header">
-        <span class="debt-indicator__label">Dívida Ética</span>
+        <span class="debt-indicator__label">{{ 'dashboard.debt.ethics' | translate }}</span>
         <span
           class="debt-indicator__dot"
           [class.dot--green]="ethicsColor === 'green'"
@@ -22,15 +22,15 @@
         {{ ethicsDebtPercent !== null ? (ethicsDebtPercent | number:'1.1-1') + '%' : '--' }}
       </div>
       <div class="debt-indicator__thresholds">
-        <span class="threshold green">Verde &lt; 10%</span>
-        <span class="threshold yellow">Amarelo 10–30%</span>
-        <span class="threshold red">Vermelho &gt; 30%</span>
+        <span class="threshold green">{{ 'dashboard.debt.green_ethics' | translate }}</span>
+        <span class="threshold yellow">{{ 'dashboard.debt.yellow_ethics' | translate }}</span>
+        <span class="threshold red">{{ 'dashboard.debt.red_ethics' | translate }}</span>
       </div>
     </div>
 
     <div class="debt-indicator">
       <div class="debt-indicator__header">
-        <span class="debt-indicator__label">Dívida Técnica</span>
+        <span class="debt-indicator__label">{{ 'dashboard.debt.technical' | translate }}</span>
         <span
           class="debt-indicator__dot"
           [class.dot--green]="techColor === 'green'"
@@ -48,9 +48,9 @@
         {{ techDebtPercent !== null ? (techDebtPercent | number:'1.1-1') + '%' : '--' }}
       </div>
       <div class="debt-indicator__thresholds">
-        <span class="threshold green">Verde &lt; 15%</span>
-        <span class="threshold yellow">Amarelo 15–35%</span>
-        <span class="threshold red">Vermelho &gt; 35%</span>
+        <span class="threshold green">{{ 'dashboard.debt.green_tech' | translate }}</span>
+        <span class="threshold yellow">{{ 'dashboard.debt.yellow_tech' | translate }}</span>
+        <span class="threshold red">{{ 'dashboard.debt.red_tech' | translate }}</span>
       </div>
     </div>
 

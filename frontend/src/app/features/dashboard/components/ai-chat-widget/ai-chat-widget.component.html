@@ -1,7 +1,7 @@
 <button
   class="ai-chat-fab"
   [class.ai-chat-fab--open]="isOpen()"
-  [attr.aria-label]="isOpen() ? 'Fechar assistente IA' : 'Abrir assistente IA'"
+  [attr.aria-label]="isOpen() ? ('dashboard.ai_chat.close_assistant' | translate) : ('dashboard.ai_chat.open' | translate)"
   (click)="toggle()"
 >
   @if (isOpen()) {
@@ -16,14 +16,14 @@
     <div class="ai-chat__header">
       <div class="ai-chat__header-title">
         <i class="bi bi-robot"></i>
-        <span>Assistente IA</span>
+        <span>{{ 'dashboard.ai_chat.title' | translate }}</span>
       </div>
       <div class="ai-chat__header-actions">
         @if (messages().length > 0) {
           <button
             class="ai-chat__header-btn"
-            title="Limpar conversa"
-            aria-label="Limpar conversa"
+            [title]="'dashboard.ai_chat.clear' | translate"
+            [attr.aria-label]="'dashboard.ai_chat.clear' | translate"
             (click)="clearChat()"
           >
             <i class="bi bi-trash3"></i>
@@ -31,8 +31,8 @@
         }
         <button
           class="ai-chat__header-btn"
-          title="Fechar"
-          aria-label="Fechar assistente IA"
+          [title]="'dashboard.ai_chat.close_assistant' | translate"
+          [attr.aria-label]="'dashboard.ai_chat.close_assistant' | translate"
           (click)="close()"
         >
           <i class="bi bi-x-lg"></i>
@@ -44,11 +44,11 @@
       @if (messages().length === 0) {
         <div class="ai-chat__welcome">
           <i class="bi bi-stars"></i>
-          <h4>Pergunte à IA sobre os dados ISEP</h4>
-          <p>Faça perguntas sobre resultados, membros, domínios ou justificativas.</p>
+          <h4>{{ 'dashboard.ai_chat.welcome_title' | translate }}</h4>
+          <p>{{ 'dashboard.ai_chat.welcome_text' | translate }}</p>
           <div class="ai-chat__suggestions">
             @for (q of suggestedQuestions; track q) {
-              <button class="ai-chat__suggestion" (click)="sendMessage(q)" [attr.aria-label]="'Perguntar: ' + q">
+              <button class="ai-chat__suggestion" (click)="sendMessage(q)" [attr.aria-label]="('dashboard.ai_chat.question_prefix' | translate) + q">
                 {{ q }}
               </button>
             }
@@ -77,8 +77,8 @@
 
     <div class="ai-chat__input-area">
       @if (streaming()) {
-        <button class="ai-chat__stop-btn" aria-label="Parar geração" (click)="cancelStream()">
-          <i class="bi bi-stop-circle"></i> Parar
+        <button class="ai-chat__stop-btn" [attr.aria-label]="'dashboard.ai_chat.stop_label' | translate" (click)="cancelStream()">
+          <i class="bi bi-stop-circle"></i> {{ 'dashboard.ai_chat.stop' | translate }}
         </button>
       }
       <div class="ai-chat__input-row">
@@ -87,12 +87,12 @@
           class="ai-chat__input"
           [(ngModel)]="currentInput"
           (keydown)="onKeydown($event)"
-          placeholder="Faça uma pergunta..."
+          [placeholder]="'dashboard.ai_chat.placeholder' | translate"
           [disabled]="streaming()"
         />
         <button
           class="ai-chat__send-btn"
-          aria-label="Enviar mensagem"
+          [attr.aria-label]="'dashboard.ai_chat.send_label' | translate"
           (click)="sendMessage()"
           [disabled]="!currentInput.trim() || streaming()"
         >

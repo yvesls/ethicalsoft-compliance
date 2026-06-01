@@ -6,6 +6,7 @@ import { RouteParams } from '../../../core/services/router.service'
 import { AuthenticationService } from '../../../core/services/authentication.service'
 import { AuthInterface } from '../../../shared/interfaces/auth/auth.interface'
 import { InputComponent } from '../../../shared/components/input/input.component'
+import { TranslateModule } from '@ngx-translate/core'
 
 type LoginFormGroup = FormGroup<{
 	username: FormControl<string>
@@ -20,7 +21,7 @@ interface LoginRouteParams extends Record<string, unknown> {
 @Component({
 	selector: 'app-login',
 	standalone: true,
-	imports: [CommonModule, ReactiveFormsModule, InputComponent],
+	imports: [CommonModule, ReactiveFormsModule, InputComponent, TranslateModule],
 	templateUrl: './login.component.html',
 	styleUrls: ['./login.component.scss'],
 })

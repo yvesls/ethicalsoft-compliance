@@ -181,6 +181,12 @@
     }
   }
 
+  .sidebar-language {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 0.75rem;
+  }
+
   .sidebar-footer {
     padding: 1.25rem;
     display: flex;
@@ -210,6 +216,10 @@
       h5 {
         display: none;
       }
+    }
+
+    .sidebar-language {
+      display: none;
     }
 
     .menu {

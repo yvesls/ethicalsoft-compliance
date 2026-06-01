@@ -1,4 +1,5 @@
 import { Component, Input } from '@angular/core';
+import { TranslateModule } from '@ngx-translate/core';
 
 const DOMAIN_LABELS: Record<string, string> = {
   ETHICS:   'Ética',
@@ -21,7 +22,7 @@ const DOMAIN_COLORS: Record<string, string> = {
 @Component({
   selector: 'app-governance-insights-widget',
   standalone: true,
-  imports: [],
+  imports: [TranslateModule],
   templateUrl: './governance-insights-widget.component.html',
   styleUrl: './governance-insights-widget.component.scss',
 })

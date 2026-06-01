@@ -113,14 +113,14 @@ export class RouterService {
 	getFormattedRoute(): string {
 		const url = this.router.url.split('?')[0]
 		const segments = url.split('/').filter(Boolean)
-		if (!segments.length) return 'Home'
+		if (!segments.length) return 'breadcrumb.home'
 		return segments.map((segment) => this.capitalizeWords(segment)).join(' > ')
 	}
 
-	getFormattedRouteSegments(): { label: string; path: string; clickable: boolean }[] {
+	getFormattedRouteSegments(): { label: string; path: string; clickable: boolean; translate: boolean }[] {
 		const url = this.router.url.split('?')[0]
 		const segments = url.split('/').filter(Boolean)
-		if (!segments.length) return [{ label: 'Home', path: '/home', clickable: true }]
+		if (!segments.length) return [{ label: 'breadcrumb.home', path: '/home', clickable: true, translate: true }]
 
 		const navigablePatterns = this.collectNavigablePatterns()
 
@@ -128,12 +128,41 @@ export class RouterService {
 			const path = '/' + segments.slice(0, index + 1).join('/')
 			const isLast = index === segments.length - 1
 			const clickable = !isLast && navigablePatterns.some((pattern) => pattern.test(path))
+			const translationKey = this.resolveBreadcrumbKey(segment)
 			return {
-				label: this.capitalizeWords(segment),
+				label: translationKey ?? this.capitalizeWords(segment),
 				path,
 				clickable,
+				translate: translationKey !== null,
 			}
 		})
+	}
+
+	private static readonly BREADCRUMB_KEYS = new Set([
+		'home',
+		'projects',
+		'settings',
+		'templates',
+		'notifications',
+		'create',
+		'edit',
+		'dashboard',
+		'questionnaires',
+		'questionnaire',
+		'cascata',
+		'iterativo',
+		'representatives',
+		'respond',
+		'view',
+		'responses',
+		'reset-password',
+	])
+
+	private resolveBreadcrumbKey(segment: string): string | null {
+		if (/^\d+$/.test(segment)) return null
+		const normalized = segment.toLowerCase()
+		if (!RouterService.BREADCRUMB_KEYS.has(normalized)) return null
+		return `breadcrumb.${normalized}`
 	}
 
 	private collectNavigablePatterns(): RegExp[] {

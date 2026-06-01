@@ -43,6 +43,7 @@ import { ListComponent } from '../../../../shared/components/list/list.component
 import { ListItemComponent } from '../../../../shared/components/list-item/list-item.component';
 import { ModalService } from '../../../../core/services/modal.service';
 import { AuthenticationService } from '../../../../core/services/authentication.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { RoleEnum } from '../../../../shared/enums/role.enum';
 
@@ -80,6 +81,7 @@ interface ProjectListState {
     FilterBarComponent,
     ListComponent,
     ListItemComponent,
+    TranslateModule,
   ],
   templateUrl: './project-list-page.component.html',
   styleUrl: './project-list-page.component.scss',
@@ -94,6 +96,7 @@ export class ProjectListPageComponent implements OnInit {
   private spinner = inject(NgxSpinnerService);
   private modalService = inject(ModalService);
   private authService = inject(AuthenticationService);
+  private translate = inject(TranslateService);
 
   projectTypes = getEnumKeys(ProjectType);
   projectStatuses = getEnumKeys(ProjectStatus);
@@ -197,7 +200,7 @@ export class ProjectListPageComponent implements OnInit {
               this.state.update((s) => ({
                 ...s,
                 status: 'error',
-                error: err.message || 'Falha ao carregar projetos.',
+                error: err.message || this.translate.instant('projects.messages.load_error'),
               }));
               this.spinner.hide();
               return EMPTY;

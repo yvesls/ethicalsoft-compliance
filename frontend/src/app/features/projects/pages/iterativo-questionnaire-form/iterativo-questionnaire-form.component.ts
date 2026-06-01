@@ -1,5 +1,6 @@
 import { Component, inject, OnInit, OnDestroy, signal, WritableSignal, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormsModule, Validators } from '@angular/forms';
 
 import { BasePageComponent, RestoreParams } from '../../../../core/abstractions/base-page.component';
@@ -46,7 +47,7 @@ type IterativoQuestionnaireRestoreParams = RestoreParams<IterativoQuestionnaireR
 @Component({
   selector: 'app-iterativo-questionnaire-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, AccordionPanelComponent, InputComponent, SelectComponent, PaginationComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, AccordionPanelComponent, InputComponent, SelectComponent, PaginationComponent, TranslateModule],
   templateUrl: './iterativo-questionnaire-form.component.html',
   styleUrls: ['./iterativo-questionnaire-form.component.scss']
 })
@@ -56,6 +57,7 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
   private fb = inject(FormBuilder);
   private cdr = inject(ChangeDetectorRef);
   private notificationService = inject(NotificationService);
+  private readonly translate = inject(TranslateService);
   private roleService = inject(RoleService);
   private questionnaireQueryStore = inject(QuestionnaireQueryStore);
   private questionnaireIndex: number | null = null;
@@ -175,7 +177,7 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
           this.cdr.markForCheck();
         },
         error: () => {
-          this.notificationService.showError('Não foi possível carregar os dados do questionário.');
+          this.notificationService.showError(this.translate.instant('notifications.questionnaire_form.load_data_error'));
         },
       });
 
@@ -222,7 +224,7 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
         },
         error: () => {
           this.isLoadingQuestions.set(false);
-          this.notificationService.showError('Não foi possível carregar as perguntas do questionário.');
+          this.notificationService.showError(this.translate.instant('notifications.questionnaire_form.load_questions_error'));
         },
       });
   }
@@ -308,7 +310,7 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
       return;
     }
     if (!this.stageSelectionConfig) {
-      this.notificationService.showWarning('Cadastre ao menos uma etapa antes de adicionar perguntas.');
+      this.notificationService.showWarning(this.translate.instant('notifications.questionnaire_form.add_stage_first'));
       return;
     }
 
@@ -466,18 +468,18 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
     }
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      this.notificationService.showWarning('Preencha os campos obrigatórios do questionário.');
+      this.notificationService.showWarning(this.translate.instant('notifications.questionnaire_form.fill_required'));
       return;
     }
 
     if (!this.questions().length) {
-      this.notificationService.showWarning('Adicione ao menos uma pergunta antes de confirmar o questionário.');
+      this.notificationService.showWarning(this.translate.instant('notifications.questionnaire_form.add_question'));
       return;
     }
 
     const hasInvalidStages = this.questions().some((question) => !this.hasValidStageSelection(question));
     if (hasInvalidStages) {
-      this.notificationService.showWarning('Associe ao menos uma etapa a cada pergunta antes de confirmar.');
+      this.notificationService.showWarning(this.translate.instant('notifications.questionnaire_form.link_stages'));
       return;
     }
 

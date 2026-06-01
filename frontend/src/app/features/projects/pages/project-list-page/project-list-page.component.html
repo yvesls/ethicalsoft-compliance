@@ -6,8 +6,8 @@
 
     <app-select
       filters formControlName="type"
-      label="Tipo"
-      placeholder="Selecione o tipo"
+      [label]="'projects.type.label' | translate"
+      [placeholder]="'projects.filters.type_placeholder' | translate"
       [control]="filterForm.get('type')"
       [options]="projectTypeOptions"
       [allowClear]="true">
@@ -15,8 +15,8 @@
 
     <app-select
       filters formControlName="status"
-      label="Status"
-      placeholder="Selecione o status"
+      [label]="'common.status' | translate"
+      [placeholder]="'projects.filters.status_placeholder' | translate"
       [control]="filterForm.get('status')"
       [options]="projectStatusOptions"
       [allowClear]="true">
@@ -24,28 +24,28 @@
 
     <app-input
       filters formControlName="name"
-      label="Nome"
+      [label]="'projects.fields.name' | translate"
       type="text"
-      placeholder="Informe o nome"
+      [placeholder]="'projects.filters.name_placeholder' | translate"
       [control]="filterForm.get('name')"
     ></app-input>
 
     <app-input
       filters formControlName="code"
-      label="Código"
+      [label]="'projects.fields.code' | translate"
       type="text"
-      placeholder="Informe o Código"
+      [placeholder]="'projects.filters.code_placeholder' | translate"
       [control]="filterForm.get('code')"
     ></app-input>
 
     <button filters type="submit" class="btn btn-primary btn-icon">
-        <img src="assets/icons/search.svg" alt="Buscar" />
+        <img src="assets/icons/search.svg" [attr.alt]="'common.search' | translate" />
     </button>
 
     <div actions>
       @if (isAdmin()) {
         <button type="button" class="btn btn-secundary" (click)="goToCreateProject()">
-          Criar novo projeto
+          {{ 'projects.create_new' | translate }}
         </button>
       }
     </div>
@@ -54,11 +54,11 @@
   <app-list
     [status]="status()"
     [error]="error()"
-    noItemsMessage="Nenhum projeto encontrado."
+    [noItemsMessage]="'projects.empty' | translate"
     [itemCount]="projects().length" >
 
     <div listBody>
-  @for (project of projects(); track trackByProjectId($index, project)) {
+      @for (project of projects(); track trackByProjectId($index, project)) {
         <app-list-item
           [item]="project"
           [navigateTo]="['/projects', project.id]">

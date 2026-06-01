@@ -4,25 +4,26 @@
   <form [formGroup]="form" (ngSubmit)="onSubmit()">
     <div class="form-group">
       <app-input
-        label="Pergunta *"
+        [label]="'questionnaire.question_modal.question_label' | translate"
         type="text"
         formControlName="value"
-        placeholder="Digite a pergunta"
+        [placeholder]="'questionnaire.question_modal.question_placeholder' | translate"
         [control]="form.get('value')"
+        [required]="true"
       ></app-input>
     </div>
 
     <div class="form-group">
-      <label for="roleIds" class="mb-2 d-block fw-medium">Papéis *</label>
+      <label for="roleIds" class="mb-2 d-block fw-medium">{{ 'questionnaire.question_modal.roles_label' | translate }} *</label>
       <app-multi-select
         id="roleIds"
         [options]="roleOptions"
         formControlName="roleIds"
-        placeholder="Selecione os papéis"
+        [placeholder]="'questionnaire.question_modal.roles_placeholder' | translate"
       ></app-multi-select>
       @if (form.get('roleIds')?.invalid && form.get('roleIds')?.touched) {
         <small class="error-message text-danger mt-1 d-block">
-          Selecione pelo menos um papel
+          {{ 'questionnaire.question_modal.roles_error' | translate }}
         </small>
       }
     </div>
@@ -46,7 +47,7 @@
         ></app-multi-select>
         @if (form.get('stageNames')?.invalid && form.get('stageNames')?.touched) {
           <small class="error-message text-danger mt-1 d-block">
-            Selecione ao menos uma etapa
+            {{ 'questionnaire.question_modal.stage_error' | translate }}
           </small>
         }
       </div>
@@ -54,10 +55,10 @@
 
     <div class="panel-actions mt-4 d-flex justify-content-end gap-2">
       <button type="button" class="btn btn-secondary" (click)="close()">
-        Cancelar
+        {{ 'questionnaire.question_modal.cancel_btn' | translate }}
       </button>
       <button type="submit" class="btn btn-primary">
-        {{ mode === 'CREATE' ? 'Criar' : 'Salvar' }}
+        {{ mode === 'CREATE' ? ('questionnaire.question_modal.create_btn' | translate) : ('questionnaire.question_modal.save_btn' | translate) }}
       </button>
     </div>
   </form>

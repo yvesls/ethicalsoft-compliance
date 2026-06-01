@@ -1,4 +1,5 @@
 import { Component, inject, Input, signal } from '@angular/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AiPanelComponent } from '../ai-panel/ai-panel.component';
 import { AiDashboardService } from '../../services/ai-dashboard.service';
 import { AiInsightResult } from '../../interfaces/ai.interface';
@@ -6,15 +7,15 @@ import { AiInsightResult } from '../../interfaces/ai.interface';
 @Component({
   selector: 'app-ai-risk-report-widget',
   standalone: true,
-  imports: [AiPanelComponent],
+  imports: [AiPanelComponent, TranslateModule],
   template: `
     <app-ai-panel
-      title="Relatório de Risco de Conformidade"
+      [title]="'dashboard.ai_widgets.risk_title' | translate"
       icon="bi-shield-exclamation"
       [result]="result()"
       [loading]="loading()"
-      buttonLabel="Gerar Relatório de Risco"
-      loadingLabel="Gerando relatório de risco com IA... (pode levar até 20s)"
+      [buttonLabel]="'dashboard.ai_widgets.risk_btn' | translate"
+      [loadingLabel]="'dashboard.ai_widgets.risk_loading' | translate"
       (generate)="generate()"
     />
   `,
@@ -24,6 +25,7 @@ export class AiRiskReportWidgetComponent {
   @Input({ required: true }) questionnaireId!: number;
 
   private readonly aiService = inject(AiDashboardService);
+  private readonly translate = inject(TranslateService);
 
   result = signal<AiInsightResult | null>(null);
   loading = signal(false);
@@ -43,7 +45,7 @@ export class AiRiskReportWidgetComponent {
           content: null,
           model: null,
           generatedAt: '',
-          fallbackMessage: 'Erro ao conectar com o serviço de IA. Tente novamente.',
+          fallbackMessage: this.translate.instant('dashboard.ai_widgets.error_msg'),
         });
         this.loading.set(false);
       },

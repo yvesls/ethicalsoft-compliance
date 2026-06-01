@@ -1,5 +1,7 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, inject, Input, OnChanges, OnDestroy, OnInit } from '@angular/core';
 import { NgxEchartsDirective } from 'ngx-echarts';
+import { TranslateService } from '@ngx-translate/core';
+import { Subscription } from 'rxjs';
 import type { EChartsOption } from 'echarts';
 
 export interface GovernanceDimensions {
@@ -16,17 +18,35 @@ export interface GovernanceDimensions {
   templateUrl: './governance-dimensions-chart.component.html',
   styleUrl: './governance-dimensions-chart.component.scss',
 })
-export class GovernanceDimensionsChartComponent implements OnChanges {
+export class GovernanceDimensionsChartComponent implements OnInit, OnChanges, OnDestroy {
   @Input({ required: true }) dimensions!: GovernanceDimensions;
 
+  private readonly translate = inject(TranslateService);
+  private langSub!: Subscription;
+
   chartOptions: EChartsOption = {};
+
+  ngOnInit(): void {
+    this.langSub = this.translate.onLangChange.subscribe(() => this.buildChart());
+  }
 
   ngOnChanges(): void {
     this.buildChart();
   }
 
+  ngOnDestroy(): void {
+    this.langSub?.unsubscribe();
+  }
+
   private buildChart(): void {
-    const categories = ['Ética', 'Processo', 'Fairness', 'ESG'];
+    const t = (key: string) => this.translate.instant(key);
+
+    const categories = [
+      t('dashboard.chart.governance_ethics'),
+      t('dashboard.chart.governance_process'),
+      t('dashboard.chart.governance_fairness'),
+      t('dashboard.chart.governance_esg'),
+    ];
     const rawValues: (number | null)[] = [
       this.dimensions.ethicsScorePercent,
       this.dimensions.processScorePercent,
@@ -50,7 +70,7 @@ export class GovernanceDimensionsChartComponent implements OnChanges {
 
     this.chartOptions = {
       title: {
-        text: 'Dimensões de Governança',
+        text: t('dashboard.chart.governance_title'),
         left: 'center',
         textStyle: { fontSize: 14 },
       },

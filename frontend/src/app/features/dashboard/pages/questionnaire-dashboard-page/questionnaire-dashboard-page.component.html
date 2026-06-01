@@ -6,21 +6,21 @@
         <div>
           <h1 class="dash-title">{{ d.questionnaireName }}</h1>
           <span class="dash-sub">
-            Etapa: {{ d.stageName }}
-            @if (d.iterationName) { · Iteração: {{ d.iterationName }} }
-            · Calculado em {{ d.calculatedAt | date: 'dd/MM/yyyy HH:mm' }}
+            {{ 'dashboard.questionnaire.stage_label' | translate }}: {{ d.stageName }}
+            @if (d.iterationName) { · {{ 'dashboard.questionnaire.iteration_label' | translate }}: {{ d.iterationName }} }
+            · {{ 'dashboard.questionnaire.calculated_at' | translate }} {{ d.calculatedAt | date: 'dd/MM/yyyy HH:mm' }}
           </span>
         </div>
 
         <div class="dash-actions">
           <button class="dash-btn dash-btn--neutral" (click)="navigateToConsolidatedResponses()">
-            <i class="bi bi-list-check"></i> Ver Todas as Respostas
+            <i class="bi bi-list-check"></i> {{ 'dashboard.all_responses' | translate }}
           </button>
           <button class="dash-btn dash-btn--neutral" (click)="downloadCsv()">
-            <i class="bi bi-download"></i> Relatório do Resultado (CSV)
+            <i class="bi bi-download"></i> {{ 'dashboard.export_csv' | translate }}
           </button>
           <button class="dash-btn dash-btn--neutral" (click)="downloadJson()">
-            <i class="bi bi-filetype-json"></i> Relatório do Resultado (JSON)
+            <i class="bi bi-filetype-json"></i> {{ 'dashboard.export_json' | translate }}
           </button>
           @if (isAdmin) {
             @if (d.bulletinEligible) {
@@ -30,7 +30,7 @@
                 (click)="downloadBulletin()"
               >
                 <i class="bi bi-file-earmark-pdf"></i>
-                {{ downloadingBulletin() ? 'Gerando...' : 'Baixar Boletim' }}
+                {{ downloadingBulletin() ? ('common.generating' | translate) : ('dashboard.questionnaire.download_bulletin' | translate) }}
               </button>
               <button
                 class="dash-btn dash-btn--danger"
@@ -38,7 +38,7 @@
                 (click)="emitBulletin()"
               >
                 <i class="bi bi-envelope-exclamation"></i>
-                {{ emittingBulletin() ? 'Emitindo...' : 'Emitir Boletim aos Representantes' }}
+                {{ emittingBulletin() ? ('dashboard.questionnaire.emitting_bulletin' | translate) : ('dashboard.questionnaire.emit_bulletin' | translate) }}
               </button>
             }
             <button
@@ -47,7 +47,7 @@
               (click)="forceClose()"
             >
               <i class="bi bi-lock"></i>
-              {{ forceClosing() ? 'Encerrando...' : 'Forçar Encerramento' }}
+              {{ forceClosing() ? ('dashboard.questionnaire.force_closing_btn' | translate) : ('dashboard.questionnaire.force_close_btn' | translate) }}
             </button>
           }
         </div>
@@ -55,20 +55,20 @@
 
       <div class="kpi-grid">
         <app-isep-kpi-card
-          label="ISEP da Iteração"
+          [label]="'dashboard.questionnaire.isep_iteration' | translate"
           [value]="d.isepPercent"
           [band]="d.band"
-          secondary="Média ponderada da equipe"
+          [secondary]="'dashboard.questionnaire.weighted_average' | translate"
         />
         <app-isep-kpi-card
-          label="Média Simples da Equipe"
+          [label]="'dashboard.questionnaire.simple_average' | translate"
           [value]="d.teamSimpleAveragePercent"
-          secondary="Sem pesos por membro"
+          [secondary]="'dashboard.questionnaire.no_weight' | translate"
         />
         <app-isep-kpi-card
-          label="Desvio Padrão"
+          [label]="'dashboard.standard_deviation' | translate"
           [value]="d.teamStandardDeviationPercent"
-          [secondary]="d.teamStandardDeviationPercent !== null && d.teamStandardDeviationPercent > 15 ? '⚠️ Alta divergência de percepção' : 'Consenso adequado'"
+          [secondary]="d.teamStandardDeviationPercent !== null && d.teamStandardDeviationPercent > 15 ? ('dashboard.questionnaire.high_divergence' | translate) : ('dashboard.questionnaire.consensus' | translate)"
         />
       </div>
 
@@ -76,8 +76,8 @@
         <div class="ai-offline-notice mt-4">
           <i class="bi bi-exclamation-triangle-fill"></i>
           <p>
-            <strong>Inteligência artificial indisponível</strong>
-            Os recursos de análise por IA estão temporariamente offline. Tente novamente mais tarde.
+            <strong>{{ 'dashboard.ai_offline' | translate }}</strong>
+            {{ 'dashboard.ai_offline_desc' | translate }}
           </p>
         </div>
       }
@@ -163,14 +163,14 @@
 
       @if (d.memberResults.length) {
         <div class="dash-card mt-4">
-          <h2 class="dash-section-title">Resultados por Membro</h2>
+          <h2 class="dash-section-title">{{ 'dashboard.questionnaire.member_results' | translate }}</h2>
           <table class="table table-hover align-middle">
             <thead>
               <tr>
-                <th>Membro</th>
-                <th>ICP (%)</th>
-                <th>Faixa</th>
-                <th class="text-center">Ações</th>
+                <th>{{ 'dashboard.questionnaire.member' | translate }}</th>
+                <th>{{ 'dashboard.questionnaire.table_icp' | translate }}</th>
+                <th>{{ 'dashboard.questionnaire.table_band' | translate }}</th>
+                <th class="text-center">{{ 'common.actions' | translate }}</th>
               </tr>
             </thead>
             <tbody>
@@ -181,7 +181,7 @@
                   <td><app-band-badge [band]="m.band" /></td>
                   <td class="text-center">
                     <button class="dash-link" (click)="viewMemberResponses(m.representativeId, m.representativeName)">
-                      Ver Respostas →
+                      {{ 'dashboard.questionnaire.view_responses' | translate }}
                     </button>
                   </td>
                 </tr>
@@ -193,7 +193,7 @@
 
       @if (d.justificationTexts.length) {
         <div class="dash-card mt-4">
-          <h2 class="dash-section-title">Justificativas Registradas</h2>
+          <h2 class="dash-section-title">{{ 'dashboard.questionnaire.justifications' | translate }}</h2>
           <ul class="list-group list-group-flush">
             @for (j of d.justificationTexts; track j) {
               <li class="list-group-item">{{ j }}</li>
@@ -214,7 +214,7 @@
     <div class="dash-page">
       <div class="dash-header">
         <div>
-          <h1 class="dash-title">Dashboard do Questionário</h1>
+          <h1 class="dash-title">{{ 'dashboard.questionnaire.subtitle' | translate }}</h1>
         </div>
       </div>
 
@@ -222,13 +222,12 @@
         <div class="dash-card mt-4">
           <div class="d-flex flex-column align-items-center py-5 text-center">
             <i class="bi bi-exclamation-triangle text-warning" style="font-size: 2.5rem"></i>
-            <h3 class="mt-3 mb-2" style="font-weight: 600">ISEP ainda não calculado</h3>
+            <h3 class="mt-3 mb-2" style="font-weight: 600">{{ 'dashboard.questionnaire.not_calculated' | translate }}</h3>
             <p class="text-muted mb-4" style="max-width: 480px">
-              O dashboard só estará disponível após o questionário ser encerrado e o ISEP calculado.
-              Verifique se todos os respondentes concluíram ou force o encerramento.
+              {{ 'dashboard.questionnaire.not_calculated_desc' | translate }}
             </p>
             <button class="dash-btn dash-btn--neutral" (click)="load()">
-              <i class="bi bi-arrow-clockwise"></i> Tentar novamente
+              <i class="bi bi-arrow-clockwise"></i> {{ 'common.retry' | translate }}
             </button>
           </div>
         </div>
@@ -259,6 +258,6 @@
 } @else {
   <div class="d-flex justify-content-center align-items-center py-5">
     <div class="spinner-border text-primary"></div>
-    <span class="ms-3 text-muted">Carregando dashboard...</span>
+    <span class="ms-3 text-muted">{{ 'dashboard.loading' | translate }}</span>
   </div>
 }

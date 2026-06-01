@@ -4,9 +4,9 @@
       <h1 class="dash-title">{{ pageTitle }}</h1>
       <span class="dash-sub">
         @if (mode === 'questionnaire') {
-          Questionário #{{ questionnaireId }}
+          {{ 'dashboard.consolidated.questionnaire_ref' | translate: { id: questionnaireId } }}
         } @else {
-          Todas as respostas de todos os questionários
+          {{ 'dashboard.consolidated.all_questionnaires' | translate }}
         }
       </span>
     </div>
@@ -15,22 +15,22 @@
   <app-filter-bar [formGroup]="filterForm" [gridTemplateColumns]="gridColumns" (filterSubmit)="onFilter()">
     <ng-container filters>
       <app-input
-        label="Buscar por pergunta"
-        placeholder="Texto da pergunta..."
+        [label]="'dashboard.consolidated.filter_question' | translate"
+        [placeholder]="'dashboard.consolidated.filter_question_placeholder' | translate"
         [control]="filterForm.get('questionText')!"
         [formControl]="$any(filterForm.get('questionText'))"
       />
 
       <app-input
-        label="ID Representante"
-        placeholder="Ex: 14"
+        [label]="'dashboard.consolidated.filter_rep_id' | translate"
+        [placeholder]="'dashboard.consolidated.filter_rep_placeholder' | translate"
         [control]="filterForm.get('representativeId')!"
         [formControl]="$any(filterForm.get('representativeId'))"
       />
 
       <app-select
-        label="Papel"
-        placeholder="Todos"
+        [label]="'dashboard.consolidated.filter_role' | translate"
+        [placeholder]="'dashboard.consolidated.filter_all' | translate"
         [options]="roleOptions()"
         [allowClear]="true"
         [control]="filterForm.get('roleId')!"
@@ -38,8 +38,8 @@
       />
 
       <app-select
-        label="Resposta"
-        placeholder="Todos"
+        [label]="'dashboard.consolidated.filter_response' | translate"
+        [placeholder]="'dashboard.consolidated.filter_all' | translate"
         [options]="responseOptions"
         [allowClear]="true"
         [control]="filterForm.get('response')!"
@@ -48,8 +48,8 @@
 
       @if (mode === 'project' && filterForm.get('questionnaireId')) {
         <app-input
-          label="ID Questionário"
-          placeholder="Ex: 13"
+          [label]="'dashboard.consolidated.filter_questionnaire_id' | translate"
+          [placeholder]="'dashboard.consolidated.filter_questionnaire_placeholder' | translate"
           [control]="filterForm.get('questionnaireId')!"
           [formControl]="$any(filterForm.get('questionnaireId'))"
         />
@@ -58,10 +58,10 @@
 
     <ng-container actions>
       <button type="submit" class="dash-btn dash-btn--neutral">
-        <i class="bi bi-search"></i> Filtrar
+        <i class="bi bi-search"></i> {{ 'dashboard.consolidated.filter_btn' | translate }}
       </button>
       <button type="button" class="dash-btn dash-btn--neutral" (click)="clearFilters()">
-        <i class="bi bi-x-circle"></i> Limpar
+        <i class="bi bi-x-circle"></i> {{ 'dashboard.consolidated.clear_btn' | translate }}
       </button>
     </ng-container>
   </app-filter-bar>
@@ -69,25 +69,25 @@
   @if (loading()) {
     <div class="d-flex justify-content-center align-items-center py-5">
       <div class="spinner-border text-primary"></div>
-      <span class="ms-3 text-muted">Carregando respostas...</span>
+      <span class="ms-3 text-muted">{{ 'dashboard.consolidated.loading' | translate }}</span>
     </div>
   } @else {
     <div class="dash-card">
       <div class="consolidated__summary">
         <span class="text-muted">
-          {{ page().totalElements }} resposta{{ page().totalElements !== 1 ? 's' : '' }} encontrada{{ page().totalElements !== 1 ? 's' : '' }}
+          {{ 'dashboard.consolidated.results_count' | translate: { count: page().totalElements } }}
         </span>
       </div>
 
       @if (uniqueMembers().length) {
         <div class="dash-card mb-3">
-          <h2 class="dash-section-title">Membros</h2>
+          <h2 class="dash-section-title">{{ 'dashboard.consolidated.members_title' | translate }}</h2>
           <div class="consolidated__members-grid">
             @for (member of uniqueMembers(); track member.representativeId) {
               <div class="consolidated__member-chip">
                 <span class="consolidated__member-name">{{ member.representativeId }} - {{ member.representativeName }}</span>
                 <button class="dash-link" (click)="viewMemberResponses(member)">
-                  Ver Respostas →
+                  {{ 'dashboard.consolidated.view_responses' | translate }}
                 </button>
               </div>
             }
@@ -100,15 +100,15 @@
           <table class="table table-hover align-middle consolidated__table">
             <thead>
               <tr>
-                <th>Representante</th>
-                <th>Papéis</th>
+                <th>{{ 'dashboard.consolidated.representative_col' | translate }}</th>
+                <th>{{ 'dashboard.consolidated.roles_col' | translate }}</th>
                 @if (mode === 'project') {
-                  <th>Questionário</th>
+                  <th>{{ 'dashboard.consolidated.questionnaire_col' | translate }}</th>
                 }
-                <th>Pergunta</th>
-                <th class="text-center">Resposta</th>
-                <th>Justificativa</th>
-                <th>Evidência</th>
+                <th>{{ 'dashboard.consolidated.question_col' | translate }}</th>
+                <th class="text-center">{{ 'dashboard.consolidated.answer_col' | translate }}</th>
+                <th>{{ 'dashboard.consolidated.justification_col' | translate }}</th>
+                <th>{{ 'dashboard.consolidated.evidence_col' | translate }}</th>
               </tr>
             </thead>
             <tbody>
@@ -126,7 +126,7 @@
                   <td class="consolidated__question-text">{{ row.questionText }}</td>
                   <td class="text-center">
                     <span class="response-badge" [class.response-badge--yes]="row.response" [class.response-badge--no]="!row.response">
-                      {{ row.response ? 'SIM' : 'NÃO' }}
+                      {{ row.response ? ('dashboard.response_modal.yes' | translate) : ('dashboard.response_modal.no' | translate) }}
                     </span>
                   </td>
                   <td>
@@ -164,7 +164,7 @@
       } @else {
         <div class="text-center text-muted py-5">
           <i class="bi bi-inbox" style="font-size: 2rem"></i>
-          <p class="mt-2">Nenhuma resposta encontrada com os filtros aplicados.</p>
+          <p class="mt-2">{{ 'dashboard.consolidated.no_results' | translate }}</p>
         </div>
       }
     </div>

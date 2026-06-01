@@ -7,10 +7,12 @@ import { MenuItem } from '../../../core/config/menu.config'
 import { CommonModule } from '@angular/common'
 import { RouterModule } from '@angular/router'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
+import { TranslateModule } from '@ngx-translate/core'
+import { LanguageSelectorComponent } from '../language-selector/language-selector.component'
 
 @Component({
 	selector: 'app-sidebar',
-	imports: [CommonModule, RouterModule],
+	imports: [CommonModule, RouterModule, TranslateModule, LanguageSelectorComponent],
 	standalone: true,
 	templateUrl: './sidebar.component.html',
 	styleUrls: ['./sidebar.component.scss'],

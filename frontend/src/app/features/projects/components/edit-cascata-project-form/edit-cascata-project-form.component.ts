@@ -7,6 +7,7 @@ import {
   inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import {
   ReactiveFormsModule,
   FormBuilder,
@@ -73,6 +74,7 @@ type PanelStates = Record<PanelKey, boolean>;
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    TranslateModule,
     AccordionPanelComponent,
     InputComponent,
     SelectComponent,
@@ -89,6 +91,7 @@ export class EditCascataProjectFormComponent implements OnInit {
   private projectStore = inject(ProjectStore);
   private modalService = inject(ModalService);
   private notificationService = inject(NotificationService);
+  private readonly translate = inject(TranslateService);
   private routerService = inject(RouterService);
   private roleService = inject(RoleService);
 
@@ -516,7 +519,7 @@ export class EditCascataProjectFormComponent implements OnInit {
     const qGroup = this.questionnairesFormArray.at(index) as FormGroup | null;
     const questionnaire = qGroup?.getRawValue();
     if (!questionnaire) {
-      this.notificationService.showWarning('Não foi possível carregar o questionário selecionado.');
+      this.notificationService.showWarning(this.translate.instant('notifications.project_form.load_questionnaire_error'));
       return;
     }
 
@@ -606,7 +609,7 @@ export class EditCascataProjectFormComponent implements OnInit {
     const hasErrors = this.questionnaireQuestionErrors.size > 0;
     this.showQuestionnaireQuestionErrors = hasErrors;
     if (hasErrors) {
-      this.notificationService.showWarning('Adicione pelo menos uma pergunta para cada questionário.');
+      this.notificationService.showWarning(this.translate.instant('notifications.project_form.add_questions'));
     }
     this.cdr.markForCheck();
     return !hasErrors;
@@ -802,7 +805,7 @@ export class EditCascataProjectFormComponent implements OnInit {
         next: (response) => {
           try {
             if (!response?.changesSummary) {
-              this.notificationService.showSuccess('Projeto atualizado com sucesso.');
+              this.notificationService.showSuccess(this.translate.instant('notifications.project_form.save_success'));
               this.routerService.navigateTo(`/projects/${this.projectId}`);
               return;
             }
@@ -834,7 +837,7 @@ export class EditCascataProjectFormComponent implements OnInit {
             this.routerService.navigateTo(`/projects/${this.projectId}`);
           } catch (error_) {
             LoggerService.error('Erro inesperado ao processar resposta de atualização', error_);
-            this.notificationService.showError('Erro inesperado ao processar a resposta da atualização.');
+            this.notificationService.showError(this.translate.instant('notifications.project_form.save_error'));
           }
         },
         error: (err) => {

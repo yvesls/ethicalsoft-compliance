@@ -1,7 +1,7 @@
 <div class="attachment-modal">
   <header class="attachment-modal__header">
     <h2>{{ title }}</h2>
-    <p>Inclua detalhes e links que ajudem a justificar a resposta selecionada.</p>
+    <p>{{ 'questionnaire.attachment.header_hint' | translate }}</p>
   </header>
 
   <form [formGroup]="form" (ngSubmit)="submit()" class="attachment-modal__form">
@@ -14,17 +14,17 @@
           formControlName="note"
           rows="4"
           [attr.maxLength]="descriptionMaxLength"
-          placeholder="Adicione observações relevantes"
+          [placeholder]="'questionnaire.attachment.textarea_hint' | translate"
         ></textarea>
         <div class="textarea-footer">
-          <span class="textarea-hint">Conte o contexto necessário para entender a resposta.</span>
+          <span class="textarea-hint">{{ 'questionnaire.attachment.textarea_hint' | translate }}</span>
           <span class="char-counter">
             {{ form.get('note')?.value?.length || 0 }}/{{ descriptionMaxLength }}
           </span>
         </div>
       </div>
       @if (form.get('note')?.invalid && form.get('note')?.touched) {
-        <small class="error">Informe pelo menos 5 caracteres.</small>
+        <small class="error">{{ 'questionnaire.attachment.min_chars_error' | translate }}</small>
       }
     </div>
 
@@ -33,7 +33,7 @@
         <span class="field-label">{{ attachmentsLabel }}</span>
         <button type="button" class="link-btn link-btn--add" (click)="addAttachment()">
           <span class="link-btn__icon">+</span>
-          Adicionar link
+          {{ 'questionnaire.attachment.add_link' | translate }}
         </button>
       </div>
 
@@ -44,8 +44,8 @@
               <div class="attachment-fields">
                 <app-input
                   formControlName="descricao"
-                  [label]="'Descrição do link ' + (i + 1)"
-                  [placeholder]="'Ex.: Plano de ação ' + (i + 1)"
+                  [label]="'questionnaire.attachment.description_label' | translate: { n: i + 1 }"
+                  [placeholder]="'questionnaire.attachment.description_placeholder' | translate: { n: i + 1 }"
                   type="text"
                   [control]="control.get('descricao')"
                   [required]="true"
@@ -53,29 +53,29 @@
                 ></app-input>
                 <app-input
                   formControlName="url"
-                  [label]="'URL ' + (i + 1)"
-                  [placeholder]="'https://exemplo.com/prova/' + (i + 1)"
+                  [label]="'questionnaire.attachment.url_label' | translate: { n: i + 1 }"
+                  [placeholder]="'questionnaire.attachment.url_placeholder' | translate: { n: i + 1 }"
                   type="text"
                   [control]="control.get('url')"
                   [required]="true"
                   [validationMessages]="linkValidationMessages"
                 ></app-input>
               </div>
-              <small class="input-hint">Links devem começar com http:// ou https://</small>
+              <small class="input-hint">{{ 'questionnaire.attachment.link_hint' | translate }}</small>
             </div>
-            <button type="button" class="link-btn link-btn--remove" (click)="removeAttachment(i)">Remover</button>
+            <button type="button" class="link-btn link-btn--remove" (click)="removeAttachment(i)">{{ 'questionnaire.attachment.remove_link' | translate }}</button>
           </div>
         }
       </div>
 
       @if (attachments.invalid && (attachments.touched || attachments.dirty || form.touched)) {
-        <small class="error">Adicione pelo menos um link válido.</small>
+        <small class="error">{{ 'questionnaire.attachment.valid_link_error' | translate }}</small>
       }
     </div>
 
     <footer class="attachment-modal__actions">
-      <button type="button" class="btn btn-secundary" (click)="cancel()">Cancelar</button>
-      <button type="submit" class="btn btn-primary">Salvar</button>
+      <button type="button" class="btn btn-secundary" (click)="cancel()">{{ 'common.cancel' | translate }}</button>
+      <button type="submit" class="btn btn-primary">{{ 'common.save' | translate }}</button>
     </footer>
   </form>
 </div>

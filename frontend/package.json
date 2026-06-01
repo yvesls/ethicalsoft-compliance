@@ -25,6 +25,8 @@
     "@angular/router": "^19.1.6",
     "@angular/ssr": "^19.1.7",
     "@ng-bootstrap/ng-bootstrap": "^18.0.0",
+    "@ngx-translate/core": "^17.0.0",
+    "@ngx-translate/http-loader": "^17.0.0",
     "@popperjs/core": "^2.11.8",
     "bootstrap": "^5.3.3",
     "date-fns": "^4.1.0",

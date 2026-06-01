@@ -1,11 +1,13 @@
 import { Injectable, inject, OnDestroy } from '@angular/core';
 import { Subject, Subscription, timer } from 'rxjs';
 import { NotificationService } from './notification.service';
+import { TranslateService } from '@ngx-translate/core';
 import { LoggerService } from './logger.service';
 
 @Injectable({ providedIn: 'root' })
 export class SessionExpirationService implements OnDestroy {
   private readonly notification = inject(NotificationService);
+  private readonly translate = inject(TranslateService);
 
   private readonly WARNING_BEFORE_EXPIRY_MS = 2 * 60 * 1000;
 
@@ -105,11 +107,11 @@ export class SessionExpirationService implements OnDestroy {
     try {
       if (this.pendingDraftSaver) {
         await this.pendingDraftSaver();
-        this.notification.showSuccess('Rascunho salvo com sucesso. Você será redirecionado para o login.');
+        this.notification.showSuccess(this.translate.instant('notifications.session.draft_saved_redirect'));
       }
     } catch (error) {
       LoggerService.error('SessionExpirationService: Erro ao salvar rascunho.', error);
-      this.notification.showWarning('Não foi possível salvar o rascunho. Seus dados não salvos podem ser perdidos.');
+      this.notification.showWarning(this.translate.instant('notifications.session.draft_save_failed'));
     }
 
     setTimeout(() => this.forceLogout(), 2000);

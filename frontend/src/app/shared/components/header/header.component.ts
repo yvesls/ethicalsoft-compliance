@@ -7,17 +7,18 @@ import { Router, NavigationEnd, RouterModule } from '@angular/router'
 import { filter } from 'rxjs/operators'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { CommonModule, Location } from '@angular/common'
+import { TranslateModule, TranslateService } from '@ngx-translate/core'
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, TranslateModule],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',
 })
 export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
   routerPath = ''
-  routeSegments: { label: string; path: string; clickable: boolean }[] = []
+  routeSegments: { label: string; path: string; clickable: boolean; translate: boolean }[] = []
   canGoBack = false
   isPanelOpen = false
   isLoading = false
@@ -33,6 +34,7 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
   private routerService = inject(RouterService)
   private notificationService = inject(NotificationService)
   private internalNotificationService = inject(InternalNotificationService)
+  private translate = inject(TranslateService)
 
   private static readonly TOP_LEVEL_ROUTES = ['/home', '/projects', '/settings']
 
@@ -82,7 +84,7 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
       this.notifications = (result ?? []).filter((n) => n.status === 'UNREAD')
       this.lastLoadedAt = Date.now()
     } catch (error: unknown) {
-      this.errorMessage = 'Não foi possível carregar as notificações.'
+      this.errorMessage = this.translate.instant('header.load_error')
       this.notificationService.showError(error)
     } finally {
       this.isLoading = false

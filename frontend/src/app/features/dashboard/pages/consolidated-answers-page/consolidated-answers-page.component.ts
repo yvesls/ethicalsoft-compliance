@@ -1,5 +1,6 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { DashboardService } from '../../services/dashboard.service';
@@ -29,6 +30,7 @@ interface UniqueMember {
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    TranslateModule,
     FilterBarComponent,
     PaginationComponent,
     SelectComponent,
@@ -44,6 +46,7 @@ export class ConsolidatedAnswersPageComponent implements OnInit {
   private readonly notificationService = inject(NotificationService);
   private readonly modalService = inject(ModalService);
   private readonly roleService = inject(RoleService);
+  private readonly translate = inject(TranslateService);
 
   projectId!: number;
   questionnaireId: number | null = null;
@@ -79,10 +82,7 @@ export class ConsolidatedAnswersPageComponent implements OnInit {
 
   filterForm!: FormGroup;
 
-  responseOptions: SelectOption[] = [
-    { value: 'true', label: 'SIM' },
-    { value: 'false', label: 'NÃO' },
-  ];
+  responseOptions: SelectOption[] = [];
 
   get gridColumns(): string {
     return this.mode === 'project' ? '1fr 1fr 1fr 1fr 1fr' : '1fr 1fr 1fr 1fr';
@@ -90,8 +90,8 @@ export class ConsolidatedAnswersPageComponent implements OnInit {
 
   get pageTitle(): string {
     return this.mode === 'project'
-      ? 'Respostas Consolidadas do Projeto'
-      : 'Respostas Consolidadas do Questionário';
+      ? this.translate.instant('dashboard.consolidated.project_title')
+      : this.translate.instant('dashboard.consolidated.questionnaire_title');
   }
 
   ngOnInit(): void {
@@ -109,6 +109,11 @@ export class ConsolidatedAnswersPageComponent implements OnInit {
       response: [null],
       ...(this.mode === 'project' ? { questionnaireId: [null] } : {}),
     });
+
+    this.responseOptions = [
+      { value: 'true', label: this.translate.instant('dashboard.consolidated.filter_yes') },
+      { value: 'false', label: this.translate.instant('dashboard.consolidated.filter_no') },
+    ];
 
     this.loadRoles();
     this.load();
@@ -146,7 +151,7 @@ export class ConsolidatedAnswersPageComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.notificationService.showError('Erro ao carregar respostas consolidadas.');
+        this.notificationService.showError(this.translate.instant('dashboard.consolidated.load_error'));
         this.loading.set(false);
       },
     });

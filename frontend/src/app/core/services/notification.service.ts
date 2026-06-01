@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core'
 import { Router, NavigationStart } from '@angular/router'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { filter } from 'rxjs/operators'
+import { TranslateService } from '@ngx-translate/core'
 import { LoggerService } from './logger.service'
 import { getErrorMessage } from '../../shared/enums/error-messages.enum'
 
@@ -10,6 +11,7 @@ import { getErrorMessage } from '../../shared/enums/error-messages.enum'
 })
 export class NotificationService {
 	private readonly router = inject(Router)
+	private readonly translate = inject(TranslateService)
 
 	constructor() {
 		this.router.events
@@ -23,22 +25,22 @@ export class NotificationService {
 	showWarning(error: unknown) {
 		LoggerService.warn('NotificationService: Showing warning notification.')
 		const message = typeof error === 'string' ? error : this.formatErrorMessage(error)
-		this.showModal('warning', 'Atenção', message)
+		this.showModal('warning', this.translate.instant('notification.attention'), message)
 	}
 
 	showError(error: unknown) {
 		LoggerService.error('NotificationService: Showing error notification.')
-		this.showModal('error', 'Erro', this.formatErrorMessage(error))
+		this.showModal('error', this.translate.instant('notification.error'), this.formatErrorMessage(error))
 	}
 
 	showSuccess(message: string) {
 		LoggerService.info('NotificationService: Showing success notification.')
-		this.showModal('success', 'Sucesso', message)
+		this.showModal('success', this.translate.instant('notification.success'), message)
 	}
 
 	showConfirm(message: string, callbackConfirm: () => void, callbackCancel?: () => void) {
 		LoggerService.warn('NotificationService: Showing confirmation modal.')
-		this.showModal('confirm', 'Atenção', message, callbackConfirm, callbackCancel)
+		this.showModal('confirm', this.translate.instant('notification.attention'), message, callbackConfirm, callbackCancel)
 	}
 
 	private formatErrorMessage(error: unknown): string {
@@ -55,7 +57,7 @@ export class NotificationService {
 			LoggerService.error('NotificationService: Formatting API error message', error)
 			const message = error.message?.trim()
 			const status = error.status ?? 0
-			return `**Erro ${status}** - ${error.errorType ?? 'ERROR'}: ${message || getErrorMessage(status)}`
+			return `**${this.translate.instant('notification.error')} ${status}** - ${error.errorType ?? 'ERROR'}: ${message || getErrorMessage(status)}`
 		}
 
 		LoggerService.error('NotificationService: Unknown error type received', error)
@@ -76,21 +78,24 @@ export class NotificationService {
 		}
 		this.closeModal()
 
+		const cancelLabel = this.translate.instant('common.cancel')
+		const confirmLabel = this.translate.instant('common.confirm')
+
 		const modal = document.createElement('div')
 		modal.classList.add('modal', 'notification-modal', type)
 
 		modal.innerHTML = `
       <div class="small-card modal-content" @modalAnimation>
         <div class="close text-end">x</div>
-        <img class="modal-icon" src="assets/icons/${type}.svg" alt="Ícone ${title}">
+        <img class="modal-icon" src="assets/icons/${type}.svg" alt="${title}">
         <h2 class="modal-title">${title}</h2>
         <p class="modal-message">${message}</p>
         ${
 			type === 'confirm'
 				? `
           <div class="modal-buttons">
-            <button class="btn-cancel">Cancelar</button>
-            <button class="btn-confirm">Confirmar</button>
+            <button class="btn-cancel">${cancelLabel}</button>
+            <button class="btn-confirm">${confirmLabel}</button>
           </div>`
 				: ''
 		}

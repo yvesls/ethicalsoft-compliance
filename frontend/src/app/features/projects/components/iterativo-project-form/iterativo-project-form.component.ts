@@ -15,6 +15,7 @@ import {
   AbstractControl,
   FormArray,
 } from '@angular/forms';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { ProjectType } from '../../../../shared/enums/project-type.enum';
 import {
@@ -128,6 +129,7 @@ interface IterativoProjectFormValue {
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    TranslateModule,
     AccordionPanelComponent,
     InputComponent,
     SelectComponent,
@@ -147,6 +149,7 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
   private roleService = inject(RoleService);
   private draftCacheService = inject(DraftCacheService);
   private sessionExpirationService = inject(SessionExpirationService);
+  private translate = inject(TranslateService);
   public override routerService = inject(RouterService);
 
   public ProjectType = ProjectType;
@@ -620,9 +623,9 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
     const control = this.questionnairesFormArray.at(index) as FormGroup | null;
     const name = (control?.get('name')?.value ?? '').toString().trim();
     if (name) {
-      return `Adicione pelo menos uma pergunta ao questionário "${name}".`;
+      return this.translate.instant('projects.form.validation.add_question_to_questionnaire', { name });
     }
-    return 'Adicione pelo menos uma pergunta a este questionário.';
+    return this.translate.instant('projects.form.validation.add_question_to_this');
   }
 
   private validateQuestionnairesHaveQuestions(): boolean {
@@ -639,7 +642,7 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
     this.showQuestionnaireQuestionErrors = hasErrors;
 
     if (hasErrors) {
-      this.notificationService.showWarning('Adicione pelo menos uma pergunta para cada questionário antes de salvar.');
+      this.notificationService.showWarning(this.translate.instant('projects.form.validation.add_questions_all'));
     }
 
     this.cdr.markForCheck();
@@ -749,10 +752,10 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
     const questionnaireGroup = this.questionnairesFormArray.at(index) as FormGroup | null;
     const questionnaire = questionnaireGroup?.getRawValue() as Questionnaire | undefined;
     if (!questionnaire) {
-      this.notificationService.showWarning('Não foi possível carregar o questionário selecionado.');
+      this.notificationService.showWarning(this.translate.instant('projects.form.validation.questionnaire_load_error'));
       return;
     }
-    const projectName = this.projectForm.get('name')?.value || 'Novo Projeto';
+    const projectName = this.projectForm.get('name')?.value || '';
 
   const questions = this.getQuestionsForQuestionnaire(questionnaire);
 
@@ -928,7 +931,7 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
   onSubmit(): void {
     if (this.projectForm.invalid) {
       this.projectForm.markAllAsTouched();
-      this.notificationService.showWarning('Revise os campos obrigatórios antes de salvar.');
+      this.notificationService.showWarning(this.translate.instant('projects.form.validation.review_required'));
       return;
     }
 
@@ -965,7 +968,7 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
     try {
       payload = this.buildProjectCreationPayload();
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Erro ao preparar os dados do projeto.';
+      const message = error instanceof Error ? error.message : this.translate.instant('projects.messages.prepare_error');
       this.notificationService.showError(message);
       return;
     }
@@ -978,7 +981,7 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
       .pipe(
         switchMap((project) => {
           if (!project?.id) {
-            throw new Error('Não foi possível identificar o projeto criado.');
+            throw new Error(this.translate.instant('projects.messages.identify_error'));
           }
 
           return this.templateStore.createTemplateFromProject(
@@ -994,7 +997,7 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
       )
       .subscribe({
         next: () => {
-          this.notificationService.showSuccess('Projeto criado e template gerado com sucesso.');
+          this.notificationService.showSuccess(this.translate.instant('projects.messages.created_with_template'));
           this.routerService.navigateTo('/projects');
         },
         error: (error) => {
@@ -1012,7 +1015,7 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
     const projectName = (formValue.name || '').trim();
 
     if (!projectName) {
-      this.notificationService.showWarning('Informe ao menos o nome do projeto para salvar como rascunho.');
+      this.notificationService.showWarning(this.translate.instant('projects.form.validation.draft_name_required'));
       return;
     }
 
@@ -1020,7 +1023,7 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
     try {
       payload = this.buildDraftPayload();
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Erro ao preparar os dados do rascunho.';
+      const message = error instanceof Error ? error.message : this.translate.instant('projects.messages.prepare_draft_error');
       this.notificationService.showError(message);
       return;
     }
@@ -1043,7 +1046,7 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
       .subscribe({
         next: () => {
           this.draftCacheService.remove(draftKey);
-          this.notificationService.showSuccess('Rascunho salvo com sucesso.');
+          this.notificationService.showSuccess(this.translate.instant('projects.messages.draft_saved'));
           this.routerService.navigateTo('/projects');
         },
         error: (error) => {
@@ -1095,23 +1098,23 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
     const iterationCount = Number(formValue.iterationCount ?? 0);
 
     if (!templateId) {
-      throw new Error('Selecione um template antes de salvar o projeto.');
+      throw new Error(this.translate.instant('projects.form.validation.select_template'));
     }
 
     if (!startDate) {
-      throw new Error('Informe a data de início do projeto.');
+      throw new Error(this.translate.instant('projects.form.validation.start_date_required'));
     }
 
     if (!projectName) {
-      throw new Error('Informe o nome do projeto.');
+      throw new Error(this.translate.instant('projects.form.validation.name_required'));
     }
 
     if (!iterationDuration || iterationDuration <= 0) {
-      throw new Error('Informe uma duração válida para as iterações.');
+      throw new Error(this.translate.instant('projects.form.validation.invalid_iteration_duration'));
     }
 
     if (!iterationCount || iterationCount <= 0) {
-      throw new Error('Não foi possível calcular a quantidade de iterações.');
+      throw new Error(this.translate.instant('projects.form.validation.iteration_count_error'));
     }
 
     const stages = this.buildStagePayload();
@@ -1389,7 +1392,7 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
 
     if (!this.isPanelValid(currentPanelKey)) {
       this.projectForm.markAllAsTouched();
-      this.notificationService.showWarning('Por favor, preencha todos os campos obrigatórios antes de continuar.');
+      this.notificationService.showWarning(this.translate.instant('projects.form.validation.fill_required'));
       return;
     }
 
@@ -1447,7 +1450,7 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
   }
 
   onAttemptedToggle(panelKey: PanelKey): void {
-    this.notificationService.showWarning(`Complete os painéis anteriores antes de acessar "${panelKey}".`);
+    this.notificationService.showWarning(this.translate.instant('projects.form.validation.complete_previous_panels', { panel: panelKey }));
   }
 
   private loadPanelData(panelKey: PanelKey): void {
@@ -1611,7 +1614,7 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
   }
 
   importQuestionnaires(): void {
-    this.notificationService.showWarning('Funcionalidade em desenvolvimento');
+    this.notificationService.showWarning(this.translate.instant('common.in_development'));
   }
 
   private applyRestoreFormValue(formValue?: IterativoProjectFormValue): void {

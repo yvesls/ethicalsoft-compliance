@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, Input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { ModalService } from '../../../../core/services/modal.service';
@@ -16,7 +17,7 @@ export interface AttachmentModalValue {
 @Component({
   selector: 'app-questionnaire-attachment-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, InputComponent],
+  imports: [CommonModule, ReactiveFormsModule, InputComponent, TranslateModule],
   templateUrl: './questionnaire-attachment-modal.component.html',
   styleUrls: ['./questionnaire-attachment-modal.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -32,6 +33,7 @@ export class QuestionnaireAttachmentModalComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly modalService = inject(ModalService);
   private readonly notification = inject(NotificationService);
+  private readonly translate = inject(TranslateService);
 
   readonly descriptionMaxLength = 500;
   private readonly urlPattern = /^https?:\/\/[^\s]+$/i;
@@ -80,7 +82,7 @@ export class QuestionnaireAttachmentModalComponent implements OnInit {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       this.attachments.markAllAsTouched();
-      this.notification.showWarning('Preencha as evidências/justificativas antes de salvar.');
+      this.notification.showWarning(this.translate.instant('notifications.attachment.fill_before_save'));
       return;
     }
 

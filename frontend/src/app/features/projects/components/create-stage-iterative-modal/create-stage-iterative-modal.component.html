@@ -1,18 +1,18 @@
 <div class="create-stage-modal">
-  <h2>Criar nova etapa</h2>
+  <h2>{{ 'projects.stage_iterative.create_title' | translate }}</h2>
 
   <form [formGroup]="form" (ngSubmit)="confirm()">
     <div class="form-grid form-grid-2">
       <app-input
-        label="Nome"
-        placeholder="Informe o nome"
+        [label]="'projects.fields.name' | translate"
+        [placeholder]="'projects.form.name_placeholder' | translate"
         formControlName="name"
         [control]="form.get('name')"
         [required]="true"
       ></app-input>
 
       <app-input
-        label="Peso"
+        [label]="'projects.stage_iterative.weight_label' | translate"
         type="number"
         placeholder="1"
         formControlName="weight"
@@ -27,7 +27,7 @@
         class="btn btn-primary"
         [disabled]="form.invalid"
       >
-        Confirmar
+        {{ 'common.confirm' | translate }}
       </button>
     </div>
   </form>

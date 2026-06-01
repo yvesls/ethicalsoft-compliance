@@ -38,7 +38,7 @@
             class="clear-btn"
             (click)="clearSelection($event)"
             tabindex="-1"
-            aria-label="Limpar seleção"
+            [attr.aria-label]="'shared_select_clear_aria' | translate"
           >
             <img src="assets/icons/error.svg" alt="" />
           </button>
@@ -47,7 +47,7 @@
           class="chevron-icon"
           [class.is-open]="isOpen"
           src="assets/icons/angle-down.svg"
-          alt="Abrir seletor"
+          [attr.alt]="'shared_select_open_alt' | translate"
         />
       </div>
     </div>

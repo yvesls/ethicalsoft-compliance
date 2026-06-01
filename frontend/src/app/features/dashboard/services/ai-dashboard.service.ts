@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 import { HttpHeaders } from '@angular/common/http';
 import { RequestService } from '../../../core/services/request.service';
 import { AuthenticationService } from '../../../core/services/authentication.service';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { environment } from '../../../enviroments/environments';
 import { AiInsightResult, AiStatusResponse } from '../interfaces/ai.interface';
 import { UrlParameter } from '../../../core/interfaces/url-parameter.interface';
@@ -11,6 +12,7 @@ import { UrlParameter } from '../../../core/interfaces/url-parameter.interface';
 export class AiDashboardService {
   private readonly requestService = inject(RequestService);
   private readonly authService = inject(AuthenticationService);
+  private readonly languageService = inject(LanguageService);
 
   private readonly _init = (() => {
     this.requestService.apiUrl = environment.apiBaseUrl;
@@ -65,7 +67,10 @@ export class AiDashboardService {
   }
 
   private buildProjectHeader(projectId: number): HttpHeaders {
-    return new HttpHeaders({ 'X-Project-Id': String(projectId) });
+    return new HttpHeaders({
+      'X-Project-Id': String(projectId),
+      'Accept-Language': this.languageService.currentLanguage,
+    });
   }
 
   private fetchSseStream(
@@ -82,6 +87,7 @@ export class AiDashboardService {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
         'X-Project-Id': xProjectId,
+        'Accept-Language': this.languageService.currentLanguage,
       },
       body: JSON.stringify({ question }),
       signal: abortController.signal,

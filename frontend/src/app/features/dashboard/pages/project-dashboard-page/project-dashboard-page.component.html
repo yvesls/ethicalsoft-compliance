@@ -5,19 +5,19 @@
       <div class="dash-header">
         <div>
           <h1 class="dash-title">{{ d.projectName }}</h1>
-          <span class="dash-sub">Dashboard Consolidado · {{ d.projectType }}</span>
+          <span class="dash-sub">{{ 'dashboard.project.subtitle' | translate }} · {{ d.projectType }}</span>
         </div>
 
         <div class="dash-actions">
           <button class="dash-btn dash-btn--neutral" (click)="downloadCsv()">
-            <i class="bi bi-download"></i> Relatório do Resultado (CSV)
+            <i class="bi bi-download"></i> {{ 'dashboard.export_csv' | translate }}
           </button>
           <button
             class="dash-btn dash-btn--neutral"
             [disabled]="d.projectIsep === null"
             (click)="navigateToConsolidatedResponses()"
           >
-            <i class="bi bi-list-check"></i> Ver Todas as Respostas
+            <i class="bi bi-list-check"></i> {{ 'dashboard.all_responses' | translate }}
           </button>
           @if (isAdmin) {
             @if (d.certificateEligible) {
@@ -27,7 +27,7 @@
                 (click)="downloadCertificate()"
               >
                 <i class="bi bi-award"></i>
-                {{ downloadingCertificate() ? 'Gerando...' : 'Baixar Certificado' }}
+                {{ downloadingCertificate() ? ('common.generating' | translate) : ('dashboard.download_certificate' | translate) }}
               </button>
             }
             <button
@@ -36,7 +36,7 @@
               (click)="closeProject()"
             >
               <i class="bi bi-lock"></i>
-              {{ closing() ? 'Encerrando...' : 'Encerrar Projeto' }}
+              {{ closing() ? ('dashboard.closing_project' | translate) : ('dashboard.close_project' | translate) }}
             </button>
           }
         </div>
@@ -44,41 +44,40 @@
 
       <div class="kpi-grid">
         <app-isep-kpi-card
-          label="ISEP Consolidado"
+          [label]="'dashboard.project.consolidated_isep' | translate"
           [value]="d.projectIsepPercent"
           [band]="d.projectBand"
-          [secondary]="d.projectIsepPercent !== null ? 'Calculado' : 'Aguardando questionários'"
+          [secondary]="d.projectIsepPercent !== null ? ('dashboard.project.calculated' | translate) : ('dashboard.project.pending_questionnaires' | translate)"
         />
         <app-isep-kpi-card
-          label="Questionários Concluídos"
+          [label]="'dashboard.project.questionnaires_completed' | translate"
           [value]="completionPercent"
-          [secondary]="d.completedQuestionnaires + ' de ' + d.totalQuestionnaires"
+          [secondary]="'dashboard.project.completed_of' | translate: { completed: d.completedQuestionnaires, total: d.totalQuestionnaires }"
         />
         <app-isep-kpi-card
-          label="Média Simples da Equipe"
+          [label]="'dashboard.project.team_simple_average' | translate"
           [value]="d.teamSimpleAveragePercent"
-          [secondary]="d.teamSimpleAveragePercent !== null ? 'Média dos ISEPs' : 'Sem dados'"
+          [secondary]="d.teamSimpleAveragePercent !== null ? ('dashboard.project.isep_average' | translate) : ('dashboard.project.no_data' | translate)"
         />
         <app-isep-kpi-card
-          label="Desvio Padrão"
+          [label]="'dashboard.standard_deviation' | translate"
           [value]="d.teamStandardDeviationPercent"
-          [secondary]="d.teamStandardDeviationPercent !== null && d.teamStandardDeviationPercent > 15 ? '⚠️ Alta divergência' : 'Consistência aceitável'"
+          [secondary]="d.teamStandardDeviationPercent !== null && d.teamStandardDeviationPercent > 15 ? ('dashboard.project.high_divergence' | translate) : ('dashboard.project.consistency' | translate)"
         />
       </div>
 
       @if (closeResult(); as r) {
         <div class="alert alert-success mt-3">
-          Projeto encerrado em {{ r.calculatedAt | date: 'dd/MM/yyyy HH:mm' }} por <b>{{ r.closedBy }}</b>.
-          ISEP: <b>{{ r.isepPercent }}%</b> – Faixa {{ r.band }} ({{ r.questionnaireCount }} questionários).
+          {{ 'dashboard.project.closed_at' | translate }} {{ r.calculatedAt | date: 'dd/MM/yyyy HH:mm' }} {{ 'dashboard.project.by' | translate }} <b>{{ r.closedBy }}</b>.
+          ISEP: <b>{{ r.isepPercent }}%</b> – {{ 'dashboard.band' | translate }} {{ r.band }} ({{ r.questionnaireCount }} {{ 'dashboard.project.questionnaire_count' | translate }}).
         </div>
       }
 
       @if (isAdmin && d.bulletinEligible) {
         <div class="alert alert-warning mt-3">
           <i class="bi bi-exclamation-triangle-fill me-2"></i>
-          <strong>Não conformidade detectada.</strong>
-          O ISEP consolidado ficou abaixo da faixa mínima aceitável. Acesse os questionários
-          não conformes para gerar e emitir os boletins de não conformidade aos representantes.
+          <strong>{{ 'dashboard.project.not_compliant_title' | translate }}</strong>
+          {{ 'dashboard.project.not_compliant_desc' | translate }}
         </div>
       }
 
@@ -108,27 +107,27 @@
         <div class="dash-card mt-4">
           <app-isep-evolution-chart
             [entries]="d.isepHistory"
-            title="Evolução do ISEP por Iteração/Etapa"
+            [title]="'dashboard.evolution' | translate"
           />
         </div>
         <div class="dash-card mt-4">
           <app-debt-evolution-chart
             [entries]="d.isepHistory"
-            title="Evolução da Dívida por Iteração"
+            [title]="'dashboard.debt_evolution' | translate"
           />
         </div>
       }
 
       <div class="dash-card mt-4">
-        <h2 class="dash-section-title">Questionários</h2>
+        <h2 class="dash-section-title">{{ 'dashboard.project.section_questionnaires' | translate }}</h2>
         <table class="table table-hover align-middle">
           <thead>
             <tr>
-              <th>Nome</th>
-              <th>Etapa / Iteração</th>
-              <th>ISEP (%)</th>
-              <th>Faixa</th>
-              <th>Calculado em</th>
+              <th>{{ 'dashboard.project.table_name' | translate }}</th>
+              <th>{{ 'dashboard.project.table_stage_iteration' | translate }}</th>
+              <th>{{ 'dashboard.project.table_isep' | translate }}</th>
+              <th>{{ 'dashboard.project.table_band' | translate }}</th>
+              <th>{{ 'dashboard.project.table_calculated_at' | translate }}</th>
               <th></th>
             </tr>
           </thead>
@@ -145,13 +144,13 @@
                     class="dash-link"
                     (click)="navigateToQuestionnaire(e.questionnaireId)"
                   >
-                    Ver Dashboard →
+                    {{ 'dashboard.project.see_dashboard' | translate }}
                   </button>
                 </td>
               </tr>
             } @empty {
               <tr>
-                <td colspan="6" class="text-center text-muted">Nenhum questionário concluído ainda.</td>
+                <td colspan="6" class="text-center text-muted">{{ 'dashboard.project.no_questionnaires' | translate }}</td>
               </tr>
             }
           </tbody>
@@ -164,12 +163,12 @@
       <div class="dash-card mt-4">
         <div class="d-flex flex-column align-items-center py-5 text-center">
           <i class="bi bi-exclamation-triangle text-warning" style="font-size: 2.5rem"></i>
-          <h3 class="mt-3 mb-2" style="font-weight: 600">Dashboard indisponível</h3>
+          <h3 class="mt-3 mb-2" style="font-weight: 600">{{ 'dashboard.project.unavailable' | translate }}</h3>
           <p class="text-muted mb-4" style="max-width: 480px">
-            Não foi possível carregar o dashboard do projeto. Verifique se há questionários concluídos.
+            {{ 'dashboard.project.unavailable_desc' | translate }}
           </p>
           <button class="dash-btn dash-btn--neutral" (click)="load()">
-            <i class="bi bi-arrow-clockwise"></i> Tentar novamente
+            <i class="bi bi-arrow-clockwise"></i> {{ 'common.retry' | translate }}
           </button>
         </div>
       </div>
@@ -178,6 +177,6 @@
 } @else {
   <div class="d-flex justify-content-center align-items-center py-5">
     <div class="spinner-border text-primary"></div>
-    <span class="ms-3 text-muted">Carregando dashboard...</span>
+    <span class="ms-3 text-muted">{{ 'dashboard.loading' | translate }}</span>
   </div>
 }

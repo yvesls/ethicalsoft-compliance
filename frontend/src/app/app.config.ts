@@ -8,6 +8,9 @@ import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/
 import { tokenInterceptorFn } from './core/interceptors/token.interceptor.fn'
 import { spinnerInterceptorFn } from './core/interceptors/spinner.interceptor.fn'
 import { projectContextInterceptorFn } from './core/interceptors/project-context.interceptor.fn'
+import { errorTranslationInterceptorFn } from './core/interceptors/error-translation.interceptor.fn'
+import { languageHeaderInterceptorFn } from './core/interceptors/language-header.interceptor.fn'
+import { provideI18n } from './core/i18n/i18n.providers'
 
 import { provideEchartsCore } from 'ngx-echarts'
 import * as echarts from 'echarts/core'
@@ -28,9 +31,10 @@ export const appConfig: ApplicationConfig = {
 		provideAnimations(),
 		BrowserAnimationsModule,
 		provideHttpClient(
-			withInterceptors([spinnerInterceptorFn, tokenInterceptorFn, projectContextInterceptorFn]),
+			withInterceptors([spinnerInterceptorFn, tokenInterceptorFn, projectContextInterceptorFn, languageHeaderInterceptorFn, errorTranslationInterceptorFn]),
 			withFetch()
 		),
+		...provideI18n(),
 		provideEchartsCore({ echarts }),
 		provideAppInitializer(() => {
 			const platformId = inject(PLATFORM_ID)

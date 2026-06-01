@@ -1,5 +1,6 @@
 import { Component, Output, EventEmitter, inject, Input, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { ModalService } from '../../../../core/services/modal.service';
@@ -35,7 +36,7 @@ export interface QuestionStageConfig {
 @Component({
   selector: 'app-question-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, InputComponent, MultiSelectComponent],
+  imports: [CommonModule, ReactiveFormsModule, InputComponent, MultiSelectComponent, TranslateModule],
   templateUrl: './question-modal.component.html',
   styleUrls: ['./question-modal.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush

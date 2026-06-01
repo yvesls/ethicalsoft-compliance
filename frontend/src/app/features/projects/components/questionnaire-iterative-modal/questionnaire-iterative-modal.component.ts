@@ -1,5 +1,6 @@
 import { Component, Output, EventEmitter, inject, Input, ChangeDetectorRef, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BasePageComponent, RestoreParams } from '../../../../core/abstractions/base-page.component';
@@ -46,7 +47,7 @@ type QuestionnaireRestoreState = RestoreParams<GenericParams> & Partial<Question
 @Component({
   selector: 'app-questionnaire-iterative-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, InputComponent, SelectComponent],
+  imports: [CommonModule, ReactiveFormsModule, InputComponent, SelectComponent, TranslateModule],
   templateUrl: './questionnaire-iterative-modal.component.html',
   styleUrls: ['./questionnaire-iterative-modal.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush

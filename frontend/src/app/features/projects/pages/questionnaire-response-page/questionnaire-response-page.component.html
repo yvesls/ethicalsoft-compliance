@@ -1,13 +1,13 @@
 <div class="questionnaire-response-page">
   @switch (state().status) {
     @case ('loading') {
-      <div class="page-state">Carregando questionário...</div>
+      <div class="page-state">{{ 'questionnaire.response.loading' | translate }}</div>
     }
     @case ('error') {
       <div class="page-state page-state--error">
         <p>{{ state().error }}</p>
         <button type="button" class="btn btn-primary" (click)="loadResponse()">
-          Tentar novamente
+          {{ 'common.retry' | translate }}
         </button>
       </div>
     }
@@ -16,12 +16,12 @@
         <section class="response-summary card-surface">
           <header class="response-summary__header">
             <div>
-              <p class="response-summary__badge">{{ pageMode() === 'respond' ? 'Responder' : 'Visualizar' }} questionário</p>
+              <p class="response-summary__badge">{{ pageMode() === 'respond' ? ('questionnaire.response.respond_badge' | translate) : ('questionnaire.response.view_badge' | translate) }} {{ 'questionnaire.response.questionnaire_suffix' | translate }}</p>
               <h1>{{ questionnaireData.name }}</h1>
               <div class="response-summary__meta">
                 <span>{{ referenceLabel }}</span>
                 <span>{{ applicationRange }}</span>
-                <span>Status do participante: <strong>{{ getRespondentStatusLabel() }}</strong></span>
+                <span>{{ 'questionnaire.response.participant_status' | translate }} <strong>{{ getRespondentStatusLabel() }}</strong></span>
               </div>
             </div>
             <span
@@ -31,21 +31,21 @@
                 'status-chip--neutral': pageMode() === 'respond'
               }"
             >
-              {{ pageMode() === 'respond' ? 'Em andamento' : 'Visualização' }}
+              {{ pageMode() === 'respond' ? ('questionnaire.response.in_progress' | translate) : ('questionnaire.response.view_mode' | translate) }}
             </span>
           </header>
 
           <div class="response-summary__stats">
             <div class="stat-card">
-              <span class="stat-card__label">Respondidas</span>
+              <span class="stat-card__label">{{ 'questionnaire.response.answered_stat' | translate }}</span>
               <strong class="stat-card__value">{{ answeredCount() }}/{{ totalQuestions() }}</strong>
             </div>
             <div class="stat-card">
-              <span class="stat-card__label">Total de perguntas</span>
+              <span class="stat-card__label">{{ 'questionnaire.response.total_questions' | translate }}</span>
               <strong class="stat-card__value">{{ totalQuestions() }}</strong>
             </div>
             <div class="stat-card stat-card--progress">
-              <span class="stat-card__label">Progresso</span>
+              <span class="stat-card__label">{{ 'questionnaire.response.progress' | translate }}</span>
               <div class="progress-track">
                 <div class="progress-track__fill" [style.width.%]="progressPercentage()"></div>
               </div>
@@ -56,24 +56,24 @@
         <section class="response-table card-surface" aria-live="polite">
           @if (totalQuestions() === 0) {
             <div class="empty-state">
-              Nenhuma pergunta encontrada para este questionário.
+              {{ 'questionnaire.response.no_questions' | translate }}
             </div>
           } @else {
             <header class="response-table__header">
-              <span>Pergunta</span>
-              <span>Resposta (obrigatório)</span>
-              <span>Anexos / Observações</span>
+              <span>{{ 'questionnaire.response.question_col' | translate }}</span>
+              <span>{{ 'questionnaire.response.answer_col' | translate }}</span>
+              <span>{{ 'questionnaire.response.attachments_col' | translate }}</span>
             </header>
 
             <div class="response-table__body">
               @for (answer of answers(); track answer.questionId; let index = $index) {
                 <article class="response-row">
                   <div class="response-row__question">
-                    <small class="question-index">Pergunta {{ getQuestionOrdinal(index) }} de {{ totalQuestions() }}</small>
+                    <small class="question-index">{{ 'questionnaire.response.question_of' | translate: { index: getQuestionOrdinal(index), total: totalQuestions() } }}</small>
                     <p class="question-text">{{ answer.questionText }}</p>
                   </div>
 
-                  <div class="response-row__radios" role="group" aria-label="Resposta obrigatória">
+                  <div class="response-row__radios" role="group" [attr.aria-label]="'questionnaire.response.answer_col' | translate">
                     <label class="radio-pill" [class.radio-pill--active]="answer.response === true">
                       <input
                         type="radio"
@@ -81,7 +81,7 @@
                         [disabled]="isReadOnly"
                         (change)="onSelectAnswer(answer, true)"
                       />
-                      <span>Sim</span>
+                      <span>{{ 'questionnaire.response.yes' | translate }}</span>
                     </label>
                     <label class="radio-pill" [class.radio-pill--active]="answer.response === false">
                       <input
@@ -90,13 +90,13 @@
                         [disabled]="isReadOnly"
                         (change)="onSelectAnswer(answer, false)"
                       />
-                      <span>Não</span>
+                      <span>{{ 'questionnaire.response.no' | translate }}</span>
                     </label>
                   </div>
 
                   <div class="response-row__attachments">
                     <p class="attachment-title">
-                      {{ answer.response === false ? 'Justificativa' : 'Observações/Evidências' }}
+                      {{ answer.response === false ? ('questionnaire.response.justification' | translate) : ('questionnaire.response.observations' | translate) }}
                     </p>
                     @if ((answer.response === false ? answer.justification?.descricao : answer.evidence?.descricao)) {
                       <p class="attachment-description">
@@ -104,7 +104,7 @@
                       </p>
                     } @else {
                       <p class="attachment-description attachment-description--empty">
-                        Nenhuma anotação adicionada.
+                        {{ 'questionnaire.response.no_annotation' | translate }}
                       </p>
                     }
 
@@ -126,14 +126,14 @@
                         }
                       } @else {
                         <li class="attachment-description attachment-description--empty">
-                          Nenhum link anexado.
+                          {{ 'questionnaire.response.no_links' | translate }}
                         </li>
                       }
                     </ul>
 
                     @if (!isReadOnly) {
                       <button type="button" class="btn btn-secundary btn-sm" (click)="openAttachmentModal(answer)">
-                        {{ answer.response === false ? 'Adicionar justificativa' : 'Adicionar evidências' }}
+                        {{ answer.response === false ? ('questionnaire.attachment.add_justification' | translate) : ('questionnaire.attachment.add_evidence' | translate) }}
                       </button>
                     }
                   </div>
@@ -151,10 +151,10 @@
               [disabled]="isSavingDraft()"
               (click)="saveDraftResponses()"
             >
-              {{ isSavingDraft() ? 'Salvando rascunho...' : 'Salvar Rascunho' }}
+              {{ isSavingDraft() ? ('questionnaire.response.saving_draft' | translate) : ('questionnaire.response.save_draft' | translate) }}
             </button>
             <button type="button" class="btn btn-primary" [disabled]="!canSubmit() || isSavingDraft()" (click)="submitResponses()">
-              Enviar respostas
+              {{ 'questionnaire.response.submit' | translate }}
             </button>
           </footer>
         }

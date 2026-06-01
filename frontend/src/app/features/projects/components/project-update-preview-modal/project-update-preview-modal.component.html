@@ -4,7 +4,7 @@
   @if (blockedReasons.length > 0) {
     <div class="update-preview-modal__blocked">
       <span class="update-preview-modal__blocked-icon">&#9940;</span>
-      <strong>Operação bloqueada</strong>
+      <strong>{{ 'projects.update_preview.blocked_label' | translate }}</strong>
       <ul class="update-preview-modal__blocked-list">
         @for (reason of blockedReasons; track reason) {
           <li>{{ reason }}</li>
@@ -16,7 +16,7 @@
   @if (warnings.length > 0) {
     <div class="update-preview-modal__warnings">
       <span class="update-preview-modal__warnings-icon">&#9888;</span>
-      <strong>Avisos</strong>
+      <strong>{{ 'projects.update_preview.warnings_label' | translate }}</strong>
       <ul class="update-preview-modal__warnings-list">
         @for (warning of warnings; track warning) {
           <li>{{ warning }}</li>
@@ -26,18 +26,18 @@
   }
 
   @if (hasNoChanges && blockedReasons.length === 0) {
-    <p class="update-preview-modal__no-changes">Nenhuma alteração detectada.</p>
+    <p class="update-preview-modal__no-changes">{{ 'projects.update_preview.no_changes' | translate }}</p>
   } @else {
     @if (summaryLines.length > 0) {
       <div class="update-preview-modal__summary">
-        <p class="update-preview-modal__subtitle">Resumo das mudanças:</p>
+        <p class="update-preview-modal__subtitle">{{ 'projects.update_preview.summary_title' | translate }}</p>
         <table class="update-preview-modal__table">
           <thead>
             <tr>
-              <th>Entidade</th>
-              <th>Adicionados</th>
-              <th>Atualizados</th>
-              <th>Removidos</th>
+              <th>{{ 'projects.update_preview.entity_col' | translate }}</th>
+              <th>{{ 'projects.update_preview.added_col' | translate }}</th>
+              <th>{{ 'projects.update_preview.updated_col' | translate }}</th>
+              <th>{{ 'projects.update_preview.removed_col' | translate }}</th>
             </tr>
           </thead>
           <tbody>
@@ -56,16 +56,16 @@
 
     @if (hasResponseChanges) {
       <div class="update-preview-modal__responses">
-        <p class="update-preview-modal__subtitle">Impacto em respostas:</p>
+        <p class="update-preview-modal__subtitle">{{ 'projects.update_preview.responses_title' | translate }}</p>
         <ul>
           @if (summary!.responsesCreated > 0) {
-            <li><strong>{{ summary!.responsesCreated }}</strong> resposta(s) criada(s)</li>
+            <li>{{ 'projects.update_preview.responses_created' | translate: { count: summary!.responsesCreated } }}</li>
           }
           @if (summary!.responsesUpdated > 0) {
-            <li><strong>{{ summary!.responsesUpdated }}</strong> resposta(s) atualizada(s)</li>
+            <li>{{ 'projects.update_preview.responses_updated' | translate: { count: summary!.responsesUpdated } }}</li>
           }
           @if (summary!.responsesDeleted > 0) {
-            <li><strong>{{ summary!.responsesDeleted }}</strong> resposta(s) removida(s)</li>
+            <li>{{ 'projects.update_preview.responses_deleted' | translate: { count: summary!.responsesDeleted } }}</li>
           }
         </ul>
       </div>
@@ -73,7 +73,7 @@
 
     @if (hasNotifications) {
       <p class="update-preview-modal__notifications">
-        <strong>{{ summary!.notificationsSent }}</strong> notificação(ões) será(ão) enviada(s).
+        {{ 'projects.update_preview.notifications_sent' | translate: { count: summary!.notificationsSent } }}
       </p>
     }
   }

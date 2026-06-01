@@ -1,7 +1,7 @@
 @if (insightEntries.length > 0) {
   <div class="gi-widget">
     <h3 class="gi-widget__title">
-      ⚠️ Insights de Governança
+      {{ 'dashboard.governance_insights_title' | translate }}
     </h3>
     <div class="gi-widget__list">
       @for (entry of insightEntries; track entry.domain) {

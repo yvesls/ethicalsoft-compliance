@@ -30,6 +30,7 @@ import { ResponseDetailModalComponent } from '../../components/response-detail-m
 import { RouterService } from '../../../../core/services/router.service';
 import { ProjectContextService } from '../../../../core/services/project-context.service';
 import { RoleEnum } from '../../../../shared/enums/role.enum';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-questionnaire-dashboard-page',
@@ -50,6 +51,7 @@ import { RoleEnum } from '../../../../shared/enums/role.enum';
     AiExplainWidgetComponent,
     AiRiskReportWidgetComponent,
     AiChatWidgetComponent,
+    TranslateModule,
   ],
   templateUrl: './questionnaire-dashboard-page.component.html',
   styleUrl: './questionnaire-dashboard-page.component.scss',
@@ -77,6 +79,8 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
   aiAvailable = signal<boolean | null>(null);
   downloadingBulletin = signal(false);
   emittingBulletin = signal(false);
+
+  private readonly translate = inject(TranslateService);
 
   isAdmin = this.authService.userRoles$.value.includes(RoleEnum.ADMIN);
 
@@ -127,12 +131,12 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
 
         if (!this.dashboard()) {
           this.loadError.set(true);
-          this.notificationService.showError('Não foi possível carregar os dados do dashboard. O ISEP pode ainda não ter sido calculado para este questionário.');
+          this.notificationService.showError(this.translate.instant('dashboard.errors.load_questionnaire_isep'));
         }
       },
       error: () => {
         this.loadError.set(true);
-        this.notificationService.showError('Não foi possível carregar o dashboard do questionário.');
+        this.notificationService.showError(this.translate.instant('dashboard.errors.load_questionnaire'));
         this.loading.set(false);
       },
     });
@@ -148,7 +152,7 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
         a.click();
         URL.revokeObjectURL(url);
       },
-      error: () => this.notificationService.showError('Erro ao exportar CSV.'),
+      error: () => this.notificationService.showError(this.translate.instant('dashboard.errors.export_csv')),
     });
   }
 
@@ -163,7 +167,7 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
         a.click();
         URL.revokeObjectURL(url);
       },
-      error: () => this.notificationService.showError('Erro ao exportar JSON.'),
+      error: () => this.notificationService.showError(this.translate.instant('dashboard.errors.export_json')),
     });
   }
 
@@ -180,7 +184,7 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
         this.downloadingBulletin.set(false);
       },
       error: (err) => {
-        this.notificationService.showError(err?.message ?? 'Erro ao gerar o boletim de não conformidade.');
+        this.notificationService.showError(err?.message ?? this.translate.instant('dashboard.errors.bulletin_download'));
         this.downloadingBulletin.set(false);
       },
     });
@@ -188,23 +192,23 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
 
   emitBulletin(): void {
     this.notificationService.showConfirm(
-      'O boletim de não conformidade será enviado por e-mail, em anexo, a todos os representantes do projeto. Deseja continuar?',
+      this.translate.instant('dashboard.questionnaire.emit_confirm'),
       () => {
         this.emittingBulletin.set(true);
         this.dashboardService.emitBulletin(this.projectId, this.questionnaireId).subscribe({
           next: (result) => {
             this.notificationService.showSuccess(
-              `Boletim emitido para ${result.sent} de ${result.totalRecipients} representantes.`
+              this.translate.instant('dashboard.questionnaire.bulletin_emitted', { sent: result.sent, total: result.totalRecipients })
             );
             if (result.skipped > 0) {
               this.notificationService.showWarning(
-                `${result.skipped} representante(s) não foram notificados por ausência de e-mail ou falha de envio.`
+                this.translate.instant('dashboard.questionnaire.bulletin_skipped', { skipped: result.skipped })
               );
             }
             this.emittingBulletin.set(false);
           },
           error: (err) => {
-            this.notificationService.showError(err?.message ?? 'Erro ao emitir o boletim de não conformidade.');
+            this.notificationService.showError(err?.message ?? this.translate.instant('dashboard.errors.bulletin_emit'));
             this.emittingBulletin.set(false);
           },
         });
@@ -234,12 +238,12 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
         this.forceClosing.set(true);
         this.dashboardService.forceCloseQuestionnaire(this.projectId, this.questionnaireId).subscribe({
           next: () => {
-            this.notificationService.showSuccess('Questionário encerrado. ISEP será calculado.');
+            this.notificationService.showSuccess(this.translate.instant('notifications.questionnaire_dashboard.closed_success'));
             this.load();
             this.forceClosing.set(false);
           },
           error: () => {
-            this.notificationService.showError('Erro ao encerrar o questionário.');
+            this.notificationService.showError(this.translate.instant('notifications.questionnaire_dashboard.close_error'));
             this.forceClosing.set(false);
           },
         });

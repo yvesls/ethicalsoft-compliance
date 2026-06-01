@@ -1,4 +1,5 @@
 import { Component, Input, OnChanges } from '@angular/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { NgxEchartsDirective } from 'ngx-echarts';
 import type { EChartsOption } from 'echarts';
 import { WordEntry } from '../../interfaces/dashboard.interface';
@@ -26,7 +27,7 @@ const DEFAULT_COLORS = ['#1565c0', '#2e7d32', '#6a1b9a', '#00838f', '#c62828', '
 @Component({
   selector: 'app-category-word-cloud-widget',
   standalone: true,
-  imports: [NgxEchartsDirective],
+  imports: [NgxEchartsDirective, TranslateModule],
   templateUrl: './category-word-cloud-widget.component.html',
   styleUrl: './category-word-cloud-widget.component.scss',
 })
