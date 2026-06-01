@@ -15,16 +15,19 @@
           [value]="d.personalIcpPercent"
           [band]="d.personalBand"
           [secondary]="'dashboard.individual.personal_compliance' | translate"
+          [explanationKey]="'personal_conformity'"
         />
         <app-isep-kpi-card
           [label]="'dashboard.individual.personal_average' | translate"
           [value]="d.personalHistoricalAveragePercent"
           [secondary]="'dashboard.individual.my_iterations_avg' | translate"
+          [explanationKey]="'project_iteration'"
         />
         <app-isep-kpi-card
           [label]="'dashboard.individual.team_average' | translate"
           [value]="d.teamAnonymousAveragePercent"
           [secondary]="d.teamAnonymousAverage === null ? ('dashboard.individual.isep_not_calculated' | translate) : ('dashboard.individual.team_average_secondary' | translate)"
+          [explanationKey]="'team_average'"
         />
       </div>
 

@@ -1,5 +1,10 @@
 <div class="kpi-card">
-  <p class="kpi-label">{{ label }}</p>
+  <div class="kpi-label-container">
+    <p class="kpi-label">{{ label }}</p>
+    @if (explanationKey) {
+      <app-info-explainer [key]="explanationKey" />
+    }
+  </div>
   @if (value !== null) {
     <p class="kpi-value">{{ value | number: '1.2-2' }}%</p>
   } @else {

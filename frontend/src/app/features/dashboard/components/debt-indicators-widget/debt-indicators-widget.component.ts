@@ -1,13 +1,14 @@
 import { Component, Input } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
+import { InfoExplainerComponent } from '../../../../shared/components/info-explainer/info-explainer.component';
 
 export type TrafficLightColor = 'green' | 'yellow' | 'red' | 'gray';
 
 @Component({
   selector: 'app-debt-indicators-widget',
   standalone: true,
-  imports: [DecimalPipe, TranslateModule],
+  imports: [DecimalPipe, TranslateModule, InfoExplainerComponent],
   templateUrl: './debt-indicators-widget.component.html',
   styleUrl: './debt-indicators-widget.component.scss',
 })

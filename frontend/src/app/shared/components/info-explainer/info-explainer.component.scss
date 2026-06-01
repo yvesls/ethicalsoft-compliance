@@ -1,0 +1,137 @@
+.info-explainer-container {
+  position: relative;
+  display: inline-block;
+}
+
+.info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  margin: 0 4px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: all 200ms ease-out;
+
+  &:hover {
+    opacity: 0.8;
+    transform: scale(1.1);
+  }
+
+  &:focus {
+    outline: 2px solid rgba(21, 101, 192, 0.4);
+    outline-offset: 2px;
+    border-radius: 50%;
+  }
+
+  .icon-image {
+    width: 100%;
+    height: 100%;
+    display: block;
+    filter: brightness(0) saturate(100%) invert(30%) sepia(94%) saturate(4%) hue-rotate(195deg);
+    opacity: 0.7;
+  }
+}
+
+.popover {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  min-width: 280px;
+  max-width: 320px;
+  max-height: 240px;
+  overflow-y: auto;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  z-index: 1000;
+  animation: popoverEnter 180ms ease-out;
+
+  &.position-right {
+    left: calc(100% + 12px);
+  }
+
+  &.position-left {
+    right: calc(100% + 12px);
+    left: auto;
+  }
+}
+
+@keyframes popoverEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+}
+
+.popover-content {
+  padding: 12px 14px;
+}
+
+.popover-title {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a2f4e;
+  line-height: 1.4;
+}
+
+.popover-description {
+  margin: 0 0 8px 0;
+  font-size: 12px;
+  color: #555555;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.popover-list {
+  margin: 8px 0 0 0;
+  padding-left: 16px;
+  list-style: disc;
+
+  li {
+    margin: 4px 0;
+    font-size: 12px;
+    color: #555555;
+    line-height: 1.4;
+  }
+}
+
+.popover-fallback {
+  margin: 0;
+  font-size: 12px;
+  color: #888888;
+  font-style: italic;
+}
+
+/* Scrollbar customizado para navegadores Webkit */
+.popover::-webkit-scrollbar {
+  width: 6px;
+}
+
+.popover::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.popover::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 3px;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.25);
+  }
+}
+
+/* Scrollbar para Firefox */
+.popover {
+  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+  scrollbar-width: thin;
+}

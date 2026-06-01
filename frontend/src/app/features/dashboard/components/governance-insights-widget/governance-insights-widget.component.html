@@ -1,8 +1,11 @@
 @if (insightEntries.length > 0) {
   <div class="gi-widget">
-    <h3 class="gi-widget__title">
-      {{ 'dashboard.governance_insights_title' | translate }}
-    </h3>
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+      <h3 class="gi-widget__title">
+        {{ 'dashboard.governance_insights_title' | translate }}
+      </h3>
+      <app-info-explainer key="governance_dimensions" />
+    </div>
     <div class="gi-widget__list">
       @for (entry of insightEntries; track entry.domain) {
         <div class="gi-card" [style.border-left-color]="domainColor(entry.domain)">

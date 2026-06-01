@@ -105,8 +105,18 @@
                 @if (mode === 'project') {
                   <th>{{ 'dashboard.consolidated.questionnaire_col' | translate }}</th>
                 }
-                <th>{{ 'dashboard.consolidated.question_col' | translate }}</th>
-                <th class="text-center">{{ 'dashboard.consolidated.answer_col' | translate }}</th>
+                <th>
+                  <span style="display: flex; align-items: center; gap: 4px;">
+                    {{ 'dashboard.consolidated.question_col' | translate }}
+                    <app-info-explainer key="questionnaire_status" />
+                  </span>
+                </th>
+                <th class="text-center">
+                  <span style="display: flex; align-items: center; gap: 4px; justify-content: center;">
+                    {{ 'dashboard.consolidated.answer_col' | translate }}
+                    <app-info-explainer key="compliance_score" />
+                  </span>
+                </th>
                 <th>{{ 'dashboard.consolidated.justification_col' | translate }}</th>
                 <th>{{ 'dashboard.consolidated.evidence_col' | translate }}</th>
               </tr>

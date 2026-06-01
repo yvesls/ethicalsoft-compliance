@@ -1,0 +1,73 @@
+{
+  "isep_percent": {
+    "title": "Percentual ISEP",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+  },
+  "ethics_debt": {
+    "title": "Dívida Ética",
+    "description": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "items": [
+      "Primeiro elemento de exemplo",
+      "Segundo elemento de exemplo",
+      "Terceiro elemento de exemplo"
+    ]
+  },
+  "tech_debt": {
+    "title": "Dívida Técnica",
+    "description": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+  },
+  "band_classification": {
+    "title": "Classificação por Banda",
+    "description": "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+    "items": [
+      "Banda A - Excelente",
+      "Banda B - Bom",
+      "Banda C - Aceitável"
+    ]
+  },
+  "governance_dimensions": {
+    "title": "Dimensões de Governança",
+    "description": "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.",
+    "items": [
+      "Ética",
+      "Processo",
+      "Fairness",
+      "ESG"
+    ]
+  },
+  "personal_conformity": {
+    "title": "Conformidade Pessoal",
+    "description": "Totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo."
+  },
+  "team_average": {
+    "title": "Média da Equipe",
+    "description": "Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores.",
+    "items": [
+      "Comparação com a equipe",
+      "Benchmarking interno",
+      "Identificação de gaps"
+    ]
+  },
+  "questionnaire_status": {
+    "title": "Status do Questionário",
+    "description": "Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit."
+  },
+  "project_iteration": {
+    "title": "Iteração do Projeto",
+    "description": "Sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.",
+    "items": [
+      "Iteração contínua",
+      "Melhorias incrementais",
+      "Feedback recorrente"
+    ]
+  },
+  "compliance_score": {
+    "title": "Pontuação de Conformidade",
+    "description": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat duis aute irure.",
+    "items": [
+      "Métrica agregada",
+      "Baseada em múltiplas fontes",
+      "Atualizado periodicamente"
+    ]
+  }
+}

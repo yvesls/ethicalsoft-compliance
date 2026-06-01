@@ -59,16 +59,19 @@
           [value]="d.isepPercent"
           [band]="d.band"
           [secondary]="'dashboard.questionnaire.weighted_average' | translate"
+          [explanationKey]="'isep_percent'"
         />
         <app-isep-kpi-card
           [label]="'dashboard.questionnaire.simple_average' | translate"
           [value]="d.teamSimpleAveragePercent"
           [secondary]="'dashboard.questionnaire.no_weight' | translate"
+          [explanationKey]="'team_average'"
         />
         <app-isep-kpi-card
           [label]="'dashboard.standard_deviation' | translate"
           [value]="d.teamStandardDeviationPercent"
           [secondary]="d.teamStandardDeviationPercent !== null && d.teamStandardDeviationPercent > 15 ? ('dashboard.questionnaire.high_divergence' | translate) : ('dashboard.questionnaire.consensus' | translate)"
+          [explanationKey]="'governance_dimensions'"
         />
       </div>
 

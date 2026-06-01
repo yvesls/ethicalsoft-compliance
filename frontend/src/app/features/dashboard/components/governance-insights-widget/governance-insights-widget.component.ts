@@ -1,5 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
+import { InfoExplainerComponent } from '../../../../shared/components/info-explainer/info-explainer.component';
 
 const DOMAIN_LABELS: Record<string, string> = {
   ETHICS:   'Ética',
@@ -22,7 +23,7 @@ const DOMAIN_COLORS: Record<string, string> = {
 @Component({
   selector: 'app-governance-insights-widget',
   standalone: true,
-  imports: [TranslateModule],
+  imports: [TranslateModule, InfoExplainerComponent],
   templateUrl: './governance-insights-widget.component.html',
   styleUrl: './governance-insights-widget.component.scss',
 })
