@@ -9,16 +9,20 @@ import java.util.concurrent.CompletableFuture;
 
 public interface LlmAnalysisPort {
 
-    CompletableFuture<AiInsightResult> generateInsights(DashboardSnapshot snapshot);
+    CompletableFuture<AiInsightResult> generateInsights(DashboardSnapshot snapshot, String language);
 
-    CompletableFuture<AiInsightResult> generateRiskReport(DashboardSnapshot snapshot);
+    CompletableFuture<AiInsightResult> generateRiskReport(DashboardSnapshot snapshot, String language);
 
-    CompletableFuture<AiInsightResult> explainIsepResults(DashboardSnapshot snapshot);
+    CompletableFuture<AiInsightResult> explainIsepResults(DashboardSnapshot snapshot, String language);
 
-    void askQuestion(String question, DashboardSnapshot snapshot, SseEmitter emitter) throws IOException;
+    void askQuestion(String question, DashboardSnapshot snapshot, SseEmitter emitter, String language)
+            throws IOException;
 
     default boolean isAvailable() {
         return false;
     }
-}
 
+    default String translate(String text, String targetLanguage) {
+        return text;
+    }
+}

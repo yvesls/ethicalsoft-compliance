@@ -16,25 +16,26 @@ public class NoOpLlmAdapter implements LlmAnalysisPort {
             "Módulo de IA não configurado. Defina GROQ_API_KEY e AI_ENABLED=true para ativar.";
 
     @Override
-    public CompletableFuture<AiInsightResult> generateInsights(DashboardSnapshot snapshot) {
+    public CompletableFuture<AiInsightResult> generateInsights(DashboardSnapshot snapshot, String language) {
         log.debug("[llm-noop] Insights solicitados — IA desabilitada");
         return CompletableFuture.completedFuture(AiInsightResult.unavailable(UNAVAILABLE_MSG));
     }
 
     @Override
-    public CompletableFuture<AiInsightResult> generateRiskReport(DashboardSnapshot snapshot) {
+    public CompletableFuture<AiInsightResult> generateRiskReport(DashboardSnapshot snapshot, String language) {
         log.debug("[llm-noop] Relatório de risco solicitado — IA desabilitada");
         return CompletableFuture.completedFuture(AiInsightResult.unavailable(UNAVAILABLE_MSG));
     }
 
     @Override
-    public CompletableFuture<AiInsightResult> explainIsepResults(DashboardSnapshot snapshot) {
+    public CompletableFuture<AiInsightResult> explainIsepResults(DashboardSnapshot snapshot, String language) {
         log.debug("[llm-noop] Explicação ISEP solicitada — IA desabilitada");
         return CompletableFuture.completedFuture(AiInsightResult.unavailable(UNAVAILABLE_MSG));
     }
 
     @Override
-    public void askQuestion(String question, DashboardSnapshot snapshot, SseEmitter emitter) throws IOException {
+    public void askQuestion(String question, DashboardSnapshot snapshot, SseEmitter emitter, String language)
+            throws IOException {
         log.debug("[llm-noop] Q&A solicitado — IA desabilitada");
         emitter.send(SseEmitter.event()
                 .name("error")
@@ -42,4 +43,3 @@ public class NoOpLlmAdapter implements LlmAnalysisPort {
         emitter.complete();
     }
 }
-

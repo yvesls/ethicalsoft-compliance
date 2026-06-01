@@ -18,11 +18,11 @@ public class GenerateRiskReportUseCase {
     private final AiDashboardContextProvider contextProvider;
     private final LlmAnalysisPort llmAnalysisPort;
 
-    public CompletableFuture<AiInsightResult> execute(Long projectId, Integer questionnaireId) {
-        log.info("[ai-risk-report] Gerando relatório de risco projeto={} questionário={}",
-                projectId, questionnaireId);
+    public CompletableFuture<AiInsightResult> execute(Long projectId, Integer questionnaireId, String language) {
+        log.info("[ai-risk-report] Gerando relatório de risco projeto={} questionário={} idioma={}",
+                projectId, questionnaireId, language);
 
         DashboardSnapshot snapshot = contextProvider.buildSnapshot(projectId, questionnaireId);
-        return llmAnalysisPort.generateRiskReport(snapshot);
+        return llmAnalysisPort.generateRiskReport(snapshot, language);
     }
 }

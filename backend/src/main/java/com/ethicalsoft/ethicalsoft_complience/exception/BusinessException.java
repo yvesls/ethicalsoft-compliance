@@ -17,6 +17,8 @@ public class BusinessException extends RuntimeException {
 
 	private final ErrorTypeEnum typeError;
 
+	private String errorKey;
+
 
 	private final List<String> errors = new ArrayList<>();
 
@@ -47,6 +49,13 @@ public class BusinessException extends RuntimeException {
 	public BusinessException( String message ) {
 		super( message );
 		this.typeError = ErrorTypeEnum.ERROR;
+		this.errors.add( message );
+	}
+
+	public BusinessException( String errorKey, String message ) {
+		super( message );
+		this.typeError = ErrorTypeEnum.ERROR;
+		this.errorKey = errorKey;
 		this.errors.add( message );
 	}
 

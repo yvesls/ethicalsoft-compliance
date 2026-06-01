@@ -2,6 +2,7 @@ package com.ethicalsoft.ethicalsoft_complience.exception;
 
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.ErrorTypeEnum;
+import com.ethicalsoft.ethicalsoft_complience.application.usecase.i18n.TranslateDynamicTextUseCase;
 import com.ethicalsoft.ethicalsoft_complience.common.util.ObjectUtils;
 import com.ethicalsoft.ethicalsoft_complience.common.util.exception.ExceptionUtils;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -42,6 +43,7 @@ import java.util.UUID;
 public class GlobalExceptionResponseHandler {
 
 	private final MessageSource messageSource;
+	private final TranslateDynamicTextUseCase translateDynamicTextUseCase;
 
 	@ExceptionHandler( EmailSendingException.class )
 	@ResponseStatus( HttpStatus.INTERNAL_SERVER_ERROR )
@@ -65,7 +67,14 @@ public class GlobalExceptionResponseHandler {
 	@ExceptionHandler( BusinessException.class )
 	@ResponseStatus( HttpStatus.BAD_REQUEST )
 	public ExceptionResponseDTO handleBusiness( BusinessException exception, HttpServletRequest request ) {
-		return makeDefaultResponse( exception.getTypeError(), exception, exception.getMessage(), request, HttpStatus.BAD_REQUEST );
+		return new ExceptionResponseDTO(
+				exception.getTypeError(),
+				HttpStatus.BAD_REQUEST,
+				request,
+				localize( exception.getMessage(), request ),
+				exception.getErrorKey(),
+				ExceptionUtils.getErrorStackTrace( exception, false )
+		);
 	}
 
 	@ExceptionHandler( AuthenticationException.class )
@@ -176,7 +185,27 @@ public class GlobalExceptionResponseHandler {
 	private ExceptionResponseDTO makeDefaultResponse( ErrorTypeEnum typeException, Exception exception, String responseMessage, HttpServletRequest request, HttpStatus httpStatus ) {
 		boolean showExceptionDetails = false;
 
-		return new ExceptionResponseDTO( typeException, httpStatus, request, responseMessage, ExceptionUtils.getErrorStackTrace( exception, showExceptionDetails ) );
+		return new ExceptionResponseDTO( typeException, httpStatus, request, localize( responseMessage, request ), ExceptionUtils.getErrorStackTrace( exception, showExceptionDetails ) );
+	}
+
+	private String localize( String message, HttpServletRequest request ) {
+		if ( message == null || message.isBlank() || request == null ) {
+			return message;
+		}
+		try {
+			String header = request.getHeader( "Accept-Language" );
+			if ( header == null || header.isBlank() ) {
+				return message;
+			}
+			String first = header.split( "," )[0].trim();
+			if ( first.isBlank() ) {
+				return message;
+			}
+			return translateDynamicTextUseCase.execute( message, first );
+		} catch ( Exception ex ) {
+			log.warn( "[i18n-exception] Falha ao traduzir mensagem de erro: {}", ex.getMessage() );
+			return message;
+		}
 	}
 
 }

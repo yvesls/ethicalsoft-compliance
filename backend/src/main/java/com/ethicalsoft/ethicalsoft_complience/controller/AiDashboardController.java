@@ -7,14 +7,12 @@ import com.ethicalsoft.ethicalsoft_complience.application.usecase.ai.ExplainIsep
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.ai.GenerateAiInsightsUseCase;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.ai.GenerateRiskReportUseCase;
 import com.ethicalsoft.ethicalsoft_complience.controller.dto.ai.AiStatusResponseDTO;
-import com.ethicalsoft.ethicalsoft_complience.controller.dto.ai.AskQuestionRequestDTO;
-import jakarta.validation.Valid;
+import com.ethicalsoft.ethicalsoft_complience.domain.i18n.SupportedLanguage;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -33,8 +31,9 @@ public class AiDashboardController {
     @PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")
     public CompletableFuture<ResponseEntity<AiInsightResult>> getInsights(
             @PathVariable Long projectId,
-            @RequestParam Integer questionnaireId) {
-        return generateInsightsUseCase.execute(projectId, questionnaireId)
+            @RequestParam Integer questionnaireId,
+            @RequestHeader(value = "Accept-Language", required = false) String acceptLanguage) {
+        return generateInsightsUseCase.execute(projectId, questionnaireId, resolveLanguage(acceptLanguage))
                 .thenApply(ResponseEntity::ok);
     }
 
@@ -42,8 +41,9 @@ public class AiDashboardController {
     @PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")
     public CompletableFuture<ResponseEntity<AiInsightResult>> getRiskReport(
             @PathVariable Long projectId,
-            @RequestParam Integer questionnaireId) {
-        return generateRiskReportUseCase.execute(projectId, questionnaireId)
+            @RequestParam Integer questionnaireId,
+            @RequestHeader(value = "Accept-Language", required = false) String acceptLanguage) {
+        return generateRiskReportUseCase.execute(projectId, questionnaireId, resolveLanguage(acceptLanguage))
                 .thenApply(ResponseEntity::ok);
     }
 
@@ -51,8 +51,9 @@ public class AiDashboardController {
     @PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")
     public CompletableFuture<ResponseEntity<AiInsightResult>> explainIsepResults(
             @PathVariable Long projectId,
-            @RequestParam Integer questionnaireId) {
-        return explainIsepResultsUseCase.execute(projectId, questionnaireId)
+            @RequestParam Integer questionnaireId,
+            @RequestHeader(value = "Accept-Language", required = false) String acceptLanguage) {
+        return explainIsepResultsUseCase.execute(projectId, questionnaireId, resolveLanguage(acceptLanguage))
                 .thenApply(ResponseEntity::ok);
     }
 
@@ -62,10 +63,20 @@ public class AiDashboardController {
     public SseEmitter askQuestion(
             @PathVariable Long projectId,
             @RequestParam Integer questionnaireId,
+            @RequestHeader(value = "Accept-Language", required = false) String acceptLanguage,
             @Valid @RequestBody AskQuestionRequestDTO request) {
-        return askQuestionUseCase.execute(projectId, questionnaireId, request.question());
+        return askQuestionUseCase.execute(projectId, questionnaireId, request.question(),
+                resolveLanguage(acceptLanguage));
     }
     */
+
+    private String resolveLanguage(String acceptLanguage) {
+        if (acceptLanguage == null || acceptLanguage.isBlank()) {
+            return SupportedLanguage.PT_BR.code();
+        }
+        String first = acceptLanguage.split(",")[0].trim();
+        return first.isBlank() ? SupportedLanguage.PT_BR.code() : first;
+    }
 
     @GetMapping("/status")
     @PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")

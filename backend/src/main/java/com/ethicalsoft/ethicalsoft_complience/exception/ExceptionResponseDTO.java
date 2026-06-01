@@ -26,11 +26,16 @@ public class ExceptionResponseDTO {
 	private String message;
 	private String path;
 	private ErrorTypeEnum errorType;
+	private String errorKey;
 
 	@ToString.Exclude
 	private List<String> stackTrace;
 
 	public ExceptionResponseDTO( ErrorTypeEnum errorType, @NotNull HttpStatus httpStatus, @NotNull HttpServletRequest request, @NotBlank String message, List<String> stackTrace ) {
+		this( errorType, httpStatus, request, message, null, stackTrace );
+	}
+
+	public ExceptionResponseDTO( ErrorTypeEnum errorType, @NotNull HttpStatus httpStatus, @NotNull HttpServletRequest request, @NotBlank String message, String errorKey, List<String> stackTrace ) {
 		this.timestamp = LocalDateTime.now();
 		this.status = httpStatus.value();
 		this.message = message;
@@ -38,6 +43,7 @@ public class ExceptionResponseDTO {
 		this.error = httpStatus.name();
 		this.stackTrace = stackTrace;
 		this.errorType = ObjectUtils.isNullOrEmpty( errorType ) ? ErrorTypeEnum.ERROR : errorType;
+		this.errorKey = errorKey;
 	}
 
 	@Override

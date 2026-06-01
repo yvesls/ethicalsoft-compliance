@@ -2,6 +2,8 @@ package com.ethicalsoft.ethicalsoft_complience.adapters.out.llm;
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.llm.model.AiInsightResult;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.llm.model.DashboardSnapshot;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.AiGenerationCacheDocument;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.repository.AiGenerationCacheRepository;
 import com.ethicalsoft.ethicalsoft_complience.application.port.ai.LlmAnalysisPort;
 import com.ethicalsoft.ethicalsoft_complience.infra.config.AiConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
@@ -15,79 +17,68 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.time.LocalDateTime;
+import java.util.HexFormat;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
 @Slf4j
 @RequiredArgsConstructor
 public class GroqLlmAdapter implements LlmAnalysisPort {
+
+    private static final String OP_INSIGHTS = "INSIGHTS";
+    private static final String OP_RISK_REPORT = "RISK_REPORT";
+    private static final String OP_EXPLAIN_ISEP = "EXPLAIN_ISEP";
 
     private final ChatModel chatModel;
     private final AiDataSanitizer sanitizer;
     private final AiPromptBuilder promptBuilder;
     private final AiConfig aiConfig;
     private final CircuitBreakerRegistry circuitBreakerRegistry;
+    private final AiGenerationCacheRepository generationCacheRepository;
 
     @Override
     @Async
-    @CircuitBreaker(name = "llm", fallbackMethod = "fallbackInsights")
+    @CircuitBreaker(name = "llm", fallbackMethod = "fallbackInsightsLang")
     @Retry(name = "llm")
-    public CompletableFuture<AiInsightResult> generateInsights(DashboardSnapshot snapshot) {
-        log.info("[llm-groq] Gerando insights para projeto={} questionário={}",
-                snapshot.getProjectId(), snapshot.getQuestionnaireId());
-
-        DashboardSnapshot sanitized = sanitizer.sanitize(snapshot);
-        Prompt prompt = promptBuilder.buildInsightsPrompt(sanitized);
-
-        ChatResponse response = chatModel.call(prompt);
-        String content = response.getResult().getOutput().getText();
-
-        log.info("[llm-groq] Insights gerados com sucesso para questionário={}",
-                snapshot.getQuestionnaireId());
-        return CompletableFuture.completedFuture(AiInsightResult.success(content, aiConfig.getModelName()));
+    public CompletableFuture<AiInsightResult> generateInsights(DashboardSnapshot snapshot, String language) {
+        return CompletableFuture.completedFuture(
+                generateOrCache(OP_INSIGHTS, snapshot, language,
+                        () -> promptBuilder.buildInsightsPrompt(sanitizer.sanitize(snapshot), language))
+        );
     }
 
     @Override
     @Async
-    @CircuitBreaker(name = "llm", fallbackMethod = "fallbackInsights")
+    @CircuitBreaker(name = "llm", fallbackMethod = "fallbackInsightsLang")
     @Retry(name = "llm")
-    public CompletableFuture<AiInsightResult> generateRiskReport(DashboardSnapshot snapshot) {
-        log.info("[llm-groq] Gerando relatório de risco para projeto={}", snapshot.getProjectId());
-
-        DashboardSnapshot sanitized = sanitizer.sanitize(snapshot);
-        Prompt prompt = promptBuilder.buildRiskReportPrompt(sanitized);
-
-        ChatResponse response = chatModel.call(prompt);
-        String content = response.getResult().getOutput().getText();
-
-        log.info("[llm-groq] Relatório de risco gerado para projeto={}", snapshot.getProjectId());
-        return CompletableFuture.completedFuture(AiInsightResult.success(content, aiConfig.getModelName()));
+    public CompletableFuture<AiInsightResult> generateRiskReport(DashboardSnapshot snapshot, String language) {
+        return CompletableFuture.completedFuture(
+                generateOrCache(OP_RISK_REPORT, snapshot, language,
+                        () -> promptBuilder.buildRiskReportPrompt(sanitizer.sanitize(snapshot), language))
+        );
     }
 
     @Override
     @Async
-    @CircuitBreaker(name = "llm", fallbackMethod = "fallbackInsights")
+    @CircuitBreaker(name = "llm", fallbackMethod = "fallbackInsightsLang")
     @Retry(name = "llm")
-    public CompletableFuture<AiInsightResult> explainIsepResults(DashboardSnapshot snapshot) {
-        log.info("[llm-groq] Explicando resultados ISEP para projeto={} questionário={}",
-                snapshot.getProjectId(), snapshot.getQuestionnaireId());
-
-        DashboardSnapshot sanitized = sanitizer.sanitize(snapshot);
-        Prompt prompt = promptBuilder.buildExplainIsepPrompt(sanitized);
-
-        ChatResponse response = chatModel.call(prompt);
-        String content = response.getResult().getOutput().getText();
-
-        log.info("[llm-groq] Explicação ISEP gerada para questionário={}",
-                snapshot.getQuestionnaireId());
-        return CompletableFuture.completedFuture(AiInsightResult.success(content, aiConfig.getModelName()));
+    public CompletableFuture<AiInsightResult> explainIsepResults(DashboardSnapshot snapshot, String language) {
+        return CompletableFuture.completedFuture(
+                generateOrCache(OP_EXPLAIN_ISEP, snapshot, language,
+                        () -> promptBuilder.buildExplainIsepPrompt(sanitizer.sanitize(snapshot), language))
+        );
     }
 
     @Override
-    public void askQuestion(String question, DashboardSnapshot snapshot, SseEmitter emitter) {
-        log.info("[llm-groq] Pergunta Q&A do usuário: '{}'", question);
+    public void askQuestion(String question, DashboardSnapshot snapshot, SseEmitter emitter, String language) {
+        log.info("[llm-groq] Pergunta Q&A do usuário ({}): '{}'", language, question);
 
         DashboardSnapshot sanitized = sanitizer.sanitize(snapshot);
-        Prompt prompt = promptBuilder.buildQaPrompt(question, sanitized);
+        Prompt prompt = promptBuilder.buildQaPrompt(question, sanitized, language);
 
         try {
             ChatResponse response = chatModel.call(prompt);
@@ -114,6 +105,32 @@ public class GroqLlmAdapter implements LlmAnalysisPort {
     }
 
     @Override
+    public String translate(String text, String targetLanguage) {
+        if (text == null || text.isBlank() || targetLanguage == null || targetLanguage.isBlank()) {
+            return text;
+        }
+        try {
+            String system = """
+                    Você é um tradutor profissional. Sua única tarefa é traduzir o texto fornecido
+                    para o idioma indicado, preservando exatamente o significado, o tom e a formatação
+                    Markdown. Retorne apenas o texto traduzido, sem comentários, sem aspas ao redor
+                    e sem explicações adicionais.
+                    """;
+            String user = "Idioma de destino: " + targetLanguage + "\n\nTexto original:\n" + text;
+            Prompt prompt = new Prompt(java.util.List.of(
+                    new org.springframework.ai.chat.messages.SystemMessage(system),
+                    new org.springframework.ai.chat.messages.UserMessage(user)
+            ));
+            ChatResponse response = chatModel.call(prompt);
+            String translated = response.getResult().getOutput().getText();
+            return (translated == null || translated.isBlank()) ? text : translated.trim();
+        } catch (Exception e) {
+            log.warn("[llm-groq] Falha na tradução para {}: {}", targetLanguage, e.getMessage());
+            return text;
+        }
+    }
+
+    @Override
     public boolean isAvailable() {
         try {
             io.github.resilience4j.circuitbreaker.CircuitBreaker cb =
@@ -125,11 +142,84 @@ public class GroqLlmAdapter implements LlmAnalysisPort {
         }
     }
 
+    private AiInsightResult generateOrCache(String operation, DashboardSnapshot snapshot,
+                                            String language, Supplier<Prompt> promptSupplier) {
+        String normalizedLang = normalizeLanguage(language);
+        String cacheKey = cacheHash(operation, snapshot, normalizedLang);
+
+        Optional<AiGenerationCacheDocument> cached = safeFindCached(cacheKey);
+        if (cached.isPresent()) {
+            log.info("[llm-groq] Cache HIT operação={} projeto={} questionário={} idioma={}",
+                    operation, snapshot.getProjectId(), snapshot.getQuestionnaireId(), normalizedLang);
+            return AiInsightResult.success(cached.get().getContent(), aiConfig.getModelName());
+        }
+
+        log.info("[llm-groq] Cache MISS operação={} projeto={} questionário={} idioma={}",
+                operation, snapshot.getProjectId(), snapshot.getQuestionnaireId(), normalizedLang);
+
+        ChatResponse response = chatModel.call(promptSupplier.get());
+        String content = response.getResult().getOutput().getText();
+
+        if (content != null && !content.isBlank() && cacheKey != null) {
+            safeSaveCached(AiGenerationCacheDocument.builder()
+                    .hash(cacheKey)
+                    .operation(operation)
+                    .language(normalizedLang)
+                    .projectId(snapshot.getProjectId())
+                    .questionnaireId(snapshot.getQuestionnaireId())
+                    .content(content)
+                    .createdAt(LocalDateTime.now())
+                    .build());
+        }
+
+        return AiInsightResult.success(content, aiConfig.getModelName());
+    }
+
+    private String normalizeLanguage(String language) {
+        if (language == null || language.isBlank()) return "pt-BR";
+        String first = language.split(",")[0].trim();
+        return first.isBlank() ? "pt-BR" : first;
+    }
+
+    private String cacheHash(String operation, DashboardSnapshot snapshot, String language) {
+        if (snapshot == null || snapshot.getIsepPercent() == null) return null;
+        String raw = operation + "|" + snapshot.getProjectId()
+                + "|" + snapshot.getQuestionnaireId()
+                + "|" + snapshot.getIsepPercent()
+                + "|" + snapshot.getBand()
+                + "|" + language;
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            return HexFormat.of().formatHex(digest.digest(raw.getBytes(StandardCharsets.UTF_8)));
+        } catch (Exception ex) {
+            return Integer.toHexString(raw.hashCode());
+        }
+    }
+
+    private Optional<AiGenerationCacheDocument> safeFindCached(String hash) {
+        if (hash == null) return Optional.empty();
+        try {
+            return generationCacheRepository.findByHash(hash);
+        } catch (Exception ex) {
+            log.warn("[llm-groq] Falha ao consultar cache de IA: {}", ex.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    private void safeSaveCached(AiGenerationCacheDocument document) {
+        try {
+            generationCacheRepository.save(document);
+        } catch (Exception ex) {
+            log.warn("[llm-groq] Falha ao salvar resposta de IA no cache (hash={}): {}",
+                    document.getHash(), ex.getMessage());
+        }
+    }
+
     @SuppressWarnings("unused")
-    private CompletableFuture<AiInsightResult> fallbackInsights(
-            DashboardSnapshot snapshot, Throwable t) {
-        log.warn("[llm-groq] Fallback ativado para projeto={}: {}",
-                snapshot.getProjectId(), t.getMessage());
+    private CompletableFuture<AiInsightResult> fallbackInsightsLang(
+            DashboardSnapshot snapshot, String language, Throwable t) {
+        log.warn("[llm-groq] Fallback ativado para projeto={} idioma={}: {}",
+                snapshot.getProjectId(), language, t.getMessage());
         return CompletableFuture.completedFuture(
                 AiInsightResult.unavailable(
                         "Análise de IA temporariamente indisponível. " +

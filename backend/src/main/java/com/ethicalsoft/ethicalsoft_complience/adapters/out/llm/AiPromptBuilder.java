@@ -11,12 +11,12 @@ import java.util.List;
 @Component
 public class AiPromptBuilder {
 
-    private static final String SYSTEM_ROLE = """
+    private static final String SYSTEM_ROLE_BASE = """
             Você é um analista sênior de conformidade ética em software do sistema EthicalSoft Compliance.
 
             Você analisa dados do ISEP (Índice Sintético de Ética de Projeto), que mede a conformidade
             ética de projetos de software. Suas análises devem ser:
-            - Em português brasileiro (pt-BR)
+            - %s
             - Objetivas e acionáveis
             - Baseadas exclusivamente nos dados fornecidos
             - Com foco em riscos éticos, dívida ética e recomendações concretas
@@ -27,11 +27,11 @@ public class AiPromptBuilder {
             O ISEP do projeto é a média ponderada dos ISEPs dos questionários, usando os pesos definidos.
 
             **Faixas de Conformidade Ética:**
-            - A (Excelente): 90,00% – 100,00%
-            - B (Bom): 75,00% – 89,99%
-            - C (Regular): 60,00% – 74,99%
-            - D (Insuficiente): 45,00% – 59,99%
-            - E (Crítico): 0,00% – 44,99%
+            - A (Excelente): 90,00%% – 100,00%%
+            - B (Bom): 75,00%% – 89,99%%
+            - C (Regular): 60,00%% – 74,99%%
+            - D (Insuficiente): 45,00%% – 59,99%%
+            - E (Crítico): 0,00%% – 44,99%%
 
             **Domínios de Governança:**
             - ETHICS (Ética): Responsabilidade, privacidade, impacto social e transparência
@@ -48,7 +48,16 @@ public class AiPromptBuilder {
             de processo, qualidade e segurança.
             """;
 
-    public Prompt buildInsightsPrompt(DashboardSnapshot snapshot) {
+    private String systemRole(String language) {
+        String languageInstruction = switch (language == null ? "" : language.trim()) {
+            case "en-US" -> "Respond entirely in English (US). Do not include any Portuguese.";
+            case "es-ES" -> "Responda íntegramente en español (España). No incluya portugués.";
+            default -> "Em português brasileiro (pt-BR)";
+        };
+        return String.format(SYSTEM_ROLE_BASE, languageInstruction);
+    }
+
+    public Prompt buildInsightsPrompt(DashboardSnapshot snapshot, String language) {
         String userData = buildDataContext(snapshot) + "\n\n" + buildJustificationsContext(snapshot);
 
         String instruction = """
@@ -64,12 +73,12 @@ public class AiPromptBuilder {
                 """;
 
         return new Prompt(List.of(
-                new SystemMessage(SYSTEM_ROLE),
+                new SystemMessage(systemRole(language)),
                 new UserMessage(userData + "\n\n" + instruction)
         ));
     }
 
-    public Prompt buildRiskReportPrompt(DashboardSnapshot snapshot) {
+    public Prompt buildRiskReportPrompt(DashboardSnapshot snapshot, String language) {
         String userData = buildDataContext(snapshot) + "\n\n"
                 + buildMembersContext(snapshot) + "\n\n"
                 + buildHeatmapContext(snapshot) + "\n\n"
@@ -103,12 +112,12 @@ public class AiPromptBuilder {
                 """;
 
         return new Prompt(List.of(
-                new SystemMessage(SYSTEM_ROLE),
+                new SystemMessage(systemRole(language)),
                 new UserMessage(userData + "\n\n" + instruction)
         ));
     }
 
-    public Prompt buildExplainIsepPrompt(DashboardSnapshot snapshot) {
+    public Prompt buildExplainIsepPrompt(DashboardSnapshot snapshot, String language) {
         String userData = buildDataContext(snapshot) + "\n\n"
                 + buildMembersContext(snapshot) + "\n\n"
                 + buildHeatmapContext(snapshot);
@@ -144,12 +153,12 @@ public class AiPromptBuilder {
                 """;
 
         return new Prompt(List.of(
-                new SystemMessage(SYSTEM_ROLE),
+                new SystemMessage(systemRole(language)),
                 new UserMessage(userData + "\n\n" + instruction)
         ));
     }
 
-    public Prompt buildQaPrompt(String question, DashboardSnapshot snapshot) {
+    public Prompt buildQaPrompt(String question, DashboardSnapshot snapshot, String language) {
         StringBuilder userData = new StringBuilder(buildDataContext(snapshot));
 
         String members = buildMembersContext(snapshot);
@@ -175,7 +184,7 @@ public class AiPromptBuilder {
                 """, question);
 
         return new Prompt(List.of(
-                new SystemMessage(SYSTEM_ROLE),
+                new SystemMessage(systemRole(language)),
                 new UserMessage(userData + "\n\n" + instruction)
         ));
     }
