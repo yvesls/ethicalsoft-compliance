@@ -57,11 +57,8 @@ public class ModelMapperUtils {
 
 		boolean preferNested = ( preferNestedProperties == null ) ? ModelMapperUtils.modelMapper.getConfiguration().isPreferNestedProperties() : preferNestedProperties;
 
-		// Cria a chave de cache
 		MapperConfig config = new MapperConfig( strategy, preferNested );
 
-		// Obtém do cache. Se não existir, cria, armazena e retorna.
-		// Isso é thread-safe e muito mais performático que criar um novo mapper a cada chamada.
 		return customMapperCache.computeIfAbsent( config, k -> buildMap( k.strategy(), k.preferNested() ) );
 	}
 
@@ -133,36 +130,18 @@ public class ModelMapperUtils {
 		modelMapper.getConfiguration().setPropertyCondition( context -> !( context.getSource() instanceof PersistentCollection p ) || p.wasInitialized() );
 	}
 
-	/**************************************************************************************************************************************************
-	 *
-	 * Converter aux methods
-	 *
-	 **************************************************************************************************************************************************/
-
-	/**
-	 * Converte uma Coleção de Entidades em uma Coleção de IDs (Long).
-	 */
 	public static <T> Converter<Collection<T>, Collection<Long>> convertEntityIdToLong() {
 		return ctx -> toSet(ctx, ModelMapperUtils::getIdValue);
 	}
 
-	/**
-	 * Converte uma Coleção de Entidades em uma Coleção de IDs (String).
-	 */
 	public static <T> Converter<Collection<T>, Collection<String>> convertEntityIdToString() {
 		return ctx -> toSet(ctx, ModelMapperUtils::getStringIdValue);
 	}
 
-	/**
-	 * Converte uma Coleção de IDs (Long) em uma Coleção de Entidades (com apenas o ID).
-	 */
 	public static <T> Converter<Collection<Long>, Collection<T>> convertLongToEntityId( Class<T> clazz ) {
 		return ctx -> toSet( ctx, id -> ModelMapperUtils.setIdValue( clazz, id ) );
 	}
 
-	/**
-	 * Converte uma Coleção de IDs (String) em uma Coleção de Entidades (com apenas o ID).
-	 */
 	public static <T> Converter<Collection<String>, Collection<T>> convertStringToEntityId( Class<T> clazz ) {
 		return ctx -> toSet( ctx, id -> ModelMapperUtils.setStringIdValue( clazz, id ) );
 	}
@@ -174,37 +153,22 @@ public class ModelMapperUtils {
         return ctx.getSource().stream().map(mapper).collect(Collectors.toSet());
     }
 
-	/**
-	 * Encontra o campo anotado com @Id (inclusive em superclasses) e retorna seu valor como Long.
-	 */
 	public static <T> Long getIdValue( T entity ) {
 		return readIdField( entity, Long.class );
 	}
 
-	/**
-	 * Encontra o campo anotado com @Id (inclusive em superclasses) e retorna seu valor como String.
-	 */
 	public static <T> String getStringIdValue( T entity ) {
 		return readIdField( entity, String.class );
 	}
 
-	/**
-	 * Cria uma nova instância da entidade e define seu valor de @Id (Long).
-	 */
 	public static <T> T setIdValue( Class<T> clazz, Long id ) {
 		return writeIdField( clazz, id );
 	}
 
-	/**
-	 * Cria uma nova instância da entidade e define seu valor de @Id (String).
-	 */
 	public static <T> T setStringIdValue( Class<T> clazz, String id ) {
 		return writeIdField( clazz, id );
 	}
 
-	/**
-	 * Implementação genérica: lê o campo anotado com {@code @Id} e faz cast para {@code idType}.
-	 */
 	private static <T, R> R readIdField( T entity, Class<R> idType ) {
 		if ( entity == null ) {
 			return null;
@@ -222,9 +186,6 @@ public class ModelMapperUtils {
 		return null;
 	}
 
-	/**
-	 * Implementação genérica: instancia {@code clazz} e injeta {@code id} no campo anotado com {@code @Id}.
-	 */
 	private static <T, ID> T writeIdField( Class<T> clazz, ID id ) {
 		try {
 			T entity = clazz.getDeclaredConstructor().newInstance();
@@ -251,19 +212,12 @@ public class ModelMapperUtils {
 		return PropertyAccessorFactory.forBeanPropertyAccess( entity );
 	}
 
-	/**
-	 * Verifica se o campo possui a anotação @Id.
-	 * pelo método {@code isAnnotationPresent()}, que é muito mais limpo e eficiente.
-	 */
 	private static boolean hasIdAnnotation( Field field ) {
 		return field.isAnnotationPresent( Id.class );
 	}
 
 	private record MapperConfig( MatchingStrategy strategy, boolean preferNested ) {}
 
-	/****************************************************************************************************************************************************/
-
-	// --- Classes Stub (apenas para o código compilar) ---
 	private static class ModelMapperLocalDateConverter implements Converter<String, LocalDate> {
 		@Override
 		public LocalDate convert( org.modelmapper.spi.MappingContext<String, LocalDate> context ) {

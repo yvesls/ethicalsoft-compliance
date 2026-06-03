@@ -177,7 +177,7 @@ public class DashboardSnapshotAssembler {
         if (dashboard.band() != null) {
             try {
                 bandLabel = EthicalComplianceBand.valueOf(dashboard.band()).getLabel();
-            } catch (IllegalArgumentException ignored) { // NOSONAR: band may be unknown
+            } catch (IllegalArgumentException ignored) {
             }
         }
 

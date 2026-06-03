@@ -65,7 +65,6 @@ public class NotificationSendSupport {
             List<String> roles = notificationRoleResolver.resolveRoles(currentUser.getEmail(), projectId);
             return new SenderData(currentUser.getId(), fullName.isBlank() ? null : fullName, currentUser.getEmail(), roles);
         } catch (SecurityException | org.springframework.security.core.AuthenticationException ex) {
-            // No authenticated user in scheduler context — use system sender
             return new SenderData(null, "Sistema", null, List.of());
         }
     }

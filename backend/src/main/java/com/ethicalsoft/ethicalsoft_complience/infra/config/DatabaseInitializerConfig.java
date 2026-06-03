@@ -10,10 +10,6 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
-/**
- * Garante que o banco de dados PostgreSQL existe antes que Flyway tente se conectar.
- * Executa via ApplicationListener, antes de qualquer bean ser criado.
- */
 @Slf4j
 public class DatabaseInitializerConfig implements ApplicationListener<ApplicationEnvironmentPreparedEvent> {
 

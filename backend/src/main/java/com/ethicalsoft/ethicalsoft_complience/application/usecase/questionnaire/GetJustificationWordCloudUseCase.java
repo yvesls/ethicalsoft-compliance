@@ -149,7 +149,6 @@ public class GetJustificationWordCloudUseCase {
         for (Map.Entry<String, List<String>> entry : textsByDomain.entrySet()) {
             Map<String, Long> freq = buildWordFrequency(entry.getValue());
             if (!freq.isEmpty()) {
-                // Keep top 20 per category to avoid response bloat
                 Map<String, Long> top = freq.entrySet().stream()
                         .limit(20)
                         .collect(Collectors.toMap(

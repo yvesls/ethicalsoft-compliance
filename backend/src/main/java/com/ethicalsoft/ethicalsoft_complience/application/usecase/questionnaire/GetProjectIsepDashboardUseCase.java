@@ -91,7 +91,6 @@ public class GetProjectIsepDashboardUseCase {
             projectIsepPercent = IsepMath.toPercent(projectIsep);
             projectBand = EthicalComplianceBand.classify(projectIsepPercent).name();
 
-            // Estatísticas de equipe
             Collection<BigDecimal> isepValues = completedResults.stream()
                     .map(QuestionnaireResult::getIsep).toList();
             teamAvgPercent = IsepMath.toPercent(IsepMath.simpleAverage(isepValues));

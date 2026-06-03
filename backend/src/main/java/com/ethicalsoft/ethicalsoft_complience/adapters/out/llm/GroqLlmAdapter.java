@@ -103,7 +103,7 @@ public class GroqLlmAdapter implements LlmAnalysisPort {
                 emitter.send(SseEmitter.event()
                         .name("error")
                         .data(friendlyMessage(e)));
-            } catch (Exception ignored) { // NOSONAR
+            } catch (Exception ignored) {
             }
             emitter.complete();
         }
