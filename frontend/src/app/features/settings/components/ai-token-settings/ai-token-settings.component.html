@@ -1,0 +1,148 @@
+<div class="ai-token-settings">
+  <div class="settings-card">
+    <div class="card-header">
+      <i class="bi bi-robot"></i>
+      <h2>{{ 'ai.token.title' | translate }}</h2>
+    </div>
+
+    <!-- Bloco Explicativo Principal -->
+    <div class="explanation-block">
+      <p>
+        Por que precisamos do seu token? Os recursos de inteligência artificial do EthicalSoft
+        Compliance (geração de insights, explicação dos resultados ISEP, relatório de risco e chat de
+        perguntas e respostas) consomem a API da Groq Cloud. Para que você tenha total controle sobre
+        o uso, o consumo e a privacidade dos seus dados, cada usuário utiliza sua própria chave
+        pessoal.
+      </p>
+      <p>
+        Cadastrar seu token leva menos de um minuto, é gratuito e dá acesso imediato a todos os
+        recursos de IA da plataforma.
+      </p>
+    </div>
+
+    <!-- Garantia de Segurança -->
+    <div class="security-block">
+      <h3>{{ 'ai.token.title' | translate }} - Como protegemos seu token</h3>
+      <ul class="security-list">
+        <li>
+          Seu token é criptografado em repouso com AES-256-GCM antes de ser salvo no banco de dados.
+        </li>
+        <li>Nunca exibimos seu token completo — apenas uma máscara como gsk_…Zn5tj.</li>
+        <li>
+          O token é vinculado exclusivamente à sua conta e jamais é compartilhado com outros
+          usuários.
+        </li>
+        <li>
+          Em todas as chamadas, seu token é enviado diretamente para a Groq Cloud. Nós não
+          armazenamos o conteúdo das suas perguntas nem das respostas geradas (apenas um cache
+          anonimizado de respostas determinísticas, identificadas por projeto e questionário).
+        </li>
+        <li>Você pode remover seu token a qualquer momento, e a remoção é imediata.</li>
+      </ul>
+    </div>
+
+    <!-- Como Obter seu Token -->
+    <div class="instructions-block">
+      <h3>Como obter sua chave Groq Cloud (gratuita)</h3>
+      <ol class="instructions-list">
+        <li>Acesse https://console.groq.com e crie uma conta (ou faça login com Google/GitHub).</li>
+        <li>No painel lateral, abra API Keys e clique em "Create API Key".</li>
+        <li>
+          Dê um nome (por ex. "EthicalSoft Compliance") e copie a chave gerada — ela começa com
+          gsk_….
+        </li>
+        <li>Volte para esta tela, cole a chave no campo abaixo e clique em Salvar.</li>
+        <li>
+          Pronto! A chave fica vinculada à sua conta e os recursos de IA passam a ficar disponíveis
+          imediatamente.
+        </li>
+      </ol>
+    </div>
+
+    <!-- Status Atual -->
+    <div class="status-block" *ngIf="status$ | async as status">
+      <h3>{{ 'common.status' | translate }}</h3>
+      <div class="status-content">
+        @if (status.configured) {
+          <div class="status-configured">
+            <span class="status-dot configured"></span>
+            <span>{{ 'ai.token.status.configured' | translate }}</span>
+            <span class="status-hint">{{ status.tokenHint }}</span>
+            @if (status.updatedAt) {
+              <span class="status-date">
+                {{ 'ai.token.status.updatedAt' | translate: { date: (status.updatedAt | date: 'dd/MM/yyyy HH:mm') } }}
+              </span>
+            }
+          </div>
+        } @else {
+          <div class="status-not-configured">
+            <span class="status-dot not-configured"></span>
+            <span>{{ 'ai.token.status.notConfigured' | translate }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Formulário -->
+    <div class="form-block">
+      <form [formGroup]="form" (ngSubmit)="saveToken()">
+        <div class="form-group">
+          <label for="token-input">{{ 'ai.token.form.label' | translate }}</label>
+          <div class="token-input-wrapper">
+            <input
+              id="token-input"
+              [type]="showToken() ? 'text' : 'password'"
+              class="form-control"
+              [placeholder]="'ai.token.form.placeholder' | translate"
+              formControlName="token"
+            />
+            <button
+              type="button"
+              class="toggle-button"
+              (click)="toggleShowToken()"
+              [attr.aria-label]="showToken() ? ('ai.token.form.hideToken' | translate) : ('ai.token.form.showToken' | translate)"
+            >
+              <i [class]="showToken() ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+            </button>
+          </div>
+          @if (tokenControl?.invalid && tokenControl?.touched) {
+            <span class="error-message">{{ 'ai.token.errors.empty' | translate }}</span>
+          }
+        </div>
+
+        <div class="form-actions">
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="!isFormValid || isSaving()"
+          >
+            @if (isSaving()) {
+              <i class="bi bi-hourglass"></i>
+              {{ 'common.saving' | translate }}
+            } @else {
+              <i class="bi bi-check"></i>
+              {{ 'ai.token.form.save' | translate }}
+            }
+          </button>
+
+          @if ((status$ | async)?.configured) {
+            <button
+              type="button"
+              class="btn btn-danger"
+              (click)="removeToken()"
+              [disabled]="isRemoving()"
+            >
+              @if (isRemoving()) {
+                <i class="bi bi-hourglass"></i>
+                {{ 'common.loading' | translate }}
+              } @else {
+                <i class="bi bi-trash"></i>
+                {{ 'ai.token.form.remove' | translate }}
+              }
+            </button>
+          }
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

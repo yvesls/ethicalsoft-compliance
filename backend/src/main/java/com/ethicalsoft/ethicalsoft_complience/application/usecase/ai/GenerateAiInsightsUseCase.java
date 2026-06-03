@@ -18,11 +18,12 @@ public class GenerateAiInsightsUseCase {
     private final AiDashboardContextProvider contextProvider;
     private final LlmAnalysisPort llmAnalysisPort;
 
-    public CompletableFuture<AiInsightResult> execute(Long projectId, Integer questionnaireId, String language) {
-        log.info("[ai-insights] Gerando insights IA projeto={} questionário={} idioma={}",
-                projectId, questionnaireId, language);
+    public CompletableFuture<AiInsightResult> execute(Long projectId, Integer questionnaireId,
+                                                      String language, Long userId) {
+        log.info("[ai-insights] Gerando insights IA projeto={} questionário={} idioma={} userId={}",
+                projectId, questionnaireId, language, userId);
 
         DashboardSnapshot snapshot = contextProvider.buildSnapshot(projectId, questionnaireId);
-        return llmAnalysisPort.generateInsights(snapshot, language);
+        return llmAnalysisPort.generateInsights(snapshot, language, userId);
     }
 }

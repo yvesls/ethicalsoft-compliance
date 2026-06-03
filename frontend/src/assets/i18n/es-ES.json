@@ -125,7 +125,8 @@
     "settings": "Configuración",
     "toggle": "Alternar barra lateral",
     "exit": "Cerrar sesión",
-    "version": "Versión {{version}}"
+    "version": "Versión {{version}}",
+    "aiToken": "Token de IA"
   },
   "projects": {
     "list_title": "Proyectos",
@@ -993,5 +994,38 @@
   "shared_multi_select_clear_alt": "Limpiar selección",
   "shared_multi_select_open_alt": "Abrir desplegable",
   "shared_multi_select_search_placeholder": "Buscar...",
-  "shared_multi_select_no_options": "No se encontraron opciones"
+  "shared_multi_select_no_options": "No se encontraron opciones",
+  "ai": {
+    "token": {
+      "title": "Token de IA",
+      "status": {
+        "configured": "Configurado",
+        "notConfigured": "No configurado",
+        "updatedAt": "Actualizado el {{date}}"
+      },
+      "form": {
+        "label": "Pegue aquí su token de Groq Cloud",
+        "placeholder": "gsk_…",
+        "showToken": "Mostrar",
+        "hideToken": "Ocultar",
+        "save": "Guardar",
+        "remove": "Eliminar token"
+      },
+      "saved": "Token guardado exitosamente.",
+      "removed": "Token eliminado.",
+      "missing": {
+        "title": "Token de IA requerido",
+        "body": "Para usar esta función de inteligencia artificial debe registrar su propio token de Groq Cloud. Este token está vinculado únicamente a su cuenta, se almacena de forma cifrada y puede eliminarse en cualquier momento.",
+        "configureNow": "Configurar ahora",
+        "cancel": "Cancelar"
+      },
+      "errors": {
+        "not_configured": "Token de IA no configurado. Registre su token en la configuración para usar esta función.",
+        "invalid": "No se pudo leer su token de IA. Regístrelo nuevamente.",
+        "empty": "Ingrese un token de IA válido.",
+        "encryption_failed": "Error al proteger el token de IA. Intente de nuevo.",
+        "unauthenticated": "Debe estar autenticado para administrar su token de IA."
+      }
+    }
+  }
 }

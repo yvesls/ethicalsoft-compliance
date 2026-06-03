@@ -56,17 +56,22 @@ public class I18nController {
     }
 
     @PostMapping("/translate")
-    public TranslateResponseDTO translate(@Valid @RequestBody TranslateRequestDTO request) {
-        String translated = translateDynamicTextUseCase.execute(request.text(), request.language());
+    public TranslateResponseDTO translate(@AuthenticationPrincipal User currentUser,
+                                          @Valid @RequestBody TranslateRequestDTO request) {
+        Long userId = currentUser != null ? currentUser.getId() : null;
+        String translated = translateDynamicTextUseCase.execute(request.text(), request.language(), userId);
         return new TranslateResponseDTO(request.text(), translated, request.language());
     }
 
     @PostMapping("/admin/warm-cache")
     @PreAuthorize("hasAuthority('ADMIN')")
     public WarmTranslationCacheUseCase.WarmCacheResult warmCache(
+            @AuthenticationPrincipal User currentUser,
             @RequestBody(required = false) WarmCacheRequestDTO request) {
+        requireAuthenticated(currentUser);
         return warmTranslationCacheUseCase.execute(
-                request != null ? request.languages() : null);
+                request != null ? request.languages() : null,
+                currentUser.getId());
     }
 
     private void requireAuthenticated(User user) {

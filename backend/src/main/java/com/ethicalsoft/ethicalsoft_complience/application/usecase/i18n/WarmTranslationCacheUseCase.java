@@ -38,13 +38,17 @@ public class WarmTranslationCacheUseCase {
     ) {}
 
     public WarmCacheResult execute(List<String> requestedLanguages) {
+        return execute(requestedLanguages, null);
+    }
+
+    public WarmCacheResult execute(List<String> requestedLanguages, Long userId) {
         long startTime = System.currentTimeMillis();
 
         List<SupportedLanguage> targets = resolveTargets(requestedLanguages);
         Set<String> texts = collectAllTexts();
 
-        log.info("[i18n-warm] Aquecimento iniciado: {} textos únicos × {} idiomas",
-                texts.size(), targets.size());
+        log.info("[i18n-warm] Aquecimento iniciado: {} textos únicos × {} idiomas (userId={})",
+                texts.size(), targets.size(), userId);
 
         int translated = 0;
         int skipped = 0;
@@ -53,7 +57,7 @@ public class WarmTranslationCacheUseCase {
         for (String text : texts) {
             for (SupportedLanguage target : targets) {
                 try {
-                    String result = translateUseCase.execute(text, target.code());
+                    String result = translateUseCase.execute(text, target.code(), userId);
                     if (result == null || result.equals(text)) {
                         skipped++;
                     } else {

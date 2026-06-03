@@ -4,17 +4,15 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.llm.AiDataSanitizer;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.llm.AiPromptBuilder;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.llm.GroqLlmAdapter;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.llm.NoOpLlmAdapter;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.llm.UserChatModelResolver;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.repository.AiGenerationCacheRepository;
-import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import com.ethicalsoft.ethicalsoft_complience.application.port.ai.LlmAnalysisPort;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.ai.model.openai.autoconfigure.OpenAiChatAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 
 @Configuration
 @Slf4j
@@ -29,20 +27,19 @@ public class LlmBeanConfiguration {
 
     @Configuration
     @ConditionalOnProperty(name = "app.ai.enabled", havingValue = "true")
-    @Import(OpenAiChatAutoConfiguration.class)
     static class GroqLlmEnabledConfiguration {
 
         @Bean
-        public LlmAnalysisPort groqLlmAdapter(ChatModel chatModel,
+        public LlmAnalysisPort groqLlmAdapter(UserChatModelResolver chatModelResolver,
                                                AiDataSanitizer sanitizer,
                                                AiPromptBuilder promptBuilder,
                                                AiConfig aiConfig,
                                                CircuitBreakerRegistry circuitBreakerRegistry,
                                                AiGenerationCacheRepository generationCacheRepository) {
-            log.info("[llm-config] IA habilitada — Groq Cloud (modelo: {})", aiConfig.getModelName());
-            return new GroqLlmAdapter(chatModel, sanitizer, promptBuilder, aiConfig,
+            log.info("[llm-config] IA habilitada — Groq Cloud (modelo: {}) — token por usuário",
+                    aiConfig.getModelName());
+            return new GroqLlmAdapter(chatModelResolver, sanitizer, promptBuilder, aiConfig,
                     circuitBreakerRegistry, generationCacheRepository);
         }
     }
 }
-

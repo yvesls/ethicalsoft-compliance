@@ -18,7 +18,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -201,10 +203,27 @@ public class GlobalExceptionResponseHandler {
 			if ( first.isBlank() ) {
 				return message;
 			}
-			return translateDynamicTextUseCase.execute( message, first );
+			Long userId = currentUserId();
+			return translateDynamicTextUseCase.execute( message, first, userId );
 		} catch ( Exception ex ) {
 			log.warn( "[i18n-exception] Falha ao traduzir mensagem de erro: {}", ex.getMessage() );
 			return message;
+		}
+	}
+
+	private Long currentUserId() {
+		try {
+			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+			if ( auth == null || !auth.isAuthenticated() ) {
+				return null;
+			}
+			Object principal = auth.getPrincipal();
+			if ( principal instanceof com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.User user ) {
+				return user.getId();
+			}
+			return null;
+		} catch ( Exception ex ) {
+			return null;
 		}
 	}
 

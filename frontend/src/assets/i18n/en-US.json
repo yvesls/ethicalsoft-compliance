@@ -125,7 +125,8 @@
     "settings": "Settings",
     "toggle": "Toggle sidebar",
     "exit": "Sign out",
-    "version": "Version {{version}}"
+    "version": "Version {{version}}",
+    "aiToken": "AI Token"
   },
   "projects": {
     "list_title": "Projects",
@@ -993,5 +994,38 @@
   "shared_multi_select_clear_alt": "Clear selection",
   "shared_multi_select_open_alt": "Open dropdown",
   "shared_multi_select_search_placeholder": "Search...",
-  "shared_multi_select_no_options": "No options found"
+  "shared_multi_select_no_options": "No options found",
+  "ai": {
+    "token": {
+      "title": "AI Token",
+      "status": {
+        "configured": "Configured",
+        "notConfigured": "Not configured",
+        "updatedAt": "Updated on {{date}}"
+      },
+      "form": {
+        "label": "Paste your Groq Cloud token here",
+        "placeholder": "gsk_…",
+        "showToken": "Show",
+        "hideToken": "Hide",
+        "save": "Save",
+        "remove": "Remove token"
+      },
+      "saved": "Token saved successfully.",
+      "removed": "Token removed.",
+      "missing": {
+        "title": "AI token required",
+        "body": "To use this artificial intelligence feature you need to register your own Groq Cloud token. This token is linked only to your account, is stored in an encrypted format and can be removed at any time.",
+        "configureNow": "Configure now",
+        "cancel": "Cancel"
+      },
+      "errors": {
+        "not_configured": "AI token not configured. Register your token in settings to use this feature.",
+        "invalid": "Could not read your AI token. Register it again.",
+        "empty": "Enter a valid AI token.",
+        "encryption_failed": "Failed to secure the AI token. Try again.",
+        "unauthenticated": "You must be authenticated to manage your AI token."
+      }
+    }
+  }
 }

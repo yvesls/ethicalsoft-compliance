@@ -17,5 +17,13 @@ public class AiConfig {
 
     private int maxJustificationsPerRequest = 50;
 
-    private String modelName = "llama-3.1-70b-versatile";
+    private String modelName = "llama-3.3-70b-versatile";
+
+    private String baseUrl = "https://api.groq.com/openai";
+
+    private double temperature = 0.3;
+
+    private int maxTokens = 2048;
+
+    private String tokenEncryptionKey;
 }

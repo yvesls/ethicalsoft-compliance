@@ -29,9 +29,10 @@ public class AskDashboardQuestionUseCase {
     @Value("${app.ai.timeout-seconds:60}")
     private int timeoutSeconds;
 
-    public SseEmitter execute(@NonNull Long projectId, Integer questionnaireId, String question, String language) {
-        log.info("[ai-qa] Pergunta Q&A projeto={} questionário={} idioma={}: '{}'",
-                projectId, questionnaireId, language, question);
+    public SseEmitter execute(@NonNull Long projectId, Integer questionnaireId, String question,
+                              String language, Long userId) {
+        log.info("[ai-qa] Pergunta Q&A projeto={} questionário={} idioma={} userId={}: '{}'",
+                projectId, questionnaireId, language, userId, question);
 
         QuestionAnalysis analysis = questionContextAnalyzer.analyze(question);
         DashboardSnapshot snapshot = contextProvider.buildContextualSnapshot(projectId, questionnaireId, analysis);
@@ -40,7 +41,7 @@ public class AskDashboardQuestionUseCase {
         CompletableFuture.runAsync(() ->
                 {
                     try {
-                        llmAnalysisPort.askQuestion(question, snapshot, emitter, language);
+                        llmAnalysisPort.askQuestion(question, snapshot, emitter, language, userId);
                     } catch (IOException e) {
                         throw new BusinessException("Erro inesperado no processo de pergunta ao módulo de IA.");
                     }

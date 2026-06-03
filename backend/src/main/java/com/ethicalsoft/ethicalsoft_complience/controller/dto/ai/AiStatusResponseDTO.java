@@ -4,5 +4,6 @@ public record AiStatusResponseDTO(
         boolean enabled,
         String provider,
         String model,
-        boolean available
+        boolean available,
+        boolean userTokenConfigured
 ) {}

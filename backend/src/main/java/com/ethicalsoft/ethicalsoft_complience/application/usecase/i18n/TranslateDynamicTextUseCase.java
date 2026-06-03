@@ -25,6 +25,10 @@ public class TranslateDynamicTextUseCase {
     private final LlmAnalysisPort llmAnalysisPort;
 
     public String execute(String text, String targetLanguageCode) {
+        return execute(text, targetLanguageCode, null);
+    }
+
+    public String execute(String text, String targetLanguageCode, Long userId) {
         if (text == null || text.isBlank()) {
             return text;
         }
@@ -39,7 +43,11 @@ public class TranslateDynamicTextUseCase {
             return cached.get().getTranslated();
         }
 
-        String translated = llmAnalysisPort.translate(text, target.code());
+        if (userId == null) {
+            return text;
+        }
+
+        String translated = llmAnalysisPort.translate(text, target.code(), userId);
         if (translated == null || translated.isBlank()) {
             return text;
         }

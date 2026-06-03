@@ -72,7 +72,6 @@ export class AiChatWidgetComponent implements AfterViewChecked {
     this.streaming.set(true);
     this.shouldScroll = true;
 
-    // Add empty assistant message that will be filled by streaming
     this.messages.update(msgs => [
       ...msgs,
       { role: 'assistant', content: '', timestamp: new Date() },
