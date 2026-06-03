@@ -1,11 +1,9 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AiTokenService } from '../../../../core/ai/ai-token.service';
 import { NotificationService } from '../../../../core/services/notification.service';
-import { ModalService } from '../../../../core/services/modal.service';
-import { signal } from '@angular/core';
 
 @Component({
   selector: 'app-ai-token-settings',
@@ -18,7 +16,6 @@ export class AiTokenSettingsComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly aiTokenService = inject(AiTokenService);
   private readonly notificationService = inject(NotificationService);
-  private readonly modalService = inject(ModalService);
   private readonly translate = inject(TranslateService);
 
   form!: FormGroup;
@@ -73,12 +70,9 @@ export class AiTokenSettingsComponent implements OnInit {
   }
 
   removeToken(): void {
-    this.modalService.openConfirm({
-      title: this.translate.instant('ai.token.missing.title'),
-      message: this.translate.instant('ai.token.missing.body'),
-      okLabel: this.translate.instant('common.confirm'),
-      cancelLabel: this.translate.instant('ai.token.missing.cancel'),
-      onConfirm: () => {
+    this.notificationService.showConfirm(
+      this.translate.instant('ai.token.missing.body'),
+      () => {
         this.isRemoving.set(true);
         this.aiTokenService.deleteToken().subscribe({
           next: () => {
@@ -98,7 +92,10 @@ export class AiTokenSettingsComponent implements OnInit {
           },
         });
       },
-    });
+      () => {
+        // Cancel action - do nothing
+      }
+    );
   }
 
   get tokenControl() {

@@ -1,11 +1,13 @@
+@use '../../../../../assets/scss/base/vars' as *;
+
 .ai-token-settings {
   padding: 20px;
 }
 
 .settings-card {
-  background: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  background: $white;
+  border-radius: $radius-default;
+  box-shadow: $box-shadow-primary;
   max-width: 800px;
   margin: 0 auto;
 }
@@ -15,26 +17,25 @@
   align-items: center;
   gap: 12px;
   padding: 24px;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid $gray-border;
 
   i {
     font-size: 24px;
-    color: #1565c0;
+    color: $semantic-blue;
   }
 
   h2 {
     margin: 0;
-    font-size: 20px;
-    color: #1a1a1a;
+    font: $heading4;
+    color: $text-color;
   }
 }
 
-// Blocos de conteúdo
 .explanation-block,
 .security-block,
 .instructions-block {
   padding: 24px;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid $gray-border;
 
   &:last-of-type {
     border-bottom: none;
@@ -42,17 +43,16 @@
 
   h3 {
     margin: 0 0 16px 0;
-    font-size: 14px;
-    font-weight: 600;
-    color: #1a1a1a;
+    font: $text-sm;
+    color: $text-color;
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
 
   p {
     margin: 0 0 12px 0;
-    font-size: 13px;
-    color: #555555;
+    font: $text-xsm;
+    color: $neutral-text;
     line-height: 1.6;
 
     &:last-child {
@@ -61,43 +61,40 @@
   }
 }
 
-.security-list {
-  list-style: disc;
+.security-list,
+.instructions-list {
   margin: 0;
   padding-left: 20px;
 
   li {
     margin: 8px 0;
-    font-size: 13px;
-    color: #555555;
+    font: $text-xsm;
+    color: $neutral-text;
     line-height: 1.6;
   }
+}
+
+.security-list {
+  list-style: disc;
 }
 
 .instructions-list {
   list-style: decimal;
-  margin: 0;
-  padding-left: 20px;
 
   li {
     margin: 12px 0;
-    font-size: 13px;
-    color: #555555;
-    line-height: 1.6;
   }
 }
 
-// Bloco de status
 .status-block {
   padding: 24px;
-  border-bottom: 1px solid #e0e0e0;
-  background-color: #f9f9f9;
+  border-bottom: 1px solid $gray-border;
+  background-color: $gray-quaternary;
 
   h3 {
     margin: 0 0 16px 0;
-    font-size: 14px;
-    font-weight: 600;
-    color: #1a1a1a;
+    font: $text-sm;
+    color: $text-color;
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
@@ -114,8 +111,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
-  color: #555555;
+  font: $text-xsm;
+  color: $neutral-text;
 
   .status-dot {
     width: 8px;
@@ -124,29 +121,27 @@
     flex-shrink: 0;
 
     &.configured {
-      background-color: #4caf50;
+      background-color: $success-color;
     }
 
     &.not-configured {
-      background-color: #f44336;
+      background-color: $error-color;
     }
   }
 
   .status-hint {
     font-family: monospace;
-    font-size: 12px;
-    color: #888888;
+    color: $gray-muted;
     margin: 0 4px;
   }
 
   .status-date {
     font-size: 11px;
-    color: #999999;
+    color: $gray-muted;
     margin-left: auto;
   }
 }
 
-// Formulário
 .form-block {
   padding: 24px;
 
@@ -163,9 +158,8 @@
   gap: 8px;
 
   label {
-    font-size: 13px;
-    font-weight: 600;
-    color: #1a1a1a;
+    font: $text-sm;
+    color: $text-color;
   }
 }
 
@@ -178,15 +172,16 @@
     flex: 1;
     padding: 10px 12px;
     padding-right: 40px;
-    font-size: 13px;
-    border: 1px solid #d0d0d0;
-    border-radius: 4px;
+    font: $text-xsm;
+    border: 1px solid $gray-border;
+    border-radius: $radius-sm;
     font-family: monospace;
+    background-color: $white;
 
     &:focus {
       outline: none;
-      border-color: #1565c0;
-      box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.1);
+      border-color: $semantic-blue;
+      box-shadow: 0 0 0 3px $ai-color-border;
     }
   }
 
@@ -201,63 +196,44 @@
     background: transparent;
     border: none;
     cursor: pointer;
-    color: #888888;
+    color: $gray-muted;
     font-size: 16px;
-    transition: color 200ms ease;
+    transition: $transition-default;
 
     &:hover {
-      color: #1565c0;
+      color: $semantic-blue;
     }
   }
 }
 
 .error-message {
-  font-size: 12px;
-  color: #f44336;
+  font: $text-xsm;
+  color: $error-color;
 }
 
 .form-actions {
   display: flex;
   gap: 12px;
-  margin-top: 8px;
+  margin-top: 16px;
 
   .btn {
-    padding: 10px 16px;
-    font-size: 13px;
-    font-weight: 500;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 200ms ease;
+    padding: 10px 18px;
+    font: $text-xsm;
     display: flex;
     align-items: center;
     gap: 6px;
+    height: auto;
+    border-radius: $radius-sm;
+    cursor: pointer;
+    transition: $transition-default;
 
     i {
       font-size: 14px;
     }
 
     &:disabled {
-      opacity: 0.5;
+      opacity: 0.6;
       cursor: not-allowed;
-    }
-
-    &.btn-primary {
-      background-color: #1565c0;
-      color: #ffffff;
-
-      &:hover:not(:disabled) {
-        background-color: #0d47a1;
-      }
-    }
-
-    &.btn-danger {
-      background-color: #f44336;
-      color: #ffffff;
-
-      &:hover:not(:disabled) {
-        background-color: #d32f2f;
-      }
     }
   }
 }

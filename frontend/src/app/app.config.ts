@@ -11,6 +11,7 @@ import { projectContextInterceptorFn } from './core/interceptors/project-context
 import { errorTranslationInterceptorFn } from './core/interceptors/error-translation.interceptor.fn'
 import { languageHeaderInterceptorFn } from './core/interceptors/language-header.interceptor.fn'
 import { provideI18n } from './core/i18n/i18n.providers'
+import { AiTokenService } from './core/ai/ai-token.service'
 
 import { provideEchartsCore } from 'ngx-echarts'
 import * as echarts from 'echarts/core'
@@ -51,6 +52,10 @@ export const appConfig: ApplicationConfig = {
 					CanvasRenderer,
 				])
 			}
+		}),
+		provideAppInitializer(() => {
+			const aiTokenService = inject(AiTokenService)
+			return aiTokenService.loadStatus().toPromise().catch(() => null)
 		}),
 	],
 }

@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router'
 import { SettingsComponent } from './settings.component'
 import { SettingsResetPasswordComponent } from './settings-reset-password/settings-reset-password.component'
+import { AiTokenSettingsComponent } from './components/ai-token-settings/ai-token-settings.component'
 import { RoleEnum } from '../../shared/enums/role.enum'
 
 export const SETTINGS_ROUTES: Routes = [
@@ -15,6 +16,14 @@ export const SETTINGS_ROUTES: Routes = [
 	{
 		path: 'reset-password',
 		component: SettingsResetPasswordComponent,
+		data: {
+			roles: [RoleEnum.USER],
+			showLayout: true,
+		},
+	},
+	{
+		path: 'ai-token',
+		component: AiTokenSettingsComponent,
 		data: {
 			roles: [RoleEnum.USER],
 			showLayout: true,

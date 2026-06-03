@@ -2,8 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { environment } from '../../../environments/environment';
-import { AiTokenStatus, UpdateAiTokenRequest } from './ai-token.types';
+import { environment } from '../../enviroments/environments';
+import { AiTokenStatus } from './ai-token.types';
 
 @Injectable({ providedIn: 'root' })
 export class AiTokenService {

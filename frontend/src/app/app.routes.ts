@@ -12,6 +12,7 @@ import { RegisterComponent } from './features/auth/register/register.component'
 import { RoleEnum } from './shared/enums/role.enum'
 import { SettingsComponent } from './features/settings/settings.component'
 import { SettingsResetPasswordComponent } from './features/settings/settings-reset-password/settings-reset-password.component'
+import { AiTokenSettingsComponent } from './features/settings/components/ai-token-settings/ai-token-settings.component'
 
 export const routes: Routes = [
 	{
@@ -79,6 +80,15 @@ export const routes: Routes = [
 	{
 		path: 'settings/reset-password',
 		component: SettingsResetPasswordComponent,
+		canActivate: [AuthGuard, LayoutGuard],
+		data: {
+			roles: [RoleEnum.USER],
+			showLayout: true,
+		},
+	},
+	{
+		path: 'settings/ai-token',
+		component: AiTokenSettingsComponent,
 		canActivate: [AuthGuard, LayoutGuard],
 		data: {
 			roles: [RoleEnum.USER],
