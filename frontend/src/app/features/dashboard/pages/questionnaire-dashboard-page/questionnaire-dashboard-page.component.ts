@@ -29,6 +29,7 @@ import { ModalService } from '../../../../core/services/modal.service';
 import { ResponseDetailModalComponent } from '../../components/response-detail-modal/response-detail-modal.component';
 import { RouterService } from '../../../../core/services/router.service';
 import { ProjectContextService } from '../../../../core/services/project-context.service';
+import { DocumentEmissionService } from '../../../../core/services/document-emission.service';
 import { RoleEnum } from '../../../../shared/enums/role.enum';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
@@ -65,6 +66,7 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
   private readonly routerService = inject(RouterService);
   private readonly projectContextService = inject(ProjectContextService);
   private readonly aiService = inject(AiDashboardService);
+  private readonly documentEmissionService = inject(DocumentEmissionService);
 
   projectId!: number;
   questionnaireId!: number;
@@ -79,6 +81,7 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
   aiAvailable = signal<boolean | null>(null);
   downloadingBulletin = signal(false);
   emittingBulletin = signal(false);
+  registeringBulletinEmission = signal(false);
 
   private readonly translate = inject(TranslateService);
 
@@ -210,6 +213,32 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
           error: (err) => {
             this.notificationService.showError(err?.message ?? this.translate.instant('dashboard.errors.bulletin_emit'));
             this.emittingBulletin.set(false);
+          },
+        });
+      }
+    );
+  }
+
+  registerBulletinEmission(): void {
+    const confirmMessage = this.translate.instant('dashboard.bulletin.register_emission_confirm');
+    this.notificationService.showConfirm(
+      confirmMessage,
+      () => {
+        this.registeringBulletinEmission.set(true);
+        this.documentEmissionService.registerBulletinEmission(this.projectId, this.questionnaireId).subscribe({
+          next: (record) => {
+            this.notificationService.showSuccess(
+              this.translate.instant('dashboard.bulletin.emission_registered', {
+                code: record.authenticityCode,
+              })
+            );
+            this.registeringBulletinEmission.set(false);
+          },
+          error: (err) => {
+            this.notificationService.showError(
+              err?.error?.message ?? this.translate.instant('dashboard.errors.register_emission')
+            );
+            this.registeringBulletinEmission.set(false);
           },
         });
       }

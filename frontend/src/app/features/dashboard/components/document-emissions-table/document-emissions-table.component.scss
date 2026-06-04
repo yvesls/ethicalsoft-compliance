@@ -1,0 +1,125 @@
+@use '../../../../../assets/scss/base/vars' as *;
+
+.emissions-container {
+  padding: 20px;
+  background: $white;
+  border-radius: $radius-default;
+  box-shadow: $box-shadow-primary;
+}
+
+.emissions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 16px;
+
+  h3 {
+    margin: 0;
+    font: $heading4;
+    color: $text-color;
+  }
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  padding: 8px 16px;
+  border: 1px solid $gray-border;
+  background: $white;
+  border-radius: $radius-sm;
+  font: $text-sm;
+  color: $neutral-text;
+  cursor: pointer;
+  transition: $transition-default;
+
+  &:hover {
+    border-color: $semantic-blue;
+    color: $semantic-blue;
+  }
+
+  &.active {
+    background: $semantic-blue;
+    color: $white;
+    border-color: $semantic-blue;
+  }
+}
+
+.loading,
+.no-data {
+  padding: 40px;
+  text-align: center;
+  color: $neutral-text;
+  font: $text-sm;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.emissions-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  thead {
+    background: $gray-quaternary;
+    border-bottom: 2px solid $gray-border;
+  }
+
+  th {
+    padding: 12px;
+    text-align: left;
+    font: $text-sm;
+    color: $text-color;
+    font-weight: 600;
+  }
+
+  td {
+    padding: 12px;
+    border-bottom: 1px solid $gray-border;
+    font: $text-xsm;
+    color: $neutral-text;
+
+    &.code {
+      code {
+        padding: 4px 8px;
+        background: $gray-quaternary;
+        border-radius: $radius-sm;
+        font-family: monospace;
+        font-size: 11px;
+        color: $text-color;
+      }
+    }
+
+    &.actions {
+      text-align: center;
+
+      .btn-icon {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: $semantic-blue;
+        font-size: 16px;
+        padding: 4px;
+        transition: $transition-default;
+
+        &:hover {
+          color: $blue-primary;
+        }
+      }
+    }
+  }
+
+  tbody tr {
+    transition: $transition-default;
+
+    &:hover {
+      background: $gray-quaternary;
+    }
+  }
+}

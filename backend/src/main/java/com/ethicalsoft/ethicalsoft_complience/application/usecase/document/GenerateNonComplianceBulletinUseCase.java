@@ -11,6 +11,7 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Projec
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Questionnaire;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Representative;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Role;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.AiUsageScopeEnum;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.QuestionnaireResponseStatus;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.ProjectRepository;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.QuestionnaireRepository;
@@ -151,6 +152,20 @@ public class GenerateNonComplianceBulletinUseCase {
         model.put("processScorePercent", DocumentFormatUtil.percent(dashboard.processScorePercent()));
         model.put("fairnessScorePercent", DocumentFormatUtil.percent(dashboard.fairnessScorePercent()));
         model.put("esgScorePercent", DocumentFormatUtil.percent(dashboard.esgScorePercent()));
+
+        Set<AiUsageScopeEnum> aiScopes = project.getAiUsageScopes() != null
+                ? project.getAiUsageScopes()
+                : Collections.emptySet();
+        boolean aiUsageDeclared = !aiScopes.isEmpty()
+                && !(aiScopes.size() == 1 && aiScopes.contains(AiUsageScopeEnum.NAO_UTILIZA));
+        model.put("aiUsageDeclared", aiUsageDeclared);
+        if (aiUsageDeclared) {
+            String scopesLabel = aiScopes.stream()
+                    .filter(scope -> scope != AiUsageScopeEnum.NAO_UTILIZA)
+                    .map(AiUsageScopeEnum::getLabel)
+                    .collect(Collectors.joining(", "));
+            model.put("aiUsageScopesLabel", scopesLabel);
+        }
 
         if (config != null && config.getImpactSummary() != null) {
             model.put("impactSummary", config.getImpactSummary());

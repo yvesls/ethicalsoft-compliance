@@ -29,6 +29,7 @@ import {
 import { AccordionPanelComponent } from '../../../../shared/components/accordion-panel/accordion-panel.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
+import { MultiSelectComponent, MultiSelectOption } from '../../../../shared/components/multi-select/multi-select.component';
 
 import { CustomValidators } from '../../../../shared/validators/custom.validator';
 import { capitalizeWords } from '../../../../core/utils/common-utils';
@@ -133,6 +134,7 @@ interface IterativoProjectFormValue {
     AccordionPanelComponent,
     InputComponent,
     SelectComponent,
+    MultiSelectComponent,
   ],
   templateUrl: './iterativo-project-form.component.html',
   styleUrls: ['./iterativo-project-form.component.scss'],
@@ -169,6 +171,15 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
   public projectTypeOptions: SelectOption[] = [
     { value: ProjectType.Iterativo, label: 'Iterativo Incremental' },
   ];
+  public aiUsageOptions: MultiSelectOption[] = [
+    { value: 'NAO_UTILIZA', label: this.translate.instant('projects.ai_usage.options.NAO_UTILIZA') },
+    { value: 'REQUISITOS', label: this.translate.instant('projects.ai_usage.options.REQUISITOS') },
+    { value: 'DESIGN_ARQUITETURA', label: this.translate.instant('projects.ai_usage.options.DESIGN_ARQUITETURA') },
+    { value: 'GERACAO_CODIGO', label: this.translate.instant('projects.ai_usage.options.GERACAO_CODIGO') },
+    { value: 'TESTES', label: this.translate.instant('projects.ai_usage.options.TESTES') },
+    { value: 'DOCUMENTACAO', label: this.translate.instant('projects.ai_usage.options.DOCUMENTACAO') },
+    { value: 'MANUTENCAO_REFATORACAO', label: this.translate.instant('projects.ai_usage.options.MANUTENCAO_REFATORACAO') },
+  ];
 
   public availableRoles: RoleSummary[] = [];
   private roleNameById = new Map<number, string>();
@@ -195,6 +206,7 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
         ],
         startDate: [null, [Validators.required]],
         deadline: [null, [CustomValidators.minDateToday()]],
+        aiUsageScopes: [[], []],
         iterationDuration: [10, [Validators.required, Validators.min(1)]],
         iterationCount: [null],
         iterations: this.fb.array([]),

@@ -1,0 +1,71 @@
+<div class="emissions-container">
+  <div class="emissions-header">
+    <h3>{{ 'dashboard.emissions.title' | translate }}</h3>
+    <div class="filter-buttons">
+      <button
+        class="filter-btn"
+        [class.active]="selectedType() === 'ALL'"
+        (click)="onTypeChange('ALL')"
+      >
+        {{ 'dashboard.emissions.all' | translate }}
+      </button>
+      <button
+        class="filter-btn"
+        [class.active]="selectedType() === 'ETHICS_CERTIFICATE'"
+        (click)="onTypeChange('ETHICS_CERTIFICATE')"
+      >
+        {{ 'dashboard.emissions.certificate' | translate }}
+      </button>
+      <button
+        class="filter-btn"
+        [class.active]="selectedType() === 'NON_COMPLIANCE_BULLETIN'"
+        (click)="onTypeChange('NON_COMPLIANCE_BULLETIN')"
+      >
+        {{ 'dashboard.emissions.bulletin' | translate }}
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">{{ 'common.loading' | translate }}</div>
+  } @else if (emissions().length === 0) {
+    <div class="no-data">{{ 'dashboard.emissions.no_data' | translate }}</div>
+  } @else {
+    <div class="table-container">
+      <table class="emissions-table">
+        <thead>
+          <tr>
+            <th>{{ 'dashboard.emissions.type' | translate }}</th>
+            <th>{{ 'dashboard.emissions.code' | translate }}</th>
+            <th>{{ 'dashboard.emissions.band' | translate }}</th>
+            <th>{{ 'dashboard.emissions.emitted_at' | translate }}</th>
+            <th>{{ 'dashboard.emissions.emitted_by' | translate }}</th>
+            <th>{{ 'common.actions' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (emission of emissions(); track emission.authenticityCode) {
+            <tr>
+              <td>{{ getDocumentTypeLabel(emission.documentType) }}</td>
+              <td class="code">
+                <code>{{ emission.authenticityCode }}</code>
+              </td>
+              <td>{{ emission.isepBand }}</td>
+              <td>{{ getEmittedAtFormatted(emission.emittedAt) }}</td>
+              <td>{{ emission.emittedByName }}</td>
+              <td class="actions">
+                <button
+                  class="btn-icon"
+                  [title]="'dashboard.emissions.download' | translate"
+                  (click)="downloadDocument(emission)"
+                >
+                  <i class="bi bi-download"></i>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

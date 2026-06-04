@@ -1,5 +1,5 @@
 <#--
-  Template de PDF: Certificado de Ciência Ética (BR07 / UC08).
+  Template de PDF: Certificado de Ciência Ética e Conformidade Declarada (BR07 / UC08).
   Processado via FreeMarkerTemplateUtils; o HTML resultante deve ser convertido em PDF.
   Atende tanto o certificado de iteração/etapa quanto o consolidado, via flag 'consolidado'.
   Variáveis esperadas: ver docs/pdf-templates-boletim-certificado.md
@@ -8,7 +8,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8"/>
-<title>${documentTitle!"Certificado de Ciência Ética"}</title>
+<title>${documentTitle!"Certificado de Ciência Ética e Conformidade Declarada"}</title>
 <style>
   @page { size: A4 landscape; margin: 1.4cm; }
   * { box-sizing: border-box; }
@@ -52,7 +52,7 @@
 
   <div class="cert-header">
     <div class="system">${systemName!"EthicalSoft Compliance"}</div>
-    <h1>${documentTitle!"Certificado de Ciência Ética"}</h1>
+    <h1>${documentTitle!"Certificado de Ciência Ética e Conformidade Declarada"}</h1>
     <#if consolidado?? && consolidado>
       <div class="scope">Certificado Consolidado do Projeto</div>
     <#else>
@@ -125,6 +125,17 @@
       </tr>
     </table>
   </#if>
+
+  <div style="margin: 18px 6% 6px; padding: 10px 14px; border: 1px solid #cbd2d9;
+              background: #f7f9fb; font-size: 9.5px; color: #52606d; line-height: 1.5; text-align: justify;">
+    <strong>Declaração de limites deste certificado.</strong>
+    Este documento registra o resultado consolidado da autoavaliação ética realizada na
+    plataforma ${systemName!"EthicalSoft Compliance"}, com base nas respostas, justificativas
+    e evidências disponíveis no momento da emissão. O documento <strong>não substitui</strong>
+    auditoria externa, certificação normativa independente, avaliação jurídica ou revisão
+    ética institucional, e tampouco constitui parecer regulatório. A responsabilidade pelas
+    informações declaradas é do projeto e dos seus participantes.
+  </div>
 
   <div class="cert-footer">
     <div class="col">

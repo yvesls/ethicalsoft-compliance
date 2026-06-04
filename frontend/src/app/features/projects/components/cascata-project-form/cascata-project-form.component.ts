@@ -27,6 +27,7 @@ import {
 import { AccordionPanelComponent } from '../../../../shared/components/accordion-panel/accordion-panel.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
+import { MultiSelectComponent, MultiSelectOption } from '../../../../shared/components/multi-select/multi-select.component';
 
 import { CustomValidators } from '../../../../shared/validators/custom.validator';
 import { ProjectDatesValidators } from '../../../../shared/validators/project-dates.validator';
@@ -127,6 +128,7 @@ interface CascataProjectFormValue {
     AccordionPanelComponent,
     InputComponent,
     SelectComponent,
+    MultiSelectComponent,
   ],
   templateUrl: './cascata-project-form.component.html',
   styleUrls: ['./cascata-project-form.component.scss'],
@@ -162,6 +164,15 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
   public templateOptions: SelectOption[] = [];
   public projectTypeOptions: SelectOption[] = [
     { value: ProjectType.Cascata, label: 'Cascata' },
+  ];
+  public aiUsageOptions: MultiSelectOption[] = [
+    { value: 'NAO_UTILIZA', label: this.translate.instant('projects.ai_usage.options.NAO_UTILIZA') },
+    { value: 'REQUISITOS', label: this.translate.instant('projects.ai_usage.options.REQUISITOS') },
+    { value: 'DESIGN_ARQUITETURA', label: this.translate.instant('projects.ai_usage.options.DESIGN_ARQUITETURA') },
+    { value: 'GERACAO_CODIGO', label: this.translate.instant('projects.ai_usage.options.GERACAO_CODIGO') },
+    { value: 'TESTES', label: this.translate.instant('projects.ai_usage.options.TESTES') },
+    { value: 'DOCUMENTACAO', label: this.translate.instant('projects.ai_usage.options.DOCUMENTACAO') },
+    { value: 'MANUTENCAO_REFATORACAO', label: this.translate.instant('projects.ai_usage.options.MANUTENCAO_REFATORACAO') },
   ];
 
   public availableRoles: RoleSummary[] = [];
@@ -201,6 +212,7 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
             ProjectDatesValidators.deadlineAllowsExistingStages()
           ]
         ],
+        aiUsageScopes: [[], []],
         steps: this.buildCascataStepsForm(),
         representatives: this.buildRepresentativesForm(),
         questionnaires: this.fb.array([]),

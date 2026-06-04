@@ -53,11 +53,12 @@ public class PdfDocumentConfigInitializer {
                 PdfDocumentConfigDocument.builder()
                         .key(CERTIFICADO_KEY)
                         .templateLink("documents/certificado-conformidade.ftl")
-                        .documentTitle("Certificado de Ciência Ética")
+                        .documentTitle("Certificado de Ciência Ética e Conformidade Declarada")
                         .systemName("EthicalSoft Compliance")
                         .validationUrl("Validação disponível mediante consulta ao administrador do projeto.")
                         .issuerLabel("Analista de Qualidade (ADMIN)")
-                        .footerNote("Certificado gerado sob demanda a partir dos resultados consolidados do projeto.")
+                        .footerNote("Certificado gerado sob demanda a partir dos resultados consolidados do projeto. " +
+                                "Não substitui auditoria externa nem certificação normativa independente.")
                         .build()
         );
     }

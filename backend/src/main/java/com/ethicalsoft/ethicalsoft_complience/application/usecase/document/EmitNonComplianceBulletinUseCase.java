@@ -27,13 +27,15 @@ public class EmitNonComplianceBulletinUseCase {
     private final RepresentativeRepository representativeRepository;
     private final NotificationTemplateRepository notificationTemplateRepository;
     private final NotificationEmailSender emailSender;
+    private final RegisterDocumentEmissionUseCase registerEmissionUseCase;
 
     public record BulletinEmissionResult(String documentCode, int totalRecipients,
                                          int sent, int skipped) {
     }
 
     @Transactional(readOnly = true)
-    public BulletinEmissionResult execute(Long projectId, Integer questionnaireId, String emittedBy) {
+    public BulletinEmissionResult execute(Long projectId, Integer questionnaireId,
+                                          String emittedBy, Long emittedByUserId) {
         log.info("[boletim-emit] Emitindo boletim projeto={} questionário={}", projectId, questionnaireId);
 
         GenerateNonComplianceBulletinUseCase.GeneratedBulletin bulletin =
@@ -73,6 +75,21 @@ public class EmitNonComplianceBulletinUseCase {
                 skipped++;
             }
         }
+
+        registerEmissionUseCase.execute(new RegisterDocumentEmissionUseCase.EmissionRequest(
+                RegisterDocumentEmissionUseCase.TYPE_BULLETIN,
+                bulletin.documentCode(),
+                projectId,
+                bulletin.projectName(),
+                questionnaireId,
+                bulletin.questionnaireName(),
+                null, null, null, null,
+                "Questionário",
+                emittedByUserId,
+                emittedBy,
+                null,
+                bulletin.band(),
+                List.of(projectId, questionnaireId, bulletin.band(), bulletin.isepPercent())));
 
         log.info("[boletim-emit] Boletim {} emitido: {}/{} enviados", bulletin.documentCode(),
                 sent, representatives.size());

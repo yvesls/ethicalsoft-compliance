@@ -177,6 +177,20 @@
       "questions": "Perguntas",
       "project": "Projeto"
     },
+    "ai_usage": {
+      "label": "Uso declarado de IA no desenvolvimento",
+      "hint": "Indique se o projeto faz uso de assistentes baseados em IA no desenvolvimento. A declaração ativa indicadores específicos de risco nos boletins quando o resultado ficar abaixo da faixa mínima.",
+      "placeholder": "Selecione as áreas onde IA é utilizada",
+      "options": {
+        "NAO_UTILIZA": "Não utiliza",
+        "REQUISITOS": "Utiliza em requisitos",
+        "DESIGN_ARQUITETURA": "Utiliza em design ou arquitetura",
+        "GERACAO_CODIGO": "Utiliza em geração de código",
+        "TESTES": "Utiliza em testes",
+        "DOCUMENTACAO": "Utiliza em documentação",
+        "MANUTENCAO_REFATORACAO": "Utiliza em manutenção ou refatoração"
+      }
+    },
     "actions": {
       "publish": "Publicar projeto",
       "archive": "Arquivar projeto",
@@ -622,6 +636,12 @@
       "emit_bulletin": "Emitir Boletim aos Representantes",
       "emitting_bulletin": "Emitindo...",
       "force_close_btn": "Forçar Encerramento",
+      "bulletin": {
+        "register_emission": "Registrar Emissão",
+        "register_emission_title": "Registra uma evidência auditável do estado atual do boletim",
+        "register_emission_confirm": "Esta ação registra uma evidência auditável dos resultados atuais. O PDF poderá ser regenerado a qualquer momento; já o registro só pode ser invalidado por um administrador.",
+        "emission_registered": "Boletim registrado com sucesso. Código de autenticidade: {{code}}"
+      },
       "force_closing_btn": "Encerrando...",
       "closed_success": "Questionário encerrado. ISEP será calculado.",
       "emit_confirm": "O boletim de não conformidade será enviado por e-mail, em anexo, a todos os representantes do projeto. Deseja continuar?",
@@ -805,14 +825,32 @@
       "result": "Boletim emitido para {{sent}} de {{total}} representantes."
     },
     "certificate": {
-      "title": "Certificado de Ciência Ética",
-      "download": "Baixar Certificado"
+      "title": "Certificado de Ciência Ética e Conformidade Declarada",
+      "download": "Baixar Certificado",
+      "register_emission": "Registrar Emissão",
+      "register_emission_title": "Registra uma evidência auditável do estado atual do certificado",
+      "register_emission_confirm": "Esta ação registra uma evidência auditável dos resultados atuais. O PDF poderá ser regenerado a qualquer momento; já o registro só pode ser invalidado por um administrador.",
+      "emission_registered": "Certificado registrado com sucesso. Código de autenticidade: {{code}}"
+    },
+    "emissions": {
+      "title": "Emissões de Documentos",
+      "all": "Todas",
+      "certificate": "Certificados",
+      "bulletin": "Boletins",
+      "no_data": "Nenhuma emissão registrada",
+      "type": "Tipo",
+      "code": "Código de Autenticidade",
+      "band": "Faixa",
+      "emitted_at": "Emitido em",
+      "emitted_by": "Emitido por",
+      "download": "Baixar documento"
     },
     "errors": {
       "questionnaire_compliant": "O questionário está em conformidade. O boletim não se aplica.",
       "project_not_closed": "O certificado só pode ser emitido após o encerramento do projeto.",
       "project_not_compliant": "O projeto não atingiu a faixa mínima aceitável.",
-      "no_representatives": "O projeto não possui representantes cadastrados."
+      "no_representatives": "O projeto não possui representantes cadastrados.",
+      "register_emission": "Erro ao registrar emissão do documento. Tente novamente."
     }
   },
   "ai": {

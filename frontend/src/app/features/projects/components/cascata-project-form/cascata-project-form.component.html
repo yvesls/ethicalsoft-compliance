@@ -57,6 +57,19 @@
       </app-input>
     </div>
 
+    <div class="form-grid form-grid-full">
+      <app-multi-select
+        [label]="'projects.ai_usage.label' | translate"
+        [placeholder]="'projects.ai_usage.placeholder' | translate"
+        formControlName="aiUsageScopes"
+        [control]="getControl('aiUsageScopes')"
+        [options]="aiUsageOptions"
+        [required]="false"
+      >
+        <div class="help-text">{{ 'projects.ai_usage.hint' | translate }}</div>
+      </app-multi-select>
+    </div>
+
     @if (projectForm.errors && (projectForm.errors['deadlineTooEarly'] || projectForm.errors['startDateTooLate'] || projectForm.errors['stageExceedsDeadline'])) {
       <div class="validation-errors">
         @if (projectForm.errors['deadlineTooEarly']) {

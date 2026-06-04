@@ -177,6 +177,20 @@
       "questions": "Questions",
       "project": "Project"
     },
+    "ai_usage": {
+      "label": "Declared AI usage in development",
+      "hint": "Indicate if the project uses AI-based assistants in development. The declaration activates specific risk indicators in reports when the result falls below the minimum band.",
+      "placeholder": "Select areas where AI is used",
+      "options": {
+        "NAO_UTILIZA": "Does not use",
+        "REQUISITOS": "Uses in requirements",
+        "DESIGN_ARQUITETURA": "Uses in design or architecture",
+        "GERACAO_CODIGO": "Uses in code generation",
+        "TESTES": "Uses in testing",
+        "DOCUMENTACAO": "Uses in documentation",
+        "MANUTENCAO_REFATORACAO": "Uses in maintenance or refactoring"
+      }
+    },
     "actions": {
       "publish": "Publish project",
       "archive": "Archive project",
@@ -622,6 +636,12 @@
       "emit_bulletin": "Send Bulletin to Representatives",
       "emitting_bulletin": "Sending...",
       "force_close_btn": "Force Close",
+      "bulletin": {
+        "register_emission": "Register Emission",
+        "register_emission_title": "Records an auditable evidence of the current state of the bulletin",
+        "register_emission_confirm": "This action records an auditable evidence of the current results. The PDF can be regenerated at any time; however, the registration can only be invalidated by an administrator.",
+        "emission_registered": "Bulletin registered successfully. Authenticity code: {{code}}"
+      },
       "force_closing_btn": "Closing...",
       "closed_success": "Questionnaire closed. ISEP will be calculated.",
       "emit_confirm": "The non-compliance bulletin will be sent by email to all project representatives. Do you want to continue?",
@@ -805,14 +825,32 @@
       "result": "Bulletin sent to {{sent}} of {{total}} representatives."
     },
     "certificate": {
-      "title": "Ethical Compliance Certificate",
-      "download": "Download Certificate"
+      "title": "Certificate of Ethical Awareness and Declared Compliance",
+      "download": "Download Certificate",
+      "register_emission": "Register Emission",
+      "register_emission_title": "Records an auditable evidence of the current state of the certificate",
+      "register_emission_confirm": "This action records an auditable evidence of the current results. The PDF can be regenerated at any time; however, the registration can only be invalidated by an administrator.",
+      "emission_registered": "Certificate registered successfully. Authenticity code: {{code}}"
+    },
+    "emissions": {
+      "title": "Document Emissions",
+      "all": "All",
+      "certificate": "Certificates",
+      "bulletin": "Bulletins",
+      "no_data": "No emissions recorded",
+      "type": "Type",
+      "code": "Authenticity Code",
+      "band": "Band",
+      "emitted_at": "Emitted at",
+      "emitted_by": "Emitted by",
+      "download": "Download document"
     },
     "errors": {
       "questionnaire_compliant": "The questionnaire is compliant. The bulletin does not apply.",
       "project_not_closed": "The certificate can only be issued after the project is closed.",
       "project_not_compliant": "The project did not reach the minimum acceptable band.",
-      "no_representatives": "The project has no registered representatives."
+      "no_representatives": "The project has no registered representatives.",
+      "register_emission": "Error registering document emission. Please try again."
     }
   },
   "ai": {

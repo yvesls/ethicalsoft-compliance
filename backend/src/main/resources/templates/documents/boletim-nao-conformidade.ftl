@@ -80,8 +80,10 @@
     </div>
   </div>
   <div class="status-flag">
-    O escopo avaliado <strong>não atingiu a faixa mínima aceitável</strong> de conformidade ética.
-    A iteração ou etapa não pode ser concluída enquanto as não conformidades abaixo não forem revisadas.
+    O escopo avaliado <strong>não atingiu a faixa mínima de conformidade definida</strong>.
+    O sistema <strong>recomenda</strong> a revisão das perguntas não conformes, a reavaliação das
+    justificativas e o registro das ações corretivas antes do encerramento da etapa ou iteração.
+    A decisão final sobre prosseguir ou bloquear o ciclo é da organização responsável pelo projeto.
     Média simples da equipe: <strong>${teamAveragePercent!"--"}%</strong>.
   </div>
 
@@ -144,6 +146,28 @@
   </table>
   <#if impactSummary??>
     <p style="margin-top:10px;">${impactSummary}</p>
+  </#if>
+
+  <#if aiUsageDeclared?? && aiUsageDeclared>
+    <h2>Riscos de Desenvolvimento Assistido por IA</h2>
+    <p style="margin-top:4px;">
+      Este projeto declarou utilizar ferramentas de inteligência artificial no processo de
+      desenvolvimento<#if aiUsageScopesLabel??> (<strong>${aiUsageScopesLabel}</strong>)</#if>.
+      Em escopos que não atingem a faixa mínima, os seguintes riscos específicos devem ser
+      considerados na revisão e nas ações corretivas:
+    </p>
+    <ul class="actions">
+      <li>Ausência ou insuficiência de revisão humana sobre artefatos gerados por IA.</li>
+      <li>Ausência de testes sobre código produzido com apoio de assistentes baseados em LLMs.</li>
+      <li>Risco de exposição de dados sensíveis, credenciais ou informações internas em
+          ferramentas externas de IA.</li>
+      <li>Perda de rastreabilidade dos artefatos quando não há registro de quais trechos foram
+          sugeridos ou produzidos com apoio de IA.</li>
+      <li>Uso de código sem verificação adequada de segurança, qualidade ou aderência aos
+          critérios do projeto.</li>
+      <li>Dependência excessiva de sugestões automatizadas em decisões arquiteturais sem
+          justificativa explícita da equipe.</li>
+    </ul>
   </#if>
 
   <h2>Orientações para Revisão e Correção</h2>

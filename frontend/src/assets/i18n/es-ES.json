@@ -177,6 +177,20 @@
       "questions": "Preguntas",
       "project": "Proyecto"
     },
+    "ai_usage": {
+      "label": "Uso declarado de IA en el desarrollo",
+      "hint": "Indique si el proyecto utiliza asistentes basados en IA en el desarrollo. La declaración activa indicadores de riesgo específicos en los boletines cuando el resultado cae por debajo de la banda mínima.",
+      "placeholder": "Seleccione las áreas donde se utiliza IA",
+      "options": {
+        "NAO_UTILIZA": "No utiliza",
+        "REQUISITOS": "Utiliza en requisitos",
+        "DESIGN_ARQUITETURA": "Utiliza en diseño o arquitectura",
+        "GERACAO_CODIGO": "Utiliza en generación de código",
+        "TESTES": "Utiliza en pruebas",
+        "DOCUMENTACAO": "Utiliza en documentación",
+        "MANUTENCAO_REFATORACAO": "Utiliza en mantenimiento o refactorización"
+      }
+    },
     "actions": {
       "publish": "Publicar proyecto",
       "archive": "Archivar proyecto",
@@ -622,6 +636,12 @@
       "emit_bulletin": "Emitir Boletín a los Representantes",
       "emitting_bulletin": "Emitiendo...",
       "force_close_btn": "Forzar Cierre",
+      "bulletin": {
+        "register_emission": "Registrar Emisión",
+        "register_emission_title": "Registra una evidencia auditable del estado actual del boletín",
+        "register_emission_confirm": "Esta acción registra una evidencia auditable de los resultados actuales. El PDF puede regenerarse en cualquier momento; sin embargo, el registro solo puede ser invalidado por un administrador.",
+        "emission_registered": "Boletín registrado exitosamente. Código de autenticidad: {{code}}"
+      },
       "force_closing_btn": "Cerrando...",
       "closed_success": "Cuestionario cerrado. El ISEP será calculado.",
       "emit_confirm": "El boletín de no conformidad será enviado por correo electrónico a todos los representantes del proyecto. ¿Desea continuar?",
@@ -805,14 +825,32 @@
       "result": "Boletín enviado a {{sent}} de {{total}} representantes."
     },
     "certificate": {
-      "title": "Certificado de Conciencia Ética",
-      "download": "Descargar Certificado"
+      "title": "Certificado de Conciencia Ética y Cumplimiento Declarado",
+      "download": "Descargar Certificado",
+      "register_emission": "Registrar Emisión",
+      "register_emission_title": "Registra una evidencia auditable del estado actual del certificado",
+      "register_emission_confirm": "Esta acción registra una evidencia auditable de los resultados actuales. El PDF puede regenerarse en cualquier momento; sin embargo, el registro solo puede ser invalidado por un administrador.",
+      "emission_registered": "Certificado registrado exitosamente. Código de autenticidad: {{code}}"
+    },
+    "emissions": {
+      "title": "Emisiones de Documentos",
+      "all": "Todas",
+      "certificate": "Certificados",
+      "bulletin": "Boletines",
+      "no_data": "Sin emisiones registradas",
+      "type": "Tipo",
+      "code": "Código de Autenticidad",
+      "band": "Banda",
+      "emitted_at": "Emitido en",
+      "emitted_by": "Emitido por",
+      "download": "Descargar documento"
     },
     "errors": {
       "questionnaire_compliant": "El cuestionario está en conformidad. El boletín no se aplica.",
       "project_not_closed": "El certificado solo se puede emitir tras el cierre del proyecto.",
       "project_not_compliant": "El proyecto no alcanzó la banda mínima aceptable.",
-      "no_representatives": "El proyecto no tiene representantes registrados."
+      "no_representatives": "El proyecto no tiene representantes registrados.",
+      "register_emission": "Error al registrar la emisión del documento. Intente nuevamente."
     }
   },
   "ai": {

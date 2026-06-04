@@ -97,7 +97,7 @@ public class GenerateComplianceCertificateUseCase {
 
         Map<String, Object> model = new HashMap<>();
         model.put("documentTitle", configValue(config != null ? config.getDocumentTitle() : null,
-                "Certificado de Ciência Ética"));
+                "Certificado de Ciência Ética e Conformidade Declarada"));
         model.put("systemName", configValue(config != null ? config.getSystemName() : null,
                 "EthicalSoft Compliance"));
         model.put("consolidado", true);

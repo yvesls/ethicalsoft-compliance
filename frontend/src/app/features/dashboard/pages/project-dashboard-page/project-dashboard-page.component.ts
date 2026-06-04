@@ -16,6 +16,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
 import { AuthenticationService } from '../../../../core/services/authentication.service';
 import { RouterService } from '../../../../core/services/router.service';
 import { ProjectContextService } from '../../../../core/services/project-context.service';
+import { DocumentEmissionService } from '../../../../core/services/document-emission.service';
 import { RoleEnum } from '../../../../shared/enums/role.enum';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
@@ -41,6 +42,7 @@ export class ProjectDashboardPageComponent implements OnInit {
   private readonly dashboardService = inject(DashboardService);
   private readonly notificationService = inject(NotificationService);
   private readonly authService = inject(AuthenticationService);
+  private readonly documentEmissionService = inject(DocumentEmissionService);
   readonly routerService = inject(RouterService);
   private readonly projectContextService = inject(ProjectContextService);
 
@@ -54,6 +56,7 @@ export class ProjectDashboardPageComponent implements OnInit {
   closing = signal(false);
   closeResult = signal<ProjectCloseResultDTO | null>(null);
   downloadingCertificate = signal(false);
+  registeringCertificateEmission = signal(false);
 
   get completionPercent(): number {
     const d = this.dashboard();
@@ -120,6 +123,32 @@ export class ProjectDashboardPageComponent implements OnInit {
         this.downloadingCertificate.set(false);
       },
     });
+  }
+
+  registerCertificateEmission(): void {
+    const confirmMessage = this.translate.instant('dashboard.certificate.register_emission_confirm');
+    this.notificationService.showConfirm(
+      confirmMessage,
+      () => {
+        this.registeringCertificateEmission.set(true);
+        this.documentEmissionService.registerCertificateEmission(this.projectId).subscribe({
+          next: (record) => {
+            this.notificationService.showSuccess(
+              this.translate.instant('dashboard.certificate.emission_registered', {
+                code: record.authenticityCode,
+              })
+            );
+            this.registeringCertificateEmission.set(false);
+          },
+          error: (err) => {
+            this.notificationService.showError(
+              err?.error?.message ?? this.translate.instant('dashboard.errors.register_emission')
+            );
+            this.registeringCertificateEmission.set(false);
+          },
+        });
+      }
+    );
   }
 
   closeProject(): void {
