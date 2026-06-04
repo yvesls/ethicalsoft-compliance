@@ -1,6 +1,8 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { RequestService } from './request.service';
+import { environment } from '../../enviroments/environments';
+import { UrlParameter } from '../interfaces/url-parameter.interface';
 
 export interface DocumentEmissionRecordDTO {
   id?: string;
@@ -20,12 +22,16 @@ export interface DocumentEmissionRecordDTO {
   providedIn: 'root',
 })
 export class DocumentEmissionService {
-  private http = inject(HttpClient);
+  private readonly requestService = inject(RequestService);
+
+  constructor() {
+    this.requestService.apiUrl = environment.apiBaseUrl;
+  }
 
   registerCertificateEmission(projectId: number): Observable<DocumentEmissionRecordDTO> {
-    return this.http.post<DocumentEmissionRecordDTO>(
-      `/api/projects/${projectId}/certificate/register-emission`,
-      {}
+    return this.requestService.makePost<DocumentEmissionRecordDTO>(
+      `api/projects/${projectId}/certificate/register-emission`,
+      { useAuth: true, data: {} }
     );
   }
 
@@ -33,9 +39,9 @@ export class DocumentEmissionService {
     projectId: number,
     questionnaireId: number
   ): Observable<DocumentEmissionRecordDTO> {
-    return this.http.post<DocumentEmissionRecordDTO>(
-      `/api/projects/${projectId}/questionnaires/${questionnaireId}/bulletin/register-emission`,
-      {}
+    return this.requestService.makePost<DocumentEmissionRecordDTO>(
+      `api/projects/${projectId}/questionnaires/${questionnaireId}/bulletin/register-emission`,
+      { useAuth: true, data: {} }
     );
   }
 
@@ -44,20 +50,14 @@ export class DocumentEmissionService {
     type?: 'NON_COMPLIANCE_BULLETIN' | 'ETHICS_CERTIFICATE',
     questionnaireId?: number
   ): Observable<DocumentEmissionRecordDTO[]> {
-    let url = `/api/projects/${projectId}/documents/emissions`;
-    const params = new URLSearchParams();
+    const params: UrlParameter[] = [];
+    if (type) params.push({ key: 'type', value: type });
+    if (questionnaireId) params.push({ key: 'questionnaireId', value: questionnaireId });
 
-    if (type) {
-      params.append('type', type);
-    }
-    if (questionnaireId) {
-      params.append('questionnaireId', questionnaireId.toString());
-    }
-
-    if (params.toString()) {
-      url += `?${params.toString()}`;
-    }
-
-    return this.http.get<DocumentEmissionRecordDTO[]>(url);
+    return this.requestService.makeGet<DocumentEmissionRecordDTO[]>(
+      `api/projects/${projectId}/documents/emissions`,
+      { useAuth: true },
+      ...params
+    );
   }
 }

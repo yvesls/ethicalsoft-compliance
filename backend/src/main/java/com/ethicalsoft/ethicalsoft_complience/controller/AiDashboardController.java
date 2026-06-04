@@ -8,14 +8,18 @@ import com.ethicalsoft.ethicalsoft_complience.application.usecase.ai.ExplainIsep
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.ai.GenerateAiInsightsUseCase;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.ai.GenerateRiskReportUseCase;
 import com.ethicalsoft.ethicalsoft_complience.controller.dto.ai.AiStatusResponseDTO;
+import com.ethicalsoft.ethicalsoft_complience.controller.dto.ai.AskQuestionRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.domain.i18n.SupportedLanguage;
 import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -66,7 +70,6 @@ public class AiDashboardController {
                 .thenApply(ResponseEntity::ok);
     }
 
-    /* TODO: Avaliar estado para dar continuidade posterirmente
     @PostMapping(value = "/ask", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")
     public SseEmitter askQuestion(
@@ -78,7 +81,6 @@ public class AiDashboardController {
         return askQuestionUseCase.execute(projectId, questionnaireId, request.question(),
                 resolveLanguage(acceptLanguage), requireUserId(currentUser));
     }
-    */
 
     private String resolveLanguage(String acceptLanguage) {
         if (acceptLanguage == null || acceptLanguage.isBlank()) {

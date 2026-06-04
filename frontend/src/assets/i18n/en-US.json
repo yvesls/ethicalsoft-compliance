@@ -636,12 +636,6 @@
       "emit_bulletin": "Send Bulletin to Representatives",
       "emitting_bulletin": "Sending...",
       "force_close_btn": "Force Close",
-      "bulletin": {
-        "register_emission": "Register Emission",
-        "register_emission_title": "Records an auditable evidence of the current state of the bulletin",
-        "register_emission_confirm": "This action records an auditable evidence of the current results. The PDF can be regenerated at any time; however, the registration can only be invalidated by an administrator.",
-        "emission_registered": "Bulletin registered successfully. Authenticity code: {{code}}"
-      },
       "force_closing_btn": "Closing...",
       "closed_success": "Questionnaire closed. ISEP will be calculated.",
       "emit_confirm": "The non-compliance bulletin will be sent by email to all project representatives. Do you want to continue?",
@@ -688,7 +682,20 @@
       "force_close": "Error closing the questionnaire.",
       "load_individual": "Could not load individual dashboard.",
       "user_not_authenticated": "User not authenticated.",
-      "representative_not_found": "Representative not found in questionnaire."
+      "representative_not_found": "Representative not found in questionnaire.",
+      "register_emission": "Error registering document emission."
+    },
+    "certificate": {
+      "register_emission": "Register Emission",
+      "register_emission_title": "Records an auditable evidence of the current state of the certificate",
+      "register_emission_confirm": "This action records an auditable evidence of the current results. The PDF can be regenerated at any time; however, the registration can only be invalidated by an administrator.",
+      "emission_registered": "Certificate registered successfully. Authenticity code: {{code}}"
+    },
+    "bulletin": {
+      "register_emission": "Register Emission",
+      "register_emission_title": "Records an auditable evidence of the current state of the bulletin",
+      "register_emission_confirm": "This action records an auditable evidence of the current results. The PDF can be regenerated at any time; however, the registration can only be invalidated by an administrator.",
+      "emission_registered": "Bulletin registered successfully. Authenticity code: {{code}}"
     },
     "debt": {
       "title": "Debt Indicators",

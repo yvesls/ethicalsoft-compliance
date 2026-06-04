@@ -52,6 +52,38 @@ public class GenerateNonComplianceBulletinUseCase {
                                     String isepPercent, String band) {
     }
 
+    public record BulletinMetadata(String documentCode, String questionnaireName, String projectName,
+                                   java.math.BigDecimal isepValue, String isepPercent, String band) {
+    }
+
+    @Transactional(readOnly = true)
+    public BulletinMetadata prepareMetadata(Long projectId, Integer questionnaireId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Projeto não encontrado: " + projectId));
+
+        Questionnaire questionnaire = questionnaireRepository
+                .findByIdAndProjectId(questionnaireId, projectId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Questionário não encontrado: " + questionnaireId));
+
+        QuestionnaireIsepDashboardDTO dashboard =
+                getQuestionnaireDashboardUseCase.execute(projectId, questionnaireId);
+
+        if (EthicalComplianceBand.meetsMinimum(dashboard.band())) {
+            throw new BusinessException(
+                    "O questionário atingiu a faixa mínima aceitável (faixa " + dashboard.band()
+                            + "). O boletim de não conformidade não se aplica a resultados conformes.");
+        }
+
+        String documentCode = DocumentFormatUtil.authenticityCode("BNC",
+                project.getId(), questionnaire.getId(), dashboard.band(),
+                dashboard.isepPercent(), dashboard.calculatedAt());
+
+        return new BulletinMetadata(documentCode, questionnaire.getName(), project.getName(),
+                dashboard.isepPercent(), DocumentFormatUtil.percent(dashboard.isepPercent()),
+                dashboard.band());
+    }
+
     @Transactional(readOnly = true)
     public GeneratedBulletin execute(Long projectId, Integer questionnaireId, String generatedBy) {
         log.info("[boletim] Gerando boletim de não conformidade projeto={} questionário={}",

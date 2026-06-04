@@ -63,24 +63,24 @@ public class ComplianceDocumentController {
             @PathVariable Long projectId,
             @PathVariable Integer questionnaireId,
             @AuthenticationPrincipal User currentUser) {
-        GenerateNonComplianceBulletinUseCase.GeneratedBulletin bulletin =
-                generateBulletinUseCase.execute(projectId, questionnaireId, actorName(currentUser));
+        GenerateNonComplianceBulletinUseCase.BulletinMetadata meta =
+                generateBulletinUseCase.prepareMetadata(projectId, questionnaireId);
         Long userId = currentUser != null ? currentUser.getId() : null;
 
         var emission = registerEmissionUseCase.execute(new RegisterDocumentEmissionUseCase.EmissionRequest(
                 RegisterDocumentEmissionUseCase.TYPE_BULLETIN,
-                bulletin.documentCode(),
+                meta.documentCode(),
                 projectId,
-                bulletin.projectName(),
+                meta.projectName(),
                 questionnaireId,
-                bulletin.questionnaireName(),
+                meta.questionnaireName(),
                 null, null, null, null,
                 "Questionário",
                 userId,
                 actorName(currentUser),
-                null,
-                bulletin.band(),
-                List.of(projectId, questionnaireId, bulletin.band(), bulletin.isepPercent())));
+                meta.isepValue(),
+                meta.band(),
+                List.of(projectId, questionnaireId, meta.band(), meta.isepPercent())));
 
         return ResponseEntity.ok(DocumentEmissionRecordDTO.from(emission));
     }
@@ -90,22 +90,22 @@ public class ComplianceDocumentController {
     public ResponseEntity<DocumentEmissionRecordDTO> registerCertificateEmission(
             @PathVariable Long projectId,
             @AuthenticationPrincipal User currentUser) {
-        GenerateComplianceCertificateUseCase.GeneratedCertificate certificate =
-                generateCertificateUseCase.execute(projectId, actorName(currentUser));
+        GenerateComplianceCertificateUseCase.CertificateMetadata meta =
+                generateCertificateUseCase.prepareMetadata(projectId);
         Long userId = currentUser != null ? currentUser.getId() : null;
 
         var emission = registerEmissionUseCase.execute(new RegisterDocumentEmissionUseCase.EmissionRequest(
                 RegisterDocumentEmissionUseCase.TYPE_CERTIFICATE,
-                certificate.certificateCode(),
+                meta.certificateCode(),
                 projectId,
-                certificate.projectName(),
+                meta.projectName(),
                 null, null, null, null, null, null,
                 "Projeto",
                 userId,
                 actorName(currentUser),
-                null,
-                certificate.band(),
-                List.of(projectId, certificate.band(), certificate.isepPercent())));
+                meta.isepValue(),
+                meta.band(),
+                List.of(projectId, meta.band(), meta.isepPercent())));
 
         return ResponseEntity.ok(DocumentEmissionRecordDTO.from(emission));
     }

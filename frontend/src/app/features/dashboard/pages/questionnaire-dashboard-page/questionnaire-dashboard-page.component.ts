@@ -235,8 +235,9 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
             this.registeringBulletinEmission.set(false);
           },
           error: (err) => {
+            const serverMsg = err?.error instanceof SyntaxError ? null : err?.error?.message;
             this.notificationService.showError(
-              err?.error?.message ?? this.translate.instant('dashboard.errors.register_emission')
+              serverMsg ?? this.translate.instant('dashboard.errors.register_emission')
             );
             this.registeringBulletinEmission.set(false);
           },

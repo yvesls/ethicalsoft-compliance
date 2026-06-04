@@ -636,12 +636,6 @@
       "emit_bulletin": "Emitir Boletim aos Representantes",
       "emitting_bulletin": "Emitindo...",
       "force_close_btn": "Forçar Encerramento",
-      "bulletin": {
-        "register_emission": "Registrar Emissão",
-        "register_emission_title": "Registra uma evidência auditável do estado atual do boletim",
-        "register_emission_confirm": "Esta ação registra uma evidência auditável dos resultados atuais. O PDF poderá ser regenerado a qualquer momento; já o registro só pode ser invalidado por um administrador.",
-        "emission_registered": "Boletim registrado com sucesso. Código de autenticidade: {{code}}"
-      },
       "force_closing_btn": "Encerrando...",
       "closed_success": "Questionário encerrado. ISEP será calculado.",
       "emit_confirm": "O boletim de não conformidade será enviado por e-mail, em anexo, a todos os representantes do projeto. Deseja continuar?",
@@ -688,7 +682,20 @@
       "force_close": "Erro ao encerrar o questionário.",
       "load_individual": "Não foi possível carregar o painel individual.",
       "user_not_authenticated": "Usuário não autenticado.",
-      "representative_not_found": "Representante não encontrado no questionário."
+      "representative_not_found": "Representante não encontrado no questionário.",
+      "register_emission": "Erro ao registrar emissão do documento."
+    },
+    "certificate": {
+      "register_emission": "Registrar Emissão",
+      "register_emission_title": "Registra uma evidência auditável do estado atual do certificado",
+      "register_emission_confirm": "Esta ação registra uma evidência auditável dos resultados atuais. O PDF poderá ser regenerado a qualquer momento; já o registro só pode ser invalidado por um administrador.",
+      "emission_registered": "Certificado registrado com sucesso. Código de autenticidade: {{code}}"
+    },
+    "bulletin": {
+      "register_emission": "Registrar Emissão",
+      "register_emission_title": "Registra uma evidência auditável do estado atual do boletim",
+      "register_emission_confirm": "Esta ação registra uma evidência auditável dos resultados atuais. O PDF poderá ser regenerado a qualquer momento; já o registro só pode ser invalidado por um administrador.",
+      "emission_registered": "Boletim registrado com sucesso. Código de autenticidade: {{code}}"
     },
     "debt": {
       "title": "Indicadores de Dívida",

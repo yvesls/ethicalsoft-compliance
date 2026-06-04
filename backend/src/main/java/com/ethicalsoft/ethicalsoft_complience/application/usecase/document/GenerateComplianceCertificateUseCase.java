@@ -37,6 +37,42 @@ public class GenerateComplianceCertificateUseCase {
                                        String projectName, String isepPercent, String band) {
     }
 
+    public record CertificateMetadata(String certificateCode, String projectName,
+                                      java.math.BigDecimal isepValue, String isepPercent, String band) {
+    }
+
+    @Transactional(readOnly = true)
+    public CertificateMetadata prepareMetadata(Long projectId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Projeto não encontrado: " + projectId));
+
+        if (project.getStatus() != ProjectStatusEnum.CONCLUIDO) {
+            throw new BusinessException(
+                    "O certificado de conformidade só pode ser emitido após o encerramento do projeto.");
+        }
+
+        ProjectIsepDashboardDTO dashboard = getProjectIsepDashboardUseCase.execute(projectId);
+
+        if (dashboard.projectBand() == null) {
+            throw new BusinessException(
+                    "O ISEP consolidado do projeto ainda não foi calculado. Não é possível emitir o certificado.");
+        }
+        if (!EthicalComplianceBand.meetsMinimum(dashboard.projectBand())) {
+            throw new BusinessException(
+                    "O projeto não atingiu a faixa mínima aceitável (faixa " + dashboard.projectBand()
+                            + "). Em caso de não conformidade, emita o Boletim de Não Conformidade Ética.");
+        }
+
+        String certificateCode = DocumentFormatUtil.authenticityCode("ESC",
+                project.getId(), dashboard.projectBand(),
+                dashboard.projectIsepPercent(), project.getClosingDate());
+
+        return new CertificateMetadata(certificateCode, project.getName(),
+                dashboard.projectIsepPercent(),
+                DocumentFormatUtil.percent(dashboard.projectIsepPercent()),
+                dashboard.projectBand());
+    }
+
     @Transactional(readOnly = true)
     public GeneratedCertificate execute(Long projectId, String issuedBy) {
         log.info("[certificado] Gerando certificado de conformidade projeto={}", projectId);
