@@ -60,6 +60,7 @@ jobs:
 
       - name: Enviar JAR do Spring Boot
         run: |
+          rm -f backend/target/*-plain.jar
           scp backend/target/*.jar \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/opt/tcc/backend/app.jar
 
