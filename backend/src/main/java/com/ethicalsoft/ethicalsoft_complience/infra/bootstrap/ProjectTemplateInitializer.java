@@ -9,12 +9,14 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.TemplateVisibilityEnum;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class ProjectTemplateInitializer {
@@ -26,7 +28,12 @@ public class ProjectTemplateInitializer {
 
     @PostConstruct
     public void seedTemplates() {
-        templatesToSeed().forEach(this::insertIfMissing);
+        try {
+            templatesToSeed().forEach(this::insertIfMissing);
+        } catch (Exception e) {
+            log.warn("[template-init] Não foi possível inicializar templates de projeto no MongoDB. " +
+                    "A aplicação continuará normalmente. Erro: {}", e.getMessage());
+        }
     }
 
     private List<ProjectTemplate> templatesToSeed() {

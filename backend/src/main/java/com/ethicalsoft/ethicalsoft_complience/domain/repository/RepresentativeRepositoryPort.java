@@ -2,6 +2,7 @@ package com.ethicalsoft.ethicalsoft_complience.domain.repository;
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Representative;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface RepresentativeRepositoryPort {
@@ -13,4 +14,6 @@ public interface RepresentativeRepositoryPort {
     boolean existsByUserIdAndProjectId(Long userId, Long projectId);
 
     Optional<Representative> findById(Long id);
+
+    List<Representative> findByProjectId(Long projectId);
 }

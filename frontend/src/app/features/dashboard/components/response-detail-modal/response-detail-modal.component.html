@@ -1,0 +1,106 @@
+@if (loading()) {
+  <div class="response-modal__loading">
+    <div class="spinner-border text-primary"></div>
+    <span>Carregando respostas...</span>
+  </div>
+} @else {
+  @if (data(); as d) {
+    <div class="response-modal">
+      <div class="response-modal__header">
+        <h2 class="response-modal__title">Respostas de {{ d.representativeName }}</h2>
+
+        <div class="response-modal__meta">
+          <span class="response-modal__badge" [class.response-modal__badge--completed]="d.status === 'COMPLETED'">
+            {{ getStatusLabel(d.status) }}
+          </span>
+          @if (d.submissionDate) {
+            <span class="response-modal__meta-item">
+              Submetido em {{ d.submissionDate | date: 'dd/MM/yyyy HH:mm' }}
+            </span>
+          }
+        </div>
+
+        <div class="response-modal__counters">
+          <div class="response-modal__counter">
+            <span class="response-modal__counter-value">{{ d.totalQuestions }}</span>
+            <span class="response-modal__counter-label">Perguntas</span>
+          </div>
+          <div class="response-modal__counter">
+            <span class="response-modal__counter-value">{{ d.answeredQuestions }}</span>
+            <span class="response-modal__counter-label">Respondidas</span>
+          </div>
+          <div class="response-modal__counter response-modal__counter--yes">
+            <span class="response-modal__counter-value">{{ d.yesCount }}</span>
+            <span class="response-modal__counter-label">SIM</span>
+          </div>
+          <div class="response-modal__counter response-modal__counter--no">
+            <span class="response-modal__counter-value">{{ d.noCount }}</span>
+            <span class="response-modal__counter-label">NÃO</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="response-modal__body">
+        @if (d.answers.length) {
+          <table class="table table-hover align-middle response-modal__table">
+            <thead>
+              <tr>
+                <th>Pergunta</th>
+                <th class="text-center">Resposta</th>
+                <th>Justificativa</th>
+                <th>Evidência</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (a of d.answers; track a.questionId) {
+                <tr>
+                  <td class="response-modal__question-text">{{ a.questionText }}</td>
+                  <td class="text-center">
+                    <span class="response-badge" [class.response-badge--yes]="a.response" [class.response-badge--no]="!a.response">
+                      {{ a.response ? 'SIM' : 'NÃO' }}
+                    </span>
+                  </td>
+                  <td>
+                    @if (a.justification) {
+                      <span>{{ a.justification.descricao }}</span>
+                      @if (a.justification.url) {
+                        <a [href]="a.justification.url" target="_blank" class="response-modal__link">
+                          <i class="bi bi-link-45deg"></i> Link
+                        </a>
+                      }
+                    } @else {
+                      <span class="text-muted">—</span>
+                    }
+                  </td>
+                  <td>
+                    @if (a.evidence) {
+                      <span>{{ a.evidence.descricao }}</span>
+                      @if (a.evidence.url) {
+                        <a [href]="a.evidence.url" target="_blank" class="response-modal__link">
+                          <i class="bi bi-link-45deg"></i> Link
+                        </a>
+                      }
+                    } @else {
+                      <span class="text-muted">—</span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        } @else {
+          <p class="text-muted text-center py-4">Nenhuma resposta registrada.</p>
+        }
+      </div>
+
+      <div class="response-modal__footer">
+        <button class="dash-btn dash-btn--neutral" (click)="close()">Fechar</button>
+      </div>
+    </div>
+  } @else {
+    <div class="response-modal__empty">
+      <p class="text-muted">Não foi possível carregar os dados.</p>
+      <button class="dash-btn dash-btn--neutral" (click)="close()">Fechar</button>
+    </div>
+  }
+}

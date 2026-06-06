@@ -58,6 +58,8 @@ import {
 import { finalize, switchMap, take } from 'rxjs/operators';
 import { RoleService } from '../../../../core/services/role.service';
 import { RoleSummary } from '../../../../shared/interfaces/role/role-summary.interface';
+import { DraftCacheService } from '../../../../core/services/draft-cache.service';
+import { SessionExpirationService } from '../../../../core/services/session-expiration.service';
 
 export interface Representative {
   id?: number | string | null;
@@ -137,11 +139,14 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
   private modalService = inject(ModalService);
   private notificationService = inject(NotificationService);
   private roleService = inject(RoleService);
+  private draftCacheService = inject(DraftCacheService);
+  private sessionExpirationService = inject(SessionExpirationService);
   public override routerService = inject(RouterService);
 
   public ProjectType = ProjectType;
   public projectForm!: FormGroup;
   public isSubmitting = false;
+  public isSavingDraft = false;
   public showQuestionnaireQuestionErrors = false;
   public panelStates: PanelStates = {
     project: true,
@@ -215,6 +220,9 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
     this.setupTemplateListener();
     this.setupDateListeners();
     this.loadRoles();
+
+    this.sessionExpirationService.registerDraftSaver(() => this.saveDraftLocally());
+    this.destroyRef.onDestroy(() => this.sessionExpirationService.unregisterDraftSaver());
   }
 
   protected override loadParams(
@@ -808,7 +816,6 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
     }
     const projectName = this.projectForm.get('name')?.value || 'Novo Projeto';
 
-    // Buscar as perguntas do template correspondente
     const questions = this.getQuestionsForQuestionnaire(questionnaire);
 
     this.routerService.navigateTo('/projects/questionnaire/cascata', {
@@ -840,7 +847,6 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
       return [];
     }
 
-    // Encontrar o questionário correspondente no template pela etapa
     const templateQuestionnaire = this.selectedTemplateData.questionnaires.find(
       (tq: TemplateQuestionnaireDTO) => tq.stageName === questionnaire.stageName || tq.name === questionnaire.name
     );
@@ -849,7 +855,6 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
       return [];
     }
 
-    // Mapear as perguntas do template para o formato esperado pelo componente
     return templateQuestionnaire.questions.map((question: TemplateQuestionDTO, index: number) => {
       const stageNames = this.getTemplateQuestionStageNames(question);
       return {
@@ -1200,7 +1205,8 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
   onSubmit(): void {
     if (this.projectForm.invalid) {
       this.projectForm.markAllAsTouched();
-      this.notificationService.showWarning('Revise os campos obrigatórios antes de salvar.');
+      const issues = this.collectValidationIssues();
+      this.notificationService.showWarning(issues);
       return;
     }
 
@@ -1213,6 +1219,54 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
     }
 
     this.openProjectCreationConfirmModal();
+  }
+
+  private collectValidationIssues(): string {
+    const issues: string[] = [];
+
+    const fieldLabels: Record<string, string> = {
+      template: 'Template',
+      name: 'Nome do projeto',
+      startDate: 'Data de início',
+      deadline: 'Prazo limite',
+    };
+
+    for (const [key, label] of Object.entries(fieldLabels)) {
+      if (this.projectForm.get(key)?.invalid) {
+        issues.push(label);
+      }
+    }
+
+    const groupErrors = this.projectForm.errors;
+    if (groupErrors?.['dateRange']) {
+      issues.push('A data de início não pode ser maior que o prazo limite');
+    }
+    if (groupErrors?.['stagesExceedDeadline']) {
+      issues.push('As etapas ultrapassam o prazo limite do projeto');
+    }
+    if (groupErrors?.['stageApplicationRangeExceedsDeadline']) {
+      issues.push('O período de aplicação das etapas excede o prazo limite');
+    }
+
+    const stepsArray = this.projectForm.get('steps') as FormArray;
+    if (!stepsArray || stepsArray.length === 0) {
+      issues.push('É necessário adicionar pelo menos uma etapa');
+    } else if (stepsArray.invalid) {
+      issues.push('Há etapas com campos inválidos');
+    }
+
+    const repsArray = this.projectForm.get('representatives') as FormArray;
+    if (!repsArray || repsArray.length === 0) {
+      issues.push('É necessário adicionar pelo menos um representante');
+    } else if (repsArray.invalid) {
+      issues.push('Há representantes com campos inválidos');
+    }
+
+    if (issues.length === 0) {
+      return 'Revise os campos obrigatórios antes de salvar.';
+    }
+
+    return 'Não é possível salvar. Corrija os seguintes problemas:<br>• ' + issues.join('<br>• ');
   }
 
   private openProjectCreationConfirmModal(): void {
@@ -1273,6 +1327,82 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
           this.notificationService.showError(error);
         },
       });
+  }
+
+  saveDraft(): void {
+    if (this.isSavingDraft || this.isSubmitting) {
+      return;
+    }
+
+    const formValue = this.projectForm.getRawValue() as CascataProjectFormValue;
+    const projectName = (formValue.name || '').trim();
+
+    if (!projectName) {
+      this.notificationService.showWarning('Informe ao menos o nome do projeto para salvar como rascunho.');
+      return;
+    }
+
+    let payload: ProjectCreationPayload;
+    try {
+      payload = this.buildDraftPayload();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Erro ao preparar os dados do rascunho.';
+      this.notificationService.showError(message);
+      return;
+    }
+
+    this.isSavingDraft = true;
+    this.cdr.markForCheck();
+
+    const draftKey = this.draftCacheService.projectDraftKey('cascata');
+    this.draftCacheService.save(draftKey, formValue, 'project-creation', { type: 'cascata' });
+
+    this.projectStore
+      .createProject(payload)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => {
+          this.isSavingDraft = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe({
+        next: () => {
+          this.draftCacheService.remove(draftKey);
+          this.notificationService.showSuccess('Rascunho salvo com sucesso.');
+          this.routerService.navigateTo('/projects');
+        },
+        error: (error) => {
+          this.notificationService.showError(error);
+        },
+      });
+  }
+
+  private buildDraftPayload(): ProjectCreationPayload {
+    const formValue = this.projectForm.getRawValue() as CascataProjectFormValue;
+    const projectName = (formValue.name || '').trim();
+
+    const stages = this.buildStagePayload();
+    const questionnaires = this.buildQuestionnairePayload();
+    const representatives = this.buildRepresentativePayload();
+
+    return {
+      name: projectName || 'Rascunho sem nome',
+      templateId: formValue.template ?? null,
+      type: ProjectType.Cascata,
+      startDate: formValue.startDate ?? '',
+      deadline: formValue.deadline || null,
+      status: 'RASCUNHO',
+      stages: stages.length ? stages : undefined,
+      questionnaires: questionnaires.length ? questionnaires : undefined,
+      representatives: representatives.length ? representatives : undefined,
+    };
+  }
+
+  private saveDraftLocally(): void {
+    const formValue = this.projectForm.getRawValue();
+    const draftKey = this.draftCacheService.projectDraftKey('cascata');
+    this.draftCacheService.save(draftKey, formValue, 'project-creation', { type: 'cascata' });
   }
 
   private buildProjectCreationPayload(): ProjectCreationPayload {

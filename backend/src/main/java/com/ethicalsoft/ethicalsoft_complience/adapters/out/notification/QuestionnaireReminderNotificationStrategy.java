@@ -153,6 +153,7 @@ public class QuestionnaireReminderNotificationStrategy implements NotificationTy
 
         return Optional.ofNullable(projectRepository.findById(projectId).orElseThrow().getRepresentatives()).orElse(Set.of())
                 .stream()
+                .filter(rep -> rep.getDeletionDate() == null)
                 .filter(rep -> pendingRepresentativeIds.contains(rep.getId()))
                 .map(rep -> rep.getUser().getEmail())
                 .filter(Objects::nonNull)

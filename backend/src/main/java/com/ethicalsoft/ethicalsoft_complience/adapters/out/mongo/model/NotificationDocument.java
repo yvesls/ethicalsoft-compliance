@@ -1,11 +1,7 @@
 package com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model;
 
 import com.ethicalsoft.ethicalsoft_complience.domain.notification.NotificationStatus;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -36,5 +32,7 @@ public class NotificationDocument {
     private LocalDateTime updatedAt;
 
     private String templateKey;
+
+    private String governanceEvent;
 }
 

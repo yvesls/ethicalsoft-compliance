@@ -27,11 +27,46 @@
             </div>
           </div>
           @if (isAdmin()) {
-            <button type="button" class="btn btn-secundary" (click)="onEditProject()">
-              Editar projeto
-            </button>
+            <div class="project-header__actions">
+              <button type="button" class="btn btn-secundary mx-2" (click)="onEditProject()">
+                Editar projeto
+              </button>
+              @if (isDraft()) {
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  [disabled]="isPublishing()"
+                  (click)="publishProject()"
+                >
+                  {{ isPublishing() ? 'Publicando...' : 'Publicar Projeto' }}
+                </button>
+              } @else {
+                <button type="button" class="btn btn-primary" (click)="navigateToProjectDashboard()">
+                  Dashboard do projeto
+                </button>
+              }
+              @if (canDeleteProject()) {
+                <button
+                  type="button"
+                  class="btn btn-danger mx-2"
+                  [disabled]="isDeleting()"
+                  (click)="deleteProject()"
+                >
+                  {{ isDeleting() ? 'Excluindo...' : 'Excluir Projeto' }}
+                </button>
+              }
+            </div>
           }
         </section>
+
+        @if (isDraft()) {
+          <div class="draft-banner">
+            <span class="draft-banner__icon">&#9888;</span>
+            <span class="draft-banner__text">
+              Este projeto está em modo <strong>Rascunho</strong>. Publique-o para ativá-lo e permitir respostas aos questionários.
+            </span>
+          </div>
+        }
 
         <section class="project-overview">
           <div class="info-card">
@@ -85,6 +120,17 @@
             </div>
           }
         </section>
+
+        @if (currentUserProjectRoles().length > 0) {
+          <section class="representative-roles">
+            <h3>Seus papéis neste projeto</h3>
+            <div class="role-badges">
+              @for (role of currentUserProjectRoles(); track role) {
+                <span class="role-badge">{{ role }}</span>
+              }
+            </div>
+          </section>
+        }
 
         <section class="questionnaires-section">
           <div class="section-header">
@@ -178,42 +224,104 @@
                   </header>
 
                   <div class="questionnaire-card__info-grid">
-                    <div class="questionnaire-card__meta">
-                      <div>
-                        <span class="meta-label">Respondentes</span>
-                        <span class="meta-value">
-                          {{ questionnaire.respondedRespondents }} /
-                          {{ questionnaire.totalRespondents }}
+                    <div class="questionnaire-card__left-column">
+                      <div class="questionnaire-card__meta">
+                        <div>
+                          <span class="meta-label">Respondentes</span>
+                          <span class="meta-value">
+                            {{ questionnaire.respondedRespondents }} /
+                            {{ questionnaire.totalRespondents }}
+                          </span>
+                        </div>
+                        <div>
+                          <span class="meta-label">Pendentes</span>
+                          <span class="meta-value">
+                            {{ questionnaire.pendingRespondents }}
+                          </span>
+                        </div>
+                        <div>
+                          <span class="meta-label">Última resposta</span>
+                          <span class="meta-value">
+                            @if (questionnaire.lastResponseAt) {
+                              {{ questionnaire.lastResponseAt | date: 'dd/MM/yyyy HH:mm' }}
+                            } @else {
+                              ---
+                            }
+                          </span>
+                        </div>
+                        <div>
+                          <span class="meta-label">{{ getReferenceLabelTitle(project.type) }}</span>
+                          <span class="meta-value">
+                            {{ getQuestionnaireReferenceLabel(questionnaire, project.type) }}
+                          </span>
+                        </div>
+                        <div>
+                          <span class="meta-label">Período de aplicação</span>
+                          <span class="meta-value">
+                            {{ getApplicationRange(questionnaire) }}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div class="questionnaire-card__progress">
+                        <div class="progress-track">
+                          <div
+                            class="progress-fill"
+                            [style.width.%]="getQuestionnaireProgress(questionnaire)"
+                          ></div>
+                        </div>
+                        <span class="progress-label">
+                          {{ getQuestionnaireProgress(questionnaire) }}% dos representantes responderam
                         </span>
                       </div>
-                      <div>
-                        <span class="meta-label">Pendentes</span>
-                        <span class="meta-value">
-                          {{ questionnaire.pendingRespondents }}
-                        </span>
-                      </div>
-                      <div>
-                        <span class="meta-label">Última resposta</span>
-                        <span class="meta-value">
-                          @if (questionnaire.lastResponseAt) {
-                            {{ questionnaire.lastResponseAt | date: 'dd/MM/yyyy HH:mm' }}
-                          } @else {
-                            ---
+
+                      @if (questionnaire.respondents.length && canDisplayRespondents()) {
+                        <div class="questionnaire-card__respondents">
+                          <div class="respondent-list__header">
+                            <span>Status por representante</span>
+                            <small>{{ questionnaire.respondents.length }} pessoas</small>
+                          </div>
+                          <ul class="respondent-list">
+                            @for (
+                              respondent of questionnaire.respondents | slice: 0:(isRespondentListExpanded(questionnaire.id) ? questionnaire.respondents.length : 3);
+                              track trackByRespondentId($index, respondent)
+                            ) {
+                              <li class="respondent-list__item">
+                                <div class="respondent-list__info">
+                                  <strong>{{ respondent.name }}</strong>
+                                  <small>{{ respondent.email }}</small>
+                                </div>
+                                <div class="respondent-list__status">
+                                  <span
+                                    class="status-chip"
+                                    [ngClass]="getRespondentStatusClass(respondent.status)"
+                                  >
+                                    {{ getRespondentStatusLabel(respondent.status) }}
+                                  </span>
+                                  @if (respondent.completedAt) {
+                                    <small>
+                                      {{ respondent.completedAt | date: 'dd/MM HH:mm' }}
+                                    </small>
+                                  }
+                                </div>
+                              </li>
+                            }
+                          </ul>
+                          @if (questionnaire.respondents.length > 3) {
+                            <button
+                              type="button"
+                              class="respondent-list__toggle"
+                              (click)="toggleRespondentList(questionnaire.id)"
+                            >
+                              @if (isRespondentListExpanded(questionnaire.id)) {
+                                Reduzir listagem de representantes
+                              } @else {
+                                +{{ questionnaire.respondents.length - 3 }} representantes adicionais
+                              }
+                            </button>
                           }
-                        </span>
-                      </div>
-                      <div>
-                        <span class="meta-label">{{ getReferenceLabelTitle(project.type) }}</span>
-                        <span class="meta-value">
-                          {{ getQuestionnaireReferenceLabel(questionnaire, project.type) }}
-                        </span>
-                      </div>
-                      <div>
-                        <span class="meta-label">Período de aplicação</span>
-                        <span class="meta-value">
-                          {{ getApplicationRange(questionnaire) }}
-                        </span>
-                      </div>
+                        </div>
+                      }
                     </div>
 
                     @if (shouldDisplayQuestionnaireActions(questionnaire)) {
@@ -237,6 +345,16 @@
                             Visualizar questionário
                           </button>
 
+                          @if (isQuestionnaireCompleted(questionnaire)) {
+                            <button
+                              type="button"
+                              class="questionnaire-card__action-button questionnaire-card__action-button--primary"
+                              (click)="navigateToQuestionnaireDashboard(questionnaire)"
+                            >
+                              Dashboard do questionário
+                            </button>
+                          }
+
                           @if (
                             isQuestionnaireInProgress(questionnaire) &&
                             questionnaire.pendingRespondents > 0
@@ -251,6 +369,36 @@
                                 Enviando lembrete...
                               } @else {
                                 Enviar lembrete
+                              }
+                            </button>
+                          }
+
+                          @if (canForceCloseQuestionnaire(questionnaire)) {
+                            <button
+                              type="button"
+                              class="questionnaire-card__action-button questionnaire-card__action-button--danger"
+                              [disabled]="isForceClosing(questionnaire.id)"
+                              (click)="onForceCloseQuestionnaire(questionnaire)"
+                            >
+                              @if (isForceClosing(questionnaire.id)) {
+                                Encerrando questionário...
+                              } @else {
+                                Encerrar questionário manualmente
+                              }
+                            </button>
+                          }
+
+                          @if (canRescheduleQuestionnaire(questionnaire)) {
+                            <button
+                              type="button"
+                              class="questionnaire-card__action-button questionnaire-card__action-button--primary"
+                              [disabled]="isRescheduling(questionnaire.id)"
+                              (click)="onRescheduleQuestionnaire(questionnaire)"
+                            >
+                              @if (isRescheduling(questionnaire.id)) {
+                                Reagendando...
+                              } @else {
+                                Reagendar
                               }
                             </button>
                           }
@@ -275,61 +423,19 @@
                             Visualizar respostas
                           </button>
                         }
+
+                        @if (canCurrentUserView(questionnaire) && isQuestionnaireCompleted(questionnaire)) {
+                          <button
+                            type="button"
+                            class="questionnaire-card__action-button questionnaire-card__action-button--primary"
+                            (click)="navigateToIndividualDashboard(questionnaire)"
+                          >
+                            Meu painel
+                          </button>
+                        }
                       </div>
                     }
                   </div>
-
-                  <div class="questionnaire-card__progress">
-                    <div class="progress-track">
-                      <div
-                        class="progress-fill"
-                        [style.width.%]="getQuestionnaireProgress(questionnaire)"
-                      ></div>
-                    </div>
-                    <span class="progress-label">
-                      {{ getQuestionnaireProgress(questionnaire) }}% dos representantes responderam
-                    </span>
-                  </div>
-
-                  @if (questionnaire.respondents.length && canDisplayRespondents()) {
-                    <div class="questionnaire-card__respondents">
-                      <div class="respondent-list__header">
-                        <span>Status por representante</span>
-                        <small>{{ questionnaire.respondents.length }} pessoas</small>
-                      </div>
-                      <ul class="respondent-list">
-                        @for (
-                          respondent of questionnaire.respondents | slice: 0:5;
-                          track trackByRespondentId($index, respondent)
-                        ) {
-                          <li class="respondent-list__item">
-                            <div class="respondent-list__info">
-                              <strong>{{ respondent.name }}</strong>
-                              <small>{{ respondent.email }}</small>
-                            </div>
-                            <div class="respondent-list__status">
-                              <span
-                                class="status-chip"
-                                [ngClass]="getRespondentStatusClass(respondent.status)"
-                              >
-                                {{ getRespondentStatusLabel(respondent.status) }}
-                              </span>
-                              @if (respondent.completedAt) {
-                                <small>
-                                  {{ respondent.completedAt | date: 'dd/MM HH:mm' }}
-                                </small>
-                              }
-                            </div>
-                          </li>
-                        }
-                      </ul>
-                      @if (questionnaire.respondents.length > 5) {
-                        <span class="respondent-list__hint">
-                          +{{ questionnaire.respondents.length - 5 }} representantes adicionais
-                        </span>
-                      }
-                    </div>
-                  }
                 </article>
               }
             </div>

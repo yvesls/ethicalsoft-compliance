@@ -9,11 +9,18 @@ import {
   ProjectCreationPayload,
   ProjectCreationResponse,
 } from '../interfaces/project/project-creation.interface';
+import {
+  UpdateProjectRequest,
+  UpdateProjectResponse,
+  ProjectEditData,
+} from '../interfaces/project/project-update.interface';
 import { RoleSummary } from '../interfaces/role/role-summary.interface';
 import {
   ProjectQuestionnaireFilters,
   ProjectQuestionnaireSummary,
   QuestionnaireReminderRequest,
+  RescheduleQuestionnairePayload,
+  RescheduleQuestionnaireResponse,
 } from '../interfaces/project/project-questionnaire.interface';
 import { UrlParameter } from '../../core/interfaces/url-parameter.interface';
 
@@ -114,6 +121,66 @@ export class ProjectStore extends BaseStore {
   ): Observable<void> {
     return this.requestService.makePost<void>(
       this.getUrl(`${projectId}/questionnaires/${questionnaireId}/reminders`),
+      {
+        useAuth: true,
+        data: payload,
+      }
+    );
+  }
+
+  updateDraft(projectId: string | number, payload: ProjectCreationPayload): Observable<ProjectCreationResponse> {
+    const normalizedPayload: ProjectCreationPayload = {
+      ...payload,
+      templateId: this.normalizeTemplateId(payload.templateId),
+      status: 'RASCUNHO',
+    };
+
+    return this.requestService.makePut<ProjectCreationResponse>(
+      this.getUrl(`${projectId}/draft`),
+      {
+        useAuth: true,
+        data: normalizedPayload,
+      }
+    );
+  }
+
+  publishProject(projectId: string | number): Observable<ProjectCreationResponse> {
+    return this.requestService.makePost<ProjectCreationResponse>(
+      this.getUrl(`${projectId}/publish`),
+      { useAuth: true }
+    );
+  }
+
+  getProjectForEdit(projectId: string | number): Observable<ProjectEditData> {
+    return this.requestService.makeGet<ProjectEditData>(this.getUrl(`${projectId}/edit`), {
+      useAuth: true,
+    });
+  }
+
+  updateProject(projectId: string | number, payload: UpdateProjectRequest): Observable<UpdateProjectResponse> {
+    return this.requestService.makePut<UpdateProjectResponse>(
+      this.getUrl(`${projectId}`),
+      {
+        useAuth: true,
+        data: payload,
+      }
+    );
+  }
+
+  deleteProject(projectId: string | number): Observable<{ projectId: number; status: string; message: string }> {
+    return this.requestService.makeDelete<{ projectId: number; status: string; message: string }>(
+      this.getUrl(`${projectId}`),
+      { useAuth: true }
+    );
+  }
+
+  rescheduleQuestionnaire(
+    projectId: string | number,
+    questionnaireId: number,
+    payload: RescheduleQuestionnairePayload
+  ): Observable<RescheduleQuestionnaireResponse> {
+    return this.requestService.makePut<RescheduleQuestionnaireResponse>(
+      this.getUrl(`${projectId}/questionnaires/${questionnaireId}/reschedule`),
       {
         useAuth: true,
         data: payload,

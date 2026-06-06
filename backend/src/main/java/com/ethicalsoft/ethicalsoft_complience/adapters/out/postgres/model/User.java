@@ -73,8 +73,7 @@ public class User implements UserDetails {
 	}
 
 	public Long getRepresentativeId() {
-		return Optional.ofNullable(representatives)
-			.map(reps -> reps.stream().findFirst().map(Representative::getId).orElse(null))
+		return Optional.ofNullable(representatives).flatMap(reps -> reps.stream().findFirst().map(Representative::getId))
 			.orElse(null);
 	}
 }

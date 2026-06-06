@@ -1,6 +1,7 @@
 package com.ethicalsoft.ethicalsoft_complience.application.usecase.timeline;
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Project;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.ProjectStatusEnum;
 import com.ethicalsoft.ethicalsoft_complience.domain.repository.ProjectRepositoryPort;
 import com.ethicalsoft.ethicalsoft_complience.domain.service.ProjectTimelineStatusPolicy;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,9 @@ public class RefreshAllProjectsTimelineStatusUseCase {
         var projects = projectRepositoryPort.findAllByOrderByIdAsc();
         for (Project project : projects) {
             try {
+                if (project.getStatus() == ProjectStatusEnum.RASCUNHO) {
+                    continue;
+                }
                 projectTimelineStatusPolicy.updateProjectTimeline(project);
                 projectRepositoryPort.save(project);
             } catch (Exception ex) {

@@ -27,7 +27,24 @@ public interface QuestionnaireRepository extends JpaRepository<Questionnaire, In
     @Query("select q from Questionnaire q where q.applicationStartDate = :today")
     List<Questionnaire> findQuestionnairesStartingToday(LocalDate today);
 
+    @Query("""
+            SELECT q FROM Questionnaire q
+            WHERE q.applicationEndDate < :today
+              AND q.project.status <> com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.ProjectStatusEnum.RASCUNHO
+              AND q.project.status <> com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.ProjectStatusEnum.EXCLUIDO
+              AND NOT EXISTS (
+                  SELECT 1 FROM QuestionnaireResult qr WHERE qr.questionnaireId = q.id
+              )
+            """)
+    List<Questionnaire> findExpiredWithoutIsepResult(LocalDate today);
+
     Optional<Questionnaire> findByIdAndProjectId(Integer questionnaireId, Long projectId);
+
+    @Query("select q from Questionnaire q where q.stage.id = :stageId")
+    List<Questionnaire> findByStageId(Integer stageId);
+
+    @Query("select q from Questionnaire q where q.iterationRef.id = :iterationId")
+    List<Questionnaire> findByIterationRefId(Integer iterationId);
 
     @Override
     Page<Questionnaire> findAll(Specification<Questionnaire> spec, Pageable pageable);

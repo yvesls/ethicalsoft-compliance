@@ -3,29 +3,28 @@ package com.ethicalsoft.ethicalsoft_complience.controller;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.ProjectCreationRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.ProjectSearchRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.QuestionnaireReminderRequestDTO;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.ProjectDetailResponseDTO;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.ProjectResponseDTO;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.ProjectSummaryResponseDTO;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.RoleSummaryResponseDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.UpdateProjectRequestDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.*;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.ListProjectQuestionnairesUseCase;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.ListRolesUseCase;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.notification.SendNotificationUseCase;
-import com.ethicalsoft.ethicalsoft_complience.application.usecase.project.CreateProjectUseCase;
-import com.ethicalsoft.ethicalsoft_complience.application.usecase.project.GetProjectByIdUseCase;
-import com.ethicalsoft.ethicalsoft_complience.application.usecase.project.SearchProjectsUseCase;
+import com.ethicalsoft.ethicalsoft_complience.application.usecase.project.*;
+import com.ethicalsoft.ethicalsoft_complience.domain.isep.IsepMath;
 import com.ethicalsoft.ethicalsoft_complience.domain.notification.NotificationType;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
-@RequestMapping( "api/projects" )
+@RequestMapping("/api/projects")
 @RequiredArgsConstructor
 public class ProjectController {
 
@@ -35,6 +34,12 @@ public class ProjectController {
     private final GetProjectByIdUseCase getProjectByIdUseCase;
     private final ListProjectQuestionnairesUseCase listProjectQuestionnairesUseCase;
     private final SendNotificationUseCase sendNotificationUseCase;
+    private final CloseProjectManuallyUseCase closeProjectManuallyUseCase;
+    private final PublishDraftProjectUseCase publishDraftProjectUseCase;
+    private final UpdateDraftProjectUseCase updateDraftProjectUseCase;
+    private final UpdateProjectUseCase updateProjectUseCase;
+    private final GetProjectEditSnapshotUseCase getProjectEditSnapshotUseCase;
+    private final DeleteProjectUseCase deleteProjectUseCase;
 
     @GetMapping("/roles")
     public List<RoleSummaryResponseDTO> listRoles() {
@@ -59,6 +64,12 @@ public class ProjectController {
         return getProjectByIdUseCase.execute(projectId);
     }
 
+    @GetMapping("/{projectId}/edit")
+    @PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")
+    public ProjectEditSnapshotDTO getProjectEditSnapshot(@PathVariable Long projectId) {
+        return getProjectEditSnapshotUseCase.execute(projectId);
+    }
+
     @PostMapping("/{projectId}/questionnaires/{questionnaireId}/reminders")
     @PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")
     public void sendQuestionnaireReminder(@PathVariable Long projectId,
@@ -71,6 +82,51 @@ public class ProjectController {
                         "questionnaireId", questionnaireId,
                         "recipients", requestDTO.emails()
                 )
+        ));
+    }
+
+    @PostMapping("/{projectId}/publish")
+    @PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")
+    public ProjectResponseDTO publishDraftProject(@PathVariable Long projectId) {
+        return publishDraftProjectUseCase.execute(projectId);
+    }
+
+    @PutMapping("/{projectId}/draft")
+    @PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")
+    public ProjectResponseDTO updateDraftProject(@PathVariable Long projectId,
+                                                  @Valid @RequestBody ProjectCreationRequestDTO request) {
+        return updateDraftProjectUseCase.execute(projectId, request);
+    }
+
+    @PutMapping("/{projectId}")
+    @PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")
+    public UpdateProjectResponseDTO updateProject(@PathVariable Long projectId,
+                                                   @Valid @RequestBody UpdateProjectRequestDTO request) {
+        return updateProjectUseCase.execute(projectId, request);
+    }
+
+    @PostMapping("/{projectId}/close")
+    @PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")
+    public ResponseEntity<Map<String, Object>> closeProject(@PathVariable Long projectId) {
+        var result = closeProjectManuallyUseCase.execute(projectId);
+        return ResponseEntity.ok(Map.of(
+                "projectId", projectId,
+                "isepPercent", IsepMath.toPercent(result.getIsep()).toPlainString(),
+                "band", result.getBand(),
+                "questionnaireCount", result.getQuestionnaireCount(),
+                "calculatedAt", result.getCalculatedAt().toString(),
+                "closedBy", result.getClosedBy() != null ? result.getClosedBy() : ""
+        ));
+    }
+
+    @DeleteMapping("/{projectId}")
+    @PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")
+    public ResponseEntity<Map<String, Object>> deleteProject(@PathVariable Long projectId) {
+        deleteProjectUseCase.execute(projectId);
+        return ResponseEntity.ok(Map.of(
+                "projectId", projectId,
+                "status", "EXCLUIDO",
+                "message", "Projeto excluído com sucesso."
         ));
     }
 }

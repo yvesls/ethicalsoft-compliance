@@ -1,0 +1,87 @@
+@use '../../../../../assets/scss/base/vars' as *;
+
+.debt-widget {
+  padding: 0;
+}
+
+.debt-widget__title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: $blue-primary;
+}
+
+.debt-widget__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.debt-indicator {
+  background: $gray-quaternary;
+  border-radius: $radius-sm;
+  padding: 1rem 1.25rem;
+  border: 1.5px solid $gray-border;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.debt-indicator__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.debt-indicator__label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: $gray-secundary;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.debt-indicator__dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot--green  { background: $semantic-green; }
+.dot--yellow { background: $semantic-yellow; }
+.dot--red    { background: $semantic-red-dark; }
+.dot--gray   { background: $gray-disabled; }
+
+.debt-indicator__value {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.value--green  { color: $semantic-green; }
+.value--yellow { color: $semantic-yellow; }
+.value--red    { color: $semantic-red-dark; }
+.value--gray   { color: $gray-muted; }
+
+.debt-indicator__thresholds {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-top: 0.25rem;
+}
+
+.threshold {
+  font-size: 0.68rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: $radius-pill;
+  font-weight: 500;
+
+  &.green  { background: $semantic-green-bg; color: $semantic-green; }
+  &.yellow { background: $semantic-yellow-bg; color: $semantic-yellow; }
+  &.red    { background: $semantic-red-bg; color: $semantic-red-dark; }
+}

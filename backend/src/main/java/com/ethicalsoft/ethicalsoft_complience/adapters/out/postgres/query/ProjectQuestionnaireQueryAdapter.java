@@ -19,6 +19,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -43,7 +44,8 @@ public class ProjectQuestionnaireQueryAdapter implements ProjectQuestionnaireQue
             Questionnaire questionnaire = questionnaireRepository.findById(questionnaireId)
                     .orElseThrow(() -> new EntityNotFoundException("Questionário não encontrado: " + questionnaireId));
 
-            Set<Representative> projectRepresentatives = Optional.ofNullable(project.getRepresentatives()).orElse(Set.of());
+            Set<Representative> projectRepresentatives = Optional.ofNullable(project.getRepresentatives()).orElse(Set.of())
+                    .stream().filter(r -> r.getDeletionDate() == null).collect(Collectors.toSet());
             Map<Long, Representative> representativesById = projectRepresentatives.stream()
                     .collect(Collectors.toMap(Representative::getId, rep -> rep));
 
@@ -51,17 +53,17 @@ public class ProjectQuestionnaireQueryAdapter implements ProjectQuestionnaireQue
             return ProjectQuestionnaireSummaryDTO.builder()
                     .projectId(projectId)
                     .questionnaireId(questionnaireId)
-                    .questionnaireName(summary.getName())
-                    .stageName(summary.getStageName())
-                    .iterationName(summary.getIterationName())
-                    .applicationStartDate(summary.getApplicationStartDate())
-                    .applicationEndDate(summary.getApplicationEndDate())
-                    .overallStatus(summary.getProgressStatus())
-                    .totalRespondents(summary.getTotalRespondents())
-                    .responded(summary.getRespondedRespondents())
-                    .pending(summary.getPendingRespondents())
-                    .lastResponseAt(summary.getLastResponseAt())
-                    .respondents(summary.getRespondents())
+                    .questionnaireName(summary.name())
+                    .stageName(summary.stageName())
+                    .iterationName(summary.iterationName())
+                    .applicationStartDate(summary.applicationStartDate())
+                    .applicationEndDate(summary.applicationEndDate())
+                    .overallStatus(summary.progressStatus())
+                    .totalRespondents(summary.totalRespondents())
+                    .responded(summary.respondedRespondents())
+                    .pending(summary.pendingRespondents())
+                    .lastResponseAt(summary.lastResponseAt())
+                    .respondents(summary.respondents())
                     .build();
         } catch (Exception ex) {
             log.error("[project-questionnaire] Falha ao resumir questionário id={} projeto={}", questionnaireId, projectId, ex);
@@ -70,17 +72,30 @@ public class ProjectQuestionnaireQueryAdapter implements ProjectQuestionnaireQue
     }
 
     @Override
-    public Page<QuestionnaireSummaryResponseDTO> listQuestionnaires(Long projectId, Pageable pageable, QuestionnaireSearchFilter filter) {
+    public Page<QuestionnaireSummaryResponseDTO> listQuestionnaires(Long projectId, Pageable pageable, QuestionnaireSearchFilter filter, List<Long> representativeRoleIds) {
         try {
-            log.info("[project-questionnaire] Listando questionários do projeto={} pagina={}", projectId, pageable.getPageNumber());
+            log.info("[project-questionnaire] Listando questionários do projeto={} pagina={} roleIds={}", projectId, pageable.getPageNumber(), representativeRoleIds);
             Project project = projectRepository.findById(projectId)
                     .orElseThrow(() -> new EntityNotFoundException("Projeto não encontrado: " + projectId));
 
-            Set<Representative> projectRepresentatives = Optional.ofNullable(project.getRepresentatives()).orElse(Set.of());
+            Set<Representative> projectRepresentatives = Optional.ofNullable(project.getRepresentatives()).orElse(Set.of())
+                    .stream().filter(r -> r.getDeletionDate() == null).collect(Collectors.toSet());
             Map<Long, Representative> representativesById = projectRepresentatives.stream()
                     .collect(Collectors.toMap(Representative::getId, rep -> rep));
 
             Specification<Questionnaire> spec = Specification.where((root, query, cb) -> cb.equal(root.get("project").get("id"), projectId));
+
+            if (representativeRoleIds != null && !representativeRoleIds.isEmpty()) {
+                spec = spec.and((root, query, cb) -> {
+                    var questionJoin = root.join("questions", jakarta.persistence.criteria.JoinType.INNER);
+                    var roleJoin = questionJoin.join("roles", jakarta.persistence.criteria.JoinType.INNER);
+                    if (query != null) {
+                        query.distinct(true);
+                    }
+                    return roleJoin.get("id").in(representativeRoleIds);
+                });
+            }
+
             if (filter != null) {
                 if (StringUtils.hasText(filter.name())) {
                     spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("name")), "%" + filter.name().toLowerCase() + "%"));

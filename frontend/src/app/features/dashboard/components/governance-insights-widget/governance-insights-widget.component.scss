@@ -1,0 +1,48 @@
+@use '../../../../../assets/scss/base/vars' as *;
+
+.gi-widget {
+  padding: 0;
+}
+
+.gi-widget__title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: $blue-primary;
+}
+
+.gi-widget__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.gi-card {
+  background: $gray-quaternary;
+  border-radius: $radius-sm;
+  border: 1px solid $gray-border;
+  border-left: 4px solid $gray-muted;
+  padding: 0.75rem 1rem;
+}
+
+.gi-card__header {
+  margin-bottom: 0.4rem;
+}
+
+.gi-card__badge {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: $radius-pill;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: $white;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.gi-card__text {
+  font-size: 0.875rem;
+  color: $neutral-text;
+  line-height: 1.5;
+  margin: 0;
+}

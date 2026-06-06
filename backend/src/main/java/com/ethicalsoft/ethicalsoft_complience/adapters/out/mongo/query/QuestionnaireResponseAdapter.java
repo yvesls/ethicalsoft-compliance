@@ -2,9 +2,10 @@ package com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.query;
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.QuestionnaireResponse;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Questionnaire;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.QuestionnaireAnswerPageRequestDTO;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.QuestionnaireAnswerPageResponseDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Role;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.QuestionnaireAnswersRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.QuestionnaireAnswerResponseDTO;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.QuestionnaireAnswersResponseDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.QuestionnaireResponseSummaryDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.QuestionnaireResponseStatus;
 import com.ethicalsoft.ethicalsoft_complience.application.port.questionnaire.QuestionnaireResponsePort;
@@ -13,20 +14,18 @@ import com.ethicalsoft.ethicalsoft_complience.application.usecase.notification.c
 import com.ethicalsoft.ethicalsoft_complience.domain.notification.NotificationType;
 import com.ethicalsoft.ethicalsoft_complience.domain.repository.QuestionnaireRepositoryPort;
 import com.ethicalsoft.ethicalsoft_complience.domain.repository.QuestionnaireResponseRepositoryPort;
-import com.ethicalsoft.ethicalsoft_complience.domain.service.*;
+import com.ethicalsoft.ethicalsoft_complience.domain.repository.RepresentativeRepositoryPort;
+import com.ethicalsoft.ethicalsoft_complience.domain.service.LinkMapper;
+import com.ethicalsoft.ethicalsoft_complience.domain.service.QuestionnaireAnswerPolicy;
+import com.ethicalsoft.ethicalsoft_complience.domain.service.QuestionnaireStatusCalculator;
+import com.ethicalsoft.ethicalsoft_complience.domain.service.RepresentativeAccessPolicy;
 import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -36,79 +35,87 @@ public class QuestionnaireResponseAdapter implements QuestionnaireResponsePort {
 
     private final QuestionnaireRepositoryPort questionnaireRepository;
     private final QuestionnaireResponseRepositoryPort questionnaireResponseRepository;
+    private final RepresentativeRepositoryPort representativeRepository;
     private final QuestionnaireAnswerPolicy answerPolicy;
     private final QuestionnaireStatusCalculator statusCalculator;
-    private final PageSliceResolver pageSliceResolver;
     private final LinkMapper linkMapper;
     private final RepresentativeAccessPolicy representativeAccessPolicy;
     private final SendNotificationUseCase sendNotificationUseCase;
 
     @Override
-    public QuestionnaireAnswerPageResponseDTO getAnswerPage(Long projectId,
-                                                            Integer questionnaireId,
-                                                            Pageable pageable) {
+    public QuestionnaireAnswersResponseDTO getAnswers(Long projectId, Integer questionnaireId) {
         try {
-            log.info("[questionnaire-response] Buscando respostas paginadas projeto={} questionario={} pagina={}", projectId, questionnaireId, pageable.getPageNumber());
-            Long effectiveRepresentativeId = representativeAccessPolicy.resolveRepresentativeId(projectId);
+            log.info("[questionnaire-response] Buscando respostas projeto={} questionario={}", projectId, questionnaireId);
+            Long effectiveRepresentativeId = representativeAccessPolicy.resolveRepresentativeIdForResponse(projectId);
 
+            Questionnaire questionnaire = loadQuestionnaire(projectId, questionnaireId);
             QuestionnaireResponse response = loadResponse(projectId, questionnaireId, effectiveRepresentativeId);
-            List<QuestionnaireResponse.AnswerDocument> answers = Optional.ofNullable(response.getAnswers()).orElseGet(List::of);
-            if (CollectionUtils.isEmpty(answers)) {
-                return QuestionnaireAnswerPageResponseDTO.builder()
-                        .pageNumber(pageable.getPageNumber())
-                        .pageSize(pageable.getPageSize())
-                        .totalPages(0)
-                        .completed(false)
-                        .answers(List.of())
-                        .build();
+
+            if (answerPolicy.syncAnswers(response, questionnaire)) {
+                questionnaireResponseRepository.save(response);
             }
 
-            int total = answers.size();
-            PageSliceResolver.PageSlice slice = pageSliceResolver.resolve(pageable.getPageNumber(), pageable.getPageSize(), total);
-            List<QuestionnaireAnswerResponseDTO> pageAnswers = answers.subList(slice.fromIndex(), slice.toIndex()).stream()
+            List<QuestionnaireResponse.AnswerDocument> allAnswers = Optional.ofNullable(response.getAnswers()).orElseGet(List::of);
+
+            Set<Long> roleIds = resolveRepresentativeRoleIds(effectiveRepresentativeId);
+            List<QuestionnaireResponse.AnswerDocument> answers;
+            if (!roleIds.isEmpty()) {
+                answers = allAnswers.stream()
+                        .filter(ans -> ans.getRoleIds() != null
+                                && ans.getRoleIds().stream().anyMatch(roleIds::contains))
+                        .toList();
+            } else {
+                answers = allAnswers;
+            }
+
+            boolean completed = QuestionnaireResponseStatus.COMPLETED.equals(response.getStatus());
+            List<QuestionnaireAnswerResponseDTO> dtos = answers.stream()
                     .map(this::toAnswerResponse)
                     .toList();
 
-            boolean completed = QuestionnaireResponseStatus.COMPLETED.equals(response.getStatus());
-            return QuestionnaireAnswerPageResponseDTO.builder()
-                    .pageNumber(pageable.getPageNumber())
-                    .pageSize(pageable.getPageSize())
-                    .totalPages(slice.totalPages())
+            return QuestionnaireAnswersResponseDTO.builder()
                     .completed(completed)
-                    .answers(pageAnswers)
+                    .answers(dtos)
                     .build();
         } catch (Exception ex) {
-            log.error("[questionnaire-response] Falha ao buscar respostas paginadas projeto={} questionario={} pagina={}", projectId, questionnaireId, pageable.getPageNumber(), ex);
+            log.error("[questionnaire-response] Falha ao buscar respostas projeto={} questionario={}", projectId, questionnaireId, ex);
             throw ex;
         }
     }
 
     @Override
-    public QuestionnaireAnswerPageResponseDTO submitAnswerPage(Long projectId,
-                                                               Integer questionnaireId,
-                                                               QuestionnaireAnswerPageRequestDTO request) {
+    public QuestionnaireAnswersResponseDTO submitAnswers(Long projectId,
+                                                          Integer questionnaireId,
+                                                          QuestionnaireAnswersRequestDTO request) {
         try {
-            log.info("[questionnaire-response] Recebendo respostas projeto={} questionario={} pagina={}", projectId, questionnaireId, request.getPageNumber());
+            boolean draft = request.isDraft();
+            log.info("[questionnaire-response] Submetendo respostas projeto={} questionario={} draft={}", projectId, questionnaireId, draft);
+
             Questionnaire questionnaire = loadQuestionnaire(projectId, questionnaireId);
             Long effectiveRepresentativeId = resolveRepresentativeIdForSubmit(projectId, questionnaire, request);
             QuestionnaireResponse response = loadResponse(projectId, questionnaireId, effectiveRepresentativeId);
-            pageSliceResolver.resolve(request.getPageNumber(), request.getPageSize(), response.getAnswers().size());
+
+            answerPolicy.syncAnswers(response, questionnaire);
+
             Map<Long, QuestionnaireResponse.AnswerDocument> answerMap = response.getAnswers().stream()
                     .collect(Collectors.toMap(QuestionnaireResponse.AnswerDocument::getQuestionId, ans -> ans));
 
-            request.getAnswers().forEach(dto -> answerPolicy.applyAnswer(dto, answerMap));
+            request.getAnswers().forEach(dto -> answerPolicy.applyAnswer(dto, answerMap, draft));
 
-            QuestionnaireResponseStatus status = statusCalculator.calculateStatus(response.getAnswers());
+            Set<Long> representativeRoleIds = resolveRepresentativeRoleIds(effectiveRepresentativeId);
+            QuestionnaireResponseStatus status = statusCalculator.calculateStatus(response.getAnswers(), draft, representativeRoleIds);
             response.setStatus(status);
             response.setSubmissionDate(status == QuestionnaireResponseStatus.COMPLETED ? LocalDateTime.now() : null);
             questionnaireResponseRepository.save(response);
 
-            if (QuestionnaireResponseStatus.COMPLETED.equals(status)) {
+            if (QuestionnaireResponseStatus.COMPLETED.equals(status) && !draft) {
                 triggerQuestionnaireSubmittedNotification(questionnaire, response, effectiveRepresentativeId);
             }
 
-            log.info("[questionnaire-response] Respostas registradas projeto={} questionario={} representante={} status={}", projectId, questionnaireId, effectiveRepresentativeId, status);
-            return getAnswerPage(projectId, questionnaireId, PageRequest.of(request.getPageNumber(), request.getPageSize()));
+            log.info("[questionnaire-response] Respostas registradas projeto={} questionario={} representante={} status={} draft={}",
+                    projectId, questionnaireId, effectiveRepresentativeId, status, draft);
+
+            return getAnswers(projectId, questionnaireId);
         } catch (Exception ex) {
             log.error("[questionnaire-response] Falha ao registrar respostas projeto={} questionario={}", projectId, questionnaireId, ex);
             throw ex;
@@ -135,6 +142,7 @@ public class QuestionnaireResponseAdapter implements QuestionnaireResponsePort {
     private QuestionnaireAnswerResponseDTO toAnswerResponse(QuestionnaireResponse.AnswerDocument answer) {
         return QuestionnaireAnswerResponseDTO.builder()
                 .questionId(answer.getQuestionId())
+                .questionText(answer.getQuestionText())
                 .response(answer.getResponse())
                 .justification(linkMapper.toDto(answer.getJustification()))
                 .evidence(linkMapper.toDto(answer.getEvidence()))
@@ -156,12 +164,6 @@ public class QuestionnaireResponseAdapter implements QuestionnaireResponsePort {
     private QuestionnaireResponse loadResponse(Long projectId,
                                                 Integer questionnaireId,
                                                 Long representativeId) {
-        if (representativeId == null) {
-            return questionnaireResponseRepository
-                    .findByProjectIdAndQuestionnaireIdAndRepresentativeId(projectId, questionnaireId, null)
-                    .orElseThrow(() -> new BusinessException("Registro de respostas não encontrado"));
-        }
-
         return questionnaireResponseRepository
                 .findByProjectIdAndQuestionnaireIdAndRepresentativeId(projectId, questionnaireId, representativeId)
                 .orElseThrow(() -> new BusinessException("Registro de respostas não encontrado"));
@@ -180,8 +182,8 @@ public class QuestionnaireResponseAdapter implements QuestionnaireResponsePort {
 
     private Long resolveRepresentativeIdForSubmit(Long projectId,
                                                   Questionnaire questionnaire,
-                                                  QuestionnaireAnswerPageRequestDTO request) {
-        Long resolved = representativeAccessPolicy.resolveRepresentativeId(projectId);
+                                                  QuestionnaireAnswersRequestDTO request) {
+        Long resolved = representativeAccessPolicy.resolveRepresentativeIdForResponse(projectId);
         if (resolved != null) {
             return resolved;
         }
@@ -193,15 +195,17 @@ public class QuestionnaireResponseAdapter implements QuestionnaireResponsePort {
         return requestedRepresentativeId;
     }
 
-    private Long resolveRepresentativeIdForRead(Long projectId, Questionnaire questionnaire, Long representativeId) {
-        Long resolved = representativeAccessPolicy.resolveRepresentativeId(projectId);
-        if (resolved != null) {
-            return resolved;
-        }
+    private Set<Long> resolveRepresentativeRoleIds(Long representativeId) {
         if (representativeId == null) {
-            return null;
+            return Collections.emptySet();
         }
-        representativeAccessPolicy.ensureRepresentativeBelongsToProject(representativeId, questionnaire.getProject());
-        return representativeId;
+        return representativeRepository.findById(representativeId)
+                .map(rep -> Optional.ofNullable(rep.getRoles())
+                        .orElse(Collections.emptySet())
+                        .stream()
+                        .map(Role::getId)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet()))
+                .orElse(Collections.emptySet());
     }
 }

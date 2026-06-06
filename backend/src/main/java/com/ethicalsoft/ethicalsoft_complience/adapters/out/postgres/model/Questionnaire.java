@@ -58,4 +58,10 @@ public class Questionnaire {
 	@Column(name = "status", nullable = false, length = 20)
 	@Enumerated(EnumType.STRING)
 	private TimelineStatusEnum status = TimelineStatusEnum.PENDENTE;
+
+	@Column(name = "domain", length = 50)
+	private String domain;
+
+	@Column(name = "description", length = 500)
+	private String description;
 }

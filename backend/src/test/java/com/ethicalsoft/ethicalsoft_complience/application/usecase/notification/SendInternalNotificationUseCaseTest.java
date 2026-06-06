@@ -23,7 +23,6 @@ class SendInternalNotificationUseCaseTest {
     void deveGerarNotificacaoInternaComPlaceHoldersResolvidos() {
         NotificationTemplatePort templatePort = mock(NotificationTemplatePort.class);
         InternalNotificationPort internalPort = mock(InternalNotificationPort.class);
-        ResolvePlaceholderPolicy policy = new ResolvePlaceholderPolicy();
 
         when(templatePort.findByKey("QUESTIONNAIRE_REMINDER"))
                 .thenReturn(Optional.of(new NotificationTemplate(
@@ -50,7 +49,7 @@ class SendInternalNotificationUseCaseTest {
             );
         });
 
-        var useCase = new SendInternalNotificationUseCase(templatePort, internalPort, policy);
+        var useCase = new SendInternalNotificationUseCase(templatePort, internalPort);
 
         var cmd = new SendInternalNotificationCommand(
                 "QUESTIONNAIRE_REMINDER",
@@ -71,7 +70,6 @@ class SendInternalNotificationUseCaseTest {
     void deveNegarQuandoRoleNaoPermitidaNoTemplate() {
         NotificationTemplatePort templatePort = mock(NotificationTemplatePort.class);
         InternalNotificationPort internalPort = mock(InternalNotificationPort.class);
-        ResolvePlaceholderPolicy policy = new ResolvePlaceholderPolicy();
 
         when(templatePort.findByKey("QUESTIONNAIRE_REMINDER"))
                 .thenReturn(Optional.of(new NotificationTemplate(
@@ -82,7 +80,7 @@ class SendInternalNotificationUseCaseTest {
                         null,
                         List.of(com.ethicalsoft.ethicalsoft_complience.domain.notification.NotificationChannel.INTERNAL)
                 )));
-        var useCase = new SendInternalNotificationUseCase(templatePort, internalPort, policy);
+        var useCase = new SendInternalNotificationUseCase(templatePort, internalPort);
 
         var cmd = new SendInternalNotificationCommand(
                 "QUESTIONNAIRE_REMINDER",

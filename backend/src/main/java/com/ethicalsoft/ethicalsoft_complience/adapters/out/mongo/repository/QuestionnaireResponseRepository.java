@@ -15,11 +15,19 @@ public interface QuestionnaireResponseRepository extends MongoRepository<Questio
 
     List<QuestionnaireResponse> findByProjectIdAndQuestionnaireId(Long projectId, Integer questionnaireId);
 
+    @Query("{ 'projectId': ?0, 'questionnaireId': ?1, 'representativeId': { $ne: null } }")
+    List<QuestionnaireResponse> findByProjectIdAndQuestionnaireIdExcludingTemplates(Long projectId, Integer questionnaireId);
+
     @Query("{ 'projectId': ?0, 'questionnaireId': ?1, 'status': 'PENDING' }")
     List<QuestionnaireResponse> findPendingResponses(Long projectId, Integer questionnaireId);
 
     Optional<QuestionnaireResponse> findByProjectIdAndQuestionnaireIdAndRepresentativeId(Long projectId, Integer questionnaireId, Long representativeId);
 
-    @Query(value = "{ 'projectId': ?0, 'questionnaireId': ?1 }", fields = "{ 'representativeId': 1, 'status': 1, 'submissionDate': 1 }")
+    @Query(value = "{ 'projectId': ?0, 'questionnaireId': ?1, 'representativeId': { $ne: null } }", fields = "{ 'representativeId': 1, 'status': 1, 'submissionDate': 1 }")
     List<QuestionnaireResponse> findSummariesByProjectAndQuestionnaire(Long projectId, Integer questionnaireId);
+
+    List<QuestionnaireResponse> findByProjectId(Long projectId);
+
+    @Query("{ 'projectId': ?0, 'representativeId': { $ne: null } }")
+    List<QuestionnaireResponse> findByProjectIdExcludingTemplates(Long projectId);
 }

@@ -46,6 +46,13 @@
     color: $text-color;
     font-size: 0.9rem;
   }
+
+  .cell-id {
+    width: 3.5rem;
+    white-space: nowrap;
+    font-weight: 600;
+    color: $gray-secundary;
+  }
 }
 
 .btn-icon {
@@ -62,4 +69,39 @@
   &:hover {
     opacity: 0.7;
   }
+}
+
+.page-footer {
+  position: sticky;
+  bottom: 0;
+  background: rgba($white, 0.95);
+  border-radius: $radius-default;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: $box-shadow-primary;
+  z-index: 10;
+
+  .footer-left,
+  .footer-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}
+
+.cell-checkbox {
+  width: 2.5rem;
+
+  input[type='checkbox'] {
+    width: 1.1rem;
+    height: 1.1rem;
+    cursor: pointer;
+    accent-color: $blue-primary;
+  }
+}
+
+.row-selected {
+  background-color: rgba($blue-primary, 0.06);
 }

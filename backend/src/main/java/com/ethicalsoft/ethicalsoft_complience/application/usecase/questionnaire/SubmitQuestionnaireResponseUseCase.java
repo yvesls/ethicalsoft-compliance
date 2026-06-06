@@ -1,9 +1,9 @@
 package com.ethicalsoft.ethicalsoft_complience.application.usecase.questionnaire;
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.QuestionnaireResponse;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.repository.QuestionnaireResponseRepository;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Project;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Representative;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.repository.QuestionnaireResponseRepository;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.ProjectRepository;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.QuestionnaireRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,6 +29,8 @@ public class SubmitQuestionnaireResponseUseCase {
     private final ProjectRepository projectRepository;
     private final QuestionnaireRepository questionnaireRepository;
     private final QuestionnaireResponseRepository questionnaireResponseRepository;
+    private final ProcessQuestionnaireIsepUseCase processQuestionnaireIsepUseCase;
+    private final ProcessExpiredQuestionnairesIsepUseCase processExpiredQuestionnairesIsepUseCase;
 
     @Transactional
     public void execute(Long projectId, Long questionnaireId, List<QuestionnaireResponse> responses) {
@@ -36,12 +40,28 @@ public class SubmitQuestionnaireResponseUseCase {
             Project project = projectRepository.findById(projectId)
                     .orElseThrow(() -> new EntityNotFoundException("Projeto não encontrado: " + projectId));
 
-            questionnaireRepository.findById(questionnaireId.intValue())
+            var questionnaire = questionnaireRepository.findById(questionnaireId.intValue())
                     .orElseThrow(() -> new EntityNotFoundException("Questionário não encontrado: " + questionnaireId));
 
             processResponses(project, questionnaireId, responses);
 
             log.info("[usecase-submit-response] Respostas atualizadas com sucesso");
+
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    try {
+                        boolean isepCalculated = processQuestionnaireIsepUseCase.processIfComplete(projectId, questionnaireId.intValue());
+                        if (isepCalculated) {
+                            processExpiredQuestionnairesIsepUseCase.notifyIsepCalculated(questionnaire, projectId, "Sistema (submissão automática)");
+                        }
+                    } catch (Exception ex) {
+                        log.warn("[usecase-submit-response] Cálculo ISEP pós-submissão falhou para questionário={}: {}",
+                                questionnaireId, ex.getMessage());
+                    }
+                }
+            });
+
         } catch (Exception ex) {
             log.error("[usecase-submit-response] Falha ao atualizar respostas", ex);
             throw ex;
@@ -53,7 +73,7 @@ public class SubmitQuestionnaireResponseUseCase {
         if (!projectRepository.existsById(projectId)) {
             throw new EntityNotFoundException("Projeto não encontrado: " + projectId);
         }
-        return questionnaireResponseRepository.findByProjectIdAndQuestionnaireId(projectId, questionnaireId.intValue());
+        return questionnaireResponseRepository.findByProjectIdAndQuestionnaireIdExcludingTemplates(projectId, questionnaireId.intValue());
     }
 
     private void processResponses(Project project, Long questionnaireId, List<QuestionnaireResponse> responses) {

@@ -21,7 +21,6 @@ public class SendInternalNotificationUseCase {
 
     private final NotificationTemplatePort notificationTemplatePort;
     private final InternalNotificationPort internalNotificationPort;
-    private final ResolvePlaceholderPolicy resolvePlaceholderPolicy;
 
     @Transactional
     public Notification execute(SendInternalNotificationCommand command) {
@@ -30,8 +29,8 @@ public class SendInternalNotificationUseCase {
 
         validateSenderRole(command, template);
 
-        var title = resolvePlaceholderPolicy.resolve(template.title(), command.context());
-        var body = resolvePlaceholderPolicy.resolve(template.body(), command.context());
+        var title = ResolvePlaceholderPolicy.resolve(template.title(), command.context());
+        var body = ResolvePlaceholderPolicy.resolve(template.body(), command.context());
 
         Notification notification = new Notification(
                 null,

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
 
 import { BasePageComponent, RestoreParams } from '../../../../core/abstractions/base-page.component';
+import { LoggerService } from '../../../../core/services/logger.service';
 import { ModalService } from '../../../../core/services/modal.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { ActionType } from '../../../../shared/enums/action-type.enum';
@@ -32,7 +33,11 @@ interface CascataQuestionnaireRouteParams extends GenericParams {
   applicationEndDate?: string;
   questions?: QuestionData[];
   returnTo?: string;
+  returnToEdit?: boolean;
+  editProjectId?: string;
 }
+
+const PENDING_QUESTIONNAIRE_UPDATE_KEY = 'pendingQuestionnaireUpdate';
 
 type CascataQuestionnaireRestoreParams = RestoreParams<CascataQuestionnaireRouteParams>;
 
@@ -74,6 +79,7 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
 
   searchTerm = '';
   selectedRole = '';
+  selectedQuestionIds = signal<Set<string>>(new Set());
 
   roleFilterOptions: SelectOption[] = [];
 
@@ -131,7 +137,11 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
     this.isViewMode.set(incomingMode === ActionType.VIEW);
     this.viewProjectId.set(typeof data.projectId === 'string' ? data.projectId : null);
     this.viewQuestionnaireId.set(typeof data.questionnaireId === 'number' ? data.questionnaireId : null);
-  this.returnTo = typeof data.returnTo === 'string' ? data.returnTo : null;
+  if (typeof data.returnTo === 'string') {
+      this.returnTo = data.returnTo;
+    } else if (data.returnToEdit && typeof data.editProjectId === 'string') {
+      this.returnTo = `/projects/${data.editProjectId}/edit`;
+    }
 
     this.questionnaireIndex = typeof data.questionnaireIndex === 'number' ? data.questionnaireIndex : null;
     this.questionnaireMetadata = data;
@@ -204,8 +214,11 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
     this.currentPage.set(page);
     this.isLoadingQuestions.set(true);
 
+    const questionText = this.searchTerm?.trim() || null;
+    const roleName = this.selectedRole || null;
+
     this.questionnaireQueryStore
-      .searchQuestions(projectId, questionnaireId, null, page, this.pageSize())
+      .listAllQuestions(projectId, questionnaireId, page, this.pageSize(), questionText, roleName)
       .pipe(take(1))
       .subscribe({
         next: (result) => {
@@ -235,11 +248,22 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
     this.fetchQuestionsPage(targetPage);
   }
 
+  onFilterChange(): void {
+    if (this.isViewMode()) {
+      this.currentPage.set(0);
+      this.fetchQuestionsPage(0);
+    }
+  }
+
   getControl(controlName: string) {
     return this.form.get(controlName);
   }
 
   get filteredQuestions(): QuestionData[] {
+    if (this.isViewMode()) {
+      return this.questions();
+    }
+
     let filtered = this.questions();
     const term = this.searchTerm.toLowerCase().trim();
     const role = this.selectedRole;
@@ -308,20 +332,83 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
     if (this.isViewMode()) {
         return;
     }
-    this.questions.update(qs => qs.filter(q => q.id !== question.id));
+    this.notificationService.showConfirm(
+      `Tem certeza que deseja excluir a pergunta: "${question.value}"?`,
+      () => {
+        this.questions.update(qs => qs.filter(q => q.id !== question.id));
+        this.clearSelection();
+        this.cdr.detectChanges();
+      }
+    );
   }
 
-  onSave(): void {
+  toggleQuestionSelection(questionId: string): void {
+    const current = new Set(this.selectedQuestionIds());
+    if (current.has(questionId)) {
+      current.delete(questionId);
+    } else {
+      current.add(questionId);
+    }
+    this.selectedQuestionIds.set(current);
+  }
+
+  isQuestionSelected(questionId: string): boolean {
+    return this.selectedQuestionIds().has(questionId);
+  }
+
+  get isAllSelected(): boolean {
+    const visible = this.filteredQuestions;
+    return visible.length > 0 && visible.every(q => this.selectedQuestionIds().has(q.id!));
+  }
+
+  get hasSelectedQuestions(): boolean {
+    return this.selectedQuestionIds().size > 0;
+  }
+
+  get selectedCount(): number {
+    return this.selectedQuestionIds().size;
+  }
+
+  toggleSelectAll(): void {
+    const visible = this.filteredQuestions;
+    if (this.isAllSelected) {
+      this.selectedQuestionIds.set(new Set());
+    } else {
+      this.selectedQuestionIds.set(new Set(visible.map(q => q.id!)));
+    }
+  }
+
+  deleteSelectedQuestions(): void {
+    if (this.isViewMode()) return;
+    const count = this.selectedCount;
+    this.notificationService.showConfirm(
+      `Tem certeza que deseja excluir ${count} pergunta${count > 1 ? 's' : ''} selecionada${count > 1 ? 's' : ''}?`,
+      () => {
+        const ids = this.selectedQuestionIds();
+        this.questions.update(qs => qs.filter(q => !ids.has(q.id!)));
+        this.clearSelection();
+        this.cdr.detectChanges();
+      }
+    );
+  }
+
+  private clearSelection(): void {
+    this.selectedQuestionIds.set(new Set());
+  }
+
+  onConfirmAndGoBack(): void {
     if (this.isViewMode()) {
+      this.navigateBack();
       return;
     }
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      this.notificationService.showWarning('Preencha os campos obrigatórios do questionário.');
       return;
     }
 
     if (!this.questions().length) {
-      this.notificationService.showWarning('Adicione ao menos uma pergunta antes de salvar o questionário.');
+      this.notificationService.showWarning('Adicione ao menos uma pergunta antes de confirmar o questionário.');
       return;
     }
 
@@ -339,6 +426,12 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
       questionnaireIndex: this.questionnaireIndex,
       questions: this.questions()
     };
+
+    try {
+      sessionStorage.setItem(PENDING_QUESTIONNAIRE_UPDATE_KEY, JSON.stringify(finalData));
+    } catch (error) {
+      LoggerService.error('CascataQuestionnaireForm: Erro ao persistir dados do questionário em sessionStorage', error);
+    }
 
     this.navigateBack({ questionnaireUpdate: finalData });
   }

@@ -1,0 +1,58 @@
+@use '../../../../../assets/scss/base/vars' as *;
+
+.cwc__title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: $blue-primary;
+}
+
+.cwc__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.cwc__tab {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1.5px solid $gray-primary;
+  border-radius: $radius-pill;
+  background: transparent;
+  color: $gray-secundary;
+  cursor: pointer;
+  transition: $transition-default;
+
+  &:hover {
+    border-color: $blue-primary;
+    color: $blue-primary;
+  }
+
+  &--active {
+    background: $blue-primary;
+    border-color: $blue-primary;
+    color: $white;
+  }
+}
+
+.cwc__meta {
+  font-size: 0.78rem;
+  color: $gray-muted;
+  margin-bottom: 0.25rem;
+}
+
+.cwc__chart {
+  width: 100%;
+  height: 340px;
+}
+
+.cwc__empty {
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $gray-muted;
+  font-size: 0.875rem;
+}

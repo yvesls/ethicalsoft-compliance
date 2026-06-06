@@ -2,6 +2,8 @@
 @use './components/input';
 @use './components/buttons';
 @use './components/checkbox';
+@use './components/dashboard';
+@use './components/ai-dashboard';
 @use './base/_media-queries' as *;
 @use './components/cards' as *;
 @use 'bootstrap/scss/bootstrap';
@@ -249,7 +251,7 @@ app-footer {
 }
 
 /* Modal */
-.modal {
+.modal.modal {
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -259,6 +261,7 @@ app-footer {
 	width: 100%;
 	height: 100%;
 	background: #00000080;
+	z-index: 1000;
 
 	.modal-content {
 		background: $background-color;

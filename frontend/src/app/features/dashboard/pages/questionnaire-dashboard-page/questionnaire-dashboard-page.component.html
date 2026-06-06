@@ -1,0 +1,230 @@
+@if (!loading()) {
+  @if (dashboard(); as d) {
+    <div class="dash-page">
+
+      <div class="dash-header">
+        <div>
+          <h1 class="dash-title">{{ d.questionnaireName }}</h1>
+          <span class="dash-sub">
+            Etapa: {{ d.stageName }}
+            @if (d.iterationName) { · Iteração: {{ d.iterationName }} }
+            · Calculado em {{ d.calculatedAt | date: 'dd/MM/yyyy HH:mm' }}
+          </span>
+        </div>
+
+        <div class="dash-actions">
+          <button class="dash-btn dash-btn--neutral" (click)="navigateToConsolidatedResponses()">
+            <i class="bi bi-list-check"></i> Ver Todas as Respostas
+          </button>
+          <button class="dash-btn dash-btn--neutral" (click)="downloadCsv()">
+            <i class="bi bi-download"></i> Relatório de Governança (CSV)
+          </button>
+          <button class="dash-btn dash-btn--neutral" (click)="downloadJson()">
+            <i class="bi bi-filetype-json"></i> Relatório de Governança (JSON)
+          </button>
+          @if (isAdmin) {
+            <button
+              class="dash-btn dash-btn--danger"
+              [disabled]="forceClosing()"
+              (click)="forceClose()"
+            >
+              <i class="bi bi-lock"></i>
+              {{ forceClosing() ? 'Encerrando...' : 'Forçar Encerramento' }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <app-isep-kpi-card
+          label="ISEP da Iteração"
+          [value]="d.isepPercent"
+          [band]="d.band"
+          secondary="Média ponderada da equipe"
+        />
+        <app-isep-kpi-card
+          label="Média Simples da Equipe"
+          [value]="d.teamSimpleAveragePercent"
+          secondary="Sem pesos por membro"
+        />
+        <app-isep-kpi-card
+          label="Desvio Padrão"
+          [value]="d.teamStandardDeviationPercent"
+          [secondary]="d.teamStandardDeviationPercent !== null && d.teamStandardDeviationPercent > 15 ? '⚠️ Alta divergência de percepção' : 'Consenso adequado'"
+        />
+      </div>
+
+      <div class="dash-card mt-4">
+        <app-ai-explain-widget
+          [projectId]="projectId"
+          [questionnaireId]="questionnaireId"
+        />
+      </div>
+
+      <div class="dash-card mt-4">
+        <app-band-distribution-chart [distribution]="bandDistribution" />
+      </div>
+
+      @if (d.ethicsScorePercent !== null || d.processScorePercent !== null ||
+           d.fairnessScorePercent !== null || d.esgScorePercent !== null) {
+        <div class="dash-governance-row mt-4">
+          <div class="dash-card">
+            <app-governance-dimensions-chart
+              [dimensions]="{
+                ethicsScorePercent: d.ethicsScorePercent,
+                processScorePercent: d.processScorePercent,
+                fairnessScorePercent: d.fairnessScorePercent,
+                esgScorePercent: d.esgScorePercent
+              }"
+            />
+          </div>
+          <div class="dash-card">
+            <app-debt-indicators-widget
+              [ethicsDebtPercent]="d.ethicsDebtPercent"
+              [techDebtPercent]="d.techDebtPercent"
+            />
+          </div>
+        </div>
+      }
+
+      @if (roleStageData().length) {
+        <div class="dash-card mt-4">
+          <app-role-stage-heatmap [roleStageData]="roleStageData()" />
+        </div>
+        <div class="dash-card mt-4">
+          <app-role-stage-bar-chart [roleStageData]="roleStageData()" />
+        </div>
+      }
+
+      @if (wordCloud(); as wc) {
+        @if (wc.topWords.length) {
+          <div class="dash-card mt-4">
+            <app-category-word-cloud-widget
+              [topWords]="wc.topWords"
+              [totalJustifications]="wc.totalJustifications"
+              [categoryWordFrequency]="wc.categoryWordFrequency ?? {}"
+            />
+          </div>
+        }
+        @if (wc.topThemeInsights && objectKeys(wc.topThemeInsights).length > 0) {
+          <div class="dash-card mt-4">
+            <app-governance-insights-widget
+              [topThemeInsights]="wc.topThemeInsights"
+            />
+          </div>
+        }
+      }
+
+      <div class="dash-card mt-4">
+        <app-ai-insights-widget
+          [projectId]="projectId"
+          [questionnaireId]="questionnaireId"
+        />
+      </div>
+
+      <div class="dash-card mt-4">
+        <app-ai-risk-report-widget
+          [projectId]="projectId"
+          [questionnaireId]="questionnaireId"
+        />
+      </div>
+
+      @if (d.memberResults.length) {
+        <div class="dash-card mt-4">
+          <h2 class="dash-section-title">Resultados por Membro</h2>
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th>Membro</th>
+                <th>ICP (%)</th>
+                <th>Faixa</th>
+                <th class="text-center">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (m of d.memberResults; track m.representativeName) {
+                <tr>
+                  <td>{{ m.representativeName }}</td>
+                  <td>{{ m.icpPercent | number:'1.2-2' }}%</td>
+                  <td><app-band-badge [band]="m.band" /></td>
+                  <td class="text-center">
+                    <button class="dash-link" (click)="viewMemberResponses(m.representativeId, m.representativeName)">
+                      Ver Respostas →
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      @if (d.justificationTexts.length) {
+        <div class="dash-card mt-4">
+          <h2 class="dash-section-title">Justificativas Registradas</h2>
+          <ul class="list-group list-group-flush">
+            @for (j of d.justificationTexts; track j) {
+              <li class="list-group-item">{{ j }}</li>
+            }
+          </ul>
+        </div>
+      }
+
+    </div>
+
+    <app-ai-chat-widget
+      [projectId]="projectId"
+      [questionnaireId]="questionnaireId"
+    />
+  } @else {
+    <div class="dash-page">
+      <div class="dash-header">
+        <div>
+          <h1 class="dash-title">Dashboard do Questionário</h1>
+        </div>
+      </div>
+
+      @if (loadError()) {
+        <div class="dash-card mt-4">
+          <div class="d-flex flex-column align-items-center py-5 text-center">
+            <i class="bi bi-exclamation-triangle text-warning" style="font-size: 2.5rem"></i>
+            <h3 class="mt-3 mb-2" style="font-weight: 600">ISEP ainda não calculado</h3>
+            <p class="text-muted mb-4" style="max-width: 480px">
+              O dashboard só estará disponível após o questionário ser encerrado e o ISEP calculado.
+              Verifique se todos os respondentes concluíram ou force o encerramento.
+            </p>
+            <button class="dash-btn dash-btn--neutral" (click)="load()">
+              <i class="bi bi-arrow-clockwise"></i> Tentar novamente
+            </button>
+          </div>
+        </div>
+      }
+
+      @if (roleStageData().length) {
+        <div class="dash-card mt-4">
+          <app-role-stage-heatmap [roleStageData]="roleStageData()" />
+        </div>
+        <div class="dash-card mt-4">
+          <app-role-stage-bar-chart [roleStageData]="roleStageData()" />
+        </div>
+      }
+
+      @if (wordCloud(); as wc) {
+        @if (wc.topWords.length) {
+          <div class="dash-card mt-4">
+            <app-category-word-cloud-widget
+              [topWords]="wc.topWords"
+              [totalJustifications]="wc.totalJustifications"
+              [categoryWordFrequency]="wc.categoryWordFrequency ?? {}"
+            />
+          </div>
+        }
+      }
+    </div>
+  }
+} @else {
+  <div class="d-flex justify-content-center align-items-center py-5">
+    <div class="spinner-border text-primary"></div>
+    <span class="ms-3 text-muted">Carregando dashboard...</span>
+  </div>
+}

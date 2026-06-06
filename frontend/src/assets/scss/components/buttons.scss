@@ -116,6 +116,30 @@ button:disabled,
 	--bs-btn-active-border-color: color.adjust($button-bg, $lightness: -6%);
 }
 
+.btn-danger.btn-danger {
+	background-color: $red;
+	color: $white;
+	border-color: $red;
+
+	&:hover,
+	&:active,
+	&:focus {
+		background-color: color.adjust($red, $lightness: -8%);
+		border-color: $red;
+		color: $white;
+	}
+
+	--bs-btn-active-bg: $red;
+	--bs-btn-active-border-color: $red;
+
+	--bs-btn-disabled-bg: $gray-secundary;
+	--bs-btn-disabled-border-color: $gray-secundary;
+
+	&.btn-icon img {
+		filter: brightness(0) invert(1);
+	}
+}
+
 .btn-icon.btn-icon {
 	width: 3rem;
 

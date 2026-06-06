@@ -10,7 +10,6 @@ public class QuestionnaireAnswerRequestDTO {
     @NotNull
     private Long questionId;
 
-    @NotNull
     private Boolean response;
 
     private LinkDTO justification;

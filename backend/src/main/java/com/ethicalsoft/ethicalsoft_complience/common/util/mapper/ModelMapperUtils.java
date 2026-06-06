@@ -129,9 +129,6 @@ public class ModelMapperUtils {
 		return modelMapperDynamic.map( source, genericType );
 	}
 
-	/**
-	 * Prevents {@code LazyInitializationException} by skipping LAZY fields if not initialized.
-	 */
 	public static void removeMappingsIfLazyIsNotInitialized( ModelMapper modelMapper ) {
 		modelMapper.getConfiguration().setPropertyCondition( context -> !( context.getSource() instanceof PersistentCollection p ) || p.wasInitialized() );
 	}
@@ -178,83 +175,57 @@ public class ModelMapperUtils {
     }
 
 	/**
-	 * Encontra o campo anotado com @Id (inclusive em superclasses) e retorna seu valor.
-	 * <p>
-	 * <b>Refatoração:</b> Corrigida a lógica de busca na superclasse.
+	 * Encontra o campo anotado com @Id (inclusive em superclasses) e retorna seu valor como Long.
 	 */
 	public static <T> Long getIdValue( T entity ) {
-		if ( entity == null ) {
-			return null;
-		}
-
-		PropertyAccessor accessor = getEntityAccessor( entity );
-		Class<?> currentClass = entity.getClass();
-
-		while ( currentClass != null && currentClass != Object.class ) {
-			for ( Field field : currentClass.getDeclaredFields() ) {
-				if ( hasIdAnnotation( field ) ) {
-					return ( Long ) accessor.getPropertyValue( field.getName() );
-				}
-			}
-			currentClass = currentClass.getSuperclass();
-		}
-		return null;
+		return readIdField( entity, Long.class );
 	}
 
 	/**
-	 * Encontra o campo anotado com @Id (inclusive em superclasses) e retorna seu valor.
+	 * Encontra o campo anotado com @Id (inclusive em superclasses) e retorna seu valor como String.
 	 */
 	public static <T> String getStringIdValue( T entity ) {
-		if ( entity == null ) {
-			return null;
-		}
-
-		PropertyAccessor accessor = getEntityAccessor( entity );
-		Class<?> currentClass = entity.getClass();
-
-		while ( currentClass != null && currentClass != Object.class ) {
-			for ( Field field : currentClass.getDeclaredFields() ) {
-				if ( hasIdAnnotation( field ) ) {
-					return ( String ) accessor.getPropertyValue( field.getName() );
-				}
-			}
-			currentClass = currentClass.getSuperclass();
-		}
-		return null;
+		return readIdField( entity, String.class );
 	}
 
 	/**
 	 * Cria uma nova instância da entidade e define seu valor de @Id (Long).
-	 * 1. Corrigida a lógica de busca na superclasse.
-	 * 2. Lança {@code IllegalStateException} em vez de {@code e.printStackTrace()}.
-	 * 3. Usa <b>String Templates (STR)</b> para a mensagem de exceção.
 	 */
 	public static <T> T setIdValue( Class<T> clazz, Long id ) {
-		try {
-			T entity = clazz.getDeclaredConstructor().newInstance();
-			Class<?> currentClass = clazz;
-
-			while ( currentClass != null && currentClass != Object.class ) {
-				for ( Field field : currentClass.getDeclaredFields() ) {
-					if ( hasIdAnnotation( field ) ) {
-						ReflectionUtils.makeAccessible( field );
-						ReflectionUtils.setField( field, entity, id );
-						return entity;
-					}
-				}
-				currentClass = currentClass.getSuperclass();
-			}
-			throw new IllegalArgumentException( "Nenhum campo @Id encontrado na classe " + clazz.getName() + " ou superclasses." );
-
-		} catch ( ReflectiveOperationException | IllegalArgumentException | SecurityException e ) {
-			throw new IllegalStateException( "Não foi possível instanciar ou definir o ID para a entidade " + clazz.getSimpleName(), e );
-		}
+		return writeIdField( clazz, id );
 	}
 
 	/**
 	 * Cria uma nova instância da entidade e define seu valor de @Id (String).
 	 */
 	public static <T> T setStringIdValue( Class<T> clazz, String id ) {
+		return writeIdField( clazz, id );
+	}
+
+	/**
+	 * Implementação genérica: lê o campo anotado com {@code @Id} e faz cast para {@code idType}.
+	 */
+	private static <T, R> R readIdField( T entity, Class<R> idType ) {
+		if ( entity == null ) {
+			return null;
+		}
+		PropertyAccessor accessor = getEntityAccessor( entity );
+		Class<?> currentClass = entity.getClass();
+		while ( currentClass != null && currentClass != Object.class ) {
+			for ( Field field : currentClass.getDeclaredFields() ) {
+				if ( hasIdAnnotation( field ) ) {
+					return idType.cast( accessor.getPropertyValue( field.getName() ) );
+				}
+			}
+			currentClass = currentClass.getSuperclass();
+		}
+		return null;
+	}
+
+	/**
+	 * Implementação genérica: instancia {@code clazz} e injeta {@code id} no campo anotado com {@code @Id}.
+	 */
+	private static <T, ID> T writeIdField( Class<T> clazz, ID id ) {
 		try {
 			T entity = clazz.getDeclaredConstructor().newInstance();
 			Class<?> currentClass = clazz;

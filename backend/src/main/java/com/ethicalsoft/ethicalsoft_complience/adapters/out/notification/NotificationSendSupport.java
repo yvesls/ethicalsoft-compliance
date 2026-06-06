@@ -32,12 +32,18 @@ public class NotificationSendSupport {
     }
 
     public void validateCanSend(NotificationTemplate template) {
-        var currentUser = currentUserPort.getCurrentUser();
-        authorizationPolicy.validateCanSend(
-                template.whoCanSend(),
-                currentUser != null ? currentUser.getRole() : null,
-                currentUser != null && currentUser.getRole() != null ? List.of(currentUser.getRole().name()) : List.of()
-        );
+        try {
+            var currentUser = currentUserPort.getCurrentUser();
+            authorizationPolicy.validateCanSend(
+                    template.whoCanSend(),
+                    currentUser != null ? currentUser.getRole() : null,
+                    currentUser != null && currentUser.getRole() != null ? List.of(currentUser.getRole().name()) : List.of()
+            );
+        } catch (SecurityException | org.springframework.security.core.AuthenticationException ex) {
+            if (!template.whoCanSend().contains("SYSTEM")) {
+                throw ex;
+            }
+        }
     }
 
     public void validateCanSend(NotificationTemplate template, User currentUser) {
@@ -49,14 +55,19 @@ public class NotificationSendSupport {
     }
 
     public SenderData buildSender(Long projectId) {
-        var currentUser = currentUserPort.getCurrentUser();
-        if (currentUser == null) {
-            return new SenderData(null, null, null, List.of());
+        try {
+            var currentUser = currentUserPort.getCurrentUser();
+            if (currentUser == null) {
+                return new SenderData(null, "Sistema", null, List.of());
+            }
+            String fullName = String.format("%s %s", Optional.ofNullable(currentUser.getFirstName()).orElse(""),
+                    Optional.ofNullable(currentUser.getLastName()).orElse("")).trim();
+            List<String> roles = notificationRoleResolver.resolveRoles(currentUser.getEmail(), projectId);
+            return new SenderData(currentUser.getId(), fullName.isBlank() ? null : fullName, currentUser.getEmail(), roles);
+        } catch (SecurityException | org.springframework.security.core.AuthenticationException ex) {
+            // No authenticated user in scheduler context — use system sender
+            return new SenderData(null, "Sistema", null, List.of());
         }
-        String fullName = String.format("%s %s", Optional.ofNullable(currentUser.getFirstName()).orElse(""),
-                Optional.ofNullable(currentUser.getLastName()).orElse("")).trim();
-        List<String> roles = notificationRoleResolver.resolveRoles(currentUser.getEmail(), projectId);
-        return new SenderData(currentUser.getId(), fullName.isBlank() ? null : fullName, currentUser.getEmail(), roles);
     }
 
     public SenderData buildSender(User currentUser, Long projectId) {

@@ -50,6 +50,32 @@
   }
 }
 
+.draft-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-radius: $radius-default;
+  background-color: #fff8e1;
+  border: 1px solid #f9a825;
+  color: #5d4037;
+
+  &__icon {
+    font-size: 1.4rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  &__text {
+    font-size: 0.9rem;
+    line-height: 1.4;
+
+    strong {
+      font-weight: 600;
+    }
+  }
+}
+
 .status-chip {
   display: inline-flex;
   align-items: center;
@@ -104,6 +130,38 @@
     font-size: 1.1rem;
     font-weight: 600;
     color: $text-color;
+  }
+}
+
+.representative-roles {
+  background-color: $white;
+  border-radius: $radius-default;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: $box-shadow-primary;
+
+  h3 {
+    margin: 0 0 0.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: $blue-primary;
+  }
+
+  .role-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .role-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    background-color: $blue-primary;
+    color: $white;
   }
 }
 
@@ -212,11 +270,18 @@
     flex-wrap: wrap;
   }
 
+  &__left-column {
+    flex: 1 1 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-width: 0;
+  }
+
   &__meta {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 1rem;
-    flex: 1 1 280px;
 
     .meta-label {
       display: block;
@@ -293,6 +358,22 @@
         opacity: 0.7;
       }
     }
+
+    &--danger {
+      background-color: #c62828;
+      color: $white;
+      border-color: transparent;
+
+      &:hover {
+        background-color: color.adjust(#c62828, $lightness: -5%);
+      }
+
+      &:disabled {
+        background-color: $gray-secundary;
+        cursor: not-allowed;
+        opacity: 0.7;
+      }
+    }
   }
 }
 
@@ -345,9 +426,20 @@
   }
 }
 
-.respondent-list__hint {
+.respondent-list__toggle {
+  background: none;
+  border: none;
+  padding: 0.25rem 0;
   font-size: $text-xsm;
-  color: $gray-secundary;
+  color: $blue-primary;
+  cursor: pointer;
+  font-weight: 600;
+  text-align: left;
+  transition: color 0.2s ease;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 .progress-track {

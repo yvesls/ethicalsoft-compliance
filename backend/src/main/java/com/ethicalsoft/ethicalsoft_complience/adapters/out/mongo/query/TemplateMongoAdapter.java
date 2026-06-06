@@ -128,7 +128,9 @@ public class TemplateMongoAdapter implements TemplateQueryPort, TemplateCommandP
 
     private List<TemplateRepresentativeDTO> mapRepresentatives(Set<Representative> representatives) {
         if (representatives == null) return Collections.emptyList();
-        return representatives.stream().map(rep -> {
+        return representatives.stream()
+                .filter(rep -> rep.getDeletionDate() == null)
+                .map(rep -> {
             TemplateRepresentativeDTO dto = new TemplateRepresentativeDTO();
             dto.setWeight(rep.getWeight());
             if (rep.getUser() != null) {

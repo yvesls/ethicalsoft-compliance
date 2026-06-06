@@ -69,9 +69,7 @@ export class TemplateSelectorModalComponent implements OnInit {
     }
   }
 
-  importFromExternal(): void {
-    // Em desenvolvimento: importação de arquivo externo
-  }
+  importFromExternal(): void { /* empty */ }
 
   close(): void {
     this.modalService.close();

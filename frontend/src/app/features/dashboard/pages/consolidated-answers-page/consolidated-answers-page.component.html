@@ -1,0 +1,172 @@
+<div class="dash-page">
+  <div class="dash-header">
+    <div>
+      <h1 class="dash-title">{{ pageTitle }}</h1>
+      <span class="dash-sub">
+        @if (mode === 'questionnaire') {
+          Questionário #{{ questionnaireId }}
+        } @else {
+          Todas as respostas de todos os questionários
+        }
+      </span>
+    </div>
+  </div>
+
+  <app-filter-bar [formGroup]="filterForm" [gridTemplateColumns]="gridColumns" (filterSubmit)="onFilter()">
+    <ng-container filters>
+      <app-input
+        label="Buscar por pergunta"
+        placeholder="Texto da pergunta..."
+        [control]="filterForm.get('questionText')!"
+        [formControl]="$any(filterForm.get('questionText'))"
+      />
+
+      <app-input
+        label="ID Representante"
+        placeholder="Ex: 14"
+        [control]="filterForm.get('representativeId')!"
+        [formControl]="$any(filterForm.get('representativeId'))"
+      />
+
+      <app-select
+        label="Papel"
+        placeholder="Todos"
+        [options]="roleOptions()"
+        [allowClear]="true"
+        [control]="filterForm.get('roleId')!"
+        [formControl]="$any(filterForm.get('roleId'))"
+      />
+
+      <app-select
+        label="Resposta"
+        placeholder="Todos"
+        [options]="responseOptions"
+        [allowClear]="true"
+        [control]="filterForm.get('response')!"
+        [formControl]="$any(filterForm.get('response'))"
+      />
+
+      @if (mode === 'project' && filterForm.get('questionnaireId')) {
+        <app-input
+          label="ID Questionário"
+          placeholder="Ex: 13"
+          [control]="filterForm.get('questionnaireId')!"
+          [formControl]="$any(filterForm.get('questionnaireId'))"
+        />
+      }
+    </ng-container>
+
+    <ng-container actions>
+      <button type="submit" class="dash-btn dash-btn--neutral">
+        <i class="bi bi-search"></i> Filtrar
+      </button>
+      <button type="button" class="dash-btn dash-btn--neutral" (click)="clearFilters()">
+        <i class="bi bi-x-circle"></i> Limpar
+      </button>
+    </ng-container>
+  </app-filter-bar>
+
+  @if (loading()) {
+    <div class="d-flex justify-content-center align-items-center py-5">
+      <div class="spinner-border text-primary"></div>
+      <span class="ms-3 text-muted">Carregando respostas...</span>
+    </div>
+  } @else {
+    <div class="dash-card">
+      <div class="consolidated__summary">
+        <span class="text-muted">
+          {{ page().totalElements }} resposta{{ page().totalElements !== 1 ? 's' : '' }} encontrada{{ page().totalElements !== 1 ? 's' : '' }}
+        </span>
+      </div>
+
+      @if (uniqueMembers().length) {
+        <div class="dash-card mb-3">
+          <h2 class="dash-section-title">Membros</h2>
+          <div class="consolidated__members-grid">
+            @for (member of uniqueMembers(); track member.representativeId) {
+              <div class="consolidated__member-chip">
+                <span class="consolidated__member-name">{{ member.representativeId }} - {{ member.representativeName }}</span>
+                <button class="dash-link" (click)="viewMemberResponses(member)">
+                  Ver Respostas →
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      @if (page().content.length) {
+        <div class="table-responsive">
+          <table class="table table-hover align-middle consolidated__table">
+            <thead>
+              <tr>
+                <th>Representante</th>
+                <th>Papéis</th>
+                @if (mode === 'project') {
+                  <th>Questionário</th>
+                }
+                <th>Pergunta</th>
+                <th class="text-center">Resposta</th>
+                <th>Justificativa</th>
+                <th>Evidência</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of page().content; track $index) {
+                <tr>
+                  <td class="text-nowrap">{{ row.representativeId }} - {{ row.representativeName }}</td>
+                  <td>
+                    @for (role of row.roles; track role) {
+                      <span class="consolidated__role-tag">{{ role }}</span>
+                    }
+                  </td>
+                  @if (mode === 'project') {
+                    <td>#{{ row.questionnaireId }}</td>
+                  }
+                  <td class="consolidated__question-text">{{ row.questionText }}</td>
+                  <td class="text-center">
+                    <span class="response-badge" [class.response-badge--yes]="row.response" [class.response-badge--no]="!row.response">
+                      {{ row.response ? 'SIM' : 'NÃO' }}
+                    </span>
+                  </td>
+                  <td>
+                    @if (row.justification) {
+                      <span class="consolidated__text-wrap">{{ row.justification.descricao }}</span>
+                      @if (row.justification.url) {
+                        <a [href]="row.justification.url" target="_blank" rel="noopener" class="dash-link ms-1">Link</a>
+                      }
+                    } @else {
+                      <span class="text-muted">—</span>
+                    }
+                  </td>
+                  <td>
+                    @if (row.evidence) {
+                      <span class="consolidated__text-wrap">{{ row.evidence.descricao }}</span>
+                      @if (row.evidence.url) {
+                        <a [href]="row.evidence.url" target="_blank" rel="noopener" class="dash-link ms-1">Link</a>
+                      }
+                    } @else {
+                      <span class="text-muted">—</span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <app-pagination
+          [currentPage]="currentPage()"
+          [totalItems]="page().totalElements"
+          [pageSize]="pageSize"
+          (pageChange)="onPageChange($event)"
+        />
+      } @else {
+        <div class="text-center text-muted py-5">
+          <i class="bi bi-inbox" style="font-size: 2rem"></i>
+          <p class="mt-2">Nenhuma resposta encontrada com os filtros aplicados.</p>
+        </div>
+      }
+    </div>
+  }
+</div>

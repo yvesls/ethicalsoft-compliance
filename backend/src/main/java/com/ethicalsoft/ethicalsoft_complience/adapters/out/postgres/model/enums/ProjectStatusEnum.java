@@ -7,7 +7,8 @@ public enum ProjectStatusEnum {
 	ABERTO( "Aberto" ),
 	CONCLUIDO( "Concluído" ),
 	RASCUNHO( "Rascunho" ),
-	ARQUIVADO( "Arquivado" );
+	ARQUIVADO( "Arquivado" ),
+	EXCLUIDO( "Excluído" );
 
 	private final String value;
 

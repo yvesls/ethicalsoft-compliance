@@ -1,0 +1,104 @@
+<button
+  class="ai-chat-fab"
+  [class.ai-chat-fab--open]="isOpen()"
+  [attr.aria-label]="isOpen() ? 'Fechar assistente IA' : 'Abrir assistente IA'"
+  (click)="toggle()"
+>
+  @if (isOpen()) {
+    <i class="bi bi-x-lg"></i>
+  } @else {
+    <i class="bi bi-chat-dots"></i>
+  }
+</button>
+
+@if (isOpen()) {
+  <div class="ai-chat">
+    <div class="ai-chat__header">
+      <div class="ai-chat__header-title">
+        <i class="bi bi-robot"></i>
+        <span>Assistente IA</span>
+      </div>
+      <div class="ai-chat__header-actions">
+        @if (messages().length > 0) {
+          <button
+            class="ai-chat__header-btn"
+            title="Limpar conversa"
+            aria-label="Limpar conversa"
+            (click)="clearChat()"
+          >
+            <i class="bi bi-trash3"></i>
+          </button>
+        }
+        <button
+          class="ai-chat__header-btn"
+          title="Fechar"
+          aria-label="Fechar assistente IA"
+          (click)="close()"
+        >
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="ai-chat__messages" #messagesContainer>
+      @if (messages().length === 0) {
+        <div class="ai-chat__welcome">
+          <i class="bi bi-stars"></i>
+          <h4>Pergunte à IA sobre os dados ISEP</h4>
+          <p>Faça perguntas sobre resultados, membros, domínios ou justificativas.</p>
+          <div class="ai-chat__suggestions">
+            @for (q of suggestedQuestions; track q) {
+              <button class="ai-chat__suggestion" (click)="sendMessage(q)" [attr.aria-label]="'Perguntar: ' + q">
+                {{ q }}
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      @for (msg of messages(); track $index) {
+        <div class="ai-chat__msg" [class]="'ai-chat__msg--' + msg.role">
+          @if (msg.role === 'user') {
+            <div class="ai-chat__msg-bubble ai-chat__msg-bubble--user">
+              {{ msg.content }}
+            </div>
+          } @else {
+            <div class="ai-chat__msg-bubble ai-chat__msg-bubble--assistant ai-markdown" [innerHTML]="msg.content | markdown"></div>
+          }
+        </div>
+      }
+
+      @if (streaming()) {
+        <div class="ai-chat__typing">
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        </div>
+      }
+    </div>
+
+    <div class="ai-chat__input-area">
+      @if (streaming()) {
+        <button class="ai-chat__stop-btn" aria-label="Parar geração" (click)="cancelStream()">
+          <i class="bi bi-stop-circle"></i> Parar
+        </button>
+      }
+      <div class="ai-chat__input-row">
+        <input
+          type="text"
+          class="ai-chat__input"
+          [(ngModel)]="currentInput"
+          (keydown)="onKeydown($event)"
+          placeholder="Faça uma pergunta..."
+          [disabled]="streaming()"
+        />
+        <button
+          class="ai-chat__send-btn"
+          aria-label="Enviar mensagem"
+          (click)="sendMessage()"
+          [disabled]="!currentInput.trim() || streaming()"
+        >
+          <i class="bi bi-send"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+}

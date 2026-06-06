@@ -47,9 +47,18 @@ public class AddRepresentativeUseCase {
 
     @Transactional
     public Set<Representative> execute(Project project, Set<RepresentativeDTO> repDTOs) {
+        return doExecute(project, repDTOs, false);
+    }
+
+    @Transactional
+    public Set<Representative> executeDraft(Project project, Set<RepresentativeDTO> repDTOs) {
+        return doExecute(project, repDTOs, true);
+    }
+
+    private Set<Representative> doExecute(Project project, Set<RepresentativeDTO> repDTOs, boolean draft) {
         try {
-            log.info("[usecase-add-representative] Adicionando representantes para projeto id={} quantidade={}",
-                    project != null ? project.getId() : null, repDTOs != null ? repDTOs.size() : 0);
+            log.info("[usecase-add-representative] Adicionando representantes para projeto id={} quantidade={} draft={}",
+                    project != null ? project.getId() : null, repDTOs != null ? repDTOs.size() : 0, draft);
 
             if (ObjectUtils.isNullOrEmpty(repDTOs)) {
                 return new HashSet<>();
@@ -62,7 +71,7 @@ public class AddRepresentativeUseCase {
             User currentAdmin = currentUserPort.getCurrentUser();
 
             Set<Representative> representatives = repDTOs.stream()
-                    .map(dto -> processRepresentative(dto, project, resolvedRoles, currentAdmin))
+                    .map(dto -> processRepresentative(dto, project, resolvedRoles, currentAdmin, draft))
                     .collect(Collectors.toSet());
 
             log.info("[usecase-add-representative] {} representantes vinculados ao projeto id={}", representatives.size(), project.getId());
@@ -91,7 +100,7 @@ public class AddRepresentativeUseCase {
         return roles;
     }
 
-    private Representative processRepresentative(RepresentativeDTO dto, Project project, Map<Long, Role> resolvedRoles, User currentAdmin) {
+    private Representative processRepresentative(RepresentativeDTO dto, Project project, Map<Long, Role> resolvedRoles, User currentAdmin, boolean draft) {
         UserResolutionPolicy.UserResolutionResult resolution = userResolutionPolicy.resolveOrCreateUser(dto);
         Set<Role> roles = roleMappingPolicy.mapRoles(dto.getRoleIds(), resolvedRoles);
 
@@ -104,7 +113,9 @@ public class AddRepresentativeUseCase {
 
         representativeRepository.save(rep);
 
-        notifyUser(resolution, rep, project, currentAdmin);
+        if (!draft) {
+            notifyUser(resolution, rep, project, currentAdmin);
+        }
 
         return rep;
     }
@@ -115,7 +126,7 @@ public class AddRepresentativeUseCase {
                 Map<String, Object> ctx = new java.util.HashMap<>();
                 ctx.put("to", rep.getUser().getEmail());
                 ctx.put("firstName", Optional.ofNullable(rep.getUser().getFirstName()).orElse(""));
-                ctx.put("tempPassword", Optional.ofNullable(tempPassword).orElse(""));
+                ctx.put("tempPassword", Optional.of(tempPassword).orElse(""));
                 ctx.put("projectName", Optional.ofNullable(rep.getProject()).map(Project::getName).orElse(""));
                 ctx.put("adminName", Optional.ofNullable(currentAdmin.getFirstName()).orElse("") + " " + Optional.ofNullable(currentAdmin.getLastName()).orElse(""));
                 ctx.put("projectId", Optional.ofNullable(rep.getProject()).map(Project::getId).orElse(null));
@@ -130,7 +141,7 @@ public class AddRepresentativeUseCase {
             ctx.put("to", rep.getUser().getEmail());
             ctx.put("firstName", Optional.ofNullable(rep.getUser().getFirstName()).orElse(""));
             ctx.put("projectName", Optional.ofNullable(project.getName()).orElse(""));
-            ctx.put("projectId", Optional.ofNullable(project.getId()).orElse(null));
+            ctx.put("projectId", project.getId());
             ctx.put("adminName", Optional.ofNullable(currentAdmin.getFirstName()).orElse("") + " " + Optional.ofNullable(currentAdmin.getLastName()).orElse(""));
             ctx.put("adminEmail", Optional.ofNullable(currentAdmin.getEmail()).orElse(""));
             ctx.put("roles", Optional.ofNullable(rep.getRoles()).orElse(Set.of()).stream().map(Role::getName).toList());

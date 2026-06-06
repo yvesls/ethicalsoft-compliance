@@ -24,6 +24,7 @@ public class UserQueryAdapter implements UserQueryPort {
     public Page<UserDTO> findAll(Pageable pageable) {
         try {
             log.info("[user] Listando usuários página={} tamanho={}", pageable != null ? pageable.getPageNumber() : null, pageable != null ? pageable.getPageSize() : null);
+            assert pageable != null;
             Page<UserDTO> page = userRepository.findAll(pageable).map(user -> modelMapper.map(user, UserDTO.class));
             log.info("[user] Página retornou {} registros", page.getNumberOfElements());
             return page;

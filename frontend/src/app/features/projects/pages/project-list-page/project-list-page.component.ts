@@ -43,6 +43,7 @@ import { ListComponent } from '../../../../shared/components/list/list.component
 import { ListItemComponent } from '../../../../shared/components/list-item/list-item.component';
 import { ModalService } from '../../../../core/services/modal.service';
 import { AuthenticationService } from '../../../../core/services/authentication.service';
+
 import { RoleEnum } from '../../../../shared/enums/role.enum';
 
 const getEnumKeys = (enumObject: Record<string, string | number>): string[] =>
@@ -124,6 +125,7 @@ export class ProjectListPageComponent implements OnInit {
     [ProjectStatus.Rascunho]: 'assets/icons/status-rascunho.svg',
     [ProjectStatus.Concluido]: 'assets/icons/status-concluido.svg',
     [ProjectStatus.Arquivado]: 'assets/icons/status-arquivado.svg',
+    [ProjectStatus.Excluido]: 'assets/icons/trash.svg',
   };
 
   constructor() {
@@ -139,7 +141,9 @@ export class ProjectListPageComponent implements OnInit {
       label: key
     }));
 
-    this.projectStatusOptions = this.projectStatuses.map(key => ({
+    this.projectStatusOptions = this.projectStatuses
+      .filter(key => key !== ProjectStatus.Excluido)
+      .map(key => ({
       value: key,
       label: key
     }));

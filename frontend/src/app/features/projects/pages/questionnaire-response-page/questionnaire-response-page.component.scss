@@ -6,7 +6,7 @@
   flex-direction: column;
   gap: 1.5rem;
   padding: 1.5rem 2rem;
-  background-color: $gray-quaternary;
+  background-color: $gray-tertiary;
 
   .page-state {
     padding: 2rem;
@@ -247,6 +247,11 @@
   input:disabled ~ span {
     color: $gray-secundary;
   }
+
+  &--active input:disabled + span,
+  &--active input:disabled ~ span {
+    color: $white;
+  }
 }
 
 .attachment-title {
@@ -304,11 +309,6 @@
   border: 1px dashed rgba(0, 0, 0, 0.1);
   border-radius: $radius-default;
   color: $gray-secundary;
-}
-
-.pagination-wrapper {
-  display: flex;
-  justify-content: center;
 }
 
 .page-footer {

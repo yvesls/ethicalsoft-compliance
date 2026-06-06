@@ -1,0 +1,212 @@
+@use '../base/vars' as *;
+@use '../base/spacing' as *;
+
+// --- Layout base ---
+
+.dash-page {
+	padding: var(--spacing-r-3xl);
+}
+
+// --- Cabecalho ---
+
+.dash-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	flex-wrap: wrap;
+	gap: var(--spacing-r-xl);
+	margin-bottom: var(--spacing-r-3xl);
+}
+
+.dash-title {
+	font-size: 1.6rem;
+	font-weight: 700;
+	margin: 0;
+	color: $blue-primary;
+}
+
+.dash-sub {
+	font-size: 0.875rem;
+	color: $neutral-text-light;
+	margin-top: var(--spacing-r-xs);
+}
+
+.dash-actions {
+	display: flex;
+	gap: var(--spacing-r-md);
+	flex-wrap: wrap;
+	align-items: center;
+	padding-right: var(--spacing-r-xl);
+}
+
+// --- Grade de KPIs ---
+
+.kpi-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+	gap: var(--spacing-r-xl);
+}
+
+// --- Linha Dimensoes de Governanca + Indicadores de Divida ---
+
+.dash-governance-row {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: var(--spacing-r-xl);
+
+	@media (max-width: 768px) {
+		grid-template-columns: 1fr;
+	}
+}
+
+// --- Cards genericos (grafico / historico) ---
+
+.dash-card {
+	background: $white;
+	border-radius: $radius-default;
+	padding: var(--spacing-r-xxl) var(--spacing-r-3xl);
+	box-shadow: $box-shadow-primary;
+}
+
+// --- Titulos de secao dentro de cards ---
+
+.dash-section-title {
+	font-size: 1rem;
+	font-weight: 700;
+	margin-bottom: var(--spacing-r-xl);
+	color: $neutral-text;
+}
+
+// --- KPI Card ---
+
+.kpi-card {
+	background: $white;
+	border-radius: $radius-default;
+	padding: var(--spacing-r-xxl) var(--spacing-r-3xl);
+	box-shadow: $box-shadow-primary;
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-r-md);
+
+	.kpi-label {
+		font-size: 0.75rem;
+		color: $neutral-text-light;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		margin: 0;
+	}
+
+	.kpi-value {
+		font-size: 2rem;
+		font-weight: 700;
+		margin: 0;
+		color: $blue-primary;
+
+		&--empty {
+			color: $gray-quinary;
+		}
+	}
+
+	.kpi-secondary {
+		font-size: 0.8rem;
+		color: $neutral-text-light;
+		margin: 0;
+	}
+}
+
+// --- Botoes de acao do dashboard ---
+
+.dash-btn.dash-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	font-size: 0.85rem;
+	font-weight: 600;
+	padding: 0.35rem 0.85rem;
+	border-radius: $radius-default;
+	border: 1.5px solid;
+	background: transparent;
+	cursor: pointer;
+	transition: $transition-default;
+	line-height: 1.4;
+	height: auto;
+	min-height: auto;
+	box-shadow: none;
+
+	&:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	&.dash-btn--neutral {
+		border-color: $gray-primary;
+		color: $gray-secundary;
+
+		&:hover:not(:disabled) {
+			background-color: $gray-tertiary;
+			border-color: $gray-secundary;
+			color: $neutral-text;
+		}
+	}
+
+	&.dash-btn--danger {
+		border-color: $red;
+		color: $red;
+
+		&:hover:not(:disabled) {
+			background-color: $red;
+			color: $white;
+		}
+	}
+}
+
+// --- Links de navegacao do dashboard ---
+
+.dash-link.dash-link {
+	background: none;
+	border: none;
+	padding: 0;
+	cursor: pointer;
+	font-size: 0.875rem;
+	font-weight: 600;
+	color: $blue-secundary;
+	text-decoration: none;
+	transition: $transition-default;
+	display: inline-flex;
+	align-items: center;
+	gap: 0.25rem;
+	height: auto;
+	min-height: auto;
+	box-shadow: none;
+
+	&:hover {
+		color: $blue-primary;
+		text-decoration: underline;
+	}
+
+	&.dash-link--back {
+		margin-bottom: var(--spacing-r-md);
+	}
+}
+// --- Badge de resposta (Sim / Não) ---
+
+.response-badge {
+	display: inline-block;
+	font-size: 0.75rem;
+	font-weight: 700;
+	padding: 0.2rem 0.65rem;
+	border-radius: $radius-pill;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+
+	&--yes {
+		background: $semantic-green-bg;
+		color: $semantic-green;
+	}
+
+	&--no {
+		background: $semantic-red-bg-light;
+		color: $red;
+	}
+}

@@ -54,4 +54,35 @@ export class QuestionnaireQueryStore extends BaseStore {
       ...params
     );
   }
+
+  listAllQuestions(
+    projectId: string,
+    questionnaireId: number,
+    page: number,
+    size: number,
+    questionText?: string | null,
+    roleName?: string | null
+  ): Observable<Page<QuestionnaireQuestionResponse>> {
+    const options: RequestInputOptions = {
+      useAuth: true,
+    };
+
+    const params: UrlParameter[] = [
+      { key: 'page', value: page },
+      { key: 'size', value: size },
+    ];
+
+    if (questionText) {
+      params.push({ key: 'questionText', value: questionText });
+    }
+    if (roleName) {
+      params.push({ key: 'roleName', value: roleName });
+    }
+
+    return this.requestService.makeGet<Page<QuestionnaireQuestionResponse>>(
+      this.getUrl(`${projectId}/questionnaires/${questionnaireId}/questions/all`),
+      options,
+      ...params
+    );
+  }
 }

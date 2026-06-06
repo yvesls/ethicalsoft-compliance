@@ -66,8 +66,7 @@ export class SettingsResetPasswordComponent implements OnInit {
 	readonly passwordValidationMessages = {
 		required: 'Informe a nova senha',
 		minlength: 'A senha deve ter pelo menos 8 caracteres',
-		weakPassword:
-			'A senha precisa ter letras maiúsculas, minúsculas, números e caracteres especiais',
+		weakPassword: 'A senha precisa ter letras maiúsculas, minúsculas, números e caracteres especiais',
 	}
 
 	readonly confirmPasswordValidationMessages = {
@@ -135,7 +134,10 @@ export class SettingsResetPasswordComponent implements OnInit {
 						confirmPassword: '',
 						acceptedTerms: false,
 					})
-					this.routerService.navigateTo('/settings')
+					this.authenticationService.refreshToken().subscribe({
+						complete: () => { void this.routerService.navigateTo('/settings') },
+						error: () => { void this.routerService.navigateTo('/settings') },
+					})
 				},
 				error: (error: unknown) => {
 					if (!this.isInvalidCurrentPasswordError(error)) {

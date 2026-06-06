@@ -2,6 +2,7 @@ package com.ethicalsoft.ethicalsoft_complience.application.usecase.project;
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Project;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Representative;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Role;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.ProjectCreationRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.ProjectResponseDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.ProjectStatusEnum;
@@ -37,6 +38,8 @@ public class CreateProjectUseCase implements ProjectCommandPort {
     private final SendNotificationUseCase sendNotificationUseCase;
     private final QuestionnaireRepository questionnaireRepository;
     private final RepresentativeQuestionnaireResponseCommandPort representativeQuestionnaireResponseCommandPort;
+    private final UpdateDraftProjectUseCase updateDraftProjectUseCase;
+    private final PublishDraftProjectUseCase publishDraftProjectUseCase;
 
     private final Map<ProjectTypeEnum, ProjectCreationStrategy> strategyMap = new EnumMap<>(ProjectTypeEnum.class);
 
@@ -47,7 +50,9 @@ public class CreateProjectUseCase implements ProjectCommandPort {
                                List<ProjectCreationStrategy> creationStrategies,
                                SendNotificationUseCase sendNotificationUseCase,
                                QuestionnaireRepository questionnaireRepository,
-                               RepresentativeQuestionnaireResponseCommandPort representativeQuestionnaireResponseCommandPort) {
+                               RepresentativeQuestionnaireResponseCommandPort representativeQuestionnaireResponseCommandPort,
+                               UpdateDraftProjectUseCase updateDraftProjectUseCase,
+                               PublishDraftProjectUseCase publishDraftProjectUseCase) {
         this.projectRepository = projectRepository;
         this.currentUserPort = currentUserPort;
         this.projectTimelineStatusPolicy = projectTimelineStatusPolicy;
@@ -55,6 +60,8 @@ public class CreateProjectUseCase implements ProjectCommandPort {
         this.sendNotificationUseCase = sendNotificationUseCase;
         this.questionnaireRepository = questionnaireRepository;
         this.representativeQuestionnaireResponseCommandPort = representativeQuestionnaireResponseCommandPort;
+        this.updateDraftProjectUseCase = updateDraftProjectUseCase;
+        this.publishDraftProjectUseCase = publishDraftProjectUseCase;
 
         if (creationStrategies != null) {
             creationStrategies.forEach(strategy -> this.strategyMap.put(strategy.getType(), strategy));
@@ -65,41 +72,83 @@ public class CreateProjectUseCase implements ProjectCommandPort {
     @Transactional
     public ProjectResponseDTO createProject(ProjectCreationRequestDTO request) {
         try {
-            log.info("[usecase-create-project] Iniciando criação de projeto nome={} tipo={}", request.getName(), request.getType());
+            log.info("[usecase-create-project] Iniciando criação/atualização de projeto nome={} tipo={} status={} id={}",
+                    request.getName(), request.getType(), request.getStatus(), request.getId());
 
-            Project project = createProjectShell(request);
-            applyCreationStrategy(project, request);
+            boolean requestedStatusIsOpen = request.getStatus() == ProjectStatusEnum.ABERTO;
+            boolean requestedStatusIsDraft = request.getStatus() == null || request.getStatus() == ProjectStatusEnum.RASCUNHO;
 
-            var questionnaires = questionnaireRepository.findAllByProjectIdWithQuestions(project.getId()).stream().collect(Collectors.toSet());
-            project.setQuestionnaires(questionnaires);
-            project = refreshTimeline(project);
 
-            Set<Representative> representatives = addRepresentativeUseCase.execute(project, request.getRepresentatives());
+            if (request.getId() != null) {
+                return handleExistingDraft(request, requestedStatusIsOpen);
+            }
 
-            project.setRepresentatives(representatives);
-            validateRepresentativesRoles(project, representatives);
-            createResponsesForRepresentatives(project, representatives);
-            triggerInitialQuestionnaireReminders(project);
+            if (requestedStatusIsDraft) {
+                return createNewDraft(request);
+            }
 
-            return buildResponse(project, representatives, request);
+            return createAndPublish(request);
+
         } catch (Exception ex) {
-            log.error("[usecase-create-project] Falha ao criar projeto nome={}", request != null ? request.getName() : null, ex);
+            log.error("[usecase-create-project] Falha ao criar/atualizar projeto nome={}", request != null ? request.getName() : null, ex);
             throw ex;
         }
     }
 
-    private Project createProjectShell(ProjectCreationRequestDTO request) {
+    private ProjectResponseDTO handleExistingDraft(ProjectCreationRequestDTO request, boolean publish) {
+        Long projectId = request.getId();
+        log.info("[usecase-create-project] Projeto id={} já existe. Atualizando rascunho. publish={}", projectId, publish);
+
+        ProjectResponseDTO updated = updateDraftProjectUseCase.execute(projectId, request);
+
+        if (publish) {
+            log.info("[usecase-create-project] Publicando projeto rascunho id={}", projectId);
+            return publishDraftProjectUseCase.execute(projectId);
+        }
+
+        return updated;
+    }
+
+    private ProjectResponseDTO createNewDraft(ProjectCreationRequestDTO request) {
+        Project project = createProjectShell(request, ProjectStatusEnum.RASCUNHO);
+        applyCreationStrategy(project, request);
+
+        log.info("[usecase-create-project] Projeto salvo como RASCUNHO id={}", project.getId());
+
+        Set<Representative> representatives = addRepresentativeUseCase.executeDraft(project, request.getRepresentatives());
+        project.setRepresentatives(representatives);
+
+        return buildResponse(project, representatives, request);
+    }
+
+    private ProjectResponseDTO createAndPublish(ProjectCreationRequestDTO request) {
+        Project project = createProjectShell(request, ProjectStatusEnum.ABERTO);
+        applyCreationStrategy(project, request);
+
+        var questionnaires = new HashSet<>(questionnaireRepository.findAllByProjectIdWithQuestions(project.getId()));
+        project.setQuestionnaires(questionnaires);
+        project = refreshTimeline(project);
+
+        Set<Representative> representatives = addRepresentativeUseCase.execute(project, request.getRepresentatives());
+        project.setRepresentatives(representatives);
+
+        validateRepresentativesRoles(project, representatives);
+        createResponsesForRepresentatives(project, representatives);
+        triggerInitialQuestionnaireReminders(project);
+
+        return buildResponse(project, representatives, request);
+    }
+
+    private Project createProjectShell(ProjectCreationRequestDTO request, ProjectStatusEnum status) {
         Project project = ModelMapperUtils.map(request, Project.class);
+        project.setId(null);
         project.setOwner(currentUserPort.getCurrentUser());
         project.setType(ProjectTypeEnum.fromValue(request.getType()));
         project.setStages(new HashSet<>());
         project.setIterations(new HashSet<>());
         project.setRepresentatives(new HashSet<>());
         project.setQuestionnaires(new HashSet<>());
-
-        if (project.getStatus() == null) {
-            project.setStatus(ProjectStatusEnum.RASCUNHO);
-        }
+        project.setStatus(status);
         project.setTimelineStatus(TimelineStatusEnum.PENDENTE);
         project.setCurrentSituation(null);
 
@@ -124,6 +173,7 @@ public class CreateProjectUseCase implements ProjectCommandPort {
                 .id(project.getId())
                 .name(project.getName())
                 .type(project.getType().name())
+                .status(project.getStatus())
                 .startDate(project.getStartDate())
                 .timelineStatus(project.getTimelineStatus())
                 .currentSituation(project.getCurrentSituation())
@@ -167,7 +217,7 @@ public class CreateProjectUseCase implements ProjectCommandPort {
             Set<Long> representativeRoleIds = Optional.ofNullable(rep.getRoles())
                     .orElseGet(Set::of)
                     .stream()
-                    .map(role -> role.getId())
+                    .map(Role::getId)
                     .filter(Objects::nonNull)
                     .collect(Collectors.toSet());
             for (var questionnaire : project.getQuestionnaires()) {
@@ -175,7 +225,7 @@ public class CreateProjectUseCase implements ProjectCommandPort {
                         .orElseGet(Set::of)
                         .stream()
                         .flatMap(question -> Optional.ofNullable(question.getRoles()).orElseGet(Set::of).stream())
-                        .map(role -> role.getId())
+                        .map(Role::getId)
                         .filter(Objects::nonNull)
                         .anyMatch(representativeRoleIds::contains);
                 if (!hasMatchingRole) {

@@ -96,3 +96,32 @@ $box-shadow-primary: 1px 1px 3px rgba(0, 0, 0, 0.25);
 $box-shadow-secundary: 4px 4px 10px rgba(0, 0, 0, 0.25);
 
 $radius-default: 10px;
+$radius-sm: 6px;
+$radius-pill: 999px;
+
+/* ----- Semantic / Status Colors ----- */
+
+$semantic-green: #2e7d32;
+$semantic-green-bg: #e8f5e9;
+$semantic-yellow: #f57f17;
+$semantic-yellow-bg: #fff8e1;
+$semantic-orange: #e65100;
+$semantic-red-dark: #c62828;
+$semantic-red-bg: #ffebee;
+$semantic-red-bg-light: #fbe9e7;
+$semantic-blue: #1565c0;
+$semantic-blue-bg: #e3f2fd;
+
+/* ----- Gray extras ----- */
+
+$gray-muted: #9e9e9e;
+$gray-border: #e0e0e0;
+$gray-disabled: #bdbdbd;
+
+/* ----- Band Colors ----- */
+
+$band-a: $semantic-green;
+$band-b: $semantic-blue;
+$band-c: $semantic-yellow;
+$band-d: $semantic-orange;
+$band-e: $semantic-red-dark;

@@ -1,0 +1,44 @@
+# Compiled output
+target/
+
+# Spring Boot
+*.jar
+*.war
+*.ear
+*.nar
+
+# Logs
+*.log
+logs/
+
+# Maven
+.mvn/
+!.mvn/wrapper/maven-wrapper.jar
+!.mvn/wrapper/maven-wrapper.properties
+
+# IDE
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation (auto-generated, not to be committed)
+*.md
+
+# Scripts output
+*.tmp
+*.temp
+
+# Environment
+.env
+application-local.properties
+
+# JaCoCo
+jacoco.exec

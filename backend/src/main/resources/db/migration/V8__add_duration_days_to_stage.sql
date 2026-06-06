@@ -1,0 +1,2 @@
+ALTER TABLE stage ADD COLUMN IF NOT EXISTS duration_days INTEGER;
+

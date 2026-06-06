@@ -77,15 +77,36 @@
           <table class="custom-table">
             <thead>
               <tr>
-                <th class="w-40 text-start">Pergunta</th>
-                <th class="w-20 text-start">Etapas</th>
-                <th class="w-20 text-start">Papéis</th>
-                <th class="w-20 text-center">Ação</th>
+                @if (!isViewMode()) {
+                  <th class="text-center cell-checkbox">
+                    <input
+                      type="checkbox"
+                      [checked]="isAllSelected"
+                      (change)="toggleSelectAll()"
+                      title="Selecionar todas"
+                    />
+                  </th>
+                }
+                <th class="text-center">ID</th>
+                <th class="text-start">Pergunta</th>
+                <th class="text-start">Etapas</th>
+                <th class="text-start">Papéis</th>
+                <th class="text-center">Ação</th>
               </tr>
             </thead>
             <tbody>
               @for (question of filteredQuestions; track question.id) {
-                <tr>
+                <tr [class.row-selected]="isQuestionSelected(question.id!)">
+                  @if (!isViewMode()) {
+                    <td class="text-center cell-checkbox">
+                      <input
+                        type="checkbox"
+                        [checked]="isQuestionSelected(question.id!)"
+                        (change)="toggleQuestionSelection(question.id!)"
+                      />
+                    </td>
+                  }
+                  <td class="text-center cell-id">{{ question.id }}</td>
                   <td class="text-start">{{ question.value }}</td>
                   <td>
                     @let stageLabels = getStageLabels(question);
@@ -159,13 +180,22 @@
         </button>
         }
       </div>
-
-      <div class="panel-actions mt-4 pt-3 border-top">
-        <button type="button" class="btn btn-secondary me-2" (click)="onCancel()">Voltar</button>
-        @if (!isViewMode()) {
-          <button type="button" class="btn btn-primary" (click)="onSave()">Salvar</button>
-        }
-      </div>
     </div>
   </app-accordion-panel>
+
+  <footer class="page-footer">
+    <div class="footer-left">
+      @if (!isViewMode() && hasSelectedQuestions) {
+        <button type="button" class="btn btn-danger" (click)="deleteSelectedQuestions()">
+          Excluir selecionados ({{ selectedCount }})
+        </button>
+      }
+    </div>
+    <div class="footer-right">
+      <button type="button" class="btn btn-cancel mx-2" (click)="onCancel()">Voltar</button>
+      @if (!isViewMode()) {
+        <button type="button" class="btn btn-primary" (click)="onConfirmAndGoBack()">Confirmar</button>
+      }
+    </div>
+  </footer>
 </form>

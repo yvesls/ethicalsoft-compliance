@@ -25,4 +25,6 @@ public class QuestionnaireAnswerPageRequestDTO {
     @Valid
     @NotNull
     private List<QuestionnaireAnswerRequestDTO> answers;
+
+    private boolean draft;
 }

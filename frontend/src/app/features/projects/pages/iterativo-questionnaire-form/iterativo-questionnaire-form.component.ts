@@ -3,8 +3,10 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormsModule, Validators } from '@angular/forms';
 
 import { BasePageComponent, RestoreParams } from '../../../../core/abstractions/base-page.component';
+import { LoggerService } from '../../../../core/services/logger.service';
 import { ModalService } from '../../../../core/services/modal.service';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { ProjectType } from '../../../../shared/enums/project-type.enum';
 import { ActionType } from '../../../../shared/enums/action-type.enum';
 import { QuestionModalComponent, QuestionData, QuestionStageConfig } from '../../components/question-modal/question-modal.component';
 import { AccordionPanelComponent } from '../../../../shared/components/accordion-panel/accordion-panel.component';
@@ -33,7 +35,11 @@ interface IterativoQuestionnaireRouteParams extends GenericParams {
   questions?: QuestionData[];
   stages?: string[];
   returnTo?: string;
+  returnToEdit?: boolean;
+  editProjectId?: string;
 }
+
+const PENDING_QUESTIONNAIRE_UPDATE_KEY = 'pendingQuestionnaireUpdate';
 
 type IterativoQuestionnaireRestoreParams = RestoreParams<IterativoQuestionnaireRouteParams>;
 
@@ -78,6 +84,7 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
 
   searchTerm = '';
   selectedRole = '';
+  selectedQuestionIds = signal<Set<string>>(new Set());
 
   roleFilterOptions: SelectOption[] = [];
 
@@ -106,7 +113,11 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
     this.isViewMode.set(incomingMode === ActionType.VIEW);
     this.viewProjectId.set(typeof data.projectId === 'string' ? data.projectId : null);
     this.viewQuestionnaireId.set(typeof data.questionnaireId === 'number' ? data.questionnaireId : null);
-  this.returnTo = typeof data.returnTo === 'string' ? data.returnTo : null;
+  if (typeof data.returnTo === 'string') {
+      this.returnTo = data.returnTo;
+    } else if (data.returnToEdit && typeof data.editProjectId === 'string') {
+      this.returnTo = `/projects/${data.editProjectId}/edit`;
+    }
 
     this.questionnaireIndex = typeof data.questionnaireIndex === 'number' ? data.questionnaireIndex : null;
     this.questionnaireMetadata = data;
@@ -184,7 +195,7 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
     this.isLoadingQuestions.set(true);
 
     this.questionnaireQueryStore
-      .searchQuestions(projectId, questionnaireId, null, page, this.pageSize())
+      .listAllQuestions(projectId, questionnaireId, page, this.pageSize())
       .pipe(take(1))
       .subscribe({
         next: (result) => {
@@ -242,12 +253,24 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
             label: role.name,
           }));
           this.roleNameById = new Map((roles ?? []).map((role: RoleSummary) => [role.id, role.name]));
+          this.refreshQuestionRoleNames();
           this.cdr.markForCheck();
         },
         error: (error) => {
           console.error('Falha ao carregar roles para filtro de questionário iterativo', error);
         }
       });
+  }
+
+  private refreshQuestionRoleNames(): void {
+    if (!this.roleNameById.size) return;
+    const current = this.questions();
+    if (!current.length) return;
+    const updated = current.map((q) => ({
+      ...q,
+      roleNames: this.mapRoleIdsToNames(q.roleIds, q.roleNames),
+    }));
+    this.questions.set(updated);
   }
 
   toggleQuestionnaireDataAccordion(): void {
@@ -334,12 +357,70 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
     if (this.isViewMode()) {
       return;
     }
-    if (confirm(`Tem certeza que deseja excluir a pergunta: "${question.value}"?`)) {
-      const currentQuestions = this.questions();
-      const filtered = currentQuestions.filter(q => q.id !== question.id);
-      this.questions.set(filtered);
-      this.cdr.detectChanges();
+    this.notificationService.showConfirm(
+      `Tem certeza que deseja excluir a pergunta: "${question.value}"?`,
+      () => {
+        const currentQuestions = this.questions();
+        const filtered = currentQuestions.filter(q => q.id !== question.id);
+        this.questions.set(filtered);
+        this.clearSelection();
+        this.cdr.detectChanges();
+      }
+    );
+  }
+
+  toggleQuestionSelection(questionId: string): void {
+    const current = new Set(this.selectedQuestionIds());
+    if (current.has(questionId)) {
+      current.delete(questionId);
+    } else {
+      current.add(questionId);
     }
+    this.selectedQuestionIds.set(current);
+  }
+
+  isQuestionSelected(questionId: string): boolean {
+    return this.selectedQuestionIds().has(questionId);
+  }
+
+  get isAllSelected(): boolean {
+    const visible = this.filteredQuestions;
+    return visible.length > 0 && visible.every(q => this.selectedQuestionIds().has(q.id!));
+  }
+
+  get hasSelectedQuestions(): boolean {
+    return this.selectedQuestionIds().size > 0;
+  }
+
+  get selectedCount(): number {
+    return this.selectedQuestionIds().size;
+  }
+
+  toggleSelectAll(): void {
+    const visible = this.filteredQuestions;
+    if (this.isAllSelected) {
+      this.selectedQuestionIds.set(new Set());
+    } else {
+      this.selectedQuestionIds.set(new Set(visible.map(q => q.id!)));
+    }
+  }
+
+  deleteSelectedQuestions(): void {
+    if (this.isViewMode()) return;
+    const count = this.selectedCount;
+    this.notificationService.showConfirm(
+      `Tem certeza que deseja excluir ${count} pergunta${count > 1 ? 's' : ''} selecionada${count > 1 ? 's' : ''}?`,
+      () => {
+        const ids = this.selectedQuestionIds();
+        this.questions.update(qs => qs.filter(q => !ids.has(q.id!)));
+        this.clearSelection();
+        this.cdr.detectChanges();
+      }
+    );
+  }
+
+  private clearSelection(): void {
+    this.selectedQuestionIds.set(new Set());
   }
 
   protected override save(): RouteParams<IterativoQuestionnaireRouteParams> {
@@ -378,20 +459,25 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
     return this.form.get(controlName);
   }
 
-  onSave(): void {
+  onConfirmAndGoBack(): void {
+    if (this.isViewMode()) {
+      this.navigateBack();
+      return;
+    }
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      this.notificationService.showWarning('Preencha os campos obrigatórios do questionário.');
       return;
     }
 
     if (!this.questions().length) {
-      this.notificationService.showWarning('Adicione ao menos uma pergunta antes de salvar o questionário.');
+      this.notificationService.showWarning('Adicione ao menos uma pergunta antes de confirmar o questionário.');
       return;
     }
 
     const hasInvalidStages = this.questions().some((question) => !this.hasValidStageSelection(question));
     if (hasInvalidStages) {
-      this.notificationService.showWarning('Associe ao menos uma etapa a cada pergunta antes de salvar.');
+      this.notificationService.showWarning('Associe ao menos uma etapa a cada pergunta antes de confirmar.');
       return;
     }
 
@@ -402,6 +488,12 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
       questionnaireIndex: this.questionnaireIndex,
       questions: this.questions()
     };
+
+    try {
+      sessionStorage.setItem(PENDING_QUESTIONNAIRE_UPDATE_KEY, JSON.stringify(finalData));
+    } catch (error) {
+      LoggerService.error('IterativoQuestionnaireForm: Erro ao persistir dados do questionário em sessionStorage', error);
+    }
 
     this.navigateBack({ questionnaireUpdate: finalData });
   }
@@ -499,7 +591,10 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
   private navigateBack(updatedParams?: GenericParams): void {
     this.skipStatePersistence = true;
     if (this.returnTo) {
-      this.routerService.navigateTo(this.returnTo);
+      this.routerService.navigateTo(this.returnTo, {
+        params: {},
+        queryParams: { type: ProjectType.Iterativo },
+      });
       return;
     }
 

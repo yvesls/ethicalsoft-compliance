@@ -3,42 +3,61 @@ import { NotificationResponse, NotificationStatus } from '../../interfaces/notif
 import { NotificationService } from '../../../core/services/notification.service'
 import { Component, OnInit, inject, DestroyRef, HostListener, OnDestroy, AfterViewInit } from '@angular/core'
 import { RouterService } from '../../../core/services/router.service'
-import { Router, NavigationEnd } from '@angular/router'
+import { Router, NavigationEnd, RouterModule } from '@angular/router'
 import { filter } from 'rxjs/operators'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
-import { CommonModule } from '@angular/common'
+import { CommonModule, Location } from '@angular/common'
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',
 })
 export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
   routerPath = ''
+  routeSegments: { label: string; path: string; clickable: boolean }[] = []
+  canGoBack = false
   isPanelOpen = false
   isLoading = false
+  isMarkingAll = false
   errorMessage = ''
   notifications: NotificationResponse[] = []
   private lastLoadedAt: number | null = null
   private refreshTimerId: ReturnType<typeof setInterval> | null = null
 
   private router = inject(Router)
+  private location = inject(Location)
   private destroyRef = inject(DestroyRef)
   private routerService = inject(RouterService)
   private notificationService = inject(NotificationService)
   private internalNotificationService = inject(InternalNotificationService)
 
+  private static readonly TOP_LEVEL_ROUTES = ['/home', '/projects', '/settings']
+
   ngOnInit(): void {
     this.routerPath = this.routerService.getFormattedRoute()
+    this.routeSegments = this.routerService.getFormattedRouteSegments()
+    this.canGoBack = this.computeCanGoBack(this.router.url)
 
     this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd), takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => {
+      .subscribe((event) => {
         this.routerPath = this.routerService.getFormattedRoute()
+        this.routeSegments = this.routerService.getFormattedRouteSegments()
+        this.canGoBack = this.computeCanGoBack(event.urlAfterRedirects)
         this.closePanel()
       })
+  }
+
+  goBack(): void {
+    this.location.back()
+  }
+
+  private computeCanGoBack(url: string): boolean {
+    const path = url.split('?')[0].split('#')[0]
+    return !HeaderComponent.TOP_LEVEL_ROUTES.includes(path)
   }
 
   openNotifications(): void {
@@ -74,6 +93,20 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
     if (notification.status === 'READ') return
     await this.updateStatus(notification, 'READ')
     await this.loadNotifications(true)
+  }
+
+  async markAllAsRead(): Promise<void> {
+    const unread = this.notifications.filter((n) => n.status === 'UNREAD')
+    if (!unread.length) return
+    this.isMarkingAll = true
+    try {
+      await Promise.all(unread.map((n) => this.internalNotificationService.updateStatus(n.id, 'READ')))
+      await this.loadNotifications(true)
+    } catch (error: unknown) {
+      this.notificationService.showError(error)
+    } finally {
+      this.isMarkingAll = false
+    }
   }
 
   async deleteNotification(notification: NotificationResponse): Promise<void> {

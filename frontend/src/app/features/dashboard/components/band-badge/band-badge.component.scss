@@ -1,0 +1,16 @@
+@use '../../../../../assets/scss/base/vars' as *;
+
+.band-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: $white;
+}
+
+.band-a { background-color: $band-a; }
+.band-b { background-color: $band-b; }
+.band-c { background-color: $band-c; }
+.band-d { background-color: $band-d; }
+.band-e { background-color: $band-e; }

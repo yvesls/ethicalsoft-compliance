@@ -20,8 +20,11 @@ public class ProjectSpecification {
 	public static Specification<Project> findByCriteria(ProjectSearchRequestDTO filters, User currentUser) {
 
 		return (root, query, cb) -> {
-			query.distinct(true);
+            assert query != null;
+            query.distinct(true);
 			List<Predicate> predicates = new ArrayList<>();
+
+			predicates.add(cb.notEqual(root.get("status"), ProjectStatusEnum.EXCLUIDO));
 
 			if (StringUtils.hasText(filters.getName())) {
 				predicates.add(cb.like(cb.lower(root.get("name")), "%" + filters.getName().toLowerCase() + "%"));

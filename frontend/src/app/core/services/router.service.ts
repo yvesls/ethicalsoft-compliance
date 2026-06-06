@@ -45,7 +45,8 @@ export class RouterService {
 	async navigateTo<T extends GenericParams>(
 		url: string,
 		navigateParams?: NavigateParams<T>,
-		isFormDirty = false
+		isFormDirty = false,
+		replaceUrl = false
 	): Promise<boolean> {
 		const { params = {}, queryParams = {} } = navigateParams || {}
 
@@ -54,7 +55,7 @@ export class RouterService {
 				this.notificationService.showConfirm(
 					'Os dados não salvos serão perdidos. Deseja continuar?',
 					async () => {
-						const result = await this._redirectTo(url, queryParams)
+						const result = await this._redirectTo(url, queryParams, replaceUrl)
 						resolve(result)
 					},
 					() => resolve(false)
@@ -65,7 +66,7 @@ export class RouterService {
 		this._createPageData<T>(url, params, queryParams)
 		this.navigationSourceService.setInternalNavigation(true)
 
-		return this._redirectTo(url, queryParams)
+		return this._redirectTo(url, queryParams, replaceUrl)
 	}
 
 	navigateToNewTab<T extends GenericParams>(url: string, navigateParams?: NavigateParams<T>): void {
@@ -114,6 +115,60 @@ export class RouterService {
 		const segments = url.split('/').filter(Boolean)
 		if (!segments.length) return 'Home'
 		return segments.map((segment) => this.capitalizeWords(segment)).join(' > ')
+	}
+
+	getFormattedRouteSegments(): { label: string; path: string; clickable: boolean }[] {
+		const url = this.router.url.split('?')[0]
+		const segments = url.split('/').filter(Boolean)
+		if (!segments.length) return [{ label: 'Home', path: '/home', clickable: true }]
+
+		const navigablePatterns = this.collectNavigablePatterns()
+
+		return segments.map((segment, index) => {
+			const path = '/' + segments.slice(0, index + 1).join('/')
+			const isLast = index === segments.length - 1
+			const clickable = !isLast && navigablePatterns.some((pattern) => pattern.test(path))
+			return {
+				label: this.capitalizeWords(segment),
+				path,
+				clickable,
+			}
+		})
+	}
+
+	private collectNavigablePatterns(): RegExp[] {
+		return this.buildRoutePatterns(this.router.config, '')
+	}
+
+	private buildRoutePatterns(routes: unknown[], prefix: string): RegExp[] {
+		const patterns: RegExp[] = []
+		for (const r of routes) {
+			const route = r as Record<string, unknown>
+			const routePath = route['path'] as string | undefined
+			if (routePath === '**' || route['redirectTo'] !== undefined) continue
+
+			const pathStr = routePath || ''
+			let fullPath: string
+			if (pathStr === '') {
+				fullPath = prefix
+			} else {
+				fullPath = prefix ? prefix + '/' + pathStr : '/' + pathStr
+			}
+
+			if (route['component'] || route['loadComponent']) {
+				const regexStr = '^' + fullPath.replaceAll(/:[^/]+/g, '[^/]+') + '$'
+				patterns.push(new RegExp(regexStr))
+			}
+
+			const children =
+				(route['children'] as unknown[]) ||
+				(route['_loadedRoutes'] as unknown[]) ||
+				[]
+			if (Array.isArray(children) && children.length > 0) {
+				patterns.push(...this.buildRoutePatterns(children, fullPath))
+			}
+		}
+		return patterns
 	}
 
 	private capitalizeWords(str: string): string {
@@ -166,8 +221,8 @@ export class RouterService {
 		}
 	}
 
-	private async _redirectTo(uri: string, queryParams?: Params | null): Promise<boolean> {
-		return this.router.navigate([uri], { queryParams })
+	private async _redirectTo(uri: string, queryParams?: Params | null, replaceUrl = false): Promise<boolean> {
+		return this.router.navigate([uri], { queryParams, replaceUrl })
 	}
 
 	private _createPageData<T extends GenericParams>(url: string, params: RouteParams<T>, queryParams: Params): void {

@@ -28,6 +28,7 @@ public class NotificationChannelSender {
                 NotificationStatus.UNREAD,
                 LocalDateTime.now(),
                 null,
+                templateKey,
                 templateKey
         );
         internalNotificationPort.save(notification);

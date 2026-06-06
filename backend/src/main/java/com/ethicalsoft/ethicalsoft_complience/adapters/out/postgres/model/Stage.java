@@ -48,6 +48,9 @@ public class Stage {
 	@Temporal(TemporalType.DATE)
 	private LocalDate applicationEndDate;
 
+	@Column(name = "duration_days")
+	private Integer durationDays;
+
 	@Column(name = "status", nullable = false, length = 20)
 	@Enumerated(EnumType.STRING)
 	private TimelineStatusEnum status = TimelineStatusEnum.PENDENTE;

@@ -1,0 +1,7 @@
+@if (hasData) {
+  <div echarts [options]="chartOptions" class="debt-evolution-chart"></div>
+} @else {
+  <div class="debt-evolution-empty">
+    <p>Nenhum dado de dívida disponível para as iterações concluídas.</p>
+  </div>
+}

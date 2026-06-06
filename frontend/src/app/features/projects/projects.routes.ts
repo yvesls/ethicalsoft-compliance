@@ -23,6 +23,47 @@ export const PROJECTS_ROUTES: Routes = [
     path: 'questionnaire/iterativo',
     component: IterativoQuestionnaireFormComponent,
   },
+
+  {
+    path: ':projectId/questionnaires/:questionnaireId/responses',
+    loadComponent: () =>
+      import('../../features/dashboard/pages/consolidated-answers-page/consolidated-answers-page.component').then(
+        (m) => m.ConsolidatedAnswersPageComponent
+      ),
+  },
+
+  {
+    path: ':projectId/responses',
+    loadComponent: () =>
+      import('../../features/dashboard/pages/consolidated-answers-page/consolidated-answers-page.component').then(
+        (m) => m.ConsolidatedAnswersPageComponent
+      ),
+  },
+
+  {
+    path: ':projectId/questionnaires/:questionnaireId/dashboard/individual',
+    loadComponent: () =>
+      import('../../features/dashboard/pages/individual-dashboard-page/individual-dashboard-page.component').then(
+        (m) => m.IndividualDashboardPageComponent
+      ),
+  },
+
+  {
+    path: ':projectId/questionnaires/:questionnaireId/dashboard',
+    loadComponent: () =>
+      import('../../features/dashboard/pages/questionnaire-dashboard-page/questionnaire-dashboard-page.component').then(
+        (m) => m.QuestionnaireDashboardPageComponent
+      ),
+  },
+
+  {
+    path: ':projectId/dashboard',
+    loadComponent: () =>
+      import('../../features/dashboard/pages/project-dashboard-page/project-dashboard-page.component').then(
+        (m) => m.ProjectDashboardPageComponent
+      ),
+  },
+
   {
     path: ':projectId/questionnaires/:questionnaireId',
     loadComponent: () =>
@@ -35,6 +76,13 @@ export const PROJECTS_ROUTES: Routes = [
     component: QuestionnaireViewRedirectPageComponent,
   },
   {
+    path: ':projectId/edit',
+    loadComponent: () =>
+      import('./pages/edit-project-page/edit-project-page.component').then(
+        (m) => m.EditProjectPageComponent
+      ),
+  },
+  {
     path: ':id',
     loadComponent: () =>
       import('./pages/project-detail-page/project-detail-page.component').then(
@@ -42,3 +90,4 @@ export const PROJECTS_ROUTES: Routes = [
       ),
   },
 ];
+
