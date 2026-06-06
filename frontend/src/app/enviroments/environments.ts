@@ -1,5 +1,5 @@
 export const environment = {
 	domain: '',
-	apiBaseUrl: '',
+	apiBaseUrl: '/api',
 	aiEnabled: true,
 }
