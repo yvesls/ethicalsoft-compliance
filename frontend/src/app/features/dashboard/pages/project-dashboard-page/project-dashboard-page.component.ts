@@ -17,6 +17,8 @@ import { AuthenticationService } from '../../../../core/services/authentication.
 import { RouterService } from '../../../../core/services/router.service';
 import { ProjectContextService } from '../../../../core/services/project-context.service';
 import { RoleEnum } from '../../../../shared/enums/role.enum';
+import { DocumentEmissionService, DocumentEmissionRecordDTO } from '../../../../core/services/document-emission.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-project-dashboard-page',
@@ -24,6 +26,7 @@ import { RoleEnum } from '../../../../shared/enums/role.enum';
   imports: [
     DecimalPipe,
     DatePipe,
+    TranslateModule,
     BandBadgeComponent,
     IsepKpiCardComponent,
     IsepEvolutionChartComponent,
@@ -42,6 +45,9 @@ export class ProjectDashboardPageComponent implements OnInit {
   readonly routerService = inject(RouterService);
   private readonly projectContextService = inject(ProjectContextService);
 
+  private readonly documentEmissionService = inject(DocumentEmissionService);
+  private readonly translate = inject(TranslateService);
+
   isAdmin = this.authService.userRoles$.value.includes(RoleEnum.ADMIN);
 
   projectId!: number;
@@ -49,6 +55,10 @@ export class ProjectDashboardPageComponent implements OnInit {
   loading = signal(true);
   closing = signal(false);
   closeResult = signal<ProjectCloseResultDTO | null>(null);
+  registeringCertEmission = signal(false);
+  downloadingCertPdf = signal(false);
+  emissions = signal<DocumentEmissionRecordDTO[]>([]);
+  loadingEmissions = signal(false);
 
   get completionPercent(): number {
     const d = this.dashboard();
@@ -60,6 +70,18 @@ export class ProjectDashboardPageComponent implements OnInit {
     this.projectId = Number(this.route.snapshot.paramMap.get('projectId'));
     this.projectContextService.setCurrentProjectId(String(this.projectId));
     this.load();
+    this.loadEmissions();
+  }
+
+  loadEmissions(): void {
+    this.loadingEmissions.set(true);
+    this.documentEmissionService.getEmissions(this.projectId, 'ETHICS_CERTIFICATE').subscribe({
+      next: (list) => {
+        this.emissions.set(list);
+        this.loadingEmissions.set(false);
+      },
+      error: () => this.loadingEmissions.set(false),
+    });
   }
 
   load(): void {
@@ -108,5 +130,43 @@ export class ProjectDashboardPageComponent implements OnInit {
         });
       }
     );
+  }
+
+  downloadCertificatePdf(): void {
+    this.downloadingCertPdf.set(true);
+    this.dashboardService.downloadCertificatePdf(this.projectId).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `certificado-${this.projectId}.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
+        this.downloadingCertPdf.set(false);
+      },
+      error: () => {
+        this.notificationService.showError('Erro ao baixar o certificado. Tente novamente.');
+        this.downloadingCertPdf.set(false);
+      },
+    });
+  }
+
+  registerCertificateEmission(): void {
+    const confirmMsg = this.translate.instant('dashboard.certificate.register_emission_confirm');
+    this.notificationService.showConfirm(confirmMsg, () => {
+      this.registeringCertEmission.set(true);
+      this.documentEmissionService.registerCertificateEmission(this.projectId).subscribe({
+        next: (record) => {
+          const msg = this.translate.instant('dashboard.certificate.emission_registered', { code: record.authenticityCode });
+          this.notificationService.showSuccess(msg);
+          this.registeringCertEmission.set(false);
+          this.loadEmissions();
+        },
+        error: () => {
+          this.notificationService.showError(this.translate.instant('dashboard.errors.register_emission'));
+          this.registeringCertEmission.set(false);
+        },
+      });
+    });
   }
 }

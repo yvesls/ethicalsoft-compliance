@@ -29,6 +29,8 @@ import { ResponseDetailModalComponent } from '../../components/response-detail-m
 import { RouterService } from '../../../../core/services/router.service';
 import { ProjectContextService } from '../../../../core/services/project-context.service';
 import { RoleEnum } from '../../../../shared/enums/role.enum';
+import { DocumentEmissionService, DocumentEmissionRecordDTO, BulletinEmissionResult } from '../../../../core/services/document-emission.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-questionnaire-dashboard-page',
@@ -36,6 +38,7 @@ import { RoleEnum } from '../../../../shared/enums/role.enum';
   imports: [
     DecimalPipe,
     DatePipe,
+    TranslateModule,
     BandBadgeComponent,
     IsepKpiCardComponent,
     BandDistributionChartComponent,
@@ -61,6 +64,8 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
   private readonly modalService = inject(ModalService);
   private readonly routerService = inject(RouterService);
   private readonly projectContextService = inject(ProjectContextService);
+  private readonly documentEmissionService = inject(DocumentEmissionService);
+  private readonly translate = inject(TranslateService);
 
   projectId!: number;
   questionnaireId!: number;
@@ -72,6 +77,11 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
   loading = signal(true);
   loadError = signal(false);
   forceClosing = signal(false);
+  registeringBulletinEmission = signal(false);
+  downloadingBulletinPdf = signal(false);
+  emittingBulletin = signal(false);
+  emissions = signal<DocumentEmissionRecordDTO[]>([]);
+  loadingEmissions = signal(false);
 
   isAdmin = this.authService.userRoles$.value.includes(RoleEnum.ADMIN);
 
@@ -86,6 +96,18 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
     this.questionnaireId = Number(this.route.snapshot.paramMap.get('questionnaireId'));
     this.projectContextService.setCurrentProjectId(String(this.projectId));
     this.load();
+    this.loadEmissions();
+  }
+
+  loadEmissions(): void {
+    this.loadingEmissions.set(true);
+    this.documentEmissionService.getEmissions(this.projectId, 'NON_COMPLIANCE_BULLETIN', this.questionnaireId).subscribe({
+      next: (list) => {
+        this.emissions.set(list);
+        this.loadingEmissions.set(false);
+      },
+      error: () => this.loadingEmissions.set(false),
+    });
   }
 
   load(): void {
@@ -174,6 +196,66 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
           error: () => {
             this.notificationService.showError('Erro ao encerrar o questionário.');
             this.forceClosing.set(false);
+          },
+        });
+      }
+    );
+  }
+
+  downloadBulletinPdf(): void {
+    this.downloadingBulletinPdf.set(true);
+    this.dashboardService.downloadBulletinPdf(this.projectId, this.questionnaireId).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `boletim-${this.questionnaireId}.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
+        this.downloadingBulletinPdf.set(false);
+      },
+      error: () => {
+        this.notificationService.showError('Erro ao baixar o boletim. Tente novamente.');
+        this.downloadingBulletinPdf.set(false);
+      },
+    });
+  }
+
+  registerBulletinEmission(): void {
+    const confirmMsg = this.translate.instant('dashboard.bulletin.register_emission_confirm');
+    this.notificationService.showConfirm(confirmMsg, () => {
+      this.registeringBulletinEmission.set(true);
+      this.documentEmissionService.registerBulletinEmission(this.projectId, this.questionnaireId).subscribe({
+        next: (record) => {
+          const msg = this.translate.instant('dashboard.bulletin.emission_registered', { code: record.authenticityCode });
+          this.notificationService.showSuccess(msg);
+          this.registeringBulletinEmission.set(false);
+          this.loadEmissions();
+        },
+        error: () => {
+          this.notificationService.showError(this.translate.instant('dashboard.errors.register_emission'));
+          this.registeringBulletinEmission.set(false);
+        },
+      });
+    });
+  }
+
+  emitBulletinToRepresentatives(): void {
+    this.notificationService.showConfirm(
+      'Emitir o boletim aos representantes? Isso enviará o PDF por e-mail a todos os envolvidos e registrará a emissão.',
+      () => {
+        this.emittingBulletin.set(true);
+        this.documentEmissionService.emitBulletinToRepresentatives(this.projectId, this.questionnaireId).subscribe({
+          next: (result: BulletinEmissionResult) => {
+            this.notificationService.showSuccess(
+              `Boletim emitido para ${result.emittedCount} representante(s). Código: ${result.authenticityCode}`
+            );
+            this.emittingBulletin.set(false);
+            this.loadEmissions();
+          },
+          error: () => {
+            this.notificationService.showError('Erro ao emitir o boletim. Tente novamente.');
+            this.emittingBulletin.set(false);
           },
         });
       }

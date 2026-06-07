@@ -1,5 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { AuthenticationService } from '../../../core/services/authentication.service';
 import { RequestService } from '../../../core/services/request.service';
 import { environment } from '../../../enviroments/environments';
 import {
@@ -20,9 +22,29 @@ import { UrlParameter } from '../../../core/interfaces/url-parameter.interface';
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
   private readonly requestService = inject(RequestService);
+  private readonly http = inject(HttpClient);
+  private readonly authService = inject(AuthenticationService);
 
   constructor() {
     this.requestService.apiUrl = environment.apiBaseUrl;
+  }
+
+  downloadCertificatePdf(projectId: number): Observable<Blob> {
+    const token = this.authService.getToken();
+    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+    return this.http.get(`${environment.apiBaseUrl}/projects/${projectId}/certificate`, {
+      headers,
+      responseType: 'blob',
+    });
+  }
+
+  downloadBulletinPdf(projectId: number, questionnaireId: number): Observable<Blob> {
+    const token = this.authService.getToken();
+    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+    return this.http.get(
+      `${environment.apiBaseUrl}/projects/${projectId}/questionnaires/${questionnaireId}/bulletin`,
+      { headers, responseType: 'blob' }
+    );
   }
 
   getProjectDashboard(projectId: number): Observable<ProjectIsepDashboardDTO> {

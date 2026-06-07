@@ -72,6 +72,17 @@
       ></app-input>
     </div>
 
+    <div class="form-grid form-grid-4">
+      <div class="form-span-full">
+        <app-multi-select
+          label="Uso declarado de IA no desenvolvimento"
+          formControlName="aiUsageScopes"
+          [options]="aiUsageScopeOptions"
+          placeholder="Selecione os usos de IA (opcional)"
+        />
+      </div>
+    </div>
+
     <div class="panel-actions">
       <button type="button" class="btn btn-primary" (click)="continueToNextPanel('project')">Continuar</button>
     </div>

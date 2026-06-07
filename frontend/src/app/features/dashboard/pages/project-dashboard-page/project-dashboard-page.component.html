@@ -19,6 +19,24 @@
           >
             <i class="bi bi-list-check"></i> Ver Todas as Respostas
           </button>
+          @if (d.projectIsep !== null) {
+            <button
+              class="dash-btn dash-btn--neutral"
+              [disabled]="downloadingCertPdf()"
+              (click)="downloadCertificatePdf()"
+            >
+              <i class="bi bi-file-earmark-pdf"></i>
+              {{ downloadingCertPdf() ? 'Baixando...' : 'Baixar Certificado (PDF)' }}
+            </button>
+            <button
+              class="dash-btn dash-btn--neutral"
+              [disabled]="registeringCertEmission()"
+              (click)="registerCertificateEmission()"
+            >
+              <i class="bi bi-clipboard-check"></i>
+              {{ registeringCertEmission() ? 'Registrando...' : 'Registrar Emissão do Certificado' }}
+            </button>
+          }
           @if (isAdmin) {
             <button
               class="dash-btn dash-btn--danger"
@@ -138,6 +156,38 @@
           </tbody>
         </table>
       </div>
+
+      @if (emissions().length || loadingEmissions()) {
+        <div class="dash-card mt-4">
+          <h2 class="dash-section-title">Emissões Registradas — Certificado</h2>
+          @if (loadingEmissions()) {
+            <p class="text-muted small">Carregando...</p>
+          } @else {
+            <table class="table table-hover align-middle">
+              <thead>
+                <tr>
+                  <th>Código de Autenticidade</th>
+                  <th>Emitido por</th>
+                  <th>Data</th>
+                  <th>ISEP (%)</th>
+                  <th>Faixa</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (e of emissions(); track e.authenticityCode) {
+                  <tr>
+                    <td><code class="user-select-all">{{ e.authenticityCode }}</code></td>
+                    <td>{{ e.emittedByName }}</td>
+                    <td>{{ e.emittedAt | date: 'dd/MM/yyyy HH:mm' }}</td>
+                    <td>{{ e.isepPercent | number:'1.2-2' }}%</td>
+                    <td><app-band-badge [band]="$any(e.band)" /></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        </div>
+      }
 
     </div>
   } @else {

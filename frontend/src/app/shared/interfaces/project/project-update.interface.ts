@@ -55,6 +55,7 @@ export interface UpdateProjectRequest {
   deadline: string | null;
   iterationDuration?: number;
   iterationCount?: number;
+  aiUsageScopes?: string[];
   dryRun: boolean;
   stages?: UpdateStagePayload[];
   iterations?: UpdateIterationPayload[];
@@ -163,6 +164,7 @@ export interface ProjectEditData {
   deadline: string | null;
   iterationDuration?: number | null;
   configuredIterationCount?: number | null;
+  aiUsageScopes?: string[];
   stages: ProjectStageDetail[];
   iterations: ProjectIterationDetail[];
   questionnaires: ProjectQuestionnaireDetail[];

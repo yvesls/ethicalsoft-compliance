@@ -31,6 +31,7 @@ import { RoleSummary } from '../../../../shared/interfaces/role/role-summary.int
 import { AccordionPanelComponent } from '../../../../shared/components/accordion-panel/accordion-panel.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
+import { MultiSelectComponent, MultiSelectOption } from '../../../../shared/components/multi-select/multi-select.component';
 
 import { CustomValidators } from '../../../../shared/validators/custom.validator';
 import { FormUtils } from '../../../../shared/utils/form-utils';
@@ -75,6 +76,7 @@ type PanelStates = Record<PanelKey, boolean>;
     AccordionPanelComponent,
     InputComponent,
     SelectComponent,
+    MultiSelectComponent,
   ],
   templateUrl: './edit-iterativo-project-form.component.html',
   styleUrls: ['./edit-iterativo-project-form.component.scss'],
@@ -107,6 +109,16 @@ export class EditIterativoProjectFormComponent implements OnInit {
 
   public projectTypeOptions: SelectOption[] = [
     { value: ProjectType.Iterativo, label: 'Iterativo Incremental' },
+  ];
+
+  public aiUsageScopeOptions: MultiSelectOption[] = [
+    { value: 'NAO_UTILIZA', label: 'Não utiliza' },
+    { value: 'REQUISITOS', label: 'Utiliza em requisitos' },
+    { value: 'DESIGN', label: 'Utiliza em design/arquitetura' },
+    { value: 'CODIFICACAO', label: 'Utiliza em codificação' },
+    { value: 'TESTES', label: 'Utiliza em testes' },
+    { value: 'DOCUMENTACAO', label: 'Utiliza em documentação' },
+    { value: 'AI_GOVERNANCE', label: 'Governança de IA aplicada' },
   ];
 
   public availableRoles: RoleSummary[] = [];
@@ -142,6 +154,7 @@ export class EditIterativoProjectFormComponent implements OnInit {
         deadline: [null],
         iterationDuration: [10, [Validators.required, Validators.min(1)]],
         iterationCount: [null],
+        aiUsageScopes: [[]],
         stages: this.fb.array([]),
         iterations: this.fb.array([]),
         representatives: this.fb.array([]),
@@ -288,6 +301,7 @@ export class EditIterativoProjectFormComponent implements OnInit {
       deadline: data.deadline,
       iterationDuration: data.iterationDuration ?? 10,
       iterationCount: data.configuredIterationCount ?? data.iterations?.length ?? null,
+      aiUsageScopes: data.aiUsageScopes ?? [],
     });
 
     const stagesArray = this.projectForm.get('stages') as FormArray;
@@ -804,6 +818,7 @@ export class EditIterativoProjectFormComponent implements OnInit {
         deadline: fv.deadline,
         iterationDuration: fv.iterationDuration,
         iterationCount: fv.iterationCount,
+        aiUsageScopes: fv.aiUsageScopes ?? [],
       }, { emitEvent: false });
 
       const stagesArray = this.projectForm.get('stages') as FormArray;
@@ -994,6 +1009,7 @@ export class EditIterativoProjectFormComponent implements OnInit {
 
     const iterationDuration = Number(formValue.iterationDuration) || undefined;
     const iterationCount = Number(formValue.iterationCount) || undefined;
+    const aiUsageScopes: string[] = formValue.aiUsageScopes ?? [];
 
     return {
       name,
@@ -1001,6 +1017,7 @@ export class EditIterativoProjectFormComponent implements OnInit {
       deadline: formValue.deadline || null,
       iterationDuration,
       iterationCount,
+      aiUsageScopes: aiUsageScopes.length ? aiUsageScopes : undefined,
       dryRun: false,
       stages: this.buildStagePayloads(),
       iterations: this.buildIterationPayloads(),

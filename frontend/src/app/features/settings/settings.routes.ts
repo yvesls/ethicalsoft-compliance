@@ -20,4 +20,15 @@ export const SETTINGS_ROUTES: Routes = [
 			showLayout: true,
 		},
 	},
+	{
+		path: 'ai-token',
+		loadComponent: () =>
+			import('./components/ai-token-settings/ai-token-settings.component').then(
+				(m) => m.AiTokenSettingsComponent
+			),
+		data: {
+			roles: [RoleEnum.USER],
+			showLayout: true,
+		},
+	},
 ]

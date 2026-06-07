@@ -1,0 +1,39 @@
+<div class="info-explainer-container">
+  <button
+    type="button"
+    class="info-icon"
+    (click)="togglePopover()"
+    aria-label="Mais informações"
+    role="button"
+    tabindex="0"
+    title="Clique para mais informações"
+  >
+    <img
+      src="assets/icons/circle-info-solid-full.svg"
+      alt="Ícone de informação"
+      class="icon-image"
+    />
+  </button>
+
+  @if (isOpen()) {
+    <div
+      class="popover"
+      [class.position-left]="popoverPosition() === 'left'"
+      role="tooltip"
+    >
+      @if (entry(); as e) {
+        <h4 class="popover-title">{{ e.title }}</h4>
+        <p class="popover-desc">{{ e.description }}</p>
+        @if (e.items && e.items.length) {
+          <ul class="popover-items">
+            @for (item of e.items; track item) {
+              <li>{{ item }}</li>
+            }
+          </ul>
+        }
+      } @else {
+        <p class="popover-desc">Explicação não disponível.</p>
+      }
+    </div>
+  }
+</div>

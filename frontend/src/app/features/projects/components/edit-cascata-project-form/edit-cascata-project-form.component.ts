@@ -31,6 +31,7 @@ import { RoleSummary } from '../../../../shared/interfaces/role/role-summary.int
 import { AccordionPanelComponent } from '../../../../shared/components/accordion-panel/accordion-panel.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
+import { MultiSelectComponent, MultiSelectOption } from '../../../../shared/components/multi-select/multi-select.component';
 
 import { CustomValidators } from '../../../../shared/validators/custom.validator';
 import { ProjectDatesValidators } from '../../../../shared/validators/project-dates.validator';
@@ -76,6 +77,7 @@ type PanelStates = Record<PanelKey, boolean>;
     AccordionPanelComponent,
     InputComponent,
     SelectComponent,
+    MultiSelectComponent,
   ],
   templateUrl: './edit-cascata-project-form.component.html',
   styleUrls: ['./edit-cascata-project-form.component.scss'],
@@ -108,6 +110,16 @@ export class EditCascataProjectFormComponent implements OnInit {
 
   public projectTypeOptions: SelectOption[] = [
     { value: ProjectType.Cascata, label: 'Cascata' },
+  ];
+
+  public aiUsageScopeOptions: MultiSelectOption[] = [
+    { value: 'NAO_UTILIZA', label: 'Não utiliza' },
+    { value: 'REQUISITOS', label: 'Utiliza em requisitos' },
+    { value: 'DESIGN', label: 'Utiliza em design/arquitetura' },
+    { value: 'CODIFICACAO', label: 'Utiliza em codificação' },
+    { value: 'TESTES', label: 'Utiliza em testes' },
+    { value: 'DOCUMENTACAO', label: 'Utiliza em documentação' },
+    { value: 'AI_GOVERNANCE', label: 'Governança de IA aplicada' },
   ];
 
   public availableRoles: RoleSummary[] = [];
@@ -143,6 +155,7 @@ export class EditCascataProjectFormComponent implements OnInit {
         type: [{ value: ProjectType.Cascata, disabled: true }, [Validators.required]],
         startDate: [null, [Validators.required]],
         deadline: [null, [Validators.required, CustomValidators.minDateToday()]],
+        aiUsageScopes: [[]],
         steps: this.fb.array([]),
         representatives: this.fb.array([]),
         questionnaires: this.fb.array([]),
@@ -239,6 +252,7 @@ export class EditCascataProjectFormComponent implements OnInit {
       type: data.type,
       startDate: data.startDate,
       deadline: data.deadline,
+      aiUsageScopes: data.aiUsageScopes ?? [],
     });
 
     const stepsArray = this.projectForm.get('steps') as FormArray;
@@ -648,6 +662,7 @@ export class EditCascataProjectFormComponent implements OnInit {
         type: fv.type,
         startDate: fv.startDate,
         deadline: fv.deadline,
+        aiUsageScopes: fv.aiUsageScopes ?? [],
       }, { emitEvent: false });
 
       const stepsArray = this.projectForm.get('steps') as FormArray;
@@ -879,10 +894,12 @@ export class EditCascataProjectFormComponent implements OnInit {
     if (!name) throw new Error('Informe o nome do projeto.');
     if (!formValue.startDate) throw new Error('Informe a data de início do projeto.');
 
+    const aiUsageScopes: string[] = formValue.aiUsageScopes ?? [];
     return {
       name,
       startDate: formValue.startDate,
       deadline: formValue.deadline || null,
+      aiUsageScopes: aiUsageScopes.length ? aiUsageScopes : undefined,
       dryRun: false,
       stages: this.buildStagePayloads(),
       iterations: this.buildIterationPayloads(),

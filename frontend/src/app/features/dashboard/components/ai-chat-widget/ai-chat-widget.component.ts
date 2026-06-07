@@ -3,6 +3,9 @@ import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { MarkdownPipe } from '../../../../shared/utils/markdown.pipe';
 import { AiDashboardService } from '../../services/ai-dashboard.service';
+import { AiTokenService } from '../../../../core/ai/ai-token.service';
+import { ModalService } from '../../../../core/services/modal.service';
+import { MissingAiTokenDialogComponent } from '../../../../shared/components/missing-ai-token-dialog/missing-ai-token-dialog.component';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -32,6 +35,8 @@ export class AiChatWidgetComponent implements AfterViewChecked {
   @ViewChild('messagesContainer') messagesContainer!: ElementRef;
 
   private readonly aiService = inject(AiDashboardService);
+  private readonly aiTokenService = inject(AiTokenService);
+  private readonly modalService = inject(ModalService);
 
   isOpen = signal(false);
   messages = signal<ChatMessage[]>([]);
@@ -50,6 +55,10 @@ export class AiChatWidgetComponent implements AfterViewChecked {
   }
 
   toggle(): void {
+    if (!this.isOpen() && !this.aiTokenService.hasToken) {
+      this.modalService.open(MissingAiTokenDialogComponent, 'small-card');
+      return;
+    }
     this.isOpen.update(v => !v);
   }
 
@@ -71,7 +80,6 @@ export class AiChatWidgetComponent implements AfterViewChecked {
     this.streaming.set(true);
     this.shouldScroll = true;
 
-    // Add empty assistant message that will be filled by streaming
     this.messages.update(msgs => [
       ...msgs,
       { role: 'assistant', content: '', timestamp: new Date() },

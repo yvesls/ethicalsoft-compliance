@@ -26,6 +26,7 @@ import {
 import { AccordionPanelComponent } from '../../../../shared/components/accordion-panel/accordion-panel.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
+import { MultiSelectComponent, MultiSelectOption } from '../../../../shared/components/multi-select/multi-select.component';
 
 import { CustomValidators } from '../../../../shared/validators/custom.validator';
 import { ProjectDatesValidators } from '../../../../shared/validators/project-dates.validator';
@@ -111,6 +112,7 @@ interface CascataProjectFormValue {
   type: ProjectType;
   startDate: string | null;
   deadline: string | null;
+  aiUsageScopes?: string[];
   steps?: CascataStageFormValue[];
   representatives?: Representative[];
   questionnaires?: Questionnaire[];
@@ -125,6 +127,7 @@ interface CascataProjectFormValue {
     AccordionPanelComponent,
     InputComponent,
     SelectComponent,
+    MultiSelectComponent,
   ],
   templateUrl: './cascata-project-form.component.html',
   styleUrls: ['./cascata-project-form.component.scss'],
@@ -159,6 +162,15 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
   public templateOptions: SelectOption[] = [];
   public projectTypeOptions: SelectOption[] = [
     { value: ProjectType.Cascata, label: 'Cascata' },
+  ];
+  public aiUsageScopeOptions: MultiSelectOption[] = [
+    { value: 'NAO_UTILIZA', label: 'Não utiliza' },
+    { value: 'REQUISITOS', label: 'Utiliza em requisitos' },
+    { value: 'DESIGN_ARQUITETURA', label: 'Utiliza em design ou arquitetura' },
+    { value: 'GERACAO_CODIGO', label: 'Utiliza em geração de código' },
+    { value: 'TESTES', label: 'Utiliza em testes' },
+    { value: 'DOCUMENTACAO', label: 'Utiliza em documentação' },
+    { value: 'MANUTENCAO_REFATORACAO', label: 'Utiliza em manutenção ou refatoração' },
   ];
 
   public availableRoles: RoleSummary[] = [];
@@ -198,6 +210,7 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
             ProjectDatesValidators.deadlineAllowsExistingStages()
           ]
         ],
+        aiUsageScopes: [[]],
         steps: this.buildCascataStepsForm(),
         representatives: this.buildRepresentativesForm(),
         questionnaires: this.fb.array([]),
@@ -1393,6 +1406,7 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
       startDate: formValue.startDate ?? '',
       deadline: formValue.deadline || null,
       status: 'RASCUNHO',
+      aiUsageScopes: formValue.aiUsageScopes?.length ? formValue.aiUsageScopes : undefined,
       stages: stages.length ? stages : undefined,
       questionnaires: questionnaires.length ? questionnaires : undefined,
       representatives: representatives.length ? representatives : undefined,
@@ -1434,6 +1448,7 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
       startDate,
       deadline: formValue.deadline || null,
       status: 'ABERTO',
+      aiUsageScopes: formValue.aiUsageScopes?.length ? formValue.aiUsageScopes : undefined,
       stages: stages.length ? stages : undefined,
       questionnaires: questionnaires.length ? questionnaires : undefined,
       representatives: representatives.length ? representatives : undefined,

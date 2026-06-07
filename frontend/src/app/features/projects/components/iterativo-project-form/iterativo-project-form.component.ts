@@ -28,6 +28,7 @@ import {
 import { AccordionPanelComponent } from '../../../../shared/components/accordion-panel/accordion-panel.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
+import { MultiSelectComponent, MultiSelectOption } from '../../../../shared/components/multi-select/multi-select.component';
 
 import { CustomValidators } from '../../../../shared/validators/custom.validator';
 import { capitalizeWords } from '../../../../core/utils/common-utils';
@@ -116,6 +117,7 @@ interface IterativoProjectFormValue {
   deadline: string | null;
   iterationDuration: number;
   iterationCount: number | null;
+  aiUsageScopes?: string[];
   iterations?: Iteration[];
   stages?: Stage[];
   representatives?: Representative[];
@@ -131,6 +133,7 @@ interface IterativoProjectFormValue {
     AccordionPanelComponent,
     InputComponent,
     SelectComponent,
+    MultiSelectComponent,
   ],
   templateUrl: './iterativo-project-form.component.html',
   styleUrls: ['./iterativo-project-form.component.scss'],
@@ -166,6 +169,15 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
   public projectTypeOptions: SelectOption[] = [
     { value: ProjectType.Iterativo, label: 'Iterativo Incremental' },
   ];
+  public aiUsageScopeOptions: MultiSelectOption[] = [
+    { value: 'NAO_UTILIZA', label: 'Não utiliza' },
+    { value: 'REQUISITOS', label: 'Utiliza em requisitos' },
+    { value: 'DESIGN_ARQUITETURA', label: 'Utiliza em design ou arquitetura' },
+    { value: 'GERACAO_CODIGO', label: 'Utiliza em geração de código' },
+    { value: 'TESTES', label: 'Utiliza em testes' },
+    { value: 'DOCUMENTACAO', label: 'Utiliza em documentação' },
+    { value: 'MANUTENCAO_REFATORACAO', label: 'Utiliza em manutenção ou refatoração' },
+  ];
 
   public availableRoles: RoleSummary[] = [];
   private roleNameById = new Map<number, string>();
@@ -194,6 +206,7 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
         deadline: [null, [CustomValidators.minDateToday()]],
         iterationDuration: [10, [Validators.required, Validators.min(1)]],
         iterationCount: [null],
+        aiUsageScopes: [[]],
         iterations: this.fb.array([]),
         stages: this.fb.array([]),
         representatives: this.buildRepresentativesForm(),
@@ -1070,6 +1083,7 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
       startDate: formValue.startDate ?? '',
       deadline: formValue.deadline || null,
       status: 'RASCUNHO',
+      aiUsageScopes: formValue.aiUsageScopes?.length ? formValue.aiUsageScopes : undefined,
       iterationDuration: iterationDuration > 0 ? iterationDuration : undefined,
       iterationCount: iterationCount > 0 ? iterationCount : undefined,
       stages: stages.length ? stages : undefined,
@@ -1126,6 +1140,7 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
       startDate,
       deadline: formValue.deadline || null,
       status: 'ABERTO',
+      aiUsageScopes: formValue.aiUsageScopes?.length ? formValue.aiUsageScopes : undefined,
       iterationDuration,
       iterationCount,
       stages: stages.length ? stages : undefined,

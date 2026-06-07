@@ -22,6 +22,30 @@
           <button class="dash-btn dash-btn--neutral" (click)="downloadJson()">
             <i class="bi bi-filetype-json"></i> Relatório de Governança (JSON)
           </button>
+          <button
+            class="dash-btn dash-btn--neutral"
+            [disabled]="downloadingBulletinPdf()"
+            (click)="downloadBulletinPdf()"
+          >
+            <i class="bi bi-file-earmark-pdf"></i>
+            {{ downloadingBulletinPdf() ? 'Baixando...' : 'Baixar Boletim (PDF)' }}
+          </button>
+          <button
+            class="dash-btn dash-btn--primary"
+            [disabled]="emittingBulletin()"
+            (click)="emitBulletinToRepresentatives()"
+          >
+            <i class="bi bi-send"></i>
+            {{ emittingBulletin() ? 'Emitindo...' : 'Emitir aos Representantes' }}
+          </button>
+          <button
+            class="dash-btn dash-btn--neutral"
+            [disabled]="registeringBulletinEmission()"
+            (click)="registerBulletinEmission()"
+          >
+            <i class="bi bi-clipboard-check"></i>
+            {{ registeringBulletinEmission() ? 'Registrando...' : 'Registrar Emissão' }}
+          </button>
           @if (isAdmin) {
             <button
               class="dash-btn dash-btn--danger"
@@ -167,6 +191,38 @@
               <li class="list-group-item">{{ j }}</li>
             }
           </ul>
+        </div>
+      }
+
+      @if (emissions().length || loadingEmissions()) {
+        <div class="dash-card mt-4">
+          <h2 class="dash-section-title">Emissões Registradas — Boletim</h2>
+          @if (loadingEmissions()) {
+            <p class="text-muted small">Carregando...</p>
+          } @else {
+            <table class="table table-hover align-middle">
+              <thead>
+                <tr>
+                  <th>Código de Autenticidade</th>
+                  <th>Emitido por</th>
+                  <th>Data</th>
+                  <th>ISEP (%)</th>
+                  <th>Faixa</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (e of emissions(); track e.authenticityCode) {
+                  <tr>
+                    <td><code class="user-select-all">{{ e.authenticityCode }}</code></td>
+                    <td>{{ e.emittedByName }}</td>
+                    <td>{{ e.emittedAt | date: 'dd/MM/yyyy HH:mm' }}</td>
+                    <td>{{ e.isepPercent | number:'1.2-2' }}%</td>
+                    <td><app-band-badge [band]="$any(e.band)" /></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
         </div>
       }
 
