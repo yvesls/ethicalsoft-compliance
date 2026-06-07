@@ -12,36 +12,39 @@ import java.util.concurrent.CompletableFuture;
 public class NoOpLlmAdapter implements LlmAnalysisPort {
 
     private static final String UNAVAILABLE_MSG =
-            "Módulo de IA não configurado. Defina GROQ_API_KEY e AI_ENABLED=true para ativar.";
+            "Módulo de IA não configurado. Cadastre seu token pessoal de IA nas configurações para ativar.";
 
     @Override
-    public CompletableFuture<AiInsightResult> generateInsights(DashboardSnapshot snapshot) {
+    public CompletableFuture<AiInsightResult> generateInsights(DashboardSnapshot snapshot,
+                                                               String language, Long userId) {
         log.debug("[llm-noop] Insights solicitados — IA desabilitada");
         return CompletableFuture.completedFuture(AiInsightResult.unavailable(UNAVAILABLE_MSG));
     }
 
     @Override
-    public CompletableFuture<AiInsightResult> generateRiskReport(DashboardSnapshot snapshot) {
+    public CompletableFuture<AiInsightResult> generateRiskReport(DashboardSnapshot snapshot,
+                                                                 String language, Long userId) {
         log.debug("[llm-noop] Relatório de risco solicitado — IA desabilitada");
         return CompletableFuture.completedFuture(AiInsightResult.unavailable(UNAVAILABLE_MSG));
     }
 
     @Override
-    public CompletableFuture<AiInsightResult> explainIsepResults(DashboardSnapshot snapshot) {
+    public CompletableFuture<AiInsightResult> explainIsepResults(DashboardSnapshot snapshot,
+                                                                 String language, Long userId) {
         log.debug("[llm-noop] Explicação ISEP solicitada — IA desabilitada");
         return CompletableFuture.completedFuture(AiInsightResult.unavailable(UNAVAILABLE_MSG));
     }
 
     @Override
-    public void askQuestion(String question, DashboardSnapshot snapshot, SseEmitter emitter) {
+    public void askQuestion(String question, DashboardSnapshot snapshot, SseEmitter emitter,
+                            String language, Long userId) {
         log.debug("[llm-noop] Q&A solicitado — IA desabilitada");
         try {
             emitter.send(SseEmitter.event()
                     .name("error")
                     .data(UNAVAILABLE_MSG));
             emitter.complete();
-        } catch (Exception ignored) {
+        } catch (Exception ignored) { // NOSONAR
         }
     }
 }
-

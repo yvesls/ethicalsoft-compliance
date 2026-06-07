@@ -10,6 +10,8 @@ public enum EthicalComplianceBand {
     D("Insuficiente", new BigDecimal("45.00"), new BigDecimal("59.99")),
     E("Crítico", BigDecimal.ZERO, new BigDecimal("44.99"));
 
+    public static final EthicalComplianceBand MINIMUM_ACCEPTABLE = B;
+
     private final String label;
     private final BigDecimal minInclusive;
     private final BigDecimal maxInclusive;
@@ -18,6 +20,23 @@ public enum EthicalComplianceBand {
         this.label = label;
         this.minInclusive = minInclusive;
         this.maxInclusive = maxInclusive;
+    }
+
+    public boolean meetsMinimum() {
+        return this.ordinal() <= MINIMUM_ACCEPTABLE.ordinal();
+    }
+
+    public static boolean meetsMinimum(String bandName) {
+        if (bandName == null || bandName.isBlank()) return false;
+        try {
+            return EthicalComplianceBand.valueOf(bandName.trim().toUpperCase()).meetsMinimum();
+        } catch (IllegalArgumentException ex) {
+            return false;
+        }
+    }
+
+    public BigDecimal getMinInclusive() {
+        return minInclusive;
     }
 
     public static EthicalComplianceBand classify(BigDecimal index) {

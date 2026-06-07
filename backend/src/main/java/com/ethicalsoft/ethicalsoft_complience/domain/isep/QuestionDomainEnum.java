@@ -12,7 +12,10 @@ public enum QuestionDomainEnum {
     QUALITY("Qualidade", "Testes, critérios de aceite, padrões de código"),
     SECURITY("Segurança", "Proteção de dados, vulnerabilidades, controle de acesso"),
     ESG("ESG", "Ambiental, social e governança corporativa"),
-    FAIRNESS("Equidade", "Viés algorítmico, acessibilidade, inclusão");
+    FAIRNESS("Equidade", "Viés algorítmico, acessibilidade, inclusão"),
+    AI_GOVERNANCE("Governança do Desenvolvimento Assistido por IA",
+            "Rastreabilidade, revisão humana, segurança, privacidade, testes e responsabilidade " +
+            "sobre artefatos produzidos com apoio de LLMs");
 
     private final String label;
     private final String description;

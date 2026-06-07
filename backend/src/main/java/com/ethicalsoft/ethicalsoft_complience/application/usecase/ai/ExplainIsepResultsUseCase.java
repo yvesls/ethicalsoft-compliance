@@ -18,11 +18,12 @@ public class ExplainIsepResultsUseCase {
     private final AiDashboardContextProvider contextProvider;
     private final LlmAnalysisPort llmAnalysisPort;
 
-    public CompletableFuture<AiInsightResult> execute(Long projectId, Integer questionnaireId) {
-        log.info("[ai-explain-isep] Explicando resultados ISEP projeto={} questionário={}",
-                projectId, questionnaireId);
+    public CompletableFuture<AiInsightResult> execute(Long projectId, Integer questionnaireId,
+                                                      String language, Long userId) {
+        log.info("[ai-explain-isep] Explicando resultados ISEP projeto={} questionário={} idioma={} userId={}",
+                projectId, questionnaireId, language, userId);
 
         DashboardSnapshot snapshot = contextProvider.buildSnapshot(projectId, questionnaireId);
-        return llmAnalysisPort.explainIsepResults(snapshot);
+        return llmAnalysisPort.explainIsepResults(snapshot, language, userId);
     }
 }

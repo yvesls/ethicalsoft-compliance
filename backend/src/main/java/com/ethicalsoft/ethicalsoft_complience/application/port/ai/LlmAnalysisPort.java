@@ -8,12 +8,23 @@ import java.util.concurrent.CompletableFuture;
 
 public interface LlmAnalysisPort {
 
-    CompletableFuture<AiInsightResult> generateInsights(DashboardSnapshot snapshot);
+    CompletableFuture<AiInsightResult> generateInsights(DashboardSnapshot snapshot, String language, Long userId);
 
-    CompletableFuture<AiInsightResult> generateRiskReport(DashboardSnapshot snapshot);
+    CompletableFuture<AiInsightResult> generateRiskReport(DashboardSnapshot snapshot, String language, Long userId);
 
-    CompletableFuture<AiInsightResult> explainIsepResults(DashboardSnapshot snapshot);
+    CompletableFuture<AiInsightResult> explainIsepResults(DashboardSnapshot snapshot, String language, Long userId);
 
-    void askQuestion(String question, DashboardSnapshot snapshot, SseEmitter emitter);
+    void askQuestion(String question, DashboardSnapshot snapshot, SseEmitter emitter, String language, Long userId);
+
+    default boolean isAvailable() {
+        return false;
+    }
+
+    default boolean isAvailableForUser(Long userId) {
+        return false;
+    }
+
+    default String translate(String text, String targetLanguage, Long userId) {
+        return text;
+    }
 }
-

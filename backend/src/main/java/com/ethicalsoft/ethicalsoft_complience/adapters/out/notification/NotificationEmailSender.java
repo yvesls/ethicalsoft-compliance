@@ -10,6 +10,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
 
 import java.io.IOException;
@@ -45,6 +46,34 @@ public class NotificationEmailSender {
             mailSender.send(message);
         } catch (MessagingException | IOException | TemplateException e) {
             log.error("[notification-email] Falha ao enviar email template={} para {}", templatePath, to, e);
+            throw new EmailSendingException("Falha ao enviar email para " + to, e);
+        }
+    }
+
+    public void sendWithAttachment(String to, String subject, String templatePath,
+                                   Map<String, Object> model,
+                                   byte[] attachmentContent, String attachmentFileName) {
+        if (!emailEnabled) {
+            log.info("[notification-email] Envio desabilitado (app.email.enabled=false). Ignorando envio para {}", to);
+            return;
+        }
+        try {
+            var message = mailSender.createMimeMessage();
+            var helper = new MimeMessageHelper(message, true);
+
+            var template = freemarkerConfig.getConfiguration().getTemplate(templatePath);
+            String html = FreeMarkerTemplateUtils.processTemplateIntoString(template, model == null ? Map.of() : model);
+
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(html, true);
+            if (attachmentContent != null && attachmentFileName != null) {
+                helper.addAttachment(attachmentFileName, new ByteArrayResource(attachmentContent));
+            }
+
+            mailSender.send(message);
+        } catch (MessagingException | IOException | TemplateException e) {
+            log.error("[notification-email] Falha ao enviar email com anexo template={} para {}", templatePath, to, e);
             throw new EmailSendingException("Falha ao enviar email para " + to, e);
         }
     }
