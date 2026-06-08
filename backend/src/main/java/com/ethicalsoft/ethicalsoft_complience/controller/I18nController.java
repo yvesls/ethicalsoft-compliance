@@ -22,7 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/i18n")
+@RequestMapping("/i18n")
 @RequiredArgsConstructor
 public class I18nController {
 

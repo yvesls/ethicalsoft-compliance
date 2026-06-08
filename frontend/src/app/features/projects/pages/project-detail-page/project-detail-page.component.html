@@ -1,13 +1,13 @@
 <div class="project-detail-page">
   @switch (projectState().status) {
     @case ('loading') {
-      <div class="project-state">Carregando informações do projeto...</div>
+      <div class="project-state">{{ 'projects.loading' | translate }}</div>
     }
     @case ('error') {
       <div class="project-state project-state--error">
         <p>{{ projectState().error }}</p>
         <button type="button" class="btn btn-primary" (click)="onRetryLoadProject()">
-          Tentar novamente
+          {{ 'common.retry' | translate }}
         </button>
       </div>
     }
@@ -29,7 +29,7 @@
           @if (isAdmin()) {
             <div class="project-header__actions">
               <button type="button" class="btn btn-secundary mx-2" (click)="onEditProject()">
-                Editar projeto
+                {{ 'projects.actions.edit' | translate }}
               </button>
               @if (isDraft()) {
                 <button
@@ -38,11 +38,11 @@
                   [disabled]="isPublishing()"
                   (click)="publishProject()"
                 >
-                  {{ isPublishing() ? 'Publicando...' : 'Publicar Projeto' }}
+                  {{ isPublishing() ? ('projects.detail.publishing' | translate) : ('projects.actions.publish' | translate) }}
                 </button>
               } @else {
                 <button type="button" class="btn btn-primary" (click)="navigateToProjectDashboard()">
-                  Dashboard do projeto
+                  {{ 'projects.detail.project_dashboard' | translate }}
                 </button>
               }
               @if (canDeleteProject()) {
@@ -52,7 +52,7 @@
                   [disabled]="isDeleting()"
                   (click)="deleteProject()"
                 >
-                  {{ isDeleting() ? 'Excluindo...' : 'Excluir Projeto' }}
+                  {{ isDeleting() ? ('projects.detail.deleting' | translate) : ('projects.actions.delete' | translate) }}
                 </button>
               }
             </div>
@@ -63,18 +63,18 @@
           <div class="draft-banner">
             <span class="draft-banner__icon">&#9888;</span>
             <span class="draft-banner__text">
-              Este projeto está em modo <strong>Rascunho</strong>. Publique-o para ativá-lo e permitir respostas aos questionários.
+              {{ 'projects.detail.draft_banner' | translate }}
             </span>
           </div>
         }
 
         <section class="project-overview">
           <div class="info-card">
-            <span class="info-label">Situação atual</span>
+            <span class="info-label">{{ 'projects.detail.situation' | translate }}</span>
             <span class="info-value">{{ getProjectSituation(project) }}</span>
           </div>
           <div class="info-card">
-            <span class="info-label">Início</span>
+            <span class="info-label">{{ 'projects.detail.start' | translate }}</span>
             <span class="info-value">
               @if (project.startDate) {
                 {{ project.startDate | date: 'dd/MM/yyyy' }}
@@ -84,7 +84,7 @@
             </span>
           </div>
           <div class="info-card">
-            <span class="info-label">Encerramento</span>
+            <span class="info-label">{{ 'projects.detail.deadline_label' | translate }}</span>
             <span class="info-value">
               @if (project.deadline) {
                 {{ project.deadline | date: 'dd/MM/yyyy' }}
@@ -94,7 +94,7 @@
             </span>
           </div>
           <div class="info-card">
-            <span class="info-label">Fechamento real</span>
+            <span class="info-label">{{ 'projects.detail.closing_date' | translate }}</span>
             <span class="info-value">
               @if (project.closingDate) {
                 {{ project.closingDate | date: 'dd/MM/yyyy' }}
@@ -104,18 +104,18 @@
             </span>
           </div>
           <div class="info-card">
-            <span class="info-label">Representantes</span>
+            <span class="info-label">{{ 'projects.sections.representatives' | translate }}</span>
             <span class="info-value">{{ project.representativeCount || 0 }}</span>
           </div>
           @if (isCascata) {
             <div class="info-card">
-              <span class="info-label">Etapas</span>
+              <span class="info-label">{{ 'projects.sections.stages' | translate }}</span>
               <span class="info-value">{{ project.stageCount || 0 }}</span>
             </div>
           }
           @if (isIterativo) {
             <div class="info-card">
-              <span class="info-label">Iterações</span>
+              <span class="info-label">{{ 'projects.detail.iterations' | translate }}</span>
               <span class="info-value">{{ project.iterationCount || 0 }}</span>
             </div>
           }
@@ -123,7 +123,7 @@
 
         @if (currentUserProjectRoles().length > 0) {
           <section class="representative-roles">
-            <h3>Seus papéis neste projeto</h3>
+            <h3>{{ 'projects.detail.your_roles' | translate }}</h3>
             <div class="role-badges">
               @for (role of currentUserProjectRoles(); track role) {
                 <span class="role-badge">{{ role }}</span>
@@ -135,8 +135,8 @@
         <section class="questionnaires-section">
           <div class="section-header">
             <div>
-              <h2>Questionários</h2>
-              <p>Utilize os filtros abaixo para localizar um questionário específico.</p>
+              <h2>{{ 'projects.sections.questionnaires' | translate }}</h2>
+              <p>{{ 'projects.detail.filter_hint' | translate }}</p>
             </div>
           </div>
 
@@ -179,7 +179,7 @@
 
             <div actions>
               <button type="button" class="btn btn-secundary" (click)="onResetFilters()">
-                Limpar filtros
+                {{ 'projects.detail.clear_filters' | translate }}
               </button>
             </div>
           </app-filter-bar>
@@ -211,7 +211,7 @@
                         {{ getQuestionnaireReferenceLabel(questionnaire, project.type) }}
                       </p>
                       <p class="questionnaire-card__application">
-                        Período de aplicação: <strong>{{ getApplicationRange(questionnaire) }}</strong>
+                        {{ 'projects.detail.application_period' | translate }}: <strong>{{ getApplicationRange(questionnaire) }}</strong>
                       </p>
                     </div>
 
@@ -227,20 +227,20 @@
                     <div class="questionnaire-card__left-column">
                       <div class="questionnaire-card__meta">
                         <div>
-                          <span class="meta-label">Respondentes</span>
+                          <span class="meta-label">{{ 'projects.detail.respondents' | translate }}</span>
                           <span class="meta-value">
                             {{ questionnaire.respondedRespondents }} /
                             {{ questionnaire.totalRespondents }}
                           </span>
                         </div>
                         <div>
-                          <span class="meta-label">Pendentes</span>
+                          <span class="meta-label">{{ 'projects.detail.pending' | translate }}</span>
                           <span class="meta-value">
                             {{ questionnaire.pendingRespondents }}
                           </span>
                         </div>
                         <div>
-                          <span class="meta-label">Última resposta</span>
+                          <span class="meta-label">{{ 'projects.detail.last_response' | translate }}</span>
                           <span class="meta-value">
                             @if (questionnaire.lastResponseAt) {
                               {{ questionnaire.lastResponseAt | date: 'dd/MM/yyyy HH:mm' }}
@@ -256,7 +256,7 @@
                           </span>
                         </div>
                         <div>
-                          <span class="meta-label">Período de aplicação</span>
+                          <span class="meta-label">{{ 'projects.detail.application_period' | translate }}</span>
                           <span class="meta-value">
                             {{ getApplicationRange(questionnaire) }}
                           </span>
@@ -271,15 +271,15 @@
                           ></div>
                         </div>
                         <span class="progress-label">
-                          {{ getQuestionnaireProgress(questionnaire) }}% dos representantes responderam
+                          {{ 'projects.detail.progress_label' | translate }}
                         </span>
                       </div>
 
                       @if (questionnaire.respondents.length && canDisplayRespondents()) {
                         <div class="questionnaire-card__respondents">
                           <div class="respondent-list__header">
-                            <span>Status por representante</span>
-                            <small>{{ questionnaire.respondents.length }} pessoas</small>
+                            <span>{{ 'projects.detail.status_by_rep' | translate }}</span>
+                            <small>{{ questionnaire.respondents.length }} {{ 'projects.detail.people' | translate }}</small>
                           </div>
                           <ul class="respondent-list">
                             @for (
@@ -314,9 +314,9 @@
                               (click)="toggleRespondentList(questionnaire.id)"
                             >
                               @if (isRespondentListExpanded(questionnaire.id)) {
-                                Reduzir listagem de representantes
+                                {{ 'projects.detail.collapse_reps' | translate }}
                               } @else {
-                                +{{ questionnaire.respondents.length - 3 }} representantes adicionais
+                                +{{ questionnaire.respondents.length - 3 }} {{ 'projects.detail.additional_reps' | translate }}
                               }
                             </button>
                           }
@@ -326,7 +326,7 @@
 
                     @if (shouldDisplayQuestionnaireActions(questionnaire)) {
                       <div class="questionnaire-card__actions" aria-label="Ações do questionário">
-                        <span class="questionnaire-card__actions-label">Ações</span>
+                        <span class="questionnaire-card__actions-label">{{ 'common.actions' | translate }}</span>
 
                         @if (isAdmin()) {
                           <button
@@ -334,7 +334,7 @@
                             class="questionnaire-card__action-button"
                             (click)="copyQuestionnaireLink(questionnaire)"
                           >
-                            Copiar link
+                            {{ 'projects.actions.copy_link' | translate }}
                           </button>
 
                           <button
@@ -342,7 +342,7 @@
                             class="questionnaire-card__action-button"
                             (click)="navigateToQuestionnaireView(questionnaire)"
                           >
-                            Visualizar questionário
+                            {{ 'projects.actions.view' | translate }}
                           </button>
 
                           @if (isQuestionnaireCompleted(questionnaire)) {
@@ -351,7 +351,7 @@
                               class="questionnaire-card__action-button questionnaire-card__action-button--primary"
                               (click)="navigateToQuestionnaireDashboard(questionnaire)"
                             >
-                              Dashboard do questionário
+                              {{ 'projects.detail.questionnaire_dashboard' | translate }}
                             </button>
                           }
 
@@ -366,9 +366,9 @@
                               (click)="onSendReminder(questionnaire)"
                             >
                               @if (isReminderInProgress(questionnaire.id)) {
-                                Enviando lembrete...
+                                {{ 'projects.detail.sending_reminder' | translate }}
                               } @else {
-                                Enviar lembrete
+                                {{ 'questionnaire.send_reminder' | translate }}
                               }
                             </button>
                           }
@@ -381,9 +381,9 @@
                               (click)="onForceCloseQuestionnaire(questionnaire)"
                             >
                               @if (isForceClosing(questionnaire.id)) {
-                                Encerrando questionário...
+                                {{ 'projects.detail.closing_questionnaire' | translate }}
                               } @else {
-                                Encerrar questionário manualmente
+                                {{ 'questionnaire.force_close' | translate }}
                               }
                             </button>
                           }
@@ -396,9 +396,9 @@
                               (click)="onRescheduleQuestionnaire(questionnaire)"
                             >
                               @if (isRescheduling(questionnaire.id)) {
-                                Reagendando...
+                                {{ 'projects.detail.rescheduling' | translate }}
                               } @else {
-                                Reagendar
+                                {{ 'questionnaire.reschedule' | translate }}
                               }
                             </button>
                           }
@@ -410,7 +410,7 @@
                             class="questionnaire-card__action-button questionnaire-card__action-button--primary"
                             (click)="navigateToQuestionnaire(questionnaire, 'respond')"
                           >
-                            Responder agora
+                            {{ 'projects.actions.answer_now' | translate }}
                           </button>
                         }
 
@@ -420,7 +420,7 @@
                             class="questionnaire-card__action-button"
                             (click)="navigateToQuestionnaire(questionnaire, 'view')"
                           >
-                            Visualizar respostas
+                            {{ 'projects.detail.view_responses' | translate }}
                           </button>
                         }
 
@@ -430,7 +430,7 @@
                             class="questionnaire-card__action-button questionnaire-card__action-button--primary"
                             (click)="navigateToIndividualDashboard(questionnaire)"
                           >
-                            Meu painel
+                            {{ 'projects.actions.my_panel' | translate }}
                           </button>
                         }
                       </div>

@@ -13,6 +13,7 @@ import { Params } from '@angular/router'
 import { BasePageComponent, RestoreParams } from '../../../core/abstractions/base-page.component'
 import { RouteParams } from '../../../core/services/router.service'
 import { NotificationService } from '../../../core/services/notification.service'
+import { TranslateModule, TranslateService } from '@ngx-translate/core'
 import { InputComponent } from '../../../shared/components/input/input.component'
 import { AuthStore } from '../../../shared/stores/auth.store'
 import { createResetPassword, ResetPasswordInterface } from '../../../shared/interfaces/auth/reset-password.interface'
@@ -36,7 +37,7 @@ interface ResetPasswordFormValue {
 @Component({
 	selector: 'app-reset-password',
 	standalone: true,
-	imports: [CommonModule, ReactiveFormsModule, InputComponent],
+	imports: [CommonModule, ReactiveFormsModule, InputComponent, TranslateModule],
 	templateUrl: './reset-password.component.html',
 	styleUrl: './reset-password.component.scss',
 })
@@ -46,6 +47,7 @@ export class ResetPasswordComponent extends BasePageComponent<ResetPasswordRoute
 	private readonly formBuilder = inject(FormBuilder)
 	private readonly authStore = inject(AuthStore)
 	private readonly notificationService = inject(NotificationService)
+	private readonly translate = inject(TranslateService)
 
 	readonly passwordValidationMessages = {
 		required: 'Senha é obrigatória',
@@ -155,7 +157,7 @@ export class ResetPasswordComponent extends BasePageComponent<ResetPasswordRoute
 
 		this.authStore.resetPassword(this.resetPassword).subscribe({
 			next: () => {
-				this.notificationService.showSuccess('Senha redefinida com sucesso!')
+				this.notificationService.showSuccess(this.translate.instant('auth.messages.password_reset'))
 				this.routerService.navigateTo('login')
 			},
 			error: (error: unknown) => {

@@ -1,12 +1,13 @@
 import { Component, Input, Output, EventEmitter, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
 import { MarkdownPipe } from '../../../../shared/utils/markdown.pipe';
 import { AiInsightResult } from '../../interfaces/ai.interface';
 
 @Component({
   selector: 'app-ai-panel',
   standalone: true,
-  imports: [DatePipe, MarkdownPipe],
+  imports: [DatePipe, MarkdownPipe, TranslateModule],
   templateUrl: './ai-panel.component.html',
   styleUrl: './ai-panel.component.scss',
 })

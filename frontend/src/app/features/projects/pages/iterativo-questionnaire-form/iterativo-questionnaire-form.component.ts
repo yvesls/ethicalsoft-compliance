@@ -1,6 +1,7 @@
 import { Component, inject, OnInit, OnDestroy, signal, WritableSignal, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormsModule, Validators } from '@angular/forms';
+import { TranslateService } from '@ngx-translate/core';
 
 import { BasePageComponent, RestoreParams } from '../../../../core/abstractions/base-page.component';
 import { LoggerService } from '../../../../core/services/logger.service';
@@ -56,6 +57,7 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
   private fb = inject(FormBuilder);
   private cdr = inject(ChangeDetectorRef);
   private notificationService = inject(NotificationService);
+  private readonly translate = inject(TranslateService);
   private roleService = inject(RoleService);
   private questionnaireQueryStore = inject(QuestionnaireQueryStore);
   private questionnaireIndex: number | null = null;
@@ -175,7 +177,7 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
           this.cdr.markForCheck();
         },
         error: () => {
-          this.notificationService.showError('Não foi possível carregar os dados do questionário.');
+          this.notificationService.showError(this.translate.instant('notifications.questionnaire_form.load_data_error'));
         },
       });
 
@@ -222,7 +224,7 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
         },
         error: () => {
           this.isLoadingQuestions.set(false);
-          this.notificationService.showError('Não foi possível carregar as perguntas do questionário.');
+          this.notificationService.showError(this.translate.instant('notifications.questionnaire_form.load_questions_error'));
         },
       });
   }

@@ -61,6 +61,7 @@ import { RoleService } from '../../../../core/services/role.service';
 import { RoleSummary } from '../../../../shared/interfaces/role/role-summary.interface';
 import { DraftCacheService } from '../../../../core/services/draft-cache.service';
 import { SessionExpirationService } from '../../../../core/services/session-expiration.service';
+import { TranslateService } from '@ngx-translate/core';
 
 export interface Representative {
   id?: number | string | null;
@@ -145,6 +146,7 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
   private draftCacheService = inject(DraftCacheService);
   private sessionExpirationService = inject(SessionExpirationService);
   public override routerService = inject(RouterService);
+  private readonly translate = inject(TranslateService);
 
   public ProjectType = ProjectType;
   public projectForm!: FormGroup;
@@ -1304,7 +1306,7 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
     try {
       payload = this.buildProjectCreationPayload();
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Erro ao preparar os dados do projeto.';
+      const message = error instanceof Error ? error.message : this.translate.instant('projects.messages.prepare_error');
       this.notificationService.showError(message);
       return;
     }
@@ -1317,7 +1319,7 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
       .pipe(
         switchMap((project) => {
           if (!project?.id) {
-            throw new Error('Não foi possível identificar o projeto criado.');
+            throw new Error(this.translate.instant('projects.messages.identify_error'));
           }
 
           return this.templateStore.createTemplateFromProject(
@@ -1333,7 +1335,7 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
       )
       .subscribe({
         next: () => {
-          this.notificationService.showSuccess('Projeto criado e template gerado com sucesso.');
+          this.notificationService.showSuccess(this.translate.instant('projects.messages.created_with_template'));
           this.routerService.navigateTo('/projects');
         },
         error: (error) => {
@@ -1351,7 +1353,7 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
     const projectName = (formValue.name || '').trim();
 
     if (!projectName) {
-      this.notificationService.showWarning('Informe ao menos o nome do projeto para salvar como rascunho.');
+      this.notificationService.showWarning(this.translate.instant('projects.form.validation.draft_name_required'));
       return;
     }
 
@@ -1359,7 +1361,7 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
     try {
       payload = this.buildDraftPayload();
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Erro ao preparar os dados do rascunho.';
+      const message = error instanceof Error ? error.message : this.translate.instant('projects.messages.prepare_draft_error');
       this.notificationService.showError(message);
       return;
     }
@@ -1382,7 +1384,7 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
       .subscribe({
         next: () => {
           this.draftCacheService.remove(draftKey);
-          this.notificationService.showSuccess('Rascunho salvo com sucesso.');
+          this.notificationService.showSuccess(this.translate.instant('projects.messages.draft_saved'));
           this.routerService.navigateTo('/projects');
         },
         error: (error) => {

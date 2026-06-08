@@ -45,6 +45,7 @@ import { environment } from '../../../../enviroments/environments';
 import { BusinessDaysUtils } from '../../../../core/utils/business-days-utils';
 import { DashboardService } from '../../../dashboard/services/dashboard.service';
 import { ModalService } from '../../../../core/services/modal.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core'
 import { RescheduleQuestionnaireModalComponent } from '../../components/reschedule-questionnaire-modal/reschedule-questionnaire-modal.component';
 
 interface ProjectState {
@@ -78,6 +79,7 @@ type QuestionnaireActionMode = 'respond' | 'view';
     InputComponent,
     ListComponent,
     PaginationComponent,
+    TranslateModule,
   ],
   templateUrl: './project-detail-page.component.html',
   styleUrls: ['./project-detail-page.component.scss'],
@@ -95,6 +97,7 @@ export class ProjectDetailPageComponent implements OnInit {
   private readonly dashboardService = inject(DashboardService);
   private readonly modalService = inject(ModalService);
   private readonly roleService = inject(RoleService);
+  private readonly translate = inject(TranslateService);
 
   private readonly questionnairesPageSize = 5;
   private currentProjectId: string | null = null;
@@ -217,7 +220,7 @@ export class ProjectDetailPageComponent implements OnInit {
     }
 
     this.notification.showConfirm(
-      'Tem certeza que deseja publicar este projeto? Ele será ativado e os questionários ficarão disponíveis para resposta.',
+      this.translate.instant('projects.messages.publish_confirm'),
       () => {
         this.isPublishing.set(true);
 
@@ -229,7 +232,7 @@ export class ProjectDetailPageComponent implements OnInit {
           .subscribe({
             next: () => {
               this.isPublishing.set(false);
-              this.notification.showSuccess('Projeto publicado com sucesso.');
+              this.notification.showSuccess(this.translate.instant('projects.messages.published'));
               this.loadProject(project.id);
             },
             error: (error) => {
@@ -249,7 +252,7 @@ export class ProjectDetailPageComponent implements OnInit {
     }
 
     this.notification.showConfirm(
-      `Tem certeza que deseja excluir o projeto "${project.name}"? Esta ação não pode ser desfeita.`,
+      this.translate.instant('projects.messages.delete_confirm', { name: project.name }),
       () => {
         this.isDeleting.set(true);
 
@@ -259,7 +262,7 @@ export class ProjectDetailPageComponent implements OnInit {
           .subscribe({
             next: () => {
               this.isDeleting.set(false);
-              this.notification.showSuccess('Projeto excluído com sucesso.');
+              this.notification.showSuccess(this.translate.instant('projects.messages.deleted'));
               this.router.navigate(['/projects']);
             },
             error: (error) => {
@@ -498,7 +501,7 @@ export class ProjectDetailPageComponent implements OnInit {
           const startFormatted = this.formatDate(response.newStartDate);
           const endFormatted = this.formatDate(response.newEndDate);
           this.notification.showSuccess(
-            `Questionário "${response.questionnaireName}" reagendado com sucesso. Novo período: ${startFormatted} até ${endFormatted}.`
+            this.translate.instant('projects.messages.reschedule_success', { name: response.questionnaireName, start: startFormatted, end: endFormatted })
           );
 
           if (response.projectDeadlineExceeded && response.projectDeadlineWarning) {
@@ -514,7 +517,7 @@ export class ProjectDetailPageComponent implements OnInit {
         },
         error: (error: unknown) => {
           this.removeReschedulingId(questionnaire.id);
-          this.notification.showError(error ?? 'Erro ao reagendar o questionário.');
+          this.notification.showError(error ?? this.translate.instant('projects.messages.reschedule_error'));
         },
       });
   }
@@ -931,11 +934,11 @@ export class ProjectDetailPageComponent implements OnInit {
       .subscribe({
         next: () => {
           this.removeReminderLoading(questionnaire.id);
-          this.notification.showSuccess('Lembrete enviado com sucesso.');
+          this.notification.showSuccess(this.translate.instant('questionnaire.messages.reminder_sent'));
         },
         error: (error: unknown) => {
           this.removeReminderLoading(questionnaire.id);
-          this.notification.showError(error ?? 'Falha ao enviar o lembrete.');
+          this.notification.showError(error ?? this.translate.instant('questionnaire.messages.reminder_error'));
         },
       });
   }

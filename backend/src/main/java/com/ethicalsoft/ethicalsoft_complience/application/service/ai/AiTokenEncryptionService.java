@@ -37,10 +37,13 @@ public class AiTokenEncryptionService {
     void init() {
         byte[] keyBytes;
         if (configuredKey == null || configuredKey.isBlank()) {
-            log.warn("[ai-token] 'app.ai.token-encryption-key' não definida — derivando chave de fallback. " +
-                    "Em produção, configure AI_TOKEN_ENCRYPTION_KEY (32 bytes base64).");
+            log.warn("[ai-token] 'app.ai.token-encryption-key' (env AI_TOKEN_ENCRYPTION_KEY) não definida — " +
+                    "usando chave de fallback derivada. NÃO use em produção: tokens cifrados com a chave de " +
+                    "fallback não podem ser lidos em outro ambiente. Gere uma chave AES-256 com: " +
+                    "`openssl rand -base64 32` e exporte em AI_TOKEN_ENCRYPTION_KEY.");
             keyBytes = derive("ethicalsoft-ai-token-fallback-key".getBytes(StandardCharsets.UTF_8));
         } else {
+            log.info("[ai-token] Chave de criptografia de tokens de IA carregada do ambiente.");
             try {
                 byte[] decoded = Base64.getDecoder().decode(configuredKey.trim());
                 keyBytes = (decoded.length == 32) ? decoded : derive(decoded);

@@ -136,12 +136,12 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
 
         if (!this.dashboard()) {
           this.loadError.set(true);
-          this.notificationService.showError('Não foi possível carregar os dados do dashboard. O ISEP pode ainda não ter sido calculado para este questionário.');
+          this.notificationService.showError(this.translate.instant('dashboard.errors.load_questionnaire_isep'));
         }
       },
       error: () => {
         this.loadError.set(true);
-        this.notificationService.showError('Não foi possível carregar o dashboard do questionário.');
+        this.notificationService.showError(this.translate.instant('dashboard.errors.load_questionnaire'));
         this.loading.set(false);
       },
     });
@@ -163,7 +163,7 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
         a.click();
         URL.revokeObjectURL(url);
       },
-      error: () => this.notificationService.showError('Erro ao exportar JSON.'),
+      error: () => this.notificationService.showError(this.translate.instant('dashboard.errors.export_json')),
     });
   }
 
@@ -184,17 +184,17 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
 
   forceClose(): void {
     this.notificationService.showConfirm(
-      'Tem certeza que deseja encerrar o questionário? O ISEP será calculado com as respostas existentes.',
+      this.translate.instant('dashboard.questionnaire.force_close_confirm'),
       () => {
         this.forceClosing.set(true);
         this.dashboardService.forceCloseQuestionnaire(this.projectId, this.questionnaireId).subscribe({
           next: () => {
-            this.notificationService.showSuccess('Questionário encerrado. ISEP será calculado.');
+            this.notificationService.showSuccess(this.translate.instant('dashboard.questionnaire.closed_success'));
             this.load();
             this.forceClosing.set(false);
           },
           error: () => {
-            this.notificationService.showError('Erro ao encerrar o questionário.');
+            this.notificationService.showError(this.translate.instant('dashboard.errors.force_close'));
             this.forceClosing.set(false);
           },
         });
@@ -215,7 +215,7 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
         this.downloadingBulletinPdf.set(false);
       },
       error: () => {
-        this.notificationService.showError('Erro ao baixar o boletim. Tente novamente.');
+        this.notificationService.showError(this.translate.instant('dashboard.errors.bulletin_download'));
         this.downloadingBulletinPdf.set(false);
       },
     });
@@ -242,19 +242,19 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
 
   emitBulletinToRepresentatives(): void {
     this.notificationService.showConfirm(
-      'Emitir o boletim aos representantes? Isso enviará o PDF por e-mail a todos os envolvidos e registrará a emissão.',
+      this.translate.instant('dashboard.bulletin.emit_confirm'),
       () => {
         this.emittingBulletin.set(true);
         this.documentEmissionService.emitBulletinToRepresentatives(this.projectId, this.questionnaireId).subscribe({
           next: (result: BulletinEmissionResult) => {
             this.notificationService.showSuccess(
-              `Boletim emitido para ${result.emittedCount} representante(s). Código: ${result.authenticityCode}`
+              this.translate.instant('dashboard.bulletin.emit_success', { count: result.emittedCount, code: result.authenticityCode })
             );
             this.emittingBulletin.set(false);
             this.loadEmissions();
           },
           error: () => {
-            this.notificationService.showError('Erro ao emitir o boletim. Tente novamente.');
+            this.notificationService.showError(this.translate.instant('dashboard.errors.bulletin_emit'));
             this.emittingBulletin.set(false);
           },
         });

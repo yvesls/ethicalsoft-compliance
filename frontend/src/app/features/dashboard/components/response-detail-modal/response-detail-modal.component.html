@@ -1,13 +1,13 @@
 @if (loading()) {
   <div class="response-modal__loading">
     <div class="spinner-border text-primary"></div>
-    <span>Carregando respostas...</span>
+    <span>{{ 'dashboard.response_modal.loading' | translate }}</span>
   </div>
 } @else {
   @if (data(); as d) {
     <div class="response-modal">
       <div class="response-modal__header">
-        <h2 class="response-modal__title">Respostas de {{ d.representativeName }}</h2>
+        <h2 class="response-modal__title">{{ 'dashboard.response_modal.responses_of' | translate: { name: d.representativeName } }}</h2>
 
         <div class="response-modal__meta">
           <span class="response-modal__badge" [class.response-modal__badge--completed]="d.status === 'COMPLETED'">
@@ -15,7 +15,7 @@
           </span>
           @if (d.submissionDate) {
             <span class="response-modal__meta-item">
-              Submetido em {{ d.submissionDate | date: 'dd/MM/yyyy HH:mm' }}
+              {{ 'dashboard.response_modal.submitted_at' | translate }} {{ d.submissionDate | date: 'dd/MM/yyyy HH:mm' }}
             </span>
           }
         </div>
@@ -23,19 +23,19 @@
         <div class="response-modal__counters">
           <div class="response-modal__counter">
             <span class="response-modal__counter-value">{{ d.totalQuestions }}</span>
-            <span class="response-modal__counter-label">Perguntas</span>
+            <span class="response-modal__counter-label">{{ 'dashboard.response_modal.questions' | translate }}</span>
           </div>
           <div class="response-modal__counter">
             <span class="response-modal__counter-value">{{ d.answeredQuestions }}</span>
-            <span class="response-modal__counter-label">Respondidas</span>
+            <span class="response-modal__counter-label">{{ 'dashboard.response_modal.answered' | translate }}</span>
           </div>
           <div class="response-modal__counter response-modal__counter--yes">
             <span class="response-modal__counter-value">{{ d.yesCount }}</span>
-            <span class="response-modal__counter-label">SIM</span>
+            <span class="response-modal__counter-label">{{ 'dashboard.response_modal.yes' | translate }}</span>
           </div>
           <div class="response-modal__counter response-modal__counter--no">
             <span class="response-modal__counter-value">{{ d.noCount }}</span>
-            <span class="response-modal__counter-label">NÃO</span>
+            <span class="response-modal__counter-label">{{ 'dashboard.response_modal.no' | translate }}</span>
           </div>
         </div>
       </div>
@@ -45,10 +45,10 @@
           <table class="table table-hover align-middle response-modal__table">
             <thead>
               <tr>
-                <th>Pergunta</th>
-                <th class="text-center">Resposta</th>
-                <th>Justificativa</th>
-                <th>Evidência</th>
+                <th>{{ 'dashboard.response_modal.question_col' | translate }}</th>
+                <th class="text-center">{{ 'dashboard.response_modal.answer_col' | translate }}</th>
+                <th>{{ 'dashboard.response_modal.justification_col' | translate }}</th>
+                <th>{{ 'dashboard.response_modal.evidence_col' | translate }}</th>
               </tr>
             </thead>
             <tbody>
@@ -57,7 +57,7 @@
                   <td class="response-modal__question-text">{{ a.questionText }}</td>
                   <td class="text-center">
                     <span class="response-badge" [class.response-badge--yes]="a.response" [class.response-badge--no]="!a.response">
-                      {{ a.response ? 'SIM' : 'NÃO' }}
+                      {{ a.response ? ('dashboard.response_modal.yes' | translate) : ('dashboard.response_modal.no' | translate) }}
                     </span>
                   </td>
                   <td>
@@ -89,18 +89,18 @@
             </tbody>
           </table>
         } @else {
-          <p class="text-muted text-center py-4">Nenhuma resposta registrada.</p>
+          <p class="text-muted text-center py-4">{{ 'dashboard.response_modal.no_responses' | translate }}</p>
         }
       </div>
 
       <div class="response-modal__footer">
-        <button class="dash-btn dash-btn--neutral" (click)="close()">Fechar</button>
+        <button class="dash-btn dash-btn--neutral" (click)="close()">{{ 'common.close' | translate }}</button>
       </div>
     </div>
   } @else {
     <div class="response-modal__empty">
-      <p class="text-muted">Não foi possível carregar os dados.</p>
-      <button class="dash-btn dash-btn--neutral" (click)="close()">Fechar</button>
+      <p class="text-muted">{{ 'dashboard.response_modal.load_error' | translate }}</p>
+      <button class="dash-btn dash-btn--neutral" (click)="close()">{{ 'common.close' | translate }}</button>
     </div>
   }
 }

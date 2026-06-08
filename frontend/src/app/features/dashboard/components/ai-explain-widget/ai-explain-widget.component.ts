@@ -1,4 +1,5 @@
 import { Component, inject, Input, signal } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { AiPanelComponent } from '../ai-panel/ai-panel.component';
 import { AiDashboardService } from '../../services/ai-dashboard.service';
 import { AiInsightResult } from '../../interfaces/ai.interface';
@@ -12,12 +13,12 @@ import { MissingAiTokenDialogComponent } from '../../../../shared/components/mis
   imports: [AiPanelComponent],
   template: `
     <app-ai-panel
-      title="Explicação dos Resultados ISEP"
+      [title]="translate.instant('dashboard.ai_widgets.explain_title')"
       icon="bi-info-circle"
       [result]="result()"
       [loading]="loading()"
-      buttonLabel="Explicar Resultados"
-      loadingLabel="Gerando explicação com IA... (pode levar até 15s)"
+      [buttonLabel]="translate.instant('dashboard.ai_widgets.explain_btn')"
+      [loadingLabel]="translate.instant('dashboard.ai_widgets.explain_loading')"
       (generate)="generate()"
     />
   `,
@@ -29,6 +30,7 @@ export class AiExplainWidgetComponent {
   private readonly aiService = inject(AiDashboardService);
   private readonly aiTokenService = inject(AiTokenService);
   private readonly modalService = inject(ModalService);
+  readonly translate = inject(TranslateService);
 
   result = signal<AiInsightResult | null>(null);
   loading = signal(false);

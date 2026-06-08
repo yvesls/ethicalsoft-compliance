@@ -8,6 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { take } from 'rxjs';
@@ -42,7 +43,7 @@ type PageMode = 'respond' | 'view';
 @Component({
   selector: 'app-questionnaire-response-page',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslateModule],
   templateUrl: './questionnaire-response-page.component.html',
   styleUrls: ['./questionnaire-response-page.component.scss'],
   providers: [QuestionnaireAnswerCacheService],
@@ -61,6 +62,7 @@ export class QuestionnaireResponsePageComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly draftCacheService = inject(DraftCacheService);
   private readonly sessionExpirationService = inject(SessionExpirationService);
+  private readonly translate = inject(TranslateService);
 
   private projectId: string | null = null;
   private questionnaireId: number | null = null;
@@ -165,7 +167,7 @@ export class QuestionnaireResponsePageComponent implements OnInit {
     };
 
     if (!this.projectId || this.questionnaireId === null) {
-      this.notification.showError('Projeto ou questionário inválido.');
+      this.notification.showError(this.translate.instant('notifications.response.invalid_ids'));
       return;
     }
 
@@ -183,7 +185,7 @@ export class QuestionnaireResponsePageComponent implements OnInit {
           const submittedIds = currentAnswers.map((a) => a.questionId);
           this.answerCache.clearSubmitted(submittedIds);
 
-          this.notification.showSuccess('Respostas enviadas com sucesso.');
+          this.notification.showSuccess(this.translate.instant('notifications.response.submit_success'));
           this.loadResponse();
         },
         error: (msg) => this.notification.showError(msg),
@@ -197,7 +199,7 @@ export class QuestionnaireResponsePageComponent implements OnInit {
 
     const currentAnswers = this.answers();
     if (!this.projectId || this.questionnaireId === null) {
-      this.notification.showError('Dados insuficientes para salvar o rascunho.');
+      this.notification.showError(this.translate.instant('notifications.response.draft_no_ids'));
       return;
     }
 
@@ -244,7 +246,7 @@ export class QuestionnaireResponsePageComponent implements OnInit {
             this.draftCacheService.remove(draftKey);
           }
 
-          this.notification.showSuccess('Rascunho salvo com sucesso.');
+          this.notification.showSuccess(this.translate.instant('notifications.response.draft_saved'));
         },
         error: (msg) => {
           this.isSavingDraft.set(false);
@@ -410,7 +412,7 @@ export class QuestionnaireResponsePageComponent implements OnInit {
         this.requestedMode = modeFromQuery === 'view' ? 'view' : 'respond';
 
         if (!this.projectId || this.questionnaireId === null || Number.isNaN(this.questionnaireId)) {
-          this.notification.showError('Identificador do questionário inválido.');
+          this.notification.showError(this.translate.instant('notifications.response.invalid_questionnaire_id'));
           this.onNavigateBack();
           return;
         }

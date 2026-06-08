@@ -1,22 +1,22 @@
 <section class="settings">
 	<header class="settings__header">
-		<h1>Configurações</h1>
-		<p>Gerencie e personalize as preferências da sua conta.</p>
+		<h1>{{ 'settings.title' | translate }}</h1>
+		<p>{{ 'settings.subtitle' | translate }}</p>
 	</header>
 
 	<div class="settings__card">
 		<div class="settings__card-content">
-			<h2>Segurança</h2>
-			<p>Mantenha sua conta protegida atualizando sua senha com frequência.</p>
+			<h2>{{ 'settings.security.title' | translate }}</h2>
+			<p>{{ 'settings.security.subtitle' | translate }}</p>
 		</div>
-		<a class="settings__action" routerLink="/settings/reset-password">Trocar senha</a>
+		<a class="settings__action" routerLink="/settings/reset-password">{{ 'settings.security.change_password' | translate }}</a>
 	</div>
 
 	<div class="settings__card">
 		<div class="settings__card-content">
-			<h2>Token de IA</h2>
-			<p>Configure seu token Groq Cloud para utilizar os recursos de inteligência artificial.</p>
+			<h2>{{ 'ai.token.title' | translate }}</h2>
+			<p>{{ 'ai.token.missing.body' | translate }}</p>
 		</div>
-		<a class="settings__action" routerLink="/settings/ai-token">Configurar</a>
+		<a class="settings__action" routerLink="/settings/ai-token">{{ 'ai.token.missing.configureNow' | translate }}</a>
 	</div>
 </section>

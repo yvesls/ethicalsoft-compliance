@@ -27,6 +27,9 @@
     "retry": "Tentar novamente",
     "generating": "Gerando...",
     "saving": "Salvando…",
+    "downloading": "Baixando...",
+    "registering": "Registrando...",
+    "closing": "Encerrando...",
     "in_development": "Funcionalidade em desenvolvimento",
     "not_found": "Página não encontrada!",
     "go_home": "Voltar para a Página Inicial"
@@ -674,6 +677,15 @@
     "close_project": "Encerrar Projeto",
     "closing_project": "Encerrando...",
     "try_again": "Tentar novamente",
+    "emissions": {
+      "bulletin_title": "Emissões Registradas — Boletim",
+      "certificate_title": "Emissões Registradas — Certificado",
+      "emitted_by": "Emitido por",
+      "date": "Data",
+      "code": "Código de Autenticidade",
+      "isep_percent": "ISEP (%)",
+      "loading": "Carregando..."
+    },
     "errors": {
       "load_project": "Não foi possível carregar o dashboard do projeto.",
       "export_csv": "Erro ao exportar CSV.",

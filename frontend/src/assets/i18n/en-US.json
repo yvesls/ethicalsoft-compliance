@@ -27,6 +27,9 @@
     "retry": "Try again",
     "generating": "Generating...",
     "saving": "Saving…",
+    "downloading": "Downloading...",
+    "registering": "Registering...",
+    "closing": "Closing...",
     "in_development": "Feature under development",
     "not_found": "Page not found!",
     "go_home": "Back to Home"
@@ -674,6 +677,15 @@
     "close_project": "Close Project",
     "closing_project": "Closing...",
     "try_again": "Try again",
+    "emissions": {
+      "bulletin_title": "Recorded Emissions — Bulletin",
+      "certificate_title": "Recorded Emissions — Certificate",
+      "emitted_by": "Emitted by",
+      "date": "Date",
+      "code": "Authenticity Code",
+      "isep_percent": "ISEP (%)",
+      "loading": "Loading..."
+    },
     "errors": {
       "load_project": "Could not load the project dashboard.",
       "export_csv": "Error exporting CSV.",

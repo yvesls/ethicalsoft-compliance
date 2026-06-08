@@ -92,7 +92,7 @@ export class ProjectDashboardPageComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.notificationService.showError('Não foi possível carregar o dashboard do projeto.');
+        this.notificationService.showError(this.translate.instant('dashboard.errors.load_project'));
         this.loading.set(false);
       },
     });
@@ -113,18 +113,18 @@ export class ProjectDashboardPageComponent implements OnInit {
 
   closeProject(): void {
     this.notificationService.showConfirm(
-      'Tem certeza que deseja encerrar o projeto? O ISEP consolidado será calculado com os questionários disponíveis.',
+      this.translate.instant('dashboard.project.close_confirm'),
       () => {
         this.closing.set(true);
         this.dashboardService.closeProject(this.projectId).subscribe({
           next: (result) => {
             this.closeResult.set(result);
-            this.notificationService.showSuccess(`Projeto encerrado. ISEP: ${result.isepPercent}% – Faixa ${result.band}`);
+            this.notificationService.showSuccess(this.translate.instant('dashboard.project.closed_success', { isep: result.isepPercent, band: result.band }));
             this.load();
             this.closing.set(false);
           },
           error: () => {
-            this.notificationService.showError('Erro ao encerrar o projeto.');
+            this.notificationService.showError(this.translate.instant('dashboard.errors.close_project'));
             this.closing.set(false);
           },
         });
@@ -145,7 +145,7 @@ export class ProjectDashboardPageComponent implements OnInit {
         this.downloadingCertPdf.set(false);
       },
       error: () => {
-        this.notificationService.showError('Erro ao baixar o certificado. Tente novamente.');
+        this.notificationService.showError(this.translate.instant('dashboard.errors.certificate'));
         this.downloadingCertPdf.set(false);
       },
     });

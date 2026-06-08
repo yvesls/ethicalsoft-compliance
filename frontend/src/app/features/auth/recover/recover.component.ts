@@ -9,6 +9,7 @@ import {
 	PasswordRecoveryInterface,
 } from '../../../shared/interfaces/auth/password-recovery.interface'
 import { AuthStore } from '../../../shared/stores/auth.store'
+import { TranslateModule } from '@ngx-translate/core'
 import { InputComponent } from '../../../shared/components/input/input.component'
 
 type RecoverFormGroup = FormGroup<{ email: FormControl<string> }>
@@ -19,7 +20,7 @@ interface RecoverRouteParams extends Record<string, unknown> {
 
 @Component({
 	selector: 'app-recover',
-	imports: [CommonModule, ReactiveFormsModule, InputComponent],
+	imports: [CommonModule, ReactiveFormsModule, InputComponent, TranslateModule],
 	templateUrl: './recover.component.html',
 	styleUrl: './recover.component.scss',
 })

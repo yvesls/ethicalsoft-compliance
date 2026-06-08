@@ -24,7 +24,7 @@
       @if (result || loading) {
         <button
           class="ai-panel__toggle"
-          [attr.aria-label]="expanded() ? 'Recolher painel' : 'Expandir painel'"
+          [attr.aria-label]="expanded() ? ('dashboard.ai_panel_collapse' | translate) : ('dashboard.ai_panel_expand' | translate)"
           (click)="toggleExpanded(); $event.stopPropagation()"
           (keydown.enter)="toggleExpanded(); $event.stopPropagation()"
         >
@@ -55,7 +55,7 @@
             (click)="onGenerate()"
             [disabled]="loading"
           >
-            <i class="bi bi-arrow-clockwise"></i> Refazer
+            <i class="bi bi-arrow-clockwise"></i> {{ 'dashboard.ai_panel_retry' | translate }}
           </button>
         </div>
       }
@@ -63,13 +63,13 @@
       @if (result && !result.available) {
         <div class="ai-panel__fallback">
           <i class="bi bi-cloud-slash"></i>
-          <p>{{ result.fallbackMessage ?? 'IA indisponível no momento.' }}</p>
+          <p>{{ result.fallbackMessage ?? ('dashboard.ai_panel_unavailable' | translate) }}</p>
           <button
             class="dash-btn dash-btn--sm dash-btn--neutral"
             (click)="onGenerate()"
             [disabled]="loading"
           >
-            <i class="bi bi-arrow-clockwise"></i> Tentar novamente
+            <i class="bi bi-arrow-clockwise"></i> {{ 'common.retry' | translate }}
           </button>
         </div>
       }

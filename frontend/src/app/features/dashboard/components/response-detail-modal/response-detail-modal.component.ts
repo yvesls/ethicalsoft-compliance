@@ -4,11 +4,12 @@ import { DashboardService } from '../../services/dashboard.service';
 import { RepresentativeResponseDTO } from '../../interfaces/dashboard.interface';
 import { ModalService } from '../../../../core/services/modal.service';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-response-detail-modal',
   standalone: true,
-  imports: [CommonModule, DatePipe],
+  imports: [CommonModule, DatePipe, TranslateModule],
   templateUrl: './response-detail-modal.component.html',
   styleUrl: './response-detail-modal.component.scss',
 })
@@ -21,6 +22,7 @@ export class ResponseDetailModalComponent implements OnInit {
   private readonly dashboardService = inject(DashboardService);
   private readonly modalService = inject(ModalService);
   private readonly notificationService = inject(NotificationService);
+  private readonly translate = inject(TranslateService);
 
   data = signal<RepresentativeResponseDTO | null>(null);
   loading = signal(true);
@@ -39,7 +41,7 @@ export class ResponseDetailModalComponent implements OnInit {
           this.loading.set(false);
         },
         error: () => {
-          this.notificationService.showError('Erro ao carregar respostas do representante.');
+          this.notificationService.showError(this.translate.instant('notifications.dashboard.load_responses_error'));
           this.loading.set(false);
         },
       });
@@ -51,9 +53,9 @@ export class ResponseDetailModalComponent implements OnInit {
 
   getStatusLabel(status: string): string {
     const map: Record<string, string> = {
-      COMPLETED: 'Concluído',
-      PENDING: 'Pendente',
-      IN_PROGRESS: 'Em Andamento',
+      COMPLETED: this.translate.instant('questionnaire.timeline_status.concluido'),
+      PENDING: this.translate.instant('questionnaire.timeline_status.pendente'),
+      IN_PROGRESS: this.translate.instant('questionnaire.timeline_status.em_andamento'),
     };
     return map[status] ?? status;
   }

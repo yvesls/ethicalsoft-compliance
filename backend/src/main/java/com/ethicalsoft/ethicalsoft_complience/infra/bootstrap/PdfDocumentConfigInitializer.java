@@ -24,7 +24,7 @@ public class PdfDocumentConfigInitializer {
     @PostConstruct
     public void seedConfigs() {
         try {
-            configsToSeed().forEach(this::insertIfMissing);
+            configsToSeed().forEach(this::reconcileConfig);
         } catch (Exception e) {
             log.warn("[pdf-config-init] Não foi possível inicializar as configurações de documentos PDF no MongoDB. " +
                     "A aplicação continuará normalmente. Erro: {}", e.getMessage());
@@ -63,13 +63,69 @@ public class PdfDocumentConfigInitializer {
         );
     }
 
-    private void insertIfMissing(PdfDocumentConfigDocument config) {
-        if (config == null || config.getKey() == null || config.getKey().isBlank()) {
+    /**
+     * Insere a configuração quando ausente. Quando já existe, reconcilia os campos
+     * canônicos (de apresentação, controlados pelo código): título, link do template,
+     * nome do sistema e rodapé. Preserva o id e os campos editáveis pelo administrador
+     * (impactSummary, defaultCorrectiveActions, validationUrl, issuerLabel), apenas
+     * preenchendo-os quando estiverem vazios. Garante, por exemplo, que a renomeação do
+     * certificado para "Certificado de Ciência Ética e Conformidade Declarada" passe a
+     * valer mesmo em bancos que já tinham a coleção populada com o título antigo.
+     */
+    private void reconcileConfig(PdfDocumentConfigDocument seed) {
+        if (seed == null || seed.getKey() == null || seed.getKey().isBlank()) {
             return;
         }
-        if (repository.findByKey(config.getKey()).isPresent()) {
-            return;
-        }
-        repository.save(config);
+        repository.findByKey(seed.getKey()).ifPresentOrElse(existing -> {
+            boolean changed = false;
+
+            if (!java.util.Objects.equals(existing.getDocumentTitle(), seed.getDocumentTitle())) {
+                existing.setDocumentTitle(seed.getDocumentTitle());
+                changed = true;
+            }
+            if (!java.util.Objects.equals(existing.getTemplateLink(), seed.getTemplateLink())) {
+                existing.setTemplateLink(seed.getTemplateLink());
+                changed = true;
+            }
+            if (!java.util.Objects.equals(existing.getFooterNote(), seed.getFooterNote())) {
+                existing.setFooterNote(seed.getFooterNote());
+                changed = true;
+            }
+            if (isBlank(existing.getSystemName()) && !isBlank(seed.getSystemName())) {
+                existing.setSystemName(seed.getSystemName());
+                changed = true;
+            }
+            if (isBlank(existing.getImpactSummary()) && !isBlank(seed.getImpactSummary())) {
+                existing.setImpactSummary(seed.getImpactSummary());
+                changed = true;
+            }
+            if (isEmpty(existing.getDefaultCorrectiveActions())
+                    && !isEmpty(seed.getDefaultCorrectiveActions())) {
+                existing.setDefaultCorrectiveActions(seed.getDefaultCorrectiveActions());
+                changed = true;
+            }
+            if (isBlank(existing.getValidationUrl()) && !isBlank(seed.getValidationUrl())) {
+                existing.setValidationUrl(seed.getValidationUrl());
+                changed = true;
+            }
+            if (isBlank(existing.getIssuerLabel()) && !isBlank(seed.getIssuerLabel())) {
+                existing.setIssuerLabel(seed.getIssuerLabel());
+                changed = true;
+            }
+
+            if (changed) {
+                repository.save(existing);
+                log.info("[pdf-config-init] Configuração '{}' reconciliada com os valores canônicos.",
+                        seed.getKey());
+            }
+        }, () -> repository.save(seed));
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
+    }
+
+    private boolean isEmpty(List<String> value) {
+        return value == null || value.isEmpty();
     }
 }

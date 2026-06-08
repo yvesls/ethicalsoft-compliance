@@ -63,6 +63,7 @@ import { RoleService } from '../../../../core/services/role.service';
 import { RoleSummary } from '../../../../shared/interfaces/role/role-summary.interface';
 import { DraftCacheService } from '../../../../core/services/draft-cache.service';
 import { SessionExpirationService } from '../../../../core/services/session-expiration.service';
+import { TranslateService } from '@ngx-translate/core';
 
 export interface Representative {
   id?: number | string | null;

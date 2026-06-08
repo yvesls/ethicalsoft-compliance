@@ -7,11 +7,12 @@ import { Router, NavigationEnd, RouterModule } from '@angular/router'
 import { filter } from 'rxjs/operators'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { CommonModule, Location } from '@angular/common'
+import { TranslateModule } from '@ngx-translate/core'
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, TranslateModule],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',
 })
