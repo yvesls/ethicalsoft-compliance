@@ -1,8 +1,17 @@
 @use '../../../../../assets/scss/base/vars' as *;
+@use '../../../../../assets/scss/base/media-queries' as *;
 
 :host {
   display: block;
   padding: 1.5rem 2rem;
+
+  @include for-tablet-landscape-down {
+    padding: 1.25rem 1.5rem;
+  }
+
+  @include for-phone-only {
+    padding: 1rem;
+  }
 }
 
 /* ============================================
@@ -16,6 +25,16 @@
   margin-top: 1.5rem;
   padding-top: 1.5rem;
   border-top: 1px solid $gray-primary;
+  flex-wrap: wrap;
+
+  @include for-phone-only {
+    flex-direction: column-reverse;
+
+    .btn {
+      width: 100%;
+      text-align: center;
+    }
+  }
 }
 
 /* ============================================
@@ -27,6 +46,16 @@
   justify-content: flex-end;
   gap: 1rem;
   margin-top: 1.5rem;
+  flex-wrap: wrap;
+
+  @include for-phone-only {
+    flex-direction: column-reverse;
+
+    .btn {
+      width: 100%;
+      text-align: center;
+    }
+  }
 }
 
 /* ============================================
@@ -36,11 +65,20 @@
 ::ng-deep .steps-container {
   padding: 1.5rem 0 0;
   margin-top: 1.5rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 ::ng-deep .representatives-container {
   padding: 1.5rem 0 0;
   margin-top: 1.5rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+::ng-deep .questionnaires-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 ::ng-deep .steps-table,

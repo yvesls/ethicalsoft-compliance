@@ -1,10 +1,19 @@
 @use '../base/vars' as *;
 @use '../base/spacing' as *;
+@use '../base/media-queries' as *;
 
 // --- Layout base ---
 
 .dash-page {
 	padding: var(--spacing-r-3xl);
+
+	@include for-tablet-landscape-down {
+		padding: var(--spacing-r-xxl);
+	}
+
+	@include for-phone-only {
+		padding: var(--spacing-r-xl);
+	}
 }
 
 // --- Cabecalho ---
@@ -16,6 +25,13 @@
 	flex-wrap: wrap;
 	gap: var(--spacing-r-xl);
 	margin-bottom: var(--spacing-r-3xl);
+
+	@include for-phone-only {
+		flex-direction: column;
+		align-items: stretch;
+		gap: var(--spacing-r-md);
+		margin-bottom: var(--spacing-r-xl);
+	}
 }
 
 .dash-title {
@@ -23,6 +39,10 @@
 	font-weight: 700;
 	margin: 0;
 	color: $blue-primary;
+
+	@include for-phone-only {
+		font-size: 1.3rem;
+	}
 }
 
 .dash-sub {
@@ -37,6 +57,11 @@
 	flex-wrap: wrap;
 	align-items: center;
 	padding-right: var(--spacing-r-xl);
+
+	@include for-phone-only {
+		padding-right: 0;
+		justify-content: flex-start;
+	}
 }
 
 // --- Grade de KPIs ---
@@ -45,6 +70,11 @@
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
 	gap: var(--spacing-r-xl);
+
+	@include for-phone-only {
+		grid-template-columns: 1fr 1fr;
+		gap: var(--spacing-r-md);
+	}
 }
 
 // --- Linha Dimensoes de Governanca + Indicadores de Divida ---
@@ -54,7 +84,7 @@
 	grid-template-columns: 1fr 1fr;
 	gap: var(--spacing-r-xl);
 
-	@media (max-width: 768px) {
+	@include for-tablet-landscape-down {
 		grid-template-columns: 1fr;
 	}
 }
@@ -172,6 +202,17 @@
 			background-color: $gray-tertiary;
 			border-color: $gray-secundary;
 			color: $neutral-text;
+		}
+	}
+
+	&.dash-btn--primary {
+		border-color: $blue-primary;
+		background-color: $blue-primary;
+		color: $white;
+
+		&:hover:not(:disabled) {
+			background-color: $blue-secundary;
+			border-color: $blue-secundary;
 		}
 	}
 

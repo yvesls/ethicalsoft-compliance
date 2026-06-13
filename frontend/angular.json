@@ -49,6 +49,12 @@
           },
           "configurations": {
             "production": {
+              "fileReplacements": [
+                {
+                  "replace": "src/app/enviroments/environments.ts",
+                  "with": "src/app/enviroments/environments.production.ts"
+                }
+              ],
               "budgets": [
                 {
                   "type": "initial",
@@ -64,6 +70,12 @@
               "outputHashing": "all"
             },
             "development": {
+              "fileReplacements": [
+                {
+                  "replace": "src/app/enviroments/environments.ts",
+                  "with": "src/app/enviroments/environments.local.ts"
+                }
+              ],
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
@@ -79,6 +91,10 @@
             },
             "development": {
               "buildTarget": "frontend:build:development"
+            },
+            "local": {
+              "buildTarget": "frontend:build:development",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"

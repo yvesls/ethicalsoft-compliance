@@ -6,6 +6,14 @@
   width: 100%;
   min-height: 50vh;
   padding: 1.5rem 2rem;
+
+  @include for-tablet-landscape-down {
+    padding: 1.25rem 1.5rem;
+  }
+
+  @include for-phone-only {
+    padding: 1rem;
+  }
 }
 
 h1 {
@@ -13,5 +21,10 @@ h1 {
   font-weight: 600;
   color: $text-color;
   margin-bottom: 1.25rem;
+
+  @include for-phone-only {
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+  }
 }
 

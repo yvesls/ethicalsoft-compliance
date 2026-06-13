@@ -9,7 +9,6 @@
   border: 1px solid $gray-primary;
   border-radius: $radius-default;
   background-color: $white;
-  overflow: hidden;
 
   + .accordion-panel {
     margin-top: 2rem;
@@ -38,6 +37,7 @@
   cursor: pointer;
   user-select: none;
   transition: background-color 0.2s ease;
+  border-radius: $radius-default $radius-default 0 0;
 
   &:hover {
     background-color: rgba($gray-primary, 0.2);

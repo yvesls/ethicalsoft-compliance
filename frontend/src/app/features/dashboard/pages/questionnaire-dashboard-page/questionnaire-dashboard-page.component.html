@@ -164,30 +164,32 @@
       @if (d.memberResults.length) {
         <div class="dash-card mt-4">
           <h2 class="dash-section-title">{{ 'dashboard.questionnaire.member_results' | translate }}</h2>
-          <table class="table table-hover align-middle">
-            <thead>
-              <tr>
-                <th>{{ 'dashboard.questionnaire.member' | translate }}</th>
-                <th>{{ 'dashboard.questionnaire.table_icp' | translate }}</th>
-                <th>{{ 'dashboard.band' | translate }}</th>
-                <th class="text-center">{{ 'common.actions' | translate }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (m of d.memberResults; track m.representativeName) {
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead>
                 <tr>
-                  <td>{{ m.representativeName }}</td>
-                  <td>{{ m.icpPercent | number:'1.2-2' }}%</td>
-                  <td><app-band-badge [band]="m.band" /></td>
-                  <td class="text-center">
-                    <button class="dash-link" (click)="viewMemberResponses(m.representativeId, m.representativeName)">
-                      {{ 'dashboard.questionnaire.view_responses' | translate }}
-                    </button>
-                  </td>
+                  <th>{{ 'dashboard.questionnaire.member' | translate }}</th>
+                  <th>{{ 'dashboard.questionnaire.table_icp' | translate }}</th>
+                  <th>{{ 'dashboard.band' | translate }}</th>
+                  <th class="text-center">{{ 'common.actions' | translate }}</th>
                 </tr>
-              }
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                @for (m of d.memberResults; track m.representativeName) {
+                  <tr>
+                    <td>{{ m.representativeName }}</td>
+                    <td>{{ m.icpPercent | number:'1.2-2' }}%</td>
+                    <td><app-band-badge [band]="m.band" /></td>
+                    <td class="text-center">
+                      <button class="dash-link" (click)="viewMemberResponses(m.representativeId, m.representativeName)">
+                        {{ 'dashboard.questionnaire.view_responses' | translate }}
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
         </div>
       }
 
@@ -208,28 +210,30 @@
           @if (loadingEmissions()) {
             <p class="text-muted small">{{ 'dashboard.emissions.loading' | translate }}</p>
           } @else {
-            <table class="table table-hover align-middle">
-              <thead>
-                <tr>
-                  <th>{{ 'dashboard.emissions.code' | translate }}</th>
-                  <th>{{ 'dashboard.emissions.emitted_by' | translate }}</th>
-                  <th>{{ 'dashboard.emissions.date' | translate }}</th>
-                  <th>{{ 'dashboard.emissions.isep_percent' | translate }}</th>
-                  <th>{{ 'dashboard.band' | translate }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (e of emissions(); track e.authenticityCode) {
+            <div class="table-responsive">
+              <table class="table table-hover align-middle">
+                <thead>
                   <tr>
-                    <td><code class="user-select-all">{{ e.authenticityCode }}</code></td>
-                    <td>{{ e.emittedByName }}</td>
-                    <td>{{ e.emittedAt | date: 'dd/MM/yyyy HH:mm' }}</td>
-                    <td>{{ e.isepPercent | number:'1.2-2' }}%</td>
-                    <td><app-band-badge [band]="$any(e.band)" /></td>
+                    <th>{{ 'dashboard.emissions.code' | translate }}</th>
+                    <th>{{ 'dashboard.emissions.emitted_by' | translate }}</th>
+                    <th>{{ 'dashboard.emissions.date' | translate }}</th>
+                    <th>{{ 'dashboard.emissions.isep_percent' | translate }}</th>
+                    <th>{{ 'dashboard.band' | translate }}</th>
                   </tr>
-                }
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  @for (e of emissions(); track e.authenticityCode) {
+                    <tr>
+                      <td><code class="user-select-all">{{ e.authenticityCode }}</code></td>
+                      <td>{{ e.emittedByName }}</td>
+                      <td>{{ e.emittedAt | date: 'dd/MM/yyyy HH:mm' }}</td>
+                      <td>{{ e.isepPercent | number:'1.2-2' }}%</td>
+                      <td><app-band-badge [band]="$any(e.band)" /></td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
           }
         </div>
       }

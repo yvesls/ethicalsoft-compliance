@@ -14,11 +14,6 @@
 @if (!isLoadingProject && !loadError) {
   <form [formGroup]="projectForm" (ngSubmit)="onSubmit()">
 
-    <div class="form-help-row">
-      <app-info-explainer key="compliance_score" />
-      <app-info-explainer key="project_iteration" />
-    </div>
-
     <app-accordion-panel
       [title]="'projects.sections.project' | translate"
       [required]="true"
@@ -26,6 +21,10 @@
       [disabled]="false"
       (toggled)="onPanelToggled('project', $event)"
     >
+      <div class="form-help-row">
+        <app-info-explainer key="compliance_score" />
+        <app-info-explainer key="project_iteration" />
+      </div>
       <div class="form-grid form-grid-4">
         <app-input
           [label]="'projects.fields.name' | translate"

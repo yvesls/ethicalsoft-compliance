@@ -1,4 +1,5 @@
 @use '../../../../assets/scss/base/vars' as *;
+@use '../../../../assets/scss/base/media-queries' as *;
 
 .social-links {
 	a {
@@ -12,6 +13,13 @@
 	align-content: start;
 	justify-content: center;
 	flex-grow: 1;
+	flex-wrap: wrap;
+	text-align: center;
+
+	@include for-phone-only {
+		font-size: 0.75rem;
+		padding: 0.25rem 0.5rem;
+	}
 }
 
 .highlightedName {

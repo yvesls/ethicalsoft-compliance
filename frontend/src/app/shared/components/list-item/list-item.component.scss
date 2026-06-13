@@ -1,4 +1,5 @@
 @use '../../../../assets/scss/base/vars' as *;
+@use '../../../../assets/scss/base/media-queries' as *;
 
 :host {
   display: block;
@@ -15,6 +16,10 @@
 
   transition: box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out;
 
+  @include for-phone-only {
+    padding: 0.75rem 1rem;
+  }
+
   &:hover {
     box-shadow: $box-shadow-secundary;
     transform: translateY(-0.125rem);
@@ -30,6 +35,11 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 1rem;
+
+  @include for-tablet-landscape-down {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
 }
 
 .item-main-content {
@@ -37,6 +47,11 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+
+  @include for-tablet-landscape-down {
+    flex: unset;
+    width: 100%;
+  }
 }
 
 .item-header {
@@ -60,6 +75,10 @@
     color: $blue-primary;
     font-size: 1.5rem;
     letter-spacing: 1px;
+
+    @include for-phone-only {
+      font-size: 1.2rem;
+    }
   }
 }
 
@@ -69,6 +88,17 @@
   grid-template-columns: repeat(4, 1fr);
   gap: 1rem;
   padding-top: 0.25rem;
+
+  @include for-tablet-landscape-down {
+    flex: unset;
+    width: 100%;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include for-phone-only {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
 }
 
 .column-tipo,
@@ -96,6 +126,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
+
+  @include for-tablet-landscape-down {
+    justify-content: flex-end;
+    width: 100%;
+  }
 
   .btn-delete {
     background: none;

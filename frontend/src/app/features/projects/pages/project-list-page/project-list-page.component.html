@@ -6,8 +6,8 @@
 
     <app-select
       filters formControlName="type"
-      [label]="'projects.list.fields.type' | translate"
-      placeholder="projects.list.filters.type_placeholder"
+      [label]="'projects.fields.type' | translate"
+      placeholder="projects.filters.type_placeholder"
       [control]="filterForm.get('type')"
       [options]="projectTypeOptions"
       [allowClear]="true">
@@ -16,7 +16,7 @@
     <app-select
       filters formControlName="status"
       [label]="'common.status' | translate"
-      placeholder="projects.list.filters.status_placeholder"
+      placeholder="projects.filters.status_placeholder"
       [control]="filterForm.get('status')"
       [options]="projectStatusOptions"
       [allowClear]="true">
@@ -24,17 +24,17 @@
 
     <app-input
       filters formControlName="name"
-      [label]="'projects.list.fields.name' | translate"
+      [label]="'projects.fields.name' | translate"
       type="text"
-      [placeholder]="'projects.list.filters.name_placeholder' | translate"
+      [placeholder]="'projects.filters.name_placeholder' | translate"
       [control]="filterForm.get('name')"
     ></app-input>
 
     <app-input
       filters formControlName="code"
-      [label]="'projects.list.fields.code' | translate"
+      [label]="'projects.fields.code' | translate"
       type="text"
-      [placeholder]="'projects.list.filters.code_placeholder' | translate"
+      [placeholder]="'projects.filters.code_placeholder' | translate"
       [control]="filterForm.get('code')"
     ></app-input>
 
