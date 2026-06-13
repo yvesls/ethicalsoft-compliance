@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core'
 import { ActivatedRoute, NavigationEnd, Params, Router } from '@angular/router'
 import { BehaviorSubject, filter, Observable } from 'rxjs'
 import { Md5 } from 'ts-md5'
+import { TranslateService } from '@ngx-translate/core'
 import { deepCopy } from '../utils/common-utils'
 import { NotificationService } from './notification.service'
 import { StorageService } from './storage.service'
@@ -20,6 +21,7 @@ export class RouterService {
 
 	private readonly activatedRoute = inject(ActivatedRoute)
 	private readonly router = inject(Router)
+	private readonly translate = inject(TranslateService)
 	private readonly storageService = inject(StorageService)
 	private readonly notificationService = inject(NotificationService)
 	private readonly layoutStateService = inject(LayoutStateService)
@@ -53,7 +55,7 @@ export class RouterService {
 		if (isFormDirty) {
 			return new Promise((resolve) => {
 				this.notificationService.showConfirm(
-					'Os dados não salvos serão perdidos. Deseja continuar?',
+					this.translate.instant('common.unsaved_changes_confirm'),
 					async () => {
 						const result = await this._redirectTo(url, queryParams, replaceUrl)
 						resolve(result)
@@ -113,14 +115,14 @@ export class RouterService {
 	getFormattedRoute(): string {
 		const url = this.router.url.split('?')[0]
 		const segments = url.split('/').filter(Boolean)
-		if (!segments.length) return 'Home'
-		return segments.map((segment) => this.capitalizeWords(segment)).join(' > ')
+		if (!segments.length) return this.translateSegment('home')
+		return segments.map((segment) => this.translateSegment(segment)).join(' > ')
 	}
 
 	getFormattedRouteSegments(): { label: string; path: string; clickable: boolean }[] {
 		const url = this.router.url.split('?')[0]
 		const segments = url.split('/').filter(Boolean)
-		if (!segments.length) return [{ label: 'Home', path: '/home', clickable: true }]
+		if (!segments.length) return [{ label: this.translateSegment('home'), path: '/home', clickable: true }]
 
 		const navigablePatterns = this.collectNavigablePatterns()
 
@@ -129,11 +131,17 @@ export class RouterService {
 			const isLast = index === segments.length - 1
 			const clickable = !isLast && navigablePatterns.some((pattern) => pattern.test(path))
 			return {
-				label: this.capitalizeWords(segment),
+				label: this.translateSegment(segment),
 				path,
 				clickable,
 			}
 		})
+	}
+
+	private translateSegment(segment: string): string {
+		const key = 'breadcrumb.' + segment
+		const translated = this.translate.instant(key)
+		return translated !== key ? key : this.capitalizeWords(segment)
 	}
 
 	private collectNavigablePatterns(): RegExp[] {

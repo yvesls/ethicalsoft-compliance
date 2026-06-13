@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, OnDestroy, signal, WritableSignal, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormsModule, Validators } from '@angular/forms';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { BasePageComponent, RestoreParams } from '../../../../core/abstractions/base-page.component';
 import { LoggerService } from '../../../../core/services/logger.service';
@@ -47,7 +47,7 @@ type IterativoQuestionnaireRestoreParams = RestoreParams<IterativoQuestionnaireR
 @Component({
   selector: 'app-iterativo-questionnaire-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, AccordionPanelComponent, InputComponent, SelectComponent, PaginationComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, AccordionPanelComponent, InputComponent, SelectComponent, PaginationComponent, TranslateModule],
   templateUrl: './iterativo-questionnaire-form.component.html',
   styleUrls: ['./iterativo-questionnaire-form.component.scss']
 })
@@ -310,7 +310,7 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
       return;
     }
     if (!this.stageSelectionConfig) {
-      this.notificationService.showWarning('Cadastre ao menos uma etapa antes de adicionar perguntas.');
+      this.notificationService.showWarning(this.translate.instant('notifications.questionnaire_form.add_stage_first'));
       return;
     }
 
@@ -468,18 +468,18 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
     }
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      this.notificationService.showWarning('Preencha os campos obrigatórios do questionário.');
+      this.notificationService.showWarning(this.translate.instant('notifications.questionnaire_form.fill_required'));
       return;
     }
 
     if (!this.questions().length) {
-      this.notificationService.showWarning('Adicione ao menos uma pergunta antes de confirmar o questionário.');
+      this.notificationService.showWarning(this.translate.instant('notifications.questionnaire_form.add_question'));
       return;
     }
 
     const hasInvalidStages = this.questions().some((question) => !this.hasValidStageSelection(question));
     if (hasInvalidStages) {
-      this.notificationService.showWarning('Associe ao menos uma etapa a cada pergunta antes de confirmar.');
+      this.notificationService.showWarning(this.translate.instant('notifications.questionnaire_form.link_stages'));
       return;
     }
 
@@ -528,8 +528,8 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
       options,
       required: true,
       allowMultiple: true,
-      placeholder: 'Selecione as etapas relacionadas',
-      label: 'Etapas relacionadas',
+      placeholder: this.translate.instant('projects.questionnaire_form.stage_selection_placeholder'),
+      label: this.translate.instant('projects.questionnaire_form.stage_selection_label'),
     } satisfies QuestionStageConfig;
   }
 

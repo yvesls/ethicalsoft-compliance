@@ -1,5 +1,6 @@
 import { Component, OnInit, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ModalService } from '../../../../core/services/modal.service';
 import { InputComponent } from '../../../../shared/components/input/input.component';
@@ -12,7 +13,7 @@ export interface NewStageIterativeData {
 @Component({
   selector: 'app-create-stage-iterative-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, InputComponent],
+  imports: [CommonModule, ReactiveFormsModule, InputComponent, TranslateModule],
   templateUrl: './create-stage-iterative-modal.component.html',
   styleUrls: ['./create-stage-iterative-modal.component.scss']
 })

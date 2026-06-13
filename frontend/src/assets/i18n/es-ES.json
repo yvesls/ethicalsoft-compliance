@@ -23,6 +23,10 @@
     "logout": "Cerrar sesión",
     "required_field": "Campo obligatorio",
     "invalid_field": "Campo inválido",
+    "select": "Seleccionar",
+    "items_selected": "elementos seleccionados",
+    "search_placeholder": "Buscar...",
+    "no_items_found": "Ningún elemento encontrado.",
     "not_available": "N/D",
     "retry": "Intentar de nuevo",
     "generating": "Generando...",
@@ -32,7 +36,25 @@
     "closing": "Cerrando...",
     "in_development": "Funcionalidad en desarrollo",
     "not_found": "¡Página no encontrada!",
-    "go_home": "Volver a la página de inicio"
+    "go_home": "Volver a la página de inicio",
+    "unsaved_changes_navigate": "Tiene cambios sin guardar. ¿Desea salir de todas formas?",
+    "unsaved_changes_close": "Tiene cambios sin guardar. ¿Desea cerrar de todas formas?",
+    "notifications_load_error": "No se pudieron cargar las notificaciones.",
+    "stage": "Etapa",
+    "project": "Proyecto",
+    "new_project": "Nuevo Proyecto",
+    "error": "Error",
+    "remove": "Eliminar",
+    "clear_selection": "Limpiar selección",
+    "open_selector": "Abrir selector",
+    "open_dropdown": "Abrir menú desplegable",
+    "more_info": "Más información",
+    "info_icon_alt": "Ícono de información",
+    "pagination": "Paginación",
+    "previous_page": "Página anterior",
+    "next_page": "Página siguiente",
+    "copy_prompt": "Copie el contenido a continuación:",
+    "unsaved_changes_confirm": "Los datos no guardados se perderán. ¿Desea continuar?"
   },
   "auth": {
     "login": {
@@ -105,6 +127,15 @@
       "invalid_code": "Código inválido. Reenvíe el código o informe otro correo.",
       "unauthenticated": "Es necesario estar autenticado para realizar esta acción."
     },
+    "password_rules": {
+      "invalid_prefix": "Contraseña inválida. Debe cumplir los siguientes criterios:",
+      "length": "Tener entre 8 y 20 caracteres.",
+      "no_repeated": "No contener caracteres repetidos.",
+      "uppercase": "Tener letras mayúsculas.",
+      "lowercase": "Tener una letra minúscula.",
+      "number": "Tener un número.",
+      "special_char": "Tener un carácter especial."
+    },
     "messages": {
       "recovery_sent": "Código de recuperación enviado con éxito. Revisa tu correo y sigue las instrucciones.",
       "code_verified": "Código de recuperación validado con éxito.",
@@ -117,7 +148,8 @@
       "password_required": "La contraseña es obligatoria",
       "first_name_required": "El nombre es obligatorio",
       "last_name_required": "El apellido es obligatorio",
-      "confirm_password_required": "La confirmación de contraseña es obligatoria"
+      "confirm_password_required": "La confirmación de contraseña es obligatoria",
+      "password_min_length": "La contraseña debe tener al menos 8 caracteres"
     }
   },
   "sidebar": {
@@ -202,7 +234,7 @@
       "load_error": "Error al cargar los proyectos.",
       "publish_confirm": "¿Está seguro de que desea publicar este proyecto? Se activará y los cuestionarios estarán disponibles para respuestas.",
       "delete_confirm": "¿Está seguro de que desea eliminar el proyecto \"{{name}}\"? Esta acción no se puede deshacer.",
-      "questionnaire_closed": "Cuestionario \"{{name}}\" cerrado. El ISEP ha sido calculado.",
+      "questionnaire_closed": "Cuestionario \"{{name}}\" cerrado. El ISEP fue calculado.",
       "questionnaire_close_error": "Error al cerrar el cuestionario. Verifique si tiene respuestas registradas.",
       "reschedule_error": "Error al reprogramar el cuestionario.",
       "force_close_confirm": "¿Desea cerrar el cuestionario \"{{name}}\" y calcular el ISEP con las respuestas existentes?",
@@ -214,7 +246,13 @@
       "draft_saved": "Borrador guardado con éxito.",
       "prepare_error": "Error al preparar los datos del proyecto.",
       "identify_error": "No se pudo identificar el proyecto creado.",
-      "prepare_draft_error": "Error al preparar los datos del borrador."
+      "prepare_draft_error": "Error al preparar los datos del borrador.",
+      "error_loading_project": "Error al cargar el proyecto.",
+      "error_loading_questionnaires": "Error al cargar los cuestionarios."
+    },
+    "creation_confirm": {
+      "title": "Confirmar creación del proyecto",
+      "message": "Se creará una plantilla para este proyecto y se enviará un correo con las instrucciones de acceso. ¿Desea confirmar la creación del proyecto?"
     },
     "detail": {
       "publishing": "Publicando...",
@@ -253,13 +291,19 @@
       "not_defined": "No definida",
       "no_reference": "Sin referencia",
       "no_period": "Sin período definido",
+      "date_range": "{{start}} hasta {{end}}",
+      "from_date": "Desde {{date}}",
+      "until_date": "Hasta {{date}}",
       "reference_stage": "Etapa",
       "reference_iteration": "Iteración",
       "reference_other": "Referencia",
       "view_admin_mode": "Está visualizando este cuestionario en modo administrativo.",
       "view_representative_mode": "Ha sido designado como el representante responsable de responder este cuestionario.",
       "view_completed_mode": "Ya ha enviado sus respuestas y puede revisarlas cuando desee.",
-      "progress_percent": "{{percent}}% de los representantes respondieron"
+      "progress_percent": "{{percent}}% de los representantes respondieron",
+      "questionnaire_actions_aria": "Acciones del cuestionario",
+      "questionnaire_in_progress": "Cuestionario en curso",
+      "code_prefix": "Cód"
     },
     "type_selection": {
       "title": "Seleccionar Tipo de Proyecto",
@@ -281,6 +325,7 @@
       "saving": "Guardando...",
       "add_step": "Agregar etapa",
       "add_representative": "Agregar representante",
+      "create_representative": "Crear nuevo representante",
       "step_name_col": "Nombre de la etapa",
       "date_range_col": "Rango de aplicación",
       "weight_col": "Peso",
@@ -320,14 +365,27 @@
         "add_question_to_questionnaire": "Agregue al menos una pregunta al cuestionario \"{{name}}\".",
         "add_question_to_this": "Agregue al menos una pregunta a este cuestionario.",
         "invalid_iteration_duration": "Indique una duración válida para las iteraciones.",
-        "iteration_count_error": "No se pudo calcular la cantidad de iteraciones."
+        "iteration_count_error": "No se pudo calcular la cantidad de iteraciones.",
+        "prepare_data_error": "Error al preparar los datos.",
+        "prepare_draft_error": "Error al preparar los datos del borrador.",
+        "project_id_not_found": "No se pudo identificar el proyecto creado.",
+        "field_template": "Plantilla",
+        "field_project_name": "Nombre del proyecto",
+        "field_start_date": "Fecha de inicio",
+        "field_deadline": "Plazo límite"
       },
+      "draft_unnamed": "Borrador sin nombre",
       "first_name_placeholder": "Ingrese el nombre",
       "last_name_placeholder": "Ingrese el apellido",
       "email_placeholder": "Ingrese el email",
       "weight_placeholder": "Ingrese el peso",
       "charges_placeholder": "Seleccione los cargos",
-      "try_again": "Intentar de nuevo"
+      "try_again": "Intentar de nuevo",
+      "template_modal_title": "¿Desea crear una nueva etapa o seleccionar a partir de una plantilla existente?",
+      "create_new_stage": "Crear nueva etapa",
+      "select_existing_stage": "Seleccionar existente",
+      "error_loading": "Error al cargar los datos del proyecto.",
+      "iteration_fallback": "Iteración {{n}}"
     },
     "template_selector": {
       "title": "Seleccionar plantilla",
@@ -335,12 +393,24 @@
       "placeholder": "Seleccione la plantilla de un proyecto existente",
       "import_external": "Importar desde archivo externo"
     },
+    "questionnaire_iterative_modal": {
+      "create_title": "Crear nuevo cuestionario",
+      "edit_title": "Editar cuestionario",
+      "select_iteration_hint": "Seleccione la iteración e ingrese la duración para calcular el rango.",
+      "iteration_not_found": "No se pudo identificar la iteración seleccionada.",
+      "invalid_start_date": "Fecha de inicio del proyecto inválida para el cálculo del rango.",
+      "exceeds_deadline": "El rango calculado supera el plazo límite del proyecto. Ajuste la duración o la iteración.",
+      "fill_fields_to_calculate": "Complete los campos para calcular"
+    },
     "reschedule": {
       "title_with_name": "Reprogramar Cuestionario: {{name}}",
       "current_period": "Período actual:",
       "new_start": "Nueva fecha de inicio",
       "new_end": "Nueva fecha de término",
-      "confirm_btn": "Reprogramar"
+      "confirm_btn": "Reprogramar",
+      "warning_start_today": "Al establecer la fecha de inicio para hoy o una fecha pasada, el estado del cuestionario se cambiará a \"En Progreso\" inmediatamente.",
+      "validator_end_before_start": "La fecha de término no puede ser anterior a la fecha de inicio.",
+      "validator_start_before_ref": "La fecha de inicio no puede ser anterior a la fecha de inicio del proyecto ({{date}})."
     },
     "stage_cascata": {
       "note_text": "El rango a continuación se recalcula en tiempo real considerando todas las etapas del proyecto. Al confirmar, el cálculo final se reaplicará.",
@@ -359,7 +429,9 @@
       "no_start_warning": "Ingrese una secuencia y duración válidas para calcular el rango de aplicación.",
       "weight_label": "Peso (%)",
       "duration_label": "Duración de la etapa (días hábiles)",
-      "create_title": "Crear nueva etapa - Cascata"
+      "create_title": "Crear nueva etapa - Cascata",
+      "no_start_date_warning": "Ingrese la fecha de inicio del proyecto para calcular el rango de aplicación.",
+      "edit_title": "Editar etapa - Cascata"
     },
     "stage_iterative": {
       "note_text": "El nombre de la etapa debe ser único en el proyecto y el peso debe ser mayor que cero.",
@@ -367,7 +439,8 @@
       "blank_name": "Ingrese un nombre válido para la etapa.",
       "min_weight": "El peso mínimo permitido es 1.",
       "create_title": "Crear nueva etapa",
-      "weight_label": "Peso"
+      "weight_label": "Peso",
+      "edit_title": "Editar etapa"
     },
     "q_iterative": {
       "name_label": "Nombre del Cuestionario",
@@ -400,7 +473,9 @@
       "responses_created": "{{count}} respuesta(s) creada(s)",
       "responses_updated": "{{count}} respuesta(s) actualizada(s)",
       "responses_deleted": "{{count}} respuesta(s) eliminada(s)",
-      "notifications_sent": "Se enviará(n) {{count}} notificación(es)."
+      "notifications_sent": "Se enviará(n) {{count}} notificación(es).",
+      "title": "Confirmar actualización del proyecto",
+      "confirm_label": "Confirmar y Guardar"
     },
     "edit": {
       "loading": "Cargando datos del proyecto para edición...",
@@ -408,7 +483,8 @@
       "type_placeholder": "Tipo de proyecto"
     },
     "list": {
-      "situation": "Situación"
+      "situation": "Situación",
+      "error_loading": "Error al cargar los proyectos."
     }
   },
   "questionnaire": {
@@ -459,6 +535,13 @@
       "atrasado": "Atrasado",
       "no_status": "Sin estado"
     },
+    "respondent_status": {
+      "admin": "Administrador",
+      "not_associated": "No asociado",
+      "completed": "Respondido",
+      "in_progress": "En progreso",
+      "pending": "Pendiente"
+    },
     "attachment": {
       "add_evidence": "Agregar evidencias",
       "add_justification": "Agregar justificación",
@@ -482,7 +565,8 @@
       "link_pattern": "Ingrese una dirección que comience con http:// o https://.",
       "desc_required": "Describa a qué se accederá a través de este enlace.",
       "desc_minlength": "Use al menos 3 caracteres.",
-      "header_hint": "Incluya detalles y enlaces que ayuden a justificar la respuesta seleccionada."
+      "header_hint": "Incluya detalles y enlaces que ayuden a justificar la respuesta seleccionada.",
+      "justification_label": "Justificación u observaciones"
     },
     "response": {
       "loading": "Cargando cuestionario...",
@@ -508,7 +592,10 @@
       "submit": "Enviar respuestas",
       "no_questions": "Ninguna pregunta encontrada para este cuestionario.",
       "total_questions": "Total de preguntas",
-      "progress": "Progreso"
+      "progress": "Progreso",
+      "mandatory_response_aria": "Respuesta obligatoria",
+      "no_start_date": "Sin fecha de inicio",
+      "no_end_date": "Sin fecha de fin"
     },
     "form": {
       "data_title": "Datos del Cuestionario",
@@ -544,7 +631,11 @@
       "create_btn": "Crear",
       "save_btn": "Guardar",
       "cancel_btn": "Cancelar",
-      "required_suffix": " *"
+      "required_suffix": " *",
+      "create_title": "Crear nueva pregunta",
+      "edit_title": "Editar pregunta",
+      "stage_label": "Etapas relacionadas",
+      "stage_placeholder": "Seleccione las etapas"
     }
   },
   "dashboard": {
@@ -718,7 +809,8 @@
       "title": "Nube de Palabras de las Justificaciones",
       "general_tab": "General",
       "justifications_count": "{{count}} justificaciones analizadas",
-      "no_words": "Ninguna palabra encontrada para este dominio."
+      "no_words": "Ninguna palabra encontrada para este dominio.",
+      "occurrences": "ocurrencias"
     },
     "ai_chat": {
       "open": "Abrir asistente IA",
@@ -731,7 +823,13 @@
       "stop_label": "Detener generación",
       "placeholder": "Haz una pregunta...",
       "send_label": "Enviar mensaje",
-      "question_prefix": "Preguntar: "
+      "question_prefix": "Preguntar: ",
+      "suggested_1": "¿Qué miembro tiene el ICP más bajo y por qué?",
+      "suggested_2": "¿Qué dominios están por debajo del 70%?",
+      "suggested_3": "Resume las justificaciones de respuestas NO",
+      "suggested_4": "¿Qué significa estar en la Banda C?",
+      "suggested_5": "Compara el desempeño ético con el de proceso",
+      "error_msg": "Error al obtener respuesta de la IA. Inténtalo de nuevo."
     },
     "response_modal": {
       "loading": "Cargando respuestas...",
@@ -818,12 +916,16 @@
       "debt_ethics": "Deuda Ética",
       "debt_tech": "Deuda Técnica",
       "isep_evolution_default": "Evolución del ISEP",
-      "debt_evolution_default": "Evolución de la Deuda por Iteración"
+      "debt_evolution_default": "Evolución de la Deuda por Iteración",
+      "word_cloud_title": "Nube de Palabras de Justificaciones",
+      "word_cloud_subtext": "{{count}} justificaciones analizadas",
+      "word_cloud_tooltip": "{{name}}: <b>{{value}} ocurrencias</b>"
     }
   },
   "project": {
     "ai_usage": {
       "label": "Uso declarado de IA en el desarrollo",
+      "placeholder": "Seleccione los usos de IA (opcional)",
       "tooltip": "Indique si el proyecto utiliza asistentes basados en IA en el desarrollo. La declaración activa indicadores de riesgo específicos en los boletines cuando el resultado está por debajo de la banda mínima.",
       "options": {
         "NAO_UTILIZA": "No utiliza",
@@ -832,7 +934,10 @@
         "GERACAO_CODIGO": "Utiliza en generación de código",
         "TESTES": "Utiliza en pruebas",
         "DOCUMENTACAO": "Utiliza en documentación",
-        "MANUTENCAO_REFATORACAO": "Utiliza en mantenimiento o refactorización"
+        "MANUTENCAO_REFATORACAO": "Utiliza en mantenimiento o refactorización",
+        "DESIGN": "Utiliza en diseño/arquitectura",
+        "CODIFICACAO": "Utiliza en codificación",
+        "AI_GOVERNANCE": "Gobernanza de IA aplicada"
       }
     }
   },
@@ -885,12 +990,53 @@
     }
   },
   "ai": {
-    "insights": "Insights de IA",
-    "explain": "Explicación de los resultados",
-    "risk_report": "Informe de riesgo",
-    "chat": "Conversar con la IA",
-    "unavailable": "Módulo de IA temporalmente no disponible.",
-    "loading": "Generando análisis..."
+    "token": {
+      "title": "Token de IA",
+      "status": {
+        "configured": "Configurado",
+        "notConfigured": "No configurado",
+        "updatedAt": "Actualizado el {{date}}"
+      },
+      "form": {
+        "label": "Pegue aquí su token de Groq Cloud",
+        "placeholder": "gsk_…",
+        "showToken": "Mostrar",
+        "hideToken": "Ocultar",
+        "save": "Guardar",
+        "remove": "Eliminar token"
+      },
+      "saved": "Token guardado exitosamente.",
+      "removed": "Token eliminado.",
+      "missing": {
+        "title": "Token de IA requerido",
+        "body": "Para usar esta función de inteligencia artificial debe registrar su propio token de Groq Cloud. Este token está vinculado únicamente a su cuenta, se almacena de forma cifrada y puede eliminarse en cualquier momento.",
+        "configureNow": "Configurar ahora",
+        "cancel": "Cancelar"
+      },
+      "errors": {
+        "not_configured": "Token de IA no configurado. Registre su token en la configuración para usar esta función.",
+        "invalid": "No se pudo leer su token de IA. Regístrelo nuevamente.",
+        "empty": "Ingrese un token de IA válido.",
+        "encryption_failed": "Error al proteger el token de IA. Intente de nuevo.",
+        "unauthenticated": "Debe estar autenticado para administrar su token de IA."
+      },
+      "status_label": "Estado actual:",
+      "info": {
+        "why_para1": "¿Por qué necesitamos su token? Los recursos de inteligencia artificial de EthicalSoft Compliance (generación de insights, explicación de resultados ISEP, informe de riesgos y chat de preguntas y respuestas) consumen la API de Groq Cloud. Para que tenga control total sobre el uso, consumo y privacidad de sus datos, cada usuario utiliza su propia clave personal.",
+        "why_para2": "Registrar su token toma menos de un minuto, es gratuito y le da acceso inmediato a todas las funciones de IA de la plataforma.",
+        "security_title": "Cómo protegemos su token",
+        "security_item1": "Su token se cifra en reposo con AES-256-GCM antes de guardarse en la base de datos.",
+        "security_item2": "Nunca mostramos su token completo — solo una máscara como gsk_…Zn5tj.",
+        "security_item3": "El token está vinculado exclusivamente a su cuenta y jamás se comparte con otros usuarios.",
+        "security_item4": "En todas las llamadas, su token se envía directamente a Groq Cloud.",
+        "security_item5": "Puede eliminar su token en cualquier momento, y la eliminación es inmediata.",
+        "instructions_title": "Cómo obtener su clave de Groq Cloud (gratuita)",
+        "instructions_step1": "Acceda a console.groq.com y cree una cuenta.",
+        "instructions_step2": "En el panel lateral, abra API Keys y haga clic en \"Create API Key\".",
+        "instructions_step3": "Dé un nombre (p.ej. \"EthicalSoft Compliance\") y copie la clave — comienza con gsk_…",
+        "instructions_step4": "Vuelva a esta pantalla, pegue la clave en el campo de abajo y haga clic en Guardar."
+      }
+    }
   },
   "notifications": {
     "title": "Notificaciones",
@@ -904,7 +1050,9 @@
       "add_question": "Agregue al menos una pregunta antes de confirmar el cuestionario.",
       "link_stage": "Todas las preguntas deben estar vinculadas a la etapa actual.",
       "add_stage_first": "Registre al menos una etapa antes de agregar preguntas.",
-      "link_stages": "Asocie al menos una etapa a cada pregunta antes de confirmar."
+      "link_stages": "Asocie al menos una etapa a cada pregunta antes de confirmar.",
+      "stage_selection_placeholder": "Seleccione las etapas relacionadas",
+      "stage_selection_label": "Etapas relacionadas"
     },
     "response": {
       "select_answer_first": "Seleccione \"Sí\" o \"No\" antes de adjuntar evidencias.",
@@ -914,7 +1062,8 @@
       "draft_empty": "No hay respuestas para guardar como borrador.",
       "draft_saved": "Borrador guardado con éxito.",
       "invalid_questionnaire_id": "Identificador de cuestionario inválido.",
-      "not_associated": "Usted no está asociado a este cuestionario."
+      "not_associated": "Usted no está asociado a este cuestionario.",
+      "load_error": "No se pudo cargar el cuestionario."
     },
     "attachment": {
       "fill_before_save": "Complete las evidencias/justificaciones antes de guardar."
@@ -924,10 +1073,16 @@
       "add_questions": "Agregue al menos una pregunta para cada cuestionario.",
       "save_success": "Proyecto actualizado con éxito.",
       "save_error": "Error inesperado al procesar la respuesta de actualización.",
-      "review_required": "Revise los campos obligatorios antes de guardar."
+      "review_required": "Revise los campos obligatorios antes de guardar.",
+      "update_blocked": "Actualización bloqueada:\n• {{reasons}}",
+      "updated_with_warnings": "Proyecto actualizado con advertencias:\n• {{warns}}",
+      "operation_blocked": "Operación bloqueada:\n• {{errorList}}",
+      "conflict_retry": "Conflicto: Algunos cambios no se pueden aplicar. Verifique los datos e inténtelo de nuevo."
     },
     "project_detail": {
-      "nothing_to_copy": "No hay contenido para copiar."
+      "nothing_to_copy": "No hay contenido para copiar.",
+      "reminder_status_required": "Solo los cuestionarios en curso pueden recibir recordatorios.",
+      "no_pending_reps": "No hay representantes pendientes con dirección de correo electrónico disponible para este cuestionario."
     },
     "questionnaire_dashboard": {
       "closed_success": "Cuestionario cerrado. Se calculará el ISEP.",
@@ -939,7 +1094,9 @@
     },
     "session": {
       "draft_saved_redirect": "Borrador guardado. Será redirigido al inicio de sesión.",
-      "draft_save_failed": "No se pudo guardar el borrador. Los datos no guardados pueden perderse."
+      "draft_save_failed": "No se pudo guardar el borrador. Los datos no guardados pueden perderse.",
+      "expiring_confirm": "Su sesión está a punto de expirar. ¿Desea guardar sus cambios como borrador antes de ser desconectado?",
+      "expired_redirect": "Su sesión ha expirado. Será redirigido al inicio de sesión."
     },
     "guard": {
       "direct_access_denied": "El acceso directo a esta ruta no está permitido."
@@ -1017,7 +1174,20 @@
     "network": "Error de comunicación con el servidor.",
     "forbidden": "No tiene permiso para acceder a este recurso.",
     "not_found": "Recurso no encontrado.",
-    "validation": "Hay campos obligatorios que no se han completado correctamente."
+    "validation": "Hay campos obligatorios que no se han completado correctamente.",
+    "session_expired": "Sesión expirada, vuelva a iniciar sesión.",
+    "no_file_data": "Ningún archivo seleccionado para enviar.",
+    "http": {
+      "400": "La solicitud está mal formada o contiene datos inválidos.",
+      "401": "Credenciales inválidas. Verifique su usuario y contraseña.",
+      "403": "No tiene permiso para acceder a este recurso.",
+      "404": "El recurso solicitado no fue encontrado.",
+      "409": "Ocurrió un conflicto con los datos enviados.",
+      "422": "Los datos enviados no pueden ser procesados.",
+      "429": "Demasiadas solicitudes. Inténtelo de nuevo más tarde.",
+      "500": "Error interno del servidor. Inténtelo de nuevo más tarde.",
+      "503": "El servicio está temporalmente no disponible."
+    }
   },
   "breadcrumb": {
     "home": "Inicio",
@@ -1037,6 +1207,7 @@
     "reset-password": "Cambiar contraseña",
     "cascata": "Cascada",
     "iterativo": "Iterativo",
+    "individual": "Individual",
     "of": "de"
   },
   "header": {
@@ -1064,37 +1235,13 @@
   "shared_multi_select_open_alt": "Abrir desplegable",
   "shared_multi_select_search_placeholder": "Buscar...",
   "shared_multi_select_no_options": "No se encontraron opciones",
-  "ai": {
-    "token": {
-      "title": "Token de IA",
-      "status": {
-        "configured": "Configurado",
-        "notConfigured": "No configurado",
-        "updatedAt": "Actualizado el {{date}}"
-      },
-      "form": {
-        "label": "Pegue aquí su token de Groq Cloud",
-        "placeholder": "gsk_…",
-        "showToken": "Mostrar",
-        "hideToken": "Ocultar",
-        "save": "Guardar",
-        "remove": "Eliminar token"
-      },
-      "saved": "Token guardado exitosamente.",
-      "removed": "Token eliminado.",
-      "missing": {
-        "title": "Token de IA requerido",
-        "body": "Para usar esta función de inteligencia artificial debe registrar su propio token de Groq Cloud. Este token está vinculado únicamente a su cuenta, se almacena de forma cifrada y puede eliminarse en cualquier momento.",
-        "configureNow": "Configurar ahora",
-        "cancel": "Cancelar"
-      },
-      "errors": {
-        "not_configured": "Token de IA no configurado. Registre su token en la configuración para usar esta función.",
-        "invalid": "No se pudo leer su token de IA. Regístrelo nuevamente.",
-        "empty": "Ingrese un token de IA válido.",
-        "encryption_failed": "Error al proteger el token de IA. Intente de nuevo.",
-        "unauthenticated": "Debe estar autenticado para administrar su token de IA."
-      }
+  "shared_info_explainer_unavailable": "Explicación no disponible.",
+  "shared": {
+    "validation": {
+      "min_date_today": "La fecha no puede ser anterior a hoy.",
+      "date_order": "La fecha de inicio no puede ser posterior al plazo límite.",
+      "invalid_date": "Formato de fecha inválido.",
+      "invalid_field": "Campo inválido."
     }
   }
 }

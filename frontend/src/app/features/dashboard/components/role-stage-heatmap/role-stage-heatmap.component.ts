@@ -1,6 +1,7 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, Input, OnChanges, inject } from '@angular/core';
 import { NgxEchartsDirective } from 'ngx-echarts';
 import type { EChartsOption } from 'echarts';
+import { TranslateService } from '@ngx-translate/core';
 import { RoleStageComplianceDTO } from '../../interfaces/dashboard.interface';
 
 @Component({
@@ -14,6 +15,7 @@ export class RoleStageHeatmapComponent implements OnChanges {
   @Input({ required: true }) roleStageData: RoleStageComplianceDTO[] = [];
 
   chartOptions: EChartsOption = {};
+  private readonly translate = inject(TranslateService);
 
   ngOnChanges(): void {
     this.buildChart();
@@ -42,7 +44,7 @@ export class RoleStageHeatmapComponent implements OnChanges {
 
     this.chartOptions = {
       title: {
-        text: 'Heatmap de Risco por Encargo e Etapa',
+        text: this.translate.instant('dashboard.chart.heatmap_title'),
         left: 'center',
         textStyle: { fontSize: 14 },
       },

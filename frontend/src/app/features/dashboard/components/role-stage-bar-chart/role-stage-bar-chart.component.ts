@@ -1,5 +1,6 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, Input, OnChanges, inject } from '@angular/core';
 import { NgxEchartsDirective } from 'ngx-echarts';
+import { TranslateService } from '@ngx-translate/core';
 import type { EChartsOption } from 'echarts';
 import { RoleStageComplianceDTO } from '../../interfaces/dashboard.interface';
 
@@ -19,6 +20,8 @@ export class RoleStageBarChartComponent implements OnChanges {
   @Input({ required: true }) roleStageData: RoleStageComplianceDTO[] = [];
 
   chartOptions: EChartsOption = {};
+
+  private readonly translate = inject(TranslateService);
 
   ngOnChanges(): void {
     this.buildChart();
@@ -46,7 +49,7 @@ export class RoleStageBarChartComponent implements OnChanges {
 
     this.chartOptions = {
       title: {
-        text: 'Percepção de Conformidade por Encargo',
+        text: this.translate.instant('dashboard.chart.bar_compliance_title'),
         left: 'center',
         textStyle: { fontSize: 14 },
       },

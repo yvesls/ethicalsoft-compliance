@@ -1,7 +1,3 @@
-<#--
-  Template de PDF: Boletim de Não Conformidade Ética.
-  Processado via FreeMarkerTemplateUtils; o HTML resultante é convertido em PDF.
--->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>

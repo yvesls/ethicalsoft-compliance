@@ -35,27 +35,33 @@ public class UserChatModelResolver {
     }
 
     public Optional<ChatModel> resolve(Long userId) {
-        if (userId == null) return Optional.empty();
+        if (userId == null) {
+            return Optional.empty();
+        }
         try {
             return tokenRepository.findByUserId(userId)
                     .map(this::buildFromDocument);
-        } catch (Exception ex) {
+        } catch (RuntimeException ex) {
             log.warn("[ai-resolver] Falha ao resolver token de IA userId={}: {}", userId, ex.getMessage());
             return Optional.empty();
         }
     }
 
     public boolean hasToken(Long userId) {
-        if (userId == null) return false;
+        if (userId == null) {
+            return false;
+        }
         try {
             return tokenRepository.existsByUserId(userId);
-        } catch (Exception ex) {
+        } catch (RuntimeException ex) {
             return false;
         }
     }
 
     public void invalidate(Long userId) {
-        if (userId == null) return;
+        if (userId == null) {
+            return;
+        }
         cache.keySet().removeIf(key -> key.startsWith(userId + "::"));
     }
 

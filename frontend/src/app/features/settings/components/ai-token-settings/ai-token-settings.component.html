@@ -6,33 +6,33 @@
     </div>
 
     <div class="info-block">
-      <p>Por que precisamos do seu token? Os recursos de inteligência artificial do EthicalSoft Compliance (geração de insights, explicação dos resultados ISEP, relatório de risco e chat de perguntas e respostas) consomem a API da Groq Cloud. Para que você tenha total controle sobre o uso, o consumo e a privacidade dos seus dados, cada usuário utiliza sua própria chave pessoal.</p>
-      <p>Cadastrar seu token leva menos de um minuto, é gratuito e dá acesso imediato a todos os recursos de IA da plataforma.</p>
+      <p>{{ 'ai.token.info.why_para1' | translate }}</p>
+      <p>{{ 'ai.token.info.why_para2' | translate }}</p>
     </div>
 
     <div class="security-block">
-      <h3>Como protegemos seu token</h3>
+      <h3>{{ 'ai.token.info.security_title' | translate }}</h3>
       <ul>
-        <li>Seu token é criptografado em repouso com AES-256-GCM antes de ser salvo no banco de dados.</li>
-        <li>Nunca exibimos seu token completo — apenas uma máscara como gsk_…Zn5tj.</li>
-        <li>O token é vinculado exclusivamente à sua conta e jamais é compartilhado com outros usuários.</li>
-        <li>Em todas as chamadas, seu token é enviado diretamente para a Groq Cloud.</li>
-        <li>Você pode remover seu token a qualquer momento, e a remoção é imediata.</li>
+        <li>{{ 'ai.token.info.security_item1' | translate }}</li>
+        <li>{{ 'ai.token.info.security_item2' | translate }}</li>
+        <li>{{ 'ai.token.info.security_item3' | translate }}</li>
+        <li>{{ 'ai.token.info.security_item4' | translate }}</li>
+        <li>{{ 'ai.token.info.security_item5' | translate }}</li>
       </ul>
     </div>
 
     <div class="instructions-block">
-      <h3>Como obter sua chave Groq Cloud (gratuita)</h3>
+      <h3>{{ 'ai.token.info.instructions_title' | translate }}</h3>
       <ol>
-        <li>Acesse <strong>console.groq.com</strong> e crie uma conta.</li>
-        <li>No painel lateral, abra <strong>API Keys</strong> e clique em "Create API Key".</li>
-        <li>Dê um nome (por ex. "EthicalSoft Compliance") e copie a chave — começa com <code>gsk_…</code></li>
-        <li>Volte para esta tela, cole a chave no campo abaixo e clique em Salvar.</li>
+        <li>{{ 'ai.token.info.instructions_step1' | translate }}</li>
+        <li>{{ 'ai.token.info.instructions_step2' | translate }}</li>
+        <li>{{ 'ai.token.info.instructions_step3' | translate }}</li>
+        <li>{{ 'ai.token.info.instructions_step4' | translate }}</li>
       </ol>
     </div>
 
     <div class="status-block">
-      <span class="status-label">Status atual:</span>
+      <span class="status-label">{{ 'ai.token.status_label' | translate }}</span>
       @if (status()?.configured) {
         <span class="status-badge status-badge--ok">
           <i class="bi bi-check-circle-fill"></i>

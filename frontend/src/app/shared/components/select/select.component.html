@@ -25,7 +25,7 @@
       role="button"
     >
       @if (!selectedLabel) {
-        <span class="placeholder-text">{{ placeholder }}</span>
+        <span class="placeholder-text">{{ placeholder | translate }}</span>
       }
       @if (selectedLabel) {
         <span class="selected-text">{{ selectedLabel }}</span>
@@ -38,7 +38,7 @@
             class="clear-btn"
             (click)="clearSelection($event)"
             tabindex="-1"
-            aria-label="Limpar seleção"
+            [attr.aria-label]="'common.clear_selection' | translate"
           >
             <img src="assets/icons/error.svg" alt="" />
           </button>
@@ -47,7 +47,7 @@
           class="chevron-icon"
           [class.is-open]="isOpen"
           src="assets/icons/angle-down.svg"
-          alt="Abrir seletor"
+          [attr.alt]="'common.open_selector' | translate"
         />
       </div>
     </div>

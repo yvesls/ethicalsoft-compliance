@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, forwardRef, HostListener, inject, Input, OnInit } from '@angular/core';
 import { AbstractControl, ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { noop } from 'rxjs';
 
 type SelectValue = string | number;
@@ -13,7 +14,7 @@ export interface SelectOption {
 @Component({
   selector: 'app-select',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslateModule],
   templateUrl: './select.component.html',
   styleUrls: ['./select.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -28,7 +29,7 @@ export interface SelectOption {
 export class SelectComponent implements ControlValueAccessor, OnInit {
   @Input() label = '';
   @Input() id = '';
-  @Input() placeholder = 'Selecione';
+  @Input() placeholder = 'common.select';
   @Input() required = false;
   @Input() labelClasses = '';
   @Input({ transform: (value: boolean | string) => (typeof value === 'string' ? value === '' : !!value) })
@@ -54,6 +55,7 @@ export class SelectComponent implements ControlValueAccessor, OnInit {
 
   private readonly el = inject(ElementRef<HTMLElement>);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly translate = inject(TranslateService);
 
   private onChange: (value: SelectValue | null) => void = () => { noop() };
   private onTouched: () => void = () => { noop() };
@@ -171,10 +173,10 @@ export class SelectComponent implements ControlValueAccessor, OnInit {
       }
 
       if (typeof errorValue === 'object' && errorValue && 'message' in errorValue) {
-        return (errorValue as { message?: string }).message ?? 'Campo inválido';
+        return (errorValue as { message?: string }).message ?? this.translate.instant('common.invalid_field');
       }
 
-      return 'Campo inválido';
+      return this.translate.instant('common.invalid_field');
     });
   }
 }

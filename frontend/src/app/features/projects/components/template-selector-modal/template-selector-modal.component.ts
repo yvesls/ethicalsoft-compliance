@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, OnInit, ChangeDetectorRef, Input, Output, EventEmitter, inject, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { TranslateModule } from '@ngx-translate/core';
 import { ModalService } from '../../../../core/services/modal.service';
 import { TemplateListDTO, TemplatePartType } from '../../../../shared/interfaces/template/template.interface';
 import { ProjectType } from '../../../../shared/enums/project-type.enum';
@@ -11,7 +12,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 @Component({
   selector: 'app-template-selector-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, SelectComponent],
+  imports: [CommonModule, ReactiveFormsModule, SelectComponent, TranslateModule],
   templateUrl: './template-selector-modal.component.html',
   styleUrls: ['./template-selector-modal.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -69,7 +70,7 @@ export class TemplateSelectorModalComponent implements OnInit {
     }
   }
 
-  importFromExternal(): void { /* empty */ }
+  importFromExternal(): void {  }
 
   close(): void {
     this.modalService.close();

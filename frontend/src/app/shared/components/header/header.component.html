@@ -9,13 +9,13 @@
 			@for (segment of routeSegments; track segment.path; let last = $last) {
 				@if (!last) {
 					@if (segment.clickable) {
-						<a class="breadcrumb-link" [routerLink]="segment.path">{{ segment.label }}</a>
+						<a class="breadcrumb-link" [routerLink]="segment.path">{{ segment.label | translate }}</a>
 					} @else {
-						<span class="breadcrumb-label">{{ segment.label }}</span>
+						<span class="breadcrumb-label">{{ segment.label | translate }}</span>
 					}
 					<span class="breadcrumb-separator"> &gt; </span>
 				} @else {
-					<span class="breadcrumb-current">{{ segment.label }}</span>
+					<span class="breadcrumb-current">{{ segment.label | translate }}</span>
 				}
 			}
 		</h2>
@@ -24,7 +24,7 @@
 		<ul>
 			<li>
 				<button (click)="openNotifications()" [attr.aria-label]="'header.open_notifications' | translate" class="unstyled-btn notification-toggle">
-					<img src="../../../../assets/icons/notification.svg" alt="Notificações" height="20px" />
+					<img src="../../../../assets/icons/notification.svg" [attr.alt]="'header.notifications_title' | translate" height="20px" />
 					@if (unreadCount > 0) {
 						<span class="notification-badge">{{ unreadCount }}</span>
 					}

@@ -1,6 +1,7 @@
 import { Component, Output, EventEmitter, inject, Input, ChangeDetectorRef, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { BasePageComponent, RestoreParams } from '../../../../core/abstractions/base-page.component';
 import { ModalService } from '../../../../core/services/modal.service';
 import { InputComponent } from '../../../../shared/components/input/input.component';
@@ -43,7 +44,7 @@ type RepresentativeRestoreState = RestoreParams<GenericParams> & Partial<Represe
 @Component({
   selector: 'app-representative-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, InputComponent, MultiSelectComponent],
+  imports: [CommonModule, ReactiveFormsModule, InputComponent, MultiSelectComponent, TranslateModule],
   templateUrl: './representative-modal.component.html',
   styleUrls: ['./representative-modal.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -58,11 +59,12 @@ export class RepresentativeModalComponent extends BasePageComponent implements O
   private fb = inject(FormBuilder);
   private cdr = inject(ChangeDetectorRef);
   private roleService = inject(RoleService);
+  private readonly translate = inject(TranslateService);
 
   form!: FormGroup;
   actionType: ActionType = ActionType.CREATE;
   representativeData?: RepresentativeData;
-  modalTitle = 'Criar novo representante';
+  modalTitle = '';
   roleOptions: MultiSelectOption[] = [];
   private rolesLookup = new Map<number, string>();
 
@@ -243,8 +245,8 @@ export class RepresentativeModalComponent extends BasePageComponent implements O
 
   private updateModalTitle(): void {
     this.modalTitle = this.actionType === ActionType.EDIT
-      ? 'Editar representante'
-      : 'Criar novo representante';
+      ? this.translate.instant('projects.form.edit_representative')
+      : this.translate.instant('projects.form.create_representative');
   }
 
   confirm(): void {

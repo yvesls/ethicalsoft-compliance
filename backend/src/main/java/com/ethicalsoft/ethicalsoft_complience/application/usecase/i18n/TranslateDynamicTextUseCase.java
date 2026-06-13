@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.HexFormat;
 import java.util.Optional;
@@ -64,7 +65,7 @@ public class TranslateDynamicTextUseCase {
     private Optional<TranslationCacheDocument> safeFindByHash(String hash) {
         try {
             return cacheRepository.findByHash(hash);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             log.warn("[i18n-cache] Falha ao consultar cache de tradução: {}", e.getMessage());
             return Optional.empty();
         }
@@ -73,7 +74,7 @@ public class TranslateDynamicTextUseCase {
     private void safeSave(TranslationCacheDocument document) {
         try {
             cacheRepository.save(document);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             log.warn("[i18n-cache] Falha ao salvar tradução em cache (hash={}): {}",
                     document.getHash(), e.getMessage());
         }
@@ -84,7 +85,7 @@ public class TranslateDynamicTextUseCase {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] bytes = digest.digest((text + "|" + languageCode).getBytes(StandardCharsets.UTF_8));
             return HexFormat.of().formatHex(bytes);
-        } catch (Exception e) {
+        } catch (NoSuchAlgorithmException e) {
             return Integer.toHexString((text + "|" + languageCode).hashCode());
         }
     }

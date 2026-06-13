@@ -16,8 +16,8 @@ export class AiPanelComponent {
   @Input() icon = 'bi-robot';
   @Input() result: AiInsightResult | null = null;
   @Input() loading = false;
-  @Input() buttonLabel = 'Gerar Análise';
-  @Input() loadingLabel = 'Analisando com IA...';
+  @Input() buttonLabel = 'dashboard.ai_widgets.insights_btn';
+  @Input() loadingLabel = 'dashboard.ai_widgets.insights_loading';
 
   @Output() generate = new EventEmitter<void>();
 

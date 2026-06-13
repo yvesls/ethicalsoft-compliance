@@ -1,14 +1,14 @@
 export enum ErrorMessageEnum {
-	UNAUTHORIZED = 'Credenciais inválidas. Verifique seu usuário e senha.',
-	FORBIDDEN = 'Você não tem permissão para acessar este recurso.',
-	NOT_FOUND = 'O recurso solicitado não foi encontrado.',
-	INTERNAL_SERVER_ERROR = 'Erro interno do servidor. Tente novamente mais tarde.',
-	BAD_REQUEST = 'A requisição está mal formada ou contém dados inválidos.',
-	CONFLICT = 'Ocorreu um conflito com os dados enviados.',
-	UNPROCESSABLE_ENTITY = 'Os dados enviados não podem ser processados.',
-	TOO_MANY_REQUESTS = 'Muitas requisições. Tente novamente mais tarde.',
-	SERVICE_UNAVAILABLE = 'O serviço está temporariamente indisponível.',
-	UNKNOWN_ERROR = 'Ocorreu um erro desconhecido. Tente novamente mais tarde.',
+	UNAUTHORIZED = 'errors.http.401',
+	FORBIDDEN = 'errors.http.403',
+	NOT_FOUND = 'errors.http.404',
+	INTERNAL_SERVER_ERROR = 'errors.http.500',
+	BAD_REQUEST = 'errors.http.400',
+	CONFLICT = 'errors.http.409',
+	UNPROCESSABLE_ENTITY = 'errors.http.422',
+	TOO_MANY_REQUESTS = 'errors.http.429',
+	SERVICE_UNAVAILABLE = 'errors.http.503',
+	UNKNOWN_ERROR = 'errors.unknown',
 }
 
 export function getErrorMessage(status: number): string {

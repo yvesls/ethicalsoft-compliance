@@ -49,16 +49,19 @@ export class ResetPasswordComponent extends BasePageComponent<ResetPasswordRoute
 	private readonly notificationService = inject(NotificationService)
 	private readonly translate = inject(TranslateService)
 
-	readonly passwordValidationMessages = {
-		required: 'Senha é obrigatória',
-		minlength: 'A senha deve ter pelo menos 8 caracteres',
-		weakPassword:
-			'A senha precisa ter letras maiúsculas, minúsculas, números e caracteres especiais',
+	get passwordValidationMessages() {
+		return {
+			required: this.translate.instant('auth.validation.password_required'),
+			minlength: this.translate.instant('auth.validation.password_min_length'),
+			weakPassword: this.translate.instant('auth.errors.weak_password'),
+		};
 	}
 
-	readonly confirmPasswordValidationMessages = {
-		required: 'Confirmação de senha é obrigatória',
-		passwordsMismatch: 'As senhas não coincidem',
+	get confirmPasswordValidationMessages() {
+		return {
+			required: this.translate.instant('auth.validation.confirm_password_required'),
+			passwordsMismatch: this.translate.instant('auth.errors.passwords_do_not_match'),
+		};
 	}
 
 	protected override onInit(): void {

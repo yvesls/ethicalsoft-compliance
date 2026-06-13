@@ -1,6 +1,7 @@
 import { Component, Output, EventEmitter, inject, Input, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { ModalService } from '../../../../core/services/modal.service';
 import { InputComponent } from '../../../../shared/components/input/input.component';
@@ -35,7 +36,7 @@ export interface QuestionStageConfig {
 @Component({
   selector: 'app-question-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, InputComponent, MultiSelectComponent],
+  imports: [CommonModule, ReactiveFormsModule, InputComponent, MultiSelectComponent, TranslateModule],
   templateUrl: './question-modal.component.html',
   styleUrls: ['./question-modal.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -50,17 +51,18 @@ export class QuestionModalComponent implements OnInit {
   private modalService = inject(ModalService);
   private fb = inject(FormBuilder);
   private roleService = inject(RoleService);
+  private readonly translate = inject(TranslateService);
 
   form!: FormGroup;
   actionType: ActionType = ActionType.CREATE;
-  modalTitle = 'Criar nova pergunta';
+  modalTitle = '';
   roleOptions: MultiSelectOption[] = [];
   private rolesLookup = new Map<number, string>();
   private pendingRoleNames?: string[];
   showStageSelector = false;
   stageOptions: MultiSelectOption[] = [];
-  stageLabel = 'Etapas relacionadas';
-  stagePlaceholder = 'Selecione as etapas';
+  stageLabel = '';
+  stagePlaceholder = '';
   stageMaxSelectedItems?: number;
   stageLockedValues: (string | number)[] = [];
 
@@ -74,10 +76,11 @@ export class QuestionModalComponent implements OnInit {
 
     if (this.editData && this.mode === ActionType.EDIT) {
       this.actionType = ActionType.EDIT;
-      this.modalTitle = 'Editar pergunta';
+      this.modalTitle = this.translate.instant('questionnaire.question_modal.edit_title');
       this.populateForm(this.editData);
     } else {
       this.actionType = ActionType.CREATE;
+      this.modalTitle = this.translate.instant('questionnaire.question_modal.create_title');
       this.applyDefaultStageSelection();
     }
   }
@@ -228,8 +231,8 @@ export class QuestionModalComponent implements OnInit {
 
     this.showStageSelector = true;
     this.stageOptions = config.options;
-    this.stageLabel = config.label ?? 'Etapas relacionadas';
-    this.stagePlaceholder = config.placeholder ?? 'Selecione as etapas';
+    this.stageLabel = config.label ?? this.translate.instant('questionnaire.question_modal.stage_label');
+    this.stagePlaceholder = config.placeholder ?? this.translate.instant('questionnaire.question_modal.stage_placeholder');
     this.stageMaxSelectedItems = config.maxSelectedItems ?? (config.allowMultiple === false ? 1 : undefined);
     this.stageLockedValues = config.lockedValues ?? [];
 

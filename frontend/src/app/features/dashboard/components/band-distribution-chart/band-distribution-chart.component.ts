@@ -1,5 +1,6 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, Input, OnChanges, inject } from '@angular/core';
 import { NgxEchartsDirective } from 'ngx-echarts';
+import { TranslateService } from '@ngx-translate/core';
 import type { EChartsOption } from 'echarts';
 import { Band, BAND_META } from '../../interfaces/dashboard.interface';
 
@@ -15,12 +16,16 @@ export class BandDistributionChartComponent implements OnChanges {
 
   chartOptions: EChartsOption = {};
 
+  private readonly translate = inject(TranslateService);
+
   ngOnChanges(): void {
     this.buildChart();
   }
 
   private buildChart(): void {
     const bands: Band[] = ['A', 'B', 'C', 'D', 'E'];
+    const bandLabel = this.translate.instant('dashboard.chart.band_x_axis');
+    const memberCount = this.translate.instant('dashboard.chart.member_count');
     const data = bands.map((b) => ({
       value: this.distribution[b] ?? 0,
       itemStyle: { color: BAND_META[b].cssColor },
@@ -28,8 +33,8 @@ export class BandDistributionChartComponent implements OnChanges {
 
     this.chartOptions = {
       title: {
-        text: 'Distribuição por Faixa',
-        subtext: 'Nº de membros por classificação',
+        text: this.translate.instant('dashboard.chart.band_distribution_title'),
+        subtext: this.translate.instant('dashboard.chart.band_distribution_subtitle'),
         left: 'center',
         textStyle: { fontSize: 14 },
       },
@@ -37,11 +42,11 @@ export class BandDistributionChartComponent implements OnChanges {
         trigger: 'axis',
         formatter: (params: unknown) => {
           const p = (params as { name: string; value: number }[])[0];
-          return `Faixa ${p.name}: <b>${p.value} membro(s)</b>`;
+          return `${bandLabel} ${p.name}: <b>${p.value} ${memberCount}</b>`;
         },
       },
-      xAxis: { type: 'category', data: bands, name: 'Faixa' },
-      yAxis: { type: 'value', name: 'Membros', minInterval: 1 },
+      xAxis: { type: 'category', data: bands, name: bandLabel },
+      yAxis: { type: 'value', name: this.translate.instant('dashboard.chart.members_y_axis'), minInterval: 1 },
       series: [
         {
           type: 'bar',

@@ -20,6 +20,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize, take } from 'rxjs/operators';
 
 import { LoggerService } from '../../../../core/services/logger.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { InfoExplainerComponent } from '../../../../shared/components/info-explainer/info-explainer.component';
 
 import { ProjectType } from '../../../../shared/enums/project-type.enum';
 import { ProjectStore } from '../../../../shared/stores/project.store';
@@ -63,7 +65,6 @@ import {
 } from '../representative-modal/representative-modal.component';
 import { QuestionData } from '../question-modal/question-modal.component';
 
-
 type PanelKey = 'project' | 'stages' | 'representatives' | 'questionnaires';
 type PanelStates = Record<PanelKey, boolean>;
 
@@ -77,6 +78,8 @@ type PanelStates = Record<PanelKey, boolean>;
     InputComponent,
     SelectComponent,
     MultiSelectComponent,
+    TranslateModule,
+    InfoExplainerComponent,
   ],
   templateUrl: './edit-iterativo-project-form.component.html',
   styleUrls: ['./edit-iterativo-project-form.component.scss'],
@@ -92,6 +95,7 @@ export class EditIterativoProjectFormComponent implements OnInit {
   private notificationService = inject(NotificationService);
   private routerService = inject(RouterService);
   private roleService = inject(RoleService);
+  private readonly translate = inject(TranslateService);
 
   public ProjectType = ProjectType;
   public projectForm!: FormGroup;
@@ -107,19 +111,8 @@ export class EditIterativoProjectFormComponent implements OnInit {
     questionnaires: true,
   };
 
-  public projectTypeOptions: SelectOption[] = [
-    { value: ProjectType.Iterativo, label: 'Iterativo Incremental' },
-  ];
-
-  public aiUsageScopeOptions: MultiSelectOption[] = [
-    { value: 'NAO_UTILIZA', label: 'Não utiliza' },
-    { value: 'REQUISITOS', label: 'Utiliza em requisitos' },
-    { value: 'DESIGN', label: 'Utiliza em design/arquitetura' },
-    { value: 'CODIFICACAO', label: 'Utiliza em codificação' },
-    { value: 'TESTES', label: 'Utiliza em testes' },
-    { value: 'DOCUMENTACAO', label: 'Utiliza em documentação' },
-    { value: 'AI_GOVERNANCE', label: 'Governança de IA aplicada' },
-  ];
+  public projectTypeOptions: SelectOption[] = [];
+  public aiUsageScopeOptions: MultiSelectOption[] = [];
 
   public availableRoles: RoleSummary[] = [];
   private roleNameById = new Map<number, string>();
@@ -130,6 +123,18 @@ export class EditIterativoProjectFormComponent implements OnInit {
   private static readonly FORM_STATE_CACHE_KEY = 'editIterativoFormStateCache';
 
   ngOnInit(): void {
+    this.projectTypeOptions = [
+      { value: ProjectType.Iterativo, label: this.translate.instant('projects.type.iterativo') },
+    ];
+    this.aiUsageScopeOptions = [
+      { value: 'NAO_UTILIZA', label: this.translate.instant('project.ai_usage.options.NAO_UTILIZA') },
+      { value: 'REQUISITOS', label: this.translate.instant('project.ai_usage.options.REQUISITOS') },
+      { value: 'DESIGN', label: this.translate.instant('project.ai_usage.options.DESIGN') },
+      { value: 'CODIFICACAO', label: this.translate.instant('project.ai_usage.options.CODIFICACAO') },
+      { value: 'TESTES', label: this.translate.instant('project.ai_usage.options.TESTES') },
+      { value: 'DOCUMENTACAO', label: this.translate.instant('project.ai_usage.options.DOCUMENTACAO') },
+      { value: 'AI_GOVERNANCE', label: this.translate.instant('project.ai_usage.options.AI_GOVERNANCE') },
+    ];
     this.route.params.pipe(take(1)).subscribe((params) => {
       this.projectId = params['projectId'];
       if (!this.projectId) {
@@ -162,11 +167,7 @@ export class EditIterativoProjectFormComponent implements OnInit {
       },
       {
         validators: [
-          CustomValidators.dateRange(
-            'startDate',
-            'deadline',
-            'A data de início não pode ser maior que o prazo limite.'
-          ),
+          CustomValidators.dateRange('startDate', 'deadline'),
         ],
       }
     );
@@ -281,8 +282,8 @@ export class EditIterativoProjectFormComponent implements OnInit {
         error: (err) => {
           const message =
             err && typeof err === 'object' && 'message' in err
-              ? (err as { message?: string }).message ?? 'Falha ao carregar dados do projeto.'
-              : 'Falha ao carregar dados do projeto.';
+              ? (err as { message?: string }).message ?? this.translate.instant('projects.form.error_loading')
+              : this.translate.instant('projects.form.error_loading');
           this.loadError = message;
           this.notificationService.showError(message);
         },
@@ -569,11 +570,11 @@ export class EditIterativoProjectFormComponent implements OnInit {
     const qGroup = this.questionnairesFormArray.at(index) as FormGroup | null;
     const questionnaire = qGroup?.getRawValue();
     if (!questionnaire) {
-      this.notificationService.showWarning('Não foi possível carregar o questionário selecionado.');
+      this.notificationService.showWarning(this.translate.instant('notifications.project_form.load_questionnaire_error'));
       return;
     }
 
-    const projectName = this.projectForm.get('name')?.value || 'Projeto';
+    const projectName = this.projectForm.get('name')?.value || this.translate.instant('common.project');
     const questions = questionnaire.questions || [];
     const stages = this.getAvailableStageNames();
 
@@ -652,8 +653,8 @@ export class EditIterativoProjectFormComponent implements OnInit {
     const control = this.questionnairesFormArray.at(index) as FormGroup | null;
     const name = (control?.get('name')?.value ?? '').toString().trim();
     return name
-      ? `Adicione pelo menos uma pergunta ao questionário "${name}".`
-      : 'Adicione pelo menos uma pergunta a este questionário.';
+      ? this.translate.instant('projects.form.validation.add_question_to_questionnaire', { name })
+      : this.translate.instant('projects.form.validation.add_question_to_this');
   }
 
   private validateQuestionnairesHaveQuestions(): boolean {
@@ -668,7 +669,7 @@ export class EditIterativoProjectFormComponent implements OnInit {
     const hasErrors = this.questionnaireQuestionErrors.size > 0;
     this.showQuestionnaireQuestionErrors = hasErrors;
     if (hasErrors) {
-      this.notificationService.showWarning('Adicione pelo menos uma pergunta para cada questionário.');
+      this.notificationService.showWarning(this.translate.instant('notifications.project_form.add_questions'));
     }
     this.cdr.markForCheck();
     return !hasErrors;
@@ -714,7 +715,7 @@ export class EditIterativoProjectFormComponent implements OnInit {
         new Date(currentStartDate),
         Math.max(iterationDuration - 1, 0)
       );
-      const iterationName = `Iteração ${index + 1}`;
+      const iterationName = this.translate.instant('projects.form.iteration_fallback', { n: index + 1 });
       const startStr = FormUtils.formatDateISO(currentStartDate);
       const endStr = FormUtils.formatDateISO(iterationEndDate);
       const dateRange = `${FormUtils.formatDateBR(startStr)} - ${FormUtils.formatDateBR(endStr)}`;
@@ -741,7 +742,7 @@ export class EditIterativoProjectFormComponent implements OnInit {
 
     for (let index = 0; index < iterationsArray.length; index++) {
       const itControl = iterationsArray.at(index) as FormGroup;
-      const iterationName = itControl.get('name')?.value || `Iteração ${index + 1}`;
+      const iterationName = itControl.get('name')?.value || this.translate.instant('projects.form.iteration_fallback', { n: index + 1 });
       const itStart = itControl.get('applicationStartDate')?.value || '';
       const itEnd = itControl.get('applicationEndDate')?.value || '';
 
@@ -893,7 +894,7 @@ export class EditIterativoProjectFormComponent implements OnInit {
   onSubmit(): void {
     if (this.projectForm.invalid) {
       this.projectForm.markAllAsTouched();
-      this.notificationService.showWarning('Revise os campos obrigatórios antes de salvar.');
+      this.notificationService.showWarning(this.translate.instant('projects.form.validation.review_required'));
       return;
     }
 
@@ -908,7 +909,8 @@ export class EditIterativoProjectFormComponent implements OnInit {
     try {
       payload = this.buildUpdatePayload();
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Erro ao preparar os dados.';
+      LoggerService.error('EditIterativoProjectForm: Erro ao construir payload de atualização.', error);
+      const message = error instanceof Error ? error.message : this.translate.instant('projects.form.validation.prepare_data_error');
       this.notificationService.showError(message);
       return;
     }
@@ -929,40 +931,30 @@ export class EditIterativoProjectFormComponent implements OnInit {
         next: (response) => {
           try {
             if (!response?.changesSummary) {
-              this.notificationService.showSuccess('Projeto atualizado com sucesso.');
+              this.notificationService.showSuccess(this.translate.instant('projects.messages.updated'));
               this.routerService.navigateTo(`/projects/${this.projectId}`);
               return;
             }
 
             const summary = response.changesSummary;
-            const totalChanges =
-              summary.stagesAdded + summary.stagesUpdated + summary.stagesRemoved +
-              summary.iterationsAdded + summary.iterationsUpdated + summary.iterationsRemoved +
-              summary.questionnairesAdded + summary.questionnairesUpdated + summary.questionnairesRemoved +
-              summary.questionsAdded + summary.questionsUpdated + summary.questionsRemoved +
-              summary.representativesAdded + summary.representativesUpdated + summary.representativesRemoved;
 
             if (summary.blockedReasons?.length) {
               const reasons = summary.blockedReasons.join('\n• ');
-              this.notificationService.showError(`Atualização bloqueada:\n• ${reasons}`);
+              this.notificationService.showError(this.translate.instant('notifications.project_form.update_blocked', { reasons }));
               return;
             }
 
             if (summary.warnings?.length) {
               const warns = summary.warnings.join('\n• ');
-              this.notificationService.showWarning(`Projeto atualizado com avisos:\n• ${warns}`);
+              this.notificationService.showWarning(this.translate.instant('notifications.project_form.updated_with_warnings', { warns }));
             } else {
-              this.notificationService.showSuccess(
-                totalChanges > 0
-                  ? `Projeto atualizado com sucesso. ${totalChanges} alteração(ões) aplicada(s).`
-                  : 'Projeto atualizado com sucesso.'
-              );
+              this.notificationService.showSuccess(this.translate.instant('projects.messages.updated'));
             }
 
             this.routerService.navigateTo(`/projects/${this.projectId}`);
           } catch (error_) {
             LoggerService.error('Erro inesperado ao processar resposta de atualização', error_);
-            this.notificationService.showError('Erro inesperado ao processar a resposta da atualização.');
+            this.notificationService.showError(this.translate.instant('notifications.project_form.save_error'));
           }
         },
         error: (err) => {
@@ -978,15 +970,13 @@ export class EditIterativoProjectFormComponent implements OnInit {
         const parsed = JSON.parse(conflictErr.message) as UpdateProjectConflictError;
         if (parsed.errors?.length) {
           const errorList = parsed.errors.join('\n• ');
-          this.notificationService.showError(`Operação bloqueada:\n• ${errorList}`);
+          this.notificationService.showError(this.translate.instant('notifications.project_form.operation_blocked', { errorList }));
           return;
         }
-      } catch {
-        // fallback
+      } catch (parseError) {
+        LoggerService.warn('EditIterativoProjectForm: Erro ao parsear detalhes do conflito.', parseError);
       }
-      this.notificationService.showError(
-        'Conflito: Algumas alterações não podem ser aplicadas. Verifique os dados e tente novamente.'
-      );
+      this.notificationService.showError(this.translate.instant('notifications.project_form.conflict_retry'));
       return;
     }
 
@@ -1004,8 +994,8 @@ export class EditIterativoProjectFormComponent implements OnInit {
   private buildUpdatePayload(): UpdateProjectRequest {
     const formValue = this.projectForm.getRawValue();
     const name = (formValue.name || '').trim();
-    if (!name) throw new Error('Informe o nome do projeto.');
-    if (!formValue.startDate) throw new Error('Informe a data de início do projeto.');
+    if (!name) throw new Error(this.translate.instant('projects.form.validation.name_required'));
+    if (!formValue.startDate) throw new Error(this.translate.instant('projects.form.validation.start_date_required'));
 
     const iterationDuration = Number(formValue.iterationDuration) || undefined;
     const iterationCount = Number(formValue.iterationCount) || undefined;
@@ -1041,7 +1031,7 @@ export class EditIterativoProjectFormComponent implements OnInit {
     return this.iterationsFormArray.controls
       .map((control, index) => ({
         id: this.normalizeEntityId(control.get('_entityId')?.value),
-        name: control.get('name')?.value || `Iteração ${index + 1}`,
+        name: control.get('name')?.value || this.translate.instant('projects.form.iteration_fallback', { n: index + 1 }),
         weight: Number(control.get('weight')?.value) || 0,
         order: Number(control.get('order')?.value) || index + 1,
         applicationStartDate: control.get('applicationStartDate')?.value || '',

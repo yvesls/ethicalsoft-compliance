@@ -5,11 +5,14 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.llm.model.DashboardSn
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.AiGenerationCacheDocument;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.repository.AiGenerationCacheRepository;
 import com.ethicalsoft.ethicalsoft_complience.application.port.ai.LlmAnalysisPort;
+import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
 import com.ethicalsoft.ethicalsoft_complience.infra.config.AiConfig;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.chat.messages.SystemMessage;
+import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
@@ -18,8 +21,10 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.HexFormat;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
@@ -31,6 +36,9 @@ public class GroqLlmAdapter implements LlmAnalysisPort {
     private static final String OP_INSIGHTS = "INSIGHTS";
     private static final String OP_RISK_REPORT = "RISK_REPORT";
     private static final String OP_EXPLAIN_ISEP = "EXPLAIN_ISEP";
+    private static final String DEFAULT_LANGUAGE = "pt-BR";
+    private static final String UNAVAILABLE_MESSAGE =
+            "Análise de IA temporariamente indisponível. Tente novamente.";
 
     private final UserChatModelResolver chatModelResolver;
     private final AiDataSanitizer sanitizer;
@@ -101,7 +109,8 @@ public class GroqLlmAdapter implements LlmAnalysisPort {
                 emitter.send(SseEmitter.event()
                         .name("error")
                         .data(friendlyMessage(e)));
-            } catch (Exception ignored) { // NOSONAR
+            } catch (Exception sendError) {
+                log.debug("[llm-groq] Falha ao enviar evento de erro Q&A: {}", sendError.getMessage());
             }
             emitter.complete();
         }
@@ -124,14 +133,14 @@ public class GroqLlmAdapter implements LlmAnalysisPort {
                     e sem explicações adicionais.
                     """;
             String user = "Idioma de destino: " + targetLanguage + "\n\nTexto original:\n" + text;
-            Prompt prompt = new Prompt(java.util.List.of(
-                    new org.springframework.ai.chat.messages.SystemMessage(system),
-                    new org.springframework.ai.chat.messages.UserMessage(user)
+            Prompt prompt = new Prompt(List.of(
+                    new SystemMessage(system),
+                    new UserMessage(user)
             ));
             ChatResponse response = chatModel.get().call(prompt);
             String translated = response.getResult().getOutput().getText();
             return (translated == null || translated.isBlank()) ? text : translated.trim();
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             log.warn("[llm-groq] Falha na tradução para {} (userId={}): {}",
                     targetLanguage, userId, e.getMessage());
             return text;
@@ -183,13 +192,17 @@ public class GroqLlmAdapter implements LlmAnalysisPort {
     }
 
     private String normalizeLanguage(String language) {
-        if (language == null || language.isBlank()) return "pt-BR";
+        if (language == null || language.isBlank()) {
+            return DEFAULT_LANGUAGE;
+        }
         String first = language.split(",")[0].trim();
-        return first.isBlank() ? "pt-BR" : first;
+        return first.isBlank() ? DEFAULT_LANGUAGE : first;
     }
 
     private String cacheHash(String operation, DashboardSnapshot snapshot, String language) {
-        if (snapshot == null || snapshot.getIsepPercent() == null) return null;
+        if (snapshot == null || snapshot.getIsepPercent() == null) {
+            return null;
+        }
         String raw = operation + "|" + snapshot.getProjectId()
                 + "|" + snapshot.getQuestionnaireId()
                 + "|" + snapshot.getIsepPercent()
@@ -198,16 +211,18 @@ public class GroqLlmAdapter implements LlmAnalysisPort {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             return HexFormat.of().formatHex(digest.digest(raw.getBytes(StandardCharsets.UTF_8)));
-        } catch (Exception ex) {
+        } catch (NoSuchAlgorithmException ex) {
             return Integer.toHexString(raw.hashCode());
         }
     }
 
     private Optional<AiGenerationCacheDocument> safeFindCached(String hash) {
-        if (hash == null) return Optional.empty();
+        if (hash == null) {
+            return Optional.empty();
+        }
         try {
             return generationCacheRepository.findByHash(hash);
-        } catch (Exception ex) {
+        } catch (RuntimeException ex) {
             log.warn("[llm-groq] Falha ao consultar cache de IA: {}", ex.getMessage());
             return Optional.empty();
         }
@@ -216,17 +231,17 @@ public class GroqLlmAdapter implements LlmAnalysisPort {
     private void safeSaveCached(AiGenerationCacheDocument document) {
         try {
             generationCacheRepository.save(document);
-        } catch (Exception ex) {
+        } catch (RuntimeException ex) {
             log.warn("[llm-groq] Falha ao salvar resposta de IA no cache (hash={}): {}",
                     document.getHash(), ex.getMessage());
         }
     }
 
     private String friendlyMessage(Exception e) {
-        if (e instanceof com.ethicalsoft.ethicalsoft_complience.exception.BusinessException be) {
+        if (e instanceof BusinessException be) {
             return be.getMessage();
         }
-        return "Análise de IA temporariamente indisponível. Tente novamente.";
+        return UNAVAILABLE_MESSAGE;
     }
 
     @SuppressWarnings("unused")
@@ -234,7 +249,7 @@ public class GroqLlmAdapter implements LlmAnalysisPort {
             DashboardSnapshot snapshot, String language, Long userId, Throwable t) {
         log.warn("[llm-groq] Fallback ativado para projeto={} idioma={} userId={}: {}",
                 snapshot.getProjectId(), language, userId, t.getMessage());
-        String fallback = (t instanceof com.ethicalsoft.ethicalsoft_complience.exception.BusinessException be)
+        String fallback = (t instanceof BusinessException be)
                 ? be.getMessage()
                 : "Análise de IA temporariamente indisponível. Os dados do dashboard continuam " +
                   "disponíveis normalmente. Tente novamente em alguns instantes.";

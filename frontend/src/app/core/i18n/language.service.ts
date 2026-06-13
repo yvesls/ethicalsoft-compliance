@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http'
 import { BehaviorSubject, Observable, catchError, map, of } from 'rxjs'
 import { TranslateService } from '@ngx-translate/core'
 import { AuthenticationService } from '../services/authentication.service'
+import { LoggerService } from '../services/logger.service'
 import { environment } from '../../enviroments/environments'
 
 export type LanguageCode = 'pt-BR' | 'en-US' | 'es-ES'
@@ -93,7 +94,8 @@ export class LanguageService {
       const stored = localStorage.getItem(STORAGE_KEY)
       const valid = SUPPORTED_LANGUAGES.map((l) => l.code)
       return valid.includes(stored as LanguageCode) ? (stored as LanguageCode) : null
-    } catch {
+    } catch (error) {
+      LoggerService.warn('LanguageService: Erro ao ler idioma do localStorage.', error)
       return null
     }
   }
@@ -102,8 +104,8 @@ export class LanguageService {
     try {
       if (typeof localStorage === 'undefined') return
       localStorage.setItem(STORAGE_KEY, language)
-    } catch {
-      // ignora
+    } catch (error) {
+      LoggerService.warn('LanguageService: Erro ao persistir idioma no localStorage.', error)
     }
   }
 }

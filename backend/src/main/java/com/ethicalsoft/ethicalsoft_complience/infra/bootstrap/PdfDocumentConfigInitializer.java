@@ -25,7 +25,7 @@ public class PdfDocumentConfigInitializer {
     public void seedConfigs() {
         try {
             configsToSeed().forEach(this::reconcileConfig);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             log.warn("[pdf-config-init] Não foi possível inicializar as configurações de documentos PDF no MongoDB. " +
                     "A aplicação continuará normalmente. Erro: {}", e.getMessage());
         }
@@ -63,15 +63,6 @@ public class PdfDocumentConfigInitializer {
         );
     }
 
-    /**
-     * Insere a configuração quando ausente. Quando já existe, reconcilia os campos
-     * canônicos (de apresentação, controlados pelo código): título, link do template,
-     * nome do sistema e rodapé. Preserva o id e os campos editáveis pelo administrador
-     * (impactSummary, defaultCorrectiveActions, validationUrl, issuerLabel), apenas
-     * preenchendo-os quando estiverem vazios. Garante, por exemplo, que a renomeação do
-     * certificado para "Certificado de Ciência Ética e Conformidade Declarada" passe a
-     * valer mesmo em bancos que já tinham a coleção populada com o título antigo.
-     */
     private void reconcileConfig(PdfDocumentConfigDocument seed) {
         if (seed == null || seed.getKey() == null || seed.getKey().isBlank()) {
             return;

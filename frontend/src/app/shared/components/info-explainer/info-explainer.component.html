@@ -3,14 +3,14 @@
     type="button"
     class="info-icon"
     (click)="togglePopover()"
-    aria-label="Mais informações"
+    [attr.aria-label]="'common.more_info' | translate"
     role="button"
     tabindex="0"
-    title="Clique para mais informações"
+    [attr.title]="'common.more_info' | translate"
   >
     <img
       src="assets/icons/circle-info-solid-full.svg"
-      alt="Ícone de informação"
+      [attr.alt]="'common.info_icon_alt' | translate"
       class="icon-image"
     />
   </button>
@@ -32,7 +32,7 @@
           </ul>
         }
       } @else {
-        <p class="popover-desc">Explicação não disponível.</p>
+        <p class="popover-desc">{{ 'shared_info_explainer_unavailable' | translate }}</p>
       }
     </div>
   }

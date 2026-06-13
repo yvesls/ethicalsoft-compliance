@@ -73,7 +73,7 @@
                     <p class="question-text">{{ answer.questionText }}</p>
                   </div>
 
-                  <div class="response-row__radios" role="group" aria-label="Resposta obrigatória">
+                  <div class="response-row__radios" role="group" [attr.aria-label]="'questionnaire.response.mandatory_response_aria' | translate">
                     <label class="radio-pill" [class.radio-pill--active]="answer.response === true">
                       <input
                         type="radio"

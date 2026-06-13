@@ -149,34 +149,39 @@ export class ProjectDetailPageComponent implements OnInit {
     iteration: [''],
   });
 
-  readonly projectTypeLabelMap: Record<ProjectType, string> = {
-    [ProjectType.Cascata]: 'Cascata',
-    [ProjectType.Iterativo]: 'Iterativo',
-  };
+  get projectTypeLabelMap(): Record<ProjectType, string> {
+    return {
+      [ProjectType.Cascata]: this.translate.instant('projects.type.cascata'),
+      [ProjectType.Iterativo]: this.translate.instant('projects.type.iterativo'),
+    };
+  }
 
-  private readonly projectStatusLabelMap: Record<string, string> = {
-    ABERTO: ProjectStatus.Aberto,
-    RASCUNHO: ProjectStatus.Rascunho,
-    CONCLUIDO: ProjectStatus.Concluido,
-    ARQUIVADO: ProjectStatus.Arquivado,
-    EXCLUIDO: ProjectStatus.Excluido,
-  };
+  private get projectStatusLabelMap(): Record<string, string> {
+    return {
+      ABERTO: this.translate.instant('projects.status.aberto'),
+      RASCUNHO: this.translate.instant('projects.status.rascunho'),
+      CONCLUIDO: this.translate.instant('projects.status.concluido'),
+      ARQUIVADO: this.translate.instant('projects.status.arquivado'),
+      EXCLUIDO: this.translate.instant('projects.status.excluido'),
+    };
+  }
 
-  private readonly timelineStatusLabelMap: Record<TimelineStatus, string> = {
-    [TimelineStatus.Pendente]: 'Pendente',
-    [TimelineStatus.EmAndamento]: 'Em andamento',
-    [TimelineStatus.Concluido]: 'Concluído',
-    [TimelineStatus.Atrasado]: 'Atrasado',
-  };
+  private get timelineStatusLabelMap(): Record<TimelineStatus, string> {
+    return {
+      [TimelineStatus.Pendente]: this.translate.instant('questionnaire.timeline_status.pendente'),
+      [TimelineStatus.EmAndamento]: this.translate.instant('questionnaire.timeline_status.em_andamento'),
+      [TimelineStatus.Concluido]: this.translate.instant('questionnaire.timeline_status.concluido'),
+      [TimelineStatus.Atrasado]: this.translate.instant('questionnaire.timeline_status.atrasado'),
+    };
+  }
 
-  private readonly respondentStatusLabelMap: Record<
-    QuestionnaireResponseStatus,
-    string
-  > = {
-    [QuestionnaireResponseStatus.Pending]: 'Pendente',
-    [QuestionnaireResponseStatus.InProgress]: 'Em andamento',
-    [QuestionnaireResponseStatus.Completed]: 'Concluído',
-  };
+  private get respondentStatusLabelMap(): Record<QuestionnaireResponseStatus, string> {
+    return {
+      [QuestionnaireResponseStatus.Pending]: this.translate.instant('questionnaire.respondent_status.pending'),
+      [QuestionnaireResponseStatus.InProgress]: this.translate.instant('questionnaire.respondent_status.in_progress'),
+      [QuestionnaireResponseStatus.Completed]: this.translate.instant('questionnaire.respondent_status.completed'),
+    };
+  }
 
   ngOnInit(): void {
     this.listenToUserRoles();
@@ -241,7 +246,7 @@ export class ProjectDetailPageComponent implements OnInit {
             },
           });
       },
-      () => { /* cancelado */ }
+      () => {  }
     );
   }
 
@@ -300,7 +305,7 @@ export class ProjectDetailPageComponent implements OnInit {
       return '';
     }
 
-    return `Cod ${String(project.id).padStart(3, '0')}`;
+    return `${this.translate.instant('projects.detail.code_prefix')} ${String(project.id).padStart(3, '0')}`;
   }
 
   getQuestionnaireProgress(questionnaire: ProjectQuestionnaireSummary): number {
@@ -333,26 +338,26 @@ export class ProjectDetailPageComponent implements OnInit {
     projectType: ProjectType | undefined
   ): string {
     if (projectType === ProjectType.Cascata) {
-      return questionnaire.stageName || 'Não definida';
+      return questionnaire.stageName || this.translate.instant('projects.detail.not_defined');
     }
 
     if (projectType === ProjectType.Iterativo) {
-      return questionnaire.iterationName || 'Não definida';
+      return questionnaire.iterationName || this.translate.instant('projects.detail.not_defined');
     }
 
-    return questionnaire.stageName || questionnaire.iterationName || 'Sem referência';
+    return questionnaire.stageName || questionnaire.iterationName || this.translate.instant('projects.detail.no_reference');
   }
 
   getReferenceLabelTitle(projectType: ProjectType | undefined): string {
     if (projectType === ProjectType.Cascata) {
-      return 'Etapa';
+      return this.translate.instant('projects.detail.reference_stage');
     }
 
     if (projectType === ProjectType.Iterativo) {
-      return 'Iteração';
+      return this.translate.instant('projects.detail.reference_iteration');
     }
 
-    return 'Referência';
+    return this.translate.instant('projects.detail.reference_other');
   }
 
   getApplicationRange(questionnaire: ProjectQuestionnaireSummary): string {
@@ -360,14 +365,16 @@ export class ProjectDetailPageComponent implements OnInit {
     const end = this.formatDate(questionnaire.applicationEndDate);
 
     if (!start && !end) {
-      return 'Sem período definido';
+      return this.translate.instant('projects.detail.no_period');
     }
 
     if (start && end) {
-      return `${start} até ${end}`;
+      return this.translate.instant('projects.detail.date_range', { start, end });
     }
 
-    return start ? `A partir de ${start}` : `Até ${end}`;
+    return start
+      ? this.translate.instant('projects.detail.from_date', { date: start })
+      : this.translate.instant('projects.detail.until_date', { date: end });
   }
 
   isQuestionnaireCompleted(questionnaire: ProjectQuestionnaireSummary): boolean {
@@ -583,7 +590,7 @@ export class ProjectDetailPageComponent implements OnInit {
         next: () => {
           this.removeForceClosingId(questionnaire.id);
           this.notification.showSuccess(
-            `Questionário "${questionnaire.name}" encerrado. O ISEP foi calculado.`
+            this.translate.instant('projects.messages.questionnaire_closed', { name: questionnaire.name })
           );
           this.loadQuestionnaires(
             this.questionnairesState().pagination.currentPage || 1
@@ -592,7 +599,7 @@ export class ProjectDetailPageComponent implements OnInit {
         error: () => {
           this.removeForceClosingId(questionnaire.id);
           this.notification.showError(
-            'Erro ao encerrar o questionário. Verifique se ele possui respostas registradas.'
+            this.translate.instant('projects.messages.questionnaire_close_error')
           );
         },
       });
@@ -702,7 +709,7 @@ export class ProjectDetailPageComponent implements OnInit {
 
   getParticipantActionMessage(questionnaire: ProjectQuestionnaireSummary): string {
     if (this.isAdmin()) {
-      return 'Você está visualizando este questionário em modo administrativo.';
+      return this.translate.instant('projects.detail.view_admin_mode');
     }
 
     const respondent = this.getCurrentRespondent(questionnaire);
@@ -714,11 +721,11 @@ export class ProjectDetailPageComponent implements OnInit {
       respondent.status === QuestionnaireResponseStatus.Pending ||
       respondent.status === QuestionnaireResponseStatus.InProgress
     ) {
-      return 'Você foi indicado como representante responsável por responder este questionário.';
+      return this.translate.instant('projects.detail.view_representative_mode');
     }
 
     if (respondent.status === QuestionnaireResponseStatus.Completed) {
-      return 'Você já enviou suas respostas e pode revisá-las quando desejar.';
+      return this.translate.instant('projects.detail.view_completed_mode');
     }
 
     return '';
@@ -764,17 +771,17 @@ export class ProjectDetailPageComponent implements OnInit {
 
   copyQuestionnaireLink(questionnaire: ProjectQuestionnaireSummary): void {
     if (!this.isAdmin()) {
-      this.notification.showWarning('Apenas administradores podem copiar o link do questionário.');
+      this.notification.showWarning(this.translate.instant('projects.messages.copy_link_admin_only'));
       return;
     }
 
     const link = this.getQuestionnairePublicLink(questionnaire);
-    this.copyToClipboard(link, 'Link do questionário copiado!');
+    this.copyToClipboard(link, this.translate.instant('projects.messages.link_copied'));
   }
 
   getTimelineStatusLabel(status: TimelineStatus | string | null | undefined): string {
     if (!status) {
-      return 'Sem status';
+      return this.translate.instant('questionnaire.timeline_status.no_status');
     }
 
     const normalizedStatus = status as TimelineStatus;
@@ -799,7 +806,7 @@ export class ProjectDetailPageComponent implements OnInit {
     status: QuestionnaireResponseStatus | null | undefined
   ): string {
     if (!status) {
-      return 'Pendente';
+      return this.translate.instant('questionnaire.respondent_status.pending');
     }
 
     return this.respondentStatusLabelMap[status] ?? status;
@@ -887,15 +894,13 @@ export class ProjectDetailPageComponent implements OnInit {
     }
 
     if (!this.isQuestionnaireInProgress(questionnaire)) {
-      this.notification.showWarning('Somente questionários em andamento podem receber lembretes.');
+      this.notification.showWarning(this.translate.instant('questionnaire.messages.reminder_in_progress_only'));
       return;
     }
 
     const pendingEmails = this.getPendingRespondentEmails(questionnaire);
     if (!pendingEmails.length) {
-      this.notification.showWarning(
-        'Não há representantes pendentes com endereço de e-mail disponível para este questionário.'
-      );
+      this.notification.showWarning(this.translate.instant('questionnaire.messages.no_pending_emails'));
       return;
     }
 
@@ -1028,7 +1033,7 @@ export class ProjectDetailPageComponent implements OnInit {
           this.projectState.set({
             data: null,
             status: 'error',
-            error: message ?? 'Falha ao carregar o projeto.',
+            error: message ?? this.translate.instant('projects.messages.error_loading_project'),
           });
         },
       });
@@ -1130,7 +1135,7 @@ export class ProjectDetailPageComponent implements OnInit {
           this.questionnairesState.update((state) => ({
             ...state,
             status: 'error',
-            error: message ?? 'Falha ao carregar os questionários.',
+            error: message ?? this.translate.instant('projects.messages.error_loading_questionnaires'),
           }));
         },
       });
@@ -1233,7 +1238,7 @@ export class ProjectDetailPageComponent implements OnInit {
 
   private copyToClipboard(value: string, successMessage: string): void {
     if (!value) {
-      this.notification.showWarning('Não há conteúdo para copiar.');
+      this.notification.showWarning(this.translate.instant('notifications.project_detail.nothing_to_copy'));
       return;
     }
 
@@ -1249,7 +1254,7 @@ export class ProjectDetailPageComponent implements OnInit {
   }
 
   private fallbackCopy(value: string, successMessage: string): void {
-    const result = globalThis.prompt('Copie o conteúdo abaixo:', value);
+    const result = globalThis.prompt(this.translate.instant('common.copy_prompt'), value);
     if (result !== null) {
       this.notification.showSuccess(successMessage);
     }

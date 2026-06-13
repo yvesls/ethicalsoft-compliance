@@ -15,6 +15,7 @@ import { catchError, map, switchMap } from 'rxjs/operators'
 import { AuthenticationService } from '../services/authentication.service'
 import { NotificationService } from '../services/notification.service'
 import { LoggerService } from '../services/logger.service'
+import { TranslateService } from '@ngx-translate/core'
 
 @Injectable({
 	providedIn: 'root',
@@ -23,6 +24,7 @@ export class AuthGuard implements CanActivate, CanActivateChild, CanMatch {
 	private readonly authService = inject(AuthenticationService)
 	private readonly router = inject(Router)
 	private readonly notificationService = inject(NotificationService)
+	private readonly translate = inject(TranslateService)
 
 	canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean | UrlTree> {
 		LoggerService.info('AuthGuard: Processing canActivate', { url: state.url })
@@ -60,7 +62,7 @@ export class AuthGuard implements CanActivate, CanActivateChild, CanMatch {
 						if (!hasRole) {
 							LoggerService.warn('AuthGuard: User does not have required role. Redirecting to login.')
 
-							this.notificationService.showWarning("You don't have permission to access this resource.")
+							this.notificationService.showWarning(this.translate.instant('errors.forbidden'))
 							return this.router.createUrlTree(['/login'])
 						}
 

@@ -27,22 +27,22 @@
 
   <div class="item-data-grid">
     <div class="column-tipo">
-      <span class="data-label">Tipo</span>
+      <span class="data-label">{{ 'projects.fields.type' | translate }}</span>
       <span class="data-value">{{ item.type }}</span>
     </div>
 
     <div class="column-situacao">
-      <span class="data-label">Situação</span>
+      <span class="data-label">{{ 'common.status' | translate }}</span>
       <span class="data-value">{{ formattedSituation }}</span>
     </div>
 
     <div class="column-inicio">
-      <span class="data-label">Início</span>
+      <span class="data-label">{{ 'projects.fields.start_date' | translate }}</span>
       <span class="data-value">{{ item.startDate | date: 'dd/MM/yyyy' }}</span>
     </div>
 
     <div class="column-encerramento">
-      <span class="data-label">Encerramento</span>
+      <span class="data-label">{{ 'projects.fields.deadline' | translate }}</span>
       <span class="data-value">
         @if (item.deadline) {
           {{ item.deadline | date: 'dd/MM/yyyy' }}
@@ -57,10 +57,10 @@
         <button
           type="button"
           class="btn-icon btn-delete"
-          title="Excluir projeto"
+          [title]="'projects.actions.delete' | translate"
           (click)="onDeleteClick($event)"
         >
-          <img src="assets/icons/trash.svg" alt="Excluir" class="delete-icon" />
+          <img src="assets/icons/trash.svg" [alt]="'common.delete' | translate" class="delete-icon" />
         </button>
       </div>
     }

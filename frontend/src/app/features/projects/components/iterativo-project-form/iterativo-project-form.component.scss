@@ -21,3 +21,10 @@
 		filter: invert(17%) sepia(93%) saturate(6493%) hue-rotate(358deg) brightness(88%) contrast(91%);
 	}
 }
+
+.form-help-row {
+	display: flex;
+	gap: 0.5rem;
+	justify-content: flex-end;
+	margin-bottom: 0.75rem;
+}

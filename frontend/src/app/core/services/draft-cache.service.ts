@@ -118,7 +118,8 @@ export class DraftCacheService {
     try {
       const raw = localStorage.getItem(DRAFT_INDEX_KEY);
       return raw ? JSON.parse(raw) : [];
-    } catch {
+    } catch (error) {
+      LoggerService.warn('DraftCacheService: Erro ao ler índice de rascunhos do localStorage.', error);
       return [];
     }
   }

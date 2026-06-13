@@ -33,11 +33,11 @@
             (click)="clearAll($event)"
             tabindex="-1"
           >
-            <img src="assets/icons/error.svg" alt="Limpar seleção" />
+            <img src="assets/icons/error.svg" [attr.alt]="'common.clear_selection' | translate" />
           </button>
         }
         <div class="dropdown-arrow" [class.open]="isOpen()">
-          <img src="assets/icons/angle-down.svg" alt="Abrir dropdown" />
+          <img src="assets/icons/angle-down.svg" [attr.alt]="'common.open_dropdown' | translate" />
         </div>
       </div>
     </div>
@@ -48,7 +48,7 @@
           <input
             type="text"
             class="search-input"
-            placeholder="Buscar..."
+            [placeholder]="'common.search_placeholder' | translate"
             [value]="searchTerm()"
             (input)="onSearchInput($event)"
             (click)="$event.stopPropagation()"
@@ -83,7 +83,7 @@
 
           @if (filteredOptions.length === 0) {
             <div class="dropdown-empty">
-              Nenhuma opção encontrada
+              {{ 'shared_multi_select_no_options' | translate }}
             </div>
           }
         </div>

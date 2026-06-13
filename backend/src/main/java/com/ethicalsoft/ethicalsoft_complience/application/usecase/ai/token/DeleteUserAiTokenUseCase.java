@@ -16,7 +16,7 @@ public class DeleteUserAiTokenUseCase {
         try {
             repository.deleteByUserId(userId);
             log.info("[ai-token] Token de IA removido para userId={}", userId);
-        } catch (Exception ex) {
+        } catch (RuntimeException ex) {
             log.warn("[ai-token] Falha ao remover token de IA userId={}: {}", userId, ex.getMessage());
         }
     }

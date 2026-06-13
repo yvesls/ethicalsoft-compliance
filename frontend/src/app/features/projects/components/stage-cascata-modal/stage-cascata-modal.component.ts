@@ -1,5 +1,6 @@
 import { Component, Output, EventEmitter, inject, Input, ChangeDetectorRef, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { ModalService } from '../../../../core/services/modal.service';
 import { InputComponent } from '../../../../shared/components/input/input.component';
@@ -32,7 +33,7 @@ interface StageContextData {
 @Component({
   selector: 'app-stage-cascata-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, InputComponent],
+  imports: [CommonModule, ReactiveFormsModule, InputComponent, TranslateModule],
   templateUrl: './stage-cascata-modal.component.html',
   styleUrls: ['./stage-cascata-modal.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -52,12 +53,13 @@ interface StageContextData {
   private modalService = inject(ModalService);
   private fb = inject(FormBuilder);
   private cdr = inject(ChangeDetectorRef);
+  private readonly translate = inject(TranslateService);
 
   form!: FormGroup;
   calculatedDateRange: DateRange | null = null;
   actionType: ActionType = ActionType.CREATE;
   stageData?: StageCascataData;
-  modalTitle = 'Criar nova etapa - Cascata';
+  modalTitle = '';
 
   constructor() {
     this.initializeForm();
@@ -205,9 +207,11 @@ interface StageContextData {
   }
 
   private updateModalTitle(): void {
-    this.modalTitle = this.actionType === ActionType.EDIT
-      ? 'Editar etapa - Cascata'
-      : 'Criar nova etapa - Cascata';
+    this.modalTitle = this.translate.instant(
+      this.actionType === ActionType.EDIT
+        ? 'projects.stage_cascata.edit_title'
+        : 'projects.stage_cascata.create_title'
+    );
   }
 
   confirm(): void {

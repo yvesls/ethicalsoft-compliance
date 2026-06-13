@@ -10,7 +10,7 @@
   >
     <div class="ai-panel__title-row">
       <i class="bi" [class]="icon"></i>
-      <h3 class="ai-panel__title">{{ title }}</h3>
+      <h3 class="ai-panel__title">{{ title | translate }}</h3>
     </div>
     <div class="ai-panel__actions">
       @if (!result && !loading) {
@@ -18,7 +18,7 @@
           class="dash-btn dash-btn--ai"
           (click)="onGenerate(); $event.stopPropagation()"
         >
-          <i class="bi bi-stars"></i> {{ buttonLabel }}
+          <i class="bi bi-stars"></i> {{ buttonLabel | translate }}
         </button>
       }
       @if (result || loading) {
@@ -39,7 +39,7 @@
       @if (loading) {
         <div class="ai-panel__loading">
           <div class="spinner-border spinner-border-sm text-primary"></div>
-          <span>{{ loadingLabel }}</span>
+          <span>{{ loadingLabel | translate }}</span>
         </div>
       }
 

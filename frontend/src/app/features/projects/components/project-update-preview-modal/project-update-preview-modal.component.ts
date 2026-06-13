@@ -4,8 +4,10 @@ import {
   EventEmitter,
   Input,
   Output,
+  inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ChangesSummary } from '../../../../shared/interfaces/project/project-update.interface';
 
 interface SummaryLine {
@@ -18,17 +20,19 @@ interface SummaryLine {
 @Component({
   selector: 'app-project-update-preview-modal',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslateModule],
   templateUrl: './project-update-preview-modal.component.html',
   styleUrls: ['./project-update-preview-modal.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProjectUpdatePreviewModalComponent {
-  @Input() title = 'Confirmar atualização do projeto';
+  @Input() title = 'projects.update_preview.title';
   @Input() summary: ChangesSummary | null = null;
-  @Input() confirmLabel = 'Confirmar e Salvar';
-  @Input() cancelLabel = 'Cancelar';
+  @Input() confirmLabel = 'projects.update_preview.confirm_label';
+  @Input() cancelLabel = 'common.cancel';
   @Input() isBlocked = false;
+
+  private readonly translate = inject(TranslateService);
 
   @Output() confirmed = new EventEmitter<void>();
   @Output() canceled = new EventEmitter<void>();
@@ -40,31 +44,31 @@ export class ProjectUpdatePreviewModalComponent {
 
     return [
       {
-        label: 'Etapas',
+        label: this.translate.instant('projects.sections.stages'),
         added: this.summary.stagesAdded,
         updated: this.summary.stagesUpdated,
         removed: this.summary.stagesRemoved,
       },
       {
-        label: 'Iterações',
+        label: this.translate.instant('projects.detail.iterations'),
         added: this.summary.iterationsAdded,
         updated: this.summary.iterationsUpdated,
         removed: this.summary.iterationsRemoved,
       },
       {
-        label: 'Questionários',
+        label: this.translate.instant('projects.sections.questionnaires'),
         added: this.summary.questionnairesAdded,
         updated: this.summary.questionnairesUpdated,
         removed: this.summary.questionnairesRemoved,
       },
       {
-        label: 'Perguntas',
+        label: this.translate.instant('projects.sections.questions'),
         added: this.summary.questionsAdded,
         updated: this.summary.questionsUpdated,
         removed: this.summary.questionsRemoved,
       },
       {
-        label: 'Representantes',
+        label: this.translate.instant('projects.sections.representatives'),
         added: this.summary.representativesAdded,
         updated: this.summary.representativesUpdated,
         removed: this.summary.representativesRemoved,

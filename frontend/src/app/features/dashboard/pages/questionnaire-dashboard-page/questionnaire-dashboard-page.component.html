@@ -65,11 +65,14 @@
           [value]="d.isepPercent"
           [band]="d.band"
           [secondary]="'dashboard.questionnaire.weighted_average' | translate"
+          infoKey="isep_percent"
+          bandInfoKey="band_classification"
         />
         <app-isep-kpi-card
           [label]="'dashboard.questionnaire.simple_average' | translate"
           [value]="d.teamSimpleAveragePercent"
           [secondary]="'dashboard.questionnaire.no_weight' | translate"
+          infoKey="team_average"
         />
         <app-isep-kpi-card
           [label]="'dashboard.standard_deviation' | translate"
@@ -93,7 +96,12 @@
            d.fairnessScorePercent !== null || d.esgScorePercent !== null) {
         <div class="dash-governance-row mt-4">
           <div class="dash-card">
+            <div class="dash-card-header">
+              <h2 class="dash-section-title">{{ 'dashboard.chart.governance_title' | translate }}</h2>
+              <app-info-explainer key="governance_dimensions" />
+            </div>
             <app-governance-dimensions-chart
+              [showTitle]="false"
               [dimensions]="{
                 ethicsScorePercent: d.ethicsScorePercent,
                 processScorePercent: d.processScorePercent,

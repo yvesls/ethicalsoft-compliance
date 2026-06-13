@@ -83,8 +83,8 @@ export class ConsolidatedAnswersPageComponent implements OnInit {
   filterForm!: FormGroup;
 
   responseOptions: SelectOption[] = [
-    { value: 'true', label: 'SIM' },
-    { value: 'false', label: 'NÃO' },
+    { value: 'true', label: this.translate.instant('common.yes') },
+    { value: 'false', label: this.translate.instant('common.no') },
   ];
 
   get gridColumns(): string {
@@ -93,8 +93,8 @@ export class ConsolidatedAnswersPageComponent implements OnInit {
 
   get pageTitle(): string {
     return this.mode === 'project'
-      ? 'Respostas Consolidadas do Projeto'
-      : 'Respostas Consolidadas do Questionário';
+      ? this.translate.instant('dashboard.consolidated.project_title')
+      : this.translate.instant('dashboard.consolidated.questionnaire_title');
   }
 
   ngOnInit(): void {

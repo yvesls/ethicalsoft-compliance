@@ -1,10 +1,18 @@
 <div class="kpi-card">
-  <p class="kpi-label">{{ label }}</p>
+  <div class="kpi-label-row">
+    <p class="kpi-label">{{ label }}</p>
+    @if (infoKey) { <app-info-explainer [key]="infoKey" /> }
+  </div>
   @if (value !== null) {
     <p class="kpi-value">{{ value | number: '1.2-2' }}%</p>
   } @else {
     <p class="kpi-value kpi-value--empty">—</p>
   }
-  @if (band) { <app-band-badge [band]="band" /> }
+  @if (band) {
+    <div class="kpi-band-row">
+      <app-band-badge [band]="band" />
+      @if (bandInfoKey) { <app-info-explainer [key]="bandInfoKey" /> }
+    </div>
+  }
   @if (secondary) { <p class="kpi-secondary">{{ secondary }}</p> }
 </div>

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,7 +71,7 @@ public class EmitNonComplianceBulletinUseCase {
                         buildModel(representative, bulletin, emittedBy, emittedAtFormatted),
                         bulletin.content(), bulletin.fileName());
                 sent++;
-            } catch (Exception e) {
+            } catch (RuntimeException e) {
                 log.warn("[boletim-emit] Falha ao enviar boletim para {}: {}", email, e.getMessage());
                 skipped++;
             }
@@ -89,7 +90,7 @@ public class EmitNonComplianceBulletinUseCase {
                 emittedBy,
                 bulletin.isepValue(),
                 bulletin.band(),
-                List.of(projectId, questionnaireId, bulletin.band(), bulletin.isepPercent())));
+                Arrays.asList(projectId, questionnaireId, bulletin.band(), bulletin.isepPercent())));
 
         log.info("[boletim-emit] Boletim {} emitido: {}/{} enviados (userId={})",
                 bulletin.documentCode(), sent, representatives.size(), emittedByUserId);

@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, OnDestroy, signal, WritableSignal, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { BasePageComponent, RestoreParams } from '../../../../core/abstractions/base-page.component';
 import { LoggerService } from '../../../../core/services/logger.service';
@@ -45,7 +45,7 @@ type CascataQuestionnaireRestoreParams = RestoreParams<CascataQuestionnaireRoute
 @Component({
   selector: 'app-cascata-questionnaire-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, AccordionPanelComponent, InputComponent, SelectComponent, PaginationComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, AccordionPanelComponent, InputComponent, SelectComponent, PaginationComponent, TranslateModule],
   templateUrl: './cascata-questionnaire-form.component.html',
   styleUrls: ['./cascata-questionnaire-form.component.scss']
 })
@@ -405,18 +405,18 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
     }
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      this.notificationService.showWarning('Preencha os campos obrigatórios do questionário.');
+      this.notificationService.showWarning(this.translate.instant('notifications.questionnaire_form.fill_required'));
       return;
     }
 
     if (!this.questions().length) {
-      this.notificationService.showWarning('Adicione ao menos uma pergunta antes de confirmar o questionário.');
+      this.notificationService.showWarning(this.translate.instant('notifications.questionnaire_form.add_question'));
       return;
     }
 
     const hasStageMismatch = this.questions().some((question) => !this.hasStageMetadata(question));
     if (hasStageMismatch) {
-      this.notificationService.showWarning('Todas as perguntas precisam estar vinculadas à etapa atual.');
+      this.notificationService.showWarning(this.translate.instant('notifications.questionnaire_form.link_stage'));
       return;
     }
 

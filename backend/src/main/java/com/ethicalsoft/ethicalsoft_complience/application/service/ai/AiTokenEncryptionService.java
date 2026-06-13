@@ -11,7 +11,9 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Base64;
@@ -55,7 +57,9 @@ public class AiTokenEncryptionService {
     }
 
     public String encrypt(String plaintext) {
-        if (plaintext == null) return null;
+        if (plaintext == null) {
+            return null;
+        }
         try {
             byte[] iv = new byte[IV_LENGTH_BYTES];
             random.nextBytes(iv);
@@ -69,14 +73,16 @@ public class AiTokenEncryptionService {
             System.arraycopy(cipherText, 0, payload, iv.length, cipherText.length);
 
             return Base64.getEncoder().encodeToString(payload);
-        } catch (Exception ex) {
+        } catch (GeneralSecurityException ex) {
             log.error("[ai-token] Falha ao criptografar token", ex);
             throw new BusinessException("Falha ao proteger o token de IA. Tente novamente.");
         }
     }
 
     public String decrypt(String encrypted) {
-        if (encrypted == null || encrypted.isBlank()) return null;
+        if (encrypted == null || encrypted.isBlank()) {
+            return null;
+        }
         try {
             byte[] payload = Base64.getDecoder().decode(encrypted);
             if (payload.length <= IV_LENGTH_BYTES) {
@@ -89,16 +95,20 @@ public class AiTokenEncryptionService {
             cipher.init(Cipher.DECRYPT_MODE, secretKey, new GCMParameterSpec(GCM_TAG_LENGTH_BITS, iv));
             byte[] plain = cipher.doFinal(cipherText);
             return new String(plain, StandardCharsets.UTF_8);
-        } catch (Exception ex) {
+        } catch (GeneralSecurityException | IllegalArgumentException | IllegalStateException ex) {
             log.error("[ai-token] Falha ao decriptar token", ex);
             throw new BusinessException("Não foi possível ler seu token de IA. Cadastre-o novamente.");
         }
     }
 
     public String maskToken(String plaintext) {
-        if (plaintext == null) return null;
+        if (plaintext == null) {
+            return null;
+        }
         String trimmed = plaintext.trim();
-        if (trimmed.length() <= 8) return "********";
+        if (trimmed.length() <= 8) {
+            return "********";
+        }
         return trimmed.substring(0, 4) + "…" + trimmed.substring(trimmed.length() - 4);
     }
 
@@ -106,7 +116,7 @@ public class AiTokenEncryptionService {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             return digest.digest(source);
-        } catch (Exception ex) {
+        } catch (NoSuchAlgorithmException ex) {
             throw new BusinessException("Não foi possível inicializar a criptografia de tokens de IA.");
         }
     }

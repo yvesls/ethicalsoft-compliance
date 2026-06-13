@@ -1,7 +1,7 @@
 <div class="project-type-modal">
-  <h1 class="modal-title">Selecionar Tipo de Projeto</h1>
+  <h1 class="modal-title">{{ 'projects.type_selection.title' | translate }}</h1>
   <p class="modal-message">
-    Escolha a metodologia de gestão para o seu novo projeto.
+    {{ 'projects.type_selection.message' | translate }}
   </p>
 
   <div class="type-selection-container">
@@ -14,10 +14,9 @@
       role="button"
       tabindex="0"
     >
-      <h3>Cascata</h3>
+      <h3>{{ 'projects.type.cascata' | translate }}</h3>
       <p>
-        Um modelo sequencial onde as etapas são fixas e executadas uma após a
-        outra ou ao mesmo tempo. Ideal para projetos com requisitos bem definidos.
+        {{ 'projects.type_selection.cascata_desc' | translate }}
       </p>
     </div>
 
@@ -30,16 +29,16 @@
       role="button"
       tabindex="0"
     >
-      <h3>Iterativo Incremental</h3>
+      <h3>{{ 'projects.type_selection.iterativo_title' | translate }}</h3>
       <p>
-        Um modelo flexível (Agile) onde o projeto é dividido em Sprints.
+        {{ 'projects.type_selection.iterativo_desc' | translate }}
       </p>
     </div>
   </div>
 
   <div class="modal-buttons">
     <button type="button" class="btn btn-secondary" (click)="close()">
-      Cancelar
+      {{ 'common.cancel' | translate }}
     </button>
     <button
       type="button"
@@ -47,7 +46,7 @@
       (click)="continue()"
       [disabled]="!selectedType()"
     >
-      Continuar
+      {{ 'common.continue' | translate }}
     </button>
   </div>
 </div>

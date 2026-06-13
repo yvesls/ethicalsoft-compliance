@@ -83,7 +83,7 @@ export class RegisterComponent extends BasePageComponent<RegisterRouteParams> {
 				firstName: this.formBuilder.nonNullable.control('', [Validators.required]),
 				lastName: this.formBuilder.nonNullable.control('', [Validators.required]),
 				email: this.formBuilder.nonNullable.control('', [Validators.required, Validators.email]),
-				password: this.formBuilder.nonNullable.control('', [Validators.required, CustomValidators.passwordValidator()]),
+				password: this.formBuilder.nonNullable.control('', [Validators.required, CustomValidators.passwordValidator(this.translate.instant.bind(this.translate))]),
 				confirmPassword: this.formBuilder.nonNullable.control('', [Validators.required]),
 				acceptedTerms: this.formBuilder.nonNullable.control(false, [Validators.requiredTrue]),
 			},

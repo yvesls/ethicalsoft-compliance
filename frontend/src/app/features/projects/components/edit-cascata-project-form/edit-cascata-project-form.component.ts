@@ -20,6 +20,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize, take } from 'rxjs/operators';
 
 import { LoggerService } from '../../../../core/services/logger.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { InfoExplainerComponent } from '../../../../shared/components/info-explainer/info-explainer.component';
 
 import { ProjectType } from '../../../../shared/enums/project-type.enum';
 import { ProjectStore } from '../../../../shared/stores/project.store';
@@ -64,7 +66,6 @@ import {
 } from '../representative-modal/representative-modal.component';
 import { QuestionData } from '../question-modal/question-modal.component';
 
-
 type PanelKey = 'project' | 'steps' | 'representatives' | 'questionnaires';
 type PanelStates = Record<PanelKey, boolean>;
 
@@ -78,6 +79,8 @@ type PanelStates = Record<PanelKey, boolean>;
     InputComponent,
     SelectComponent,
     MultiSelectComponent,
+    TranslateModule,
+    InfoExplainerComponent,
   ],
   templateUrl: './edit-cascata-project-form.component.html',
   styleUrls: ['./edit-cascata-project-form.component.scss'],
@@ -93,6 +96,7 @@ export class EditCascataProjectFormComponent implements OnInit {
   private notificationService = inject(NotificationService);
   private routerService = inject(RouterService);
   private roleService = inject(RoleService);
+  private readonly translate = inject(TranslateService);
 
   public ProjectType = ProjectType;
   public projectForm!: FormGroup;
@@ -108,19 +112,8 @@ export class EditCascataProjectFormComponent implements OnInit {
     questionnaires: true,
   };
 
-  public projectTypeOptions: SelectOption[] = [
-    { value: ProjectType.Cascata, label: 'Cascata' },
-  ];
-
-  public aiUsageScopeOptions: MultiSelectOption[] = [
-    { value: 'NAO_UTILIZA', label: 'Não utiliza' },
-    { value: 'REQUISITOS', label: 'Utiliza em requisitos' },
-    { value: 'DESIGN', label: 'Utiliza em design/arquitetura' },
-    { value: 'CODIFICACAO', label: 'Utiliza em codificação' },
-    { value: 'TESTES', label: 'Utiliza em testes' },
-    { value: 'DOCUMENTACAO', label: 'Utiliza em documentação' },
-    { value: 'AI_GOVERNANCE', label: 'Governança de IA aplicada' },
-  ];
+  public projectTypeOptions: SelectOption[] = [];
+  public aiUsageScopeOptions: MultiSelectOption[] = [];
 
   public availableRoles: RoleSummary[] = [];
   private roleNameById = new Map<number, string>();
@@ -133,6 +126,18 @@ export class EditCascataProjectFormComponent implements OnInit {
   private static readonly FORM_STATE_CACHE_KEY = 'editCascataFormStateCache';
 
   ngOnInit(): void {
+    this.projectTypeOptions = [
+      { value: ProjectType.Cascata, label: this.translate.instant('projects.type.cascata') },
+    ];
+    this.aiUsageScopeOptions = [
+      { value: 'NAO_UTILIZA', label: this.translate.instant('project.ai_usage.options.NAO_UTILIZA') },
+      { value: 'REQUISITOS', label: this.translate.instant('project.ai_usage.options.REQUISITOS') },
+      { value: 'DESIGN', label: this.translate.instant('project.ai_usage.options.DESIGN') },
+      { value: 'CODIFICACAO', label: this.translate.instant('project.ai_usage.options.CODIFICACAO') },
+      { value: 'TESTES', label: this.translate.instant('project.ai_usage.options.TESTES') },
+      { value: 'DOCUMENTACAO', label: this.translate.instant('project.ai_usage.options.DOCUMENTACAO') },
+      { value: 'AI_GOVERNANCE', label: this.translate.instant('project.ai_usage.options.AI_GOVERNANCE') },
+    ];
     this.route.params.pipe(take(1)).subscribe((params) => {
       this.projectId = params['projectId'];
       if (!this.projectId) {
@@ -162,11 +167,7 @@ export class EditCascataProjectFormComponent implements OnInit {
       },
       {
         validators: [
-          CustomValidators.dateRange(
-            'startDate',
-            'deadline',
-            'A data de início não pode ser maior que o prazo limite.'
-          ),
+          CustomValidators.dateRange('startDate', 'deadline'),
           ProjectDatesValidators.stageApplicationRangeWithinDeadline(),
           StagesDeadlineValidator.stagesFitWithinDeadline(),
         ],
@@ -234,8 +235,8 @@ export class EditCascataProjectFormComponent implements OnInit {
         error: (err) => {
           const message =
             err && typeof err === 'object' && 'message' in err
-              ? (err as { message?: string }).message ?? 'Falha ao carregar dados do projeto.'
-              : 'Falha ao carregar dados do projeto.';
+              ? (err as { message?: string }).message ?? this.translate.instant('projects.form.error_loading')
+              : this.translate.instant('projects.form.error_loading');
           this.loadError = message;
           this.notificationService.showError(message);
         },
@@ -530,11 +531,11 @@ export class EditCascataProjectFormComponent implements OnInit {
     const qGroup = this.questionnairesFormArray.at(index) as FormGroup | null;
     const questionnaire = qGroup?.getRawValue();
     if (!questionnaire) {
-      this.notificationService.showWarning('Não foi possível carregar o questionário selecionado.');
+      this.notificationService.showWarning(this.translate.instant('notifications.project_form.load_questionnaire_error'));
       return;
     }
 
-    const projectName = this.projectForm.get('name')?.value || 'Projeto';
+    const projectName = this.projectForm.get('name')?.value || this.translate.instant('common.project');
     const questions = questionnaire.questions || [];
 
     this.saveFormStateToCache();
@@ -604,8 +605,8 @@ export class EditCascataProjectFormComponent implements OnInit {
     const control = this.questionnairesFormArray.at(index) as FormGroup | null;
     const name = (control?.get('name')?.value ?? '').toString().trim();
     return name
-      ? `Adicione pelo menos uma pergunta ao questionário "${name}".`
-      : 'Adicione pelo menos uma pergunta a este questionário.';
+      ? this.translate.instant('projects.form.validation.add_question_to_questionnaire', { name })
+      : this.translate.instant('projects.form.validation.add_question_to_this');
   }
 
   private validateQuestionnairesHaveQuestions(): boolean {
@@ -620,7 +621,7 @@ export class EditCascataProjectFormComponent implements OnInit {
     const hasErrors = this.questionnaireQuestionErrors.size > 0;
     this.showQuestionnaireQuestionErrors = hasErrors;
     if (hasErrors) {
-      this.notificationService.showWarning('Adicione pelo menos uma pergunta para cada questionário.');
+      this.notificationService.showWarning(this.translate.instant('notifications.project_form.add_questions'));
     }
     this.cdr.markForCheck();
     return !hasErrors;
@@ -728,7 +729,7 @@ export class EditCascataProjectFormComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
-  onAttemptedToggle(): void { /* empty */ }
+  onAttemptedToggle(): void {  }
 
   onSubmit(): void {
     if (this.projectForm.invalid) {
@@ -748,9 +749,9 @@ export class EditCascataProjectFormComponent implements OnInit {
     const issues: string[] = [];
 
     const fieldLabels: Record<string, string> = {
-      name: 'Nome do projeto',
-      startDate: 'Data de início',
-      deadline: 'Prazo limite',
+      name: this.translate.instant('projects.form.validation.field_project_name'),
+      startDate: this.translate.instant('projects.form.validation.field_start_date'),
+      deadline: this.translate.instant('projects.form.validation.field_deadline'),
     };
 
     for (const [key, label] of Object.entries(fieldLabels)) {
@@ -761,34 +762,34 @@ export class EditCascataProjectFormComponent implements OnInit {
 
     const groupErrors = this.projectForm.errors;
     if (groupErrors?.['dateRange']) {
-      issues.push('A data de início não pode ser maior que o prazo limite');
+      issues.push(this.translate.instant('projects.form.validation.date_range_error'));
     }
     if (groupErrors?.['stagesExceedDeadline']) {
-      issues.push('As etapas ultrapassam o prazo limite do projeto');
+      issues.push(this.translate.instant('projects.form.validation.stages_exceed_deadline'));
     }
     if (groupErrors?.['stageApplicationRangeExceedsDeadline']) {
-      issues.push('O período de aplicação das etapas excede o prazo limite');
+      issues.push(this.translate.instant('projects.form.validation.stage_application_range'));
     }
 
     const stepsArray = this.projectForm.get('steps') as FormArray;
     if (!stepsArray || stepsArray.length === 0) {
-      issues.push('É necessário adicionar pelo menos uma etapa');
+      issues.push(this.translate.instant('projects.form.validation.add_at_least_one_step'));
     } else if (stepsArray.invalid) {
-      issues.push('Há etapas com campos inválidos');
+      issues.push(this.translate.instant('projects.form.validation.invalid_steps'));
     }
 
     const repsArray = this.projectForm.get('representatives') as FormArray;
     if (!repsArray || repsArray.length === 0) {
-      issues.push('É necessário adicionar pelo menos um representante');
+      issues.push(this.translate.instant('projects.form.validation.add_at_least_one_rep'));
     } else if (repsArray.invalid) {
-      issues.push('Há representantes com campos inválidos');
+      issues.push(this.translate.instant('projects.form.validation.invalid_reps'));
     }
 
     if (issues.length === 0) {
-      return 'Revise os campos obrigatórios antes de salvar.';
+      return this.translate.instant('projects.form.validation.review_required');
     }
 
-    return 'Não é possível salvar. Corrija os seguintes problemas:<br>• ' + issues.join('<br>• ');
+    return `${this.translate.instant('projects.form.validation.cannot_save_prefix')}<br>• ${issues.join('<br>• ')}`;
   }
 
   private applyUpdate(): void {
@@ -796,7 +797,8 @@ export class EditCascataProjectFormComponent implements OnInit {
     try {
       payload = this.buildUpdatePayload();
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Erro ao preparar os dados.';
+      LoggerService.error('EditCascataProjectForm: Erro ao construir payload de atualização.', error);
+      const message = error instanceof Error ? error.message : this.translate.instant('projects.form.validation.prepare_data_error');
       this.notificationService.showError(message);
       return;
     }
@@ -817,7 +819,7 @@ export class EditCascataProjectFormComponent implements OnInit {
         next: (response) => {
           try {
             if (!response?.changesSummary) {
-              this.notificationService.showSuccess('Projeto atualizado com sucesso.');
+              this.notificationService.showSuccess(this.translate.instant('projects.messages.updated'));
               this.routerService.navigateTo(`/projects/${this.projectId}`);
               return;
             }
@@ -831,25 +833,25 @@ export class EditCascataProjectFormComponent implements OnInit {
 
             if (summary.blockedReasons?.length) {
               const reasons = summary.blockedReasons.join('\n• ');
-              this.notificationService.showError(`Atualização bloqueada:\n• ${reasons}`);
+              this.notificationService.showError(this.translate.instant('notifications.project_form.update_blocked', { reasons }));
               return;
             }
 
             if (summary.warnings?.length) {
               const warns = summary.warnings.join('\n• ');
-              this.notificationService.showWarning(`Projeto atualizado com avisos:\n• ${warns}`);
+              this.notificationService.showWarning(this.translate.instant('notifications.project_form.updated_with_warnings', { warns }));
             } else {
               this.notificationService.showSuccess(
                 totalChanges > 0
-                  ? `Projeto atualizado com sucesso. ${totalChanges} alteração(ões) aplicada(s).`
-                  : 'Projeto atualizado com sucesso.'
+                  ? `${this.translate.instant('projects.messages.updated')} ${totalChanges} alteração(ões) aplicada(s).`
+                  : this.translate.instant('projects.messages.updated')
               );
             }
 
             this.routerService.navigateTo(`/projects/${this.projectId}`);
           } catch (error_) {
             LoggerService.error('Erro inesperado ao processar resposta de atualização', error_);
-            this.notificationService.showError('Erro inesperado ao processar a resposta da atualização.');
+            this.notificationService.showError(this.translate.instant('notifications.project_form.save_error'));
           }
         },
         error: (err) => {
@@ -865,15 +867,13 @@ export class EditCascataProjectFormComponent implements OnInit {
         const parsed = JSON.parse(conflictErr.message) as UpdateProjectConflictError;
         if (parsed.errors?.length) {
           const errorList = parsed.errors.join('\n• ');
-          this.notificationService.showError(`Operação bloqueada:\n• ${errorList}`);
+          this.notificationService.showError(this.translate.instant('notifications.project_form.operation_blocked', { errorList }));
           return;
         }
-      } catch {
-        // fallback
+      } catch (parseError) {
+        LoggerService.warn('EditCascataProjectForm: Erro ao parsear detalhes do conflito.', parseError);
       }
-      this.notificationService.showError(
-        'Conflito: Algumas alterações não podem ser aplicadas. Verifique os dados e tente novamente.'
-      );
+      this.notificationService.showError(this.translate.instant('notifications.project_form.conflict_retry'));
       return;
     }
 
@@ -891,8 +891,8 @@ export class EditCascataProjectFormComponent implements OnInit {
   private buildUpdatePayload(): UpdateProjectRequest {
     const formValue = this.projectForm.getRawValue();
     const name = (formValue.name || '').trim();
-    if (!name) throw new Error('Informe o nome do projeto.');
-    if (!formValue.startDate) throw new Error('Informe a data de início do projeto.');
+    if (!name) throw new Error(this.translate.instant('projects.form.validation.name_required'));
+    if (!formValue.startDate) throw new Error(this.translate.instant('projects.form.validation.start_date_required'));
 
     const aiUsageScopes: string[] = formValue.aiUsageScopes ?? [];
     return {
@@ -1004,12 +1004,6 @@ export class EditCascataProjectFormComponent implements OnInit {
     }));
   }
 
-  /**
-   * Garante que todos os stages tenham durationDays.
-   * Se o backend retornar durationDays, usa diretamente.
-   * Caso contrário (dados legados), calcula a partir das datas de aplicação
-   * e da data de início do projeto, revertendo a fórmula de 10%/90%.
-   */
   private ensureStageDurationDays(
     stages: ProjectStageDetail[],
     projectStartDate: string
@@ -1034,12 +1028,6 @@ export class EditCascataProjectFormComponent implements OnInit {
     return result;
   }
 
-  /**
-   * Estima durationDays a partir do stageStart e as datas de aplicação.
-   * Reverte a fórmula:
-   *   applicationStartDate = stageStart + round(d * 0.1) dias úteis
-   *   applicationEndDate = stageStart + round(d * 0.9) dias úteis
-   */
   private estimateDurationDays(
     stageStart: Date,
     applicationStartDate?: string | null,
@@ -1232,14 +1220,23 @@ export class EditCascataProjectFormComponent implements OnInit {
   }
 
   getDeadlineErrorMessage(): string {
-    return this.projectForm.errors?.['deadlineTooEarly'] ?? 'A data de início não pode ser maior que o prazo limite.';
+    const error = this.projectForm.errors?.['deadlineTooEarly'];
+    if (!error) return '';
+    return this.translate.instant('projects.form.validation.deadline_too_early', {
+      ...error,
+      stageName: error.stageName ?? this.translate.instant('common.stage'),
+    });
   }
 
   getStartDateErrorMessage(): string {
-    return this.projectForm.errors?.['startDateTooLate'] ?? '';
+    const error = this.projectForm.errors?.['startDateTooLate'];
+    if (!error) return '';
+    return this.translate.instant('projects.form.validation.start_date_too_late', error);
   }
 
   getStageExceedsDeadlineMessage(): string {
-    return this.projectForm.errors?.['stageExceedsDeadline'] ?? '';
+    const error = this.projectForm.errors?.['stageExceedsDeadline'];
+    if (!error) return '';
+    return this.translate.instant('projects.form.validation.stage_exceeds_deadline', error);
   }
 }

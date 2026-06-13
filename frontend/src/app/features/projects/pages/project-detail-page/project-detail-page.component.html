@@ -148,8 +148,8 @@
             <app-input
               filters
               formControlName="name"
-              label="Nome do questionário"
-              placeholder="Buscar por nome"
+              [label]="'projects.detail.questionnaire_name_label' | translate"
+              [placeholder]="'projects.detail.search_by_name' | translate"
               [control]="filterForm.get('name')"
             ></app-input>
 
@@ -157,8 +157,8 @@
               <app-input
                 filters
                 formControlName="stage"
-                label="Etapa"
-                placeholder="Informe a etapa"
+                [label]="'projects.detail.stage_label' | translate"
+                [placeholder]="'projects.detail.stage_placeholder' | translate"
                 [control]="filterForm.get('stage')"
               ></app-input>
             }
@@ -167,14 +167,14 @@
               <app-input
                 filters
                 formControlName="iteration"
-                label="Iteração"
-                placeholder="Informe a iteração"
+                [label]="'projects.detail.iteration_label' | translate"
+                [placeholder]="'projects.detail.iteration_placeholder' | translate"
                 [control]="filterForm.get('iteration')"
               ></app-input>
             }
 
             <button filters type="submit" class="btn btn-primary btn-icon">
-              <img src="assets/icons/search.svg" alt="Buscar" />
+              <img src="assets/icons/search.svg" [attr.alt]="'common.search' | translate" />
             </button>
 
             <div actions>
@@ -188,7 +188,7 @@
             [status]="questionnairesState().status"
             [error]="questionnairesState().error"
             [itemCount]="questionnairesState().items.length"
-            noItemsMessage="Nenhum questionário encontrado para este projeto."
+            noItemsMessage="projects.detail.no_questionnaires"
           >
             <div listBody>
               @for (questionnaire of questionnairesState().items; track trackByQuestionnaireId($index, questionnaire)) {
@@ -201,8 +201,8 @@
                       <div class="questionnaire-card__title-row">
                         <h3>{{ questionnaire.name }}</h3>
                         @if (isQuestionnairePinned(questionnaire)) {
-                          <span class="questionnaire-card__pin" title="Questionário em andamento">
-                            <img src="assets/icons/pin.svg" alt="Questionário em andamento" />
+                          <span class="questionnaire-card__pin" [attr.title]="'projects.detail.questionnaire_in_progress' | translate">
+                            <img src="assets/icons/pin.svg" [attr.alt]="'projects.detail.questionnaire_in_progress' | translate" />
                           </span>
                         }
                       </div>
@@ -325,7 +325,7 @@
                     </div>
 
                     @if (shouldDisplayQuestionnaireActions(questionnaire)) {
-                      <div class="questionnaire-card__actions" aria-label="Ações do questionário">
+                      <div class="questionnaire-card__actions" [attr.aria-label]="'projects.detail.questionnaire_actions_aria' | translate">
                         <span class="questionnaire-card__actions-label">{{ 'common.actions' | translate }}</span>
 
                         @if (isAdmin()) {

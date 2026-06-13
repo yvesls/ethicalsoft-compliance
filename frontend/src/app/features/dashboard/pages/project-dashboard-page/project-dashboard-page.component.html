@@ -56,6 +56,8 @@
           [value]="d.projectIsepPercent"
           [band]="d.projectBand"
           [secondary]="d.projectIsepPercent !== null ? ('dashboard.project.calculated' | translate) : ('dashboard.project.pending_questionnaires' | translate)"
+          infoKey="isep_percent"
+          bandInfoKey="band_classification"
         />
         <app-isep-kpi-card
           [label]="'dashboard.project.questionnaires_completed' | translate"
@@ -76,8 +78,8 @@
 
       @if (closeResult(); as r) {
         <div class="alert alert-success mt-3">
-          Projeto encerrado em {{ r.calculatedAt | date: 'dd/MM/yyyy HH:mm' }} por <b>{{ r.closedBy }}</b>.
-          ISEP: <b>{{ r.isepPercent }}%</b> – Faixa {{ r.band }} ({{ r.questionnaireCount }} questionários).
+          {{ 'dashboard.project.closed_at' | translate }} {{ r.calculatedAt | date: 'dd/MM/yyyy HH:mm' }} {{ 'dashboard.project.by' | translate }} <b>{{ r.closedBy }}</b>.
+          ISEP: <b>{{ r.isepPercent }}%</b> – {{ 'dashboard.band' | translate }} {{ r.band }} ({{ r.questionnaireCount }} {{ 'dashboard.project.questionnaire_count' | translate }}).
         </div>
       }
 
@@ -85,7 +87,12 @@
            d.fairnessScorePercent !== null || d.esgScorePercent !== null) {
         <div class="dash-governance-row mt-4">
           <div class="dash-card">
+            <div class="dash-card-header">
+              <h2 class="dash-section-title">{{ 'dashboard.chart.governance_title' | translate }}</h2>
+              <app-info-explainer key="governance_dimensions" />
+            </div>
             <app-governance-dimensions-chart
+              [showTitle]="false"
               [dimensions]="{
                 ethicsScorePercent: d.ethicsScorePercent,
                 processScorePercent: d.processScorePercent,
@@ -107,13 +114,13 @@
         <div class="dash-card mt-4">
           <app-isep-evolution-chart
             [entries]="d.isepHistory"
-            title="Evolução do ISEP por Iteração/Etapa"
+            [title]="'dashboard.evolution' | translate"
           />
         </div>
         <div class="dash-card mt-4">
           <app-debt-evolution-chart
             [entries]="d.isepHistory"
-            title="Evolução da Dívida por Iteração"
+            [title]="'dashboard.debt_evolution' | translate"
           />
         </div>
       }

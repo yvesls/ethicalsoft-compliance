@@ -13,7 +13,7 @@ import { BAND_META } from '../../interfaces/dashboard.interface';
 })
 export class IsepEvolutionChartComponent implements OnChanges {
   @Input({ required: true }) entries: (IsepHistoryEntry | PersonalEvolutionEntry)[] = [];
-  @Input() title = 'Evolução do ISEP';
+  @Input() title = '';
 
   chartOptions: EChartsOption = {};
 

@@ -1,3 +1,4 @@
+import { LoggerService } from '../../../core/services/logger.service'
 import { InternalNotificationService } from '../../../core/services/internal-notification.service'
 import { NotificationResponse, NotificationStatus } from '../../interfaces/notification/notification.interface'
 import { NotificationService } from '../../../core/services/notification.service'
@@ -7,7 +8,7 @@ import { Router, NavigationEnd, RouterModule } from '@angular/router'
 import { filter } from 'rxjs/operators'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { CommonModule, Location } from '@angular/common'
-import { TranslateModule } from '@ngx-translate/core'
+import { TranslateModule, TranslateService } from '@ngx-translate/core'
 
 @Component({
   selector: 'app-header',
@@ -34,6 +35,7 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
   private routerService = inject(RouterService)
   private notificationService = inject(NotificationService)
   private internalNotificationService = inject(InternalNotificationService)
+  private translate = inject(TranslateService)
 
   private static readonly TOP_LEVEL_ROUTES = ['/home', '/projects', '/settings']
 
@@ -83,7 +85,8 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
       this.notifications = (result ?? []).filter((n) => n.status === 'UNREAD')
       this.lastLoadedAt = Date.now()
     } catch (error: unknown) {
-      this.errorMessage = 'Não foi possível carregar as notificações.'
+      LoggerService.error('HeaderComponent: Erro ao carregar notificações.', error)
+      this.errorMessage = this.translate.instant('common.notifications_load_error')
       this.notificationService.showError(error)
     } finally {
       this.isLoading = false
@@ -104,6 +107,7 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
       await Promise.all(unread.map((n) => this.internalNotificationService.updateStatus(n.id, 'READ')))
       await this.loadNotifications(true)
     } catch (error: unknown) {
+      LoggerService.error('HeaderComponent: Erro ao marcar todas notificações como lidas.', error)
       this.notificationService.showError(error)
     } finally {
       this.isMarkingAll = false
@@ -122,6 +126,7 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
         .map((n) => (n.id === notification.id ? { ...n, status } : n))
         .filter((n) => n.status === 'UNREAD')
     } catch (error: unknown) {
+      LoggerService.error('HeaderComponent: Erro ao atualizar status da notificação.', error)
       this.notificationService.showError(error)
     }
   }

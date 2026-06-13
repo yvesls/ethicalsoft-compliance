@@ -7,23 +7,23 @@
     <div class="form-row">
       <div class="form-group">
         <app-input
-          label="Nome do Questionário"
+          [label]="'projects.q_iterative.name_label' | translate"
           [required]="true"
           formControlName="name"
           [control]="form.get('name')"
           type="text"
-          placeholder="Digite o nome do questionário"
+          [placeholder]="'projects.q_iterative.name_placeholder' | translate"
         ></app-input>
       </div>
 
       <div class="form-group">
         <app-select
-          label="Iteração"
+          [label]="'projects.q_iterative.iteration_label' | translate"
           [required]="true"
           formControlName="iteration"
           [control]="form.get('iteration')"
           [options]="iterationOptions"
-          placeholder="Selecione a iteração"
+          [placeholder]="'projects.q_iterative.iteration_placeholder' | translate"
         ></app-select>
       </div>
     </div>
@@ -31,30 +31,30 @@
     <div class="form-row">
       <div class="form-group">
         <app-input
-          label="Peso"
+          [label]="'projects.fields.weight' | translate"
           [required]="true"
           formControlName="weight"
           [control]="form.get('weight')"
           type="number"
-          placeholder="Digite o peso"
+          [placeholder]="'projects.form.weight_placeholder' | translate"
         ></app-input>
       </div>
 
       <div class="form-group">
         <app-input
-          label="Duração (dias úteis)"
+          [label]="'projects.q_iterative.duration_label' | translate"
           [required]="true"
           formControlName="durationDays"
           [control]="form.get('durationDays')"
           type="number"
-          placeholder="Digite a duração"
+          [placeholder]="'projects.q_iterative.duration_placeholder' | translate"
         ></app-input>
       </div>
     </div>
 
     <div class="form-row">
       <div class="form-group full-width">
-        <span class="form-label">Faixa de Aplicação</span>
+        <span class="form-label">{{ 'projects.q_iterative.date_range_label' | translate }}</span>
         <div
           class="date-range-display"
           [class.error]="calculatedDateRange?.exceedsDeadline"
@@ -62,7 +62,7 @@
           {{ getFormattedDateRange() }}
           @if (calculatedDateRange?.exceedsDeadline) {
             <span class="warning-text">
-              Ultrapassa o prazo limite do projeto
+              {{ 'projects.q_iterative.exceeds_deadline' | translate }}
             </span>
           }
         </div>
@@ -81,7 +81,7 @@
 
 <div class="modal-footer">
   <button type="button" class="btn btn-secondary" (click)="cancel()">
-    Cancelar
+    {{ 'common.cancel' | translate }}
   </button>
   <button
     type="button"
@@ -89,6 +89,6 @@
     (click)="confirm()"
     [disabled]="form.invalid || !calculatedDateRange || !!calculatedDateRange.exceedsDeadline"
   >
-    Confirmar
+    {{ 'common.confirm' | translate }}
   </button>
 </div>

@@ -1,7 +1,3 @@
-<#--
-  Template de PDF: Certificado de Ciência Ética e Conformidade Declarada.
-  Atende tanto o certificado de iteração/etapa quanto o consolidado, via flag 'consolidado'.
--->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>

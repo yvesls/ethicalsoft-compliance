@@ -10,6 +10,7 @@ import { RouterService } from './router.service'
 import { StorageService } from './storage.service'
 import { LoggerService } from './logger.service'
 import { SessionExpirationService } from './session-expiration.service'
+import { TranslateService } from '@ngx-translate/core'
 
 @Injectable({
 	providedIn: 'root',
@@ -29,6 +30,7 @@ export class AuthenticationService {
 	private readonly storageService = inject(StorageService)
 	private readonly sessionExpirationService = inject(SessionExpirationService)
 	private readonly platformId = inject(PLATFORM_ID)
+	private readonly translate = inject(TranslateService)
 
 	userRoles$ = new BehaviorSubject<string[]>([])
 	isLoggedIn$ = new BehaviorSubject<boolean>(false)
@@ -137,7 +139,7 @@ export class AuthenticationService {
 				catchError((error: unknown) => {
 				LoggerService.error('AuthenticationService: Error during token refresh', error)
 				this.logout()
-				this.notificationService.showError('Session expired, please log in again.')
+				this.notificationService.showError(this.translate.instant('errors.session_expired'))
 				return of(false)
 				})
 			)

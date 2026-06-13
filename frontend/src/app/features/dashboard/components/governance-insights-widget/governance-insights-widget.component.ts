@@ -1,13 +1,5 @@
-import { Component, Input } from '@angular/core';
-
-const DOMAIN_LABELS: Record<string, string> = {
-  ETHICS:   'Ética',
-  PROCESS:  'Processo',
-  QUALITY:  'Qualidade',
-  SECURITY: 'Segurança',
-  ESG:      'ESG',
-  FAIRNESS: 'Fairness',
-};
+import { Component, Input, inject } from '@angular/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 const DOMAIN_COLORS: Record<string, string> = {
   ETHICS:   '#1565c0',
@@ -21,19 +13,22 @@ const DOMAIN_COLORS: Record<string, string> = {
 @Component({
   selector: 'app-governance-insights-widget',
   standalone: true,
-  imports: [],
+  imports: [TranslateModule],
   templateUrl: './governance-insights-widget.component.html',
   styleUrl: './governance-insights-widget.component.scss',
 })
 export class GovernanceInsightsWidgetComponent {
   @Input({ required: true }) topThemeInsights: Record<string, string> = {};
 
+  private readonly translate = inject(TranslateService);
+
   get insightEntries(): { domain: string; insight: string }[] {
     return Object.entries(this.topThemeInsights).map(([domain, insight]) => ({ domain, insight }));
   }
 
   domainLabel(key: string): string {
-    return DOMAIN_LABELS[key] ?? key;
+    const translated = this.translate.instant('question_domain.' + key);
+    return translated !== 'question_domain.' + key ? translated : key;
   }
 
   domainColor(key: string): string {

@@ -15,6 +15,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 @RestController
@@ -80,7 +81,7 @@ public class ComplianceDocumentController {
                 actorName(currentUser),
                 meta.isepValue(),
                 meta.band(),
-                List.of(projectId, questionnaireId, meta.band(), meta.isepPercent())));
+                Arrays.asList(projectId, questionnaireId, meta.band(), meta.isepPercent())));
 
         return ResponseEntity.ok(DocumentEmissionRecordDTO.from(emission));
     }
@@ -105,7 +106,7 @@ public class ComplianceDocumentController {
                 actorName(currentUser),
                 meta.isepValue(),
                 meta.band(),
-                List.of(projectId, meta.band(), meta.isepPercent())));
+                Arrays.asList(projectId, meta.band(), meta.isepPercent())));
 
         return ResponseEntity.ok(DocumentEmissionRecordDTO.from(emission));
     }

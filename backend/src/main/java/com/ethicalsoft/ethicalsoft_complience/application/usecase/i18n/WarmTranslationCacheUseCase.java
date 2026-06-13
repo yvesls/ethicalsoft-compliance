@@ -63,7 +63,7 @@ public class WarmTranslationCacheUseCase {
                     } else {
                         translated++;
                     }
-                } catch (Exception e) {
+                } catch (RuntimeException e) {
                     log.warn("[i18n-warm] Falha ao processar texto ({}): {}",
                             target.code(), e.getMessage());
                     skipped++;

@@ -32,7 +32,6 @@ export class ProjectDatesValidators {
                 stageName: step.name,
                 stageEndDate: formattedStageEnd,
                 deadline: formattedDeadline,
-                message: `A etapa "${step.name}" tem data de término (${formattedStageEnd}) que ultrapassa o prazo limite do projeto (${formattedDeadline}). Ajuste o prazo limite do projeto ou reduza o peso desta etapa.`
               }
             };
           }
@@ -63,7 +62,6 @@ export class ProjectDatesValidators {
           exceedsProjectDeadline: {
             endDate: formattedEndDate,
             deadline: formattedDeadline,
-            message: `A faixa de aplicação desta etapa ultrapassa o prazo limite do projeto (${formattedDeadline}). A etapa terminaria em ${formattedEndDate}.`
           }
         };
       }
@@ -106,14 +104,13 @@ export class ProjectDatesValidators {
         const formattedDeadline = BusinessDaysUtils.formatDateBR(deadline);
         const formattedStageEnd = BusinessDaysUtils.formatDateBR(conflictingStage.applicationEndDate);
 
-        const stageName = conflictingStage.name ?? 'Etapa';
+        const stageName = conflictingStage.name ?? null;
 
         return {
           deadlineTooEarly: {
             deadline: formattedDeadline,
             latestStageEnd: formattedStageEnd,
             stageName,
-            message: `O prazo limite (${formattedDeadline}) não permite acomodar a etapa "${stageName}" que termina em ${formattedStageEnd}. Por favor, estenda o prazo limite ou ajuste os pesos das etapas.`
           }
         };
       }
@@ -159,7 +156,6 @@ export class ProjectDatesValidators {
             deadline: formattedDeadline,
             projectedEndDate: formattedProjectedEnd,
             requiredDays: totalDurationDays,
-            message: `Com a data de início atual (${formattedStartDate}), as etapas terminariam em ${formattedProjectedEnd}, ultrapassando o prazo limite (${formattedDeadline}). As etapas requerem ${totalDurationDays} dias úteis. Por favor, antecipe a data de início ou ajuste os pesos das etapas.`
           }
         };
       }

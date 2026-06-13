@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.HexFormat;
 import java.util.List;
@@ -79,7 +80,7 @@ public class RegisterDocumentEmissionUseCase {
 
         try {
             return repository.save(doc);
-        } catch (Exception ex) {
+        } catch (RuntimeException ex) {
             log.warn("[doc-emission] Falha ao salvar registro de emissão (code={}): {}",
                     request.authenticityCode(), ex.getMessage());
             return doc;
@@ -105,7 +106,7 @@ public class RegisterDocumentEmissionUseCase {
     private Optional<DocumentEmissionRecord> safeFind(String code) {
         try {
             return repository.findByAuthenticityCode(code);
-        } catch (Exception ex) {
+        } catch (RuntimeException ex) {
             log.warn("[doc-emission] Falha ao consultar registro por código {}: {}", code, ex.getMessage());
             return Optional.empty();
         }
@@ -123,7 +124,7 @@ public class RegisterDocumentEmissionUseCase {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(raw.toString().getBytes(StandardCharsets.UTF_8));
             return HexFormat.of().formatHex(hash);
-        } catch (Exception ex) {
+        } catch (NoSuchAlgorithmException ex) {
             return Integer.toHexString(raw.toString().hashCode());
         }
     }

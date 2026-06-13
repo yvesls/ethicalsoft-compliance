@@ -10,13 +10,14 @@ import {
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
 import { ExplanationService, ExplanationEntry } from '../../services/explanation.service';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-info-explainer',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslateModule],
   templateUrl: './info-explainer.component.html',
   styleUrl: './info-explainer.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

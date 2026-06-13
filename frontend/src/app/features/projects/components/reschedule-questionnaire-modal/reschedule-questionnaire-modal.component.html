@@ -1,10 +1,10 @@
 <div class="modal-header">
-  <h2>Reagendar Questionário: {{ questionnaireName }}</h2>
+  <h2>{{ 'projects.reschedule.title_with_name' | translate: { name: questionnaireName } }}</h2>
 </div>
 
 <div class="modal-body">
   <div class="current-period">
-    <span class="current-period__label">Período atual:</span>
+    <span class="current-period__label">{{ 'projects.reschedule.current_period' | translate }}</span>
     <span class="current-period__dates">
       {{ formattedCurrentStart }} até {{ formattedCurrentEnd }}
     </span>
@@ -14,7 +14,7 @@
     <div class="form-row">
       <div class="form-group">
         <app-input
-          label="Nova data de início"
+          [label]="'projects.reschedule.new_start' | translate"
           [required]="true"
           formControlName="newApplicationStartDate"
           [control]="form.get('newApplicationStartDate')"
@@ -24,7 +24,7 @@
 
       <div class="form-group">
         <app-input
-          label="Nova data de término"
+          [label]="'projects.reschedule.new_end' | translate"
           [required]="true"
           formControlName="newApplicationEndDate"
           [control]="form.get('newApplicationEndDate')"
@@ -43,7 +43,7 @@
 
 <div class="modal-footer">
   <button type="button" class="btn btn-cancel" (click)="cancel()">
-    Cancelar
+    {{ 'common.cancel' | translate }}
   </button>
   <button
     type="button"
@@ -51,6 +51,6 @@
     (click)="confirm()"
     [disabled]="form.invalid"
   >
-    Reagendar
+    {{ 'projects.reschedule.confirm_btn' | translate }}
   </button>
 </div>

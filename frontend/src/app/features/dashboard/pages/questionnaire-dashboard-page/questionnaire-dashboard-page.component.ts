@@ -31,6 +31,7 @@ import { ProjectContextService } from '../../../../core/services/project-context
 import { RoleEnum } from '../../../../shared/enums/role.enum';
 import { DocumentEmissionService, DocumentEmissionRecordDTO, BulletinEmissionResult } from '../../../../core/services/document-emission.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { InfoExplainerComponent } from '../../../../shared/components/info-explainer/info-explainer.component';
 
 @Component({
   selector: 'app-questionnaire-dashboard-page',
@@ -52,6 +53,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     AiExplainWidgetComponent,
     AiRiskReportWidgetComponent,
     AiChatWidgetComponent,
+    InfoExplainerComponent,
   ],
   templateUrl: './questionnaire-dashboard-page.component.html',
   styleUrl: './questionnaire-dashboard-page.component.scss',

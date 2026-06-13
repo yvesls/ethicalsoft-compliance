@@ -2,6 +2,7 @@ package com.ethicalsoft.ethicalsoft_complience.adapters.out.pdf;
 
 import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
+import freemarker.template.TemplateException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -9,6 +10,7 @@ import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Map;
 
 @Component
@@ -33,14 +35,16 @@ public class DocumentPdfRenderer {
                 builder.run();
                 return out.toByteArray();
             }
-        } catch (Exception ex) {
+        } catch (IOException | TemplateException | RuntimeException ex) {
             log.error("[pdf-renderer] Falha ao renderizar template {}", templatePath, ex);
             throw new BusinessException("Falha ao gerar o documento PDF: " + ex.getMessage());
         }
     }
 
     private String sanitizeToXhtml(String html) {
-        if (html == null) return "";
+        if (html == null) {
+            return "";
+        }
         return html
                 .replace("&nbsp;", "&#160;")
                 .replace("<br>", "<br/>")

@@ -7,6 +7,7 @@ import { RequestInputOptions } from '../interfaces/request-input-options.interfa
 import { getErrorMessage } from '../../shared/enums/error-messages.enum'
 import { LoggerService } from './logger.service'
 import { NotificationService } from './notification.service'
+import { TranslateService } from '@ngx-translate/core'
 
 export const USE_AUTH_CONTEXT = new HttpContextToken<boolean>(() => false)
 export const USE_CACHE_CONTEXT = new HttpContextToken<boolean>(() => false)
@@ -26,6 +27,7 @@ export class RequestService {
 	private _apiUrl?: string
 	private readonly http = inject(HttpClient)
 	private readonly notificationService = inject(NotificationService)
+	private readonly translate = inject(TranslateService)
 
 	get apiUrl(): string | undefined {
 		return this._apiUrl
@@ -42,8 +44,8 @@ export class RequestService {
 	makeFilePost<T>(url: string, options: RequestInputOptions, ...params: UrlParameter[]): Observable<T> {
 		if (!options.data) {
 			LoggerService.error('RequestService: No file data provided for POST request.', { url, options })
-			this.notificationService.showError('No file data to send.')
-			throw new Error('Não há arquivo para ser enviado.')
+			this.notificationService.showError(this.translate.instant('errors.no_file_data'))
+			throw new Error(this.translate.instant('errors.no_file_data'))
 		}
 		return this._makeFileUploadRequest<T>(this._getUrl(url, options.isBase, params), options)
 	}
@@ -124,7 +126,7 @@ export class RequestService {
 	private _makeFileUploadRequest<T>(url: string, options: RequestInputOptions): Observable<T> {
 		if (!options.data) {
 			LoggerService.error('RequestService: Não há arquivo para ser enviado')
-			throw new Error('Não há arquivo para ser enviado.')
+			throw new Error(this.translate.instant('errors.no_file_data'))
 		}
 		let headers = options.headers ?? new HttpHeaders()
 		if (options.contentType) {
@@ -168,7 +170,7 @@ export class RequestService {
 
 	private formatHttpError(error: unknown): ApiError {
 		if (error instanceof HttpErrorResponse) {
-			const fallbackMessage = getErrorMessage(error.status)
+			const fallbackMessage = this.translate.instant(getErrorMessage(error.status))
 			const baseError: ApiError = {
 				status: error.status,
 				errorType: 'ERROR',
@@ -209,7 +211,7 @@ export class RequestService {
 		return {
 			status: 0,
 			errorType: 'ERROR',
-			message: getErrorMessage(0),
+			message: this.translate.instant(getErrorMessage(0)),
 		}
 	}
 
@@ -280,7 +282,7 @@ export class RequestService {
 			return fallbackMessage
 		}
 
-		return httpMessage || getErrorMessage(0)
+		return httpMessage || this.translate.instant(getErrorMessage(0))
 	}
 }
 

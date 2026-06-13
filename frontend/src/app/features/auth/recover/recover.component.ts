@@ -9,7 +9,7 @@ import {
 	PasswordRecoveryInterface,
 } from '../../../shared/interfaces/auth/password-recovery.interface'
 import { AuthStore } from '../../../shared/stores/auth.store'
-import { TranslateModule } from '@ngx-translate/core'
+import { TranslateModule, TranslateService } from '@ngx-translate/core'
 import { InputComponent } from '../../../shared/components/input/input.component'
 
 type RecoverFormGroup = FormGroup<{ email: FormControl<string> }>
@@ -30,6 +30,7 @@ interface RecoverRouteParams extends Record<string, unknown> {
 	private readonly formBuilder = inject(FormBuilder)
 	private readonly authStore = inject(AuthStore)
 	private readonly notificationService = inject(NotificationService)
+	private readonly translate = inject(TranslateService)
 
 	protected override onInit(): void {
 		this._initForm()
@@ -75,7 +76,7 @@ interface RecoverRouteParams extends Record<string, unknown> {
 		this.authStore.recover(this.passwordRecovery).subscribe({
 			next: () => {
 				this.notificationService.showSuccess(
-					'Código de recuperação enviado com sucesso. Cheque seu email e siga as instruções.'
+					this.translate.instant('auth.messages.recovery_sent')
 				)
 				this.routerService.navigateTo('code-verification', {
 					params: {

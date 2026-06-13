@@ -44,7 +44,8 @@ public class NoOpLlmAdapter implements LlmAnalysisPort {
                     .name("error")
                     .data(UNAVAILABLE_MSG));
             emitter.complete();
-        } catch (Exception ignored) { // NOSONAR
+        } catch (Exception sendError) {
+            log.debug("[llm-noop] Falha ao enviar evento de erro: {}", sendError.getMessage());
         }
     }
 }

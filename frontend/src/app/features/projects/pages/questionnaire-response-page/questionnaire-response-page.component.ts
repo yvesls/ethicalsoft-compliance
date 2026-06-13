@@ -133,7 +133,7 @@ export class QuestionnaireResponsePageComponent implements OnInit {
 
   openAttachmentModal(answer: QuestionnaireAnswerDocument): void {
     if (answer.response === null) {
-      this.notification.showWarning('Selecione "Sim" ou "Não" antes de anexar evidências.');
+      this.notification.showWarning(this.translate.instant('notifications.response.select_answer_first'));
       return;
     }
 
@@ -208,7 +208,7 @@ export class QuestionnaireResponsePageComponent implements OnInit {
     );
 
     if (!answersWithContent.length) {
-      this.notification.showWarning('Nenhuma resposta para salvar como rascunho.');
+      this.notification.showWarning(this.translate.instant('notifications.response.draft_empty'));
       return;
     }
 
@@ -286,16 +286,18 @@ export class QuestionnaireResponsePageComponent implements OnInit {
   getRespondentStatusLabel(): string {
     const respondent = this.getCurrentRespondent();
     if (!respondent) {
-      return this.isAdmin() ? 'Administrador' : 'Não associado';
+      return this.isAdmin()
+        ? this.translate.instant('questionnaire.respondent_status.admin')
+        : this.translate.instant('questionnaire.respondent_status.not_associated');
     }
 
     switch (respondent.status) {
       case QuestionnaireResponseStatus.Completed:
-        return 'Respondido';
+        return this.translate.instant('questionnaire.respondent_status.completed');
       case QuestionnaireResponseStatus.InProgress:
-        return 'Em andamento';
+        return this.translate.instant('questionnaire.respondent_status.in_progress');
       default:
-        return 'Pendente';
+        return this.translate.instant('questionnaire.respondent_status.pending');
     }
   }
 
@@ -346,11 +348,11 @@ export class QuestionnaireResponsePageComponent implements OnInit {
     }
 
     if (questionnaire.stageName) {
-      return `Etapa: ${questionnaire.stageName}`;
+      return `${this.translate.instant('projects.detail.stage_label')}: ${questionnaire.stageName}`;
     }
 
     if (questionnaire.iterationName) {
-      return `Iteração: ${questionnaire.iterationName}`;
+      return `${this.translate.instant('projects.detail.iteration_label')}: ${questionnaire.iterationName}`;
     }
 
     return '';
@@ -364,10 +366,10 @@ export class QuestionnaireResponsePageComponent implements OnInit {
 
     const start = questionnaire.applicationStartDate
       ? new Date(questionnaire.applicationStartDate).toLocaleDateString('pt-BR')
-      : 'Sem data inicial';
+      : this.translate.instant('questionnaire.response.no_start_date');
     const end = questionnaire.applicationEndDate
       ? new Date(questionnaire.applicationEndDate).toLocaleDateString('pt-BR')
-      : 'Sem data final';
+      : this.translate.instant('questionnaire.response.no_end_date');
 
     return `${start} - ${end}`;
   }
@@ -451,7 +453,7 @@ export class QuestionnaireResponsePageComponent implements OnInit {
           this.state.set({ status: 'loaded', error: null, data: mergedPayload });
         },
         error: () => {
-          this.state.set({ status: 'error', error: 'Não foi possível carregar o questionário.', data: null });
+          this.state.set({ status: 'error', error: this.translate.instant('notifications.response.load_error'), data: null });
         },
       });
   }
@@ -459,7 +461,7 @@ export class QuestionnaireResponsePageComponent implements OnInit {
   private resolvePageMode(payload: QuestionnaireResponsePayload): PageMode {
     const respondent = this.getCurrentRespondent(payload);
     if (!respondent) {
-      this.notification.showWarning('Você não está associado a este questionário.');
+      this.notification.showWarning(this.translate.instant('notifications.response.not_associated'));
       this.onNavigateBack();
       return 'view';
     }

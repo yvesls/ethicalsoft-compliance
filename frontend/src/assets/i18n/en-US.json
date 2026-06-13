@@ -23,6 +23,10 @@
     "logout": "Sign out",
     "required_field": "Required field",
     "invalid_field": "Invalid field",
+    "select": "Select",
+    "items_selected": "items selected",
+    "search_placeholder": "Search...",
+    "no_items_found": "No items found.",
     "not_available": "N/A",
     "retry": "Try again",
     "generating": "Generating...",
@@ -32,7 +36,25 @@
     "closing": "Closing...",
     "in_development": "Feature under development",
     "not_found": "Page not found!",
-    "go_home": "Back to Home"
+    "go_home": "Back to Home",
+    "unsaved_changes_navigate": "You have unsaved changes. Do you want to leave anyway?",
+    "unsaved_changes_close": "You have unsaved changes. Do you want to close anyway?",
+    "notifications_load_error": "Could not load notifications.",
+    "stage": "Stage",
+    "project": "Project",
+    "new_project": "New Project",
+    "error": "Error",
+    "remove": "Remove",
+    "clear_selection": "Clear selection",
+    "open_selector": "Open selector",
+    "open_dropdown": "Open dropdown",
+    "more_info": "More information",
+    "info_icon_alt": "Information icon",
+    "pagination": "Pagination",
+    "previous_page": "Previous page",
+    "next_page": "Next page",
+    "copy_prompt": "Copy the content below:",
+    "unsaved_changes_confirm": "Unsaved data will be lost. Do you want to continue?"
   },
   "auth": {
     "login": {
@@ -105,6 +127,15 @@
       "invalid_code": "Invalid code. Resend the code or provide a different email.",
       "unauthenticated": "Authentication is required to perform this action."
     },
+    "password_rules": {
+      "invalid_prefix": "Invalid password. It must meet the following criteria:",
+      "length": "Be between 8 and 20 characters.",
+      "no_repeated": "Not contain repeated characters.",
+      "uppercase": "Have uppercase letters.",
+      "lowercase": "Have a lowercase letter.",
+      "number": "Have a number.",
+      "special_char": "Have a special character."
+    },
     "messages": {
       "recovery_sent": "Recovery code sent successfully. Check your email and follow the instructions.",
       "code_verified": "Recovery code validated successfully.",
@@ -117,7 +148,8 @@
       "password_required": "Password is required",
       "first_name_required": "First name is required",
       "last_name_required": "Last name is required",
-      "confirm_password_required": "Password confirmation is required"
+      "confirm_password_required": "Password confirmation is required",
+      "password_min_length": "Password must be at least 8 characters"
     }
   },
   "sidebar": {
@@ -202,7 +234,7 @@
       "load_error": "Failed to load projects.",
       "publish_confirm": "Are you sure you want to publish this project? It will be activated and questionnaires will be available for responses.",
       "delete_confirm": "Are you sure you want to delete the project \"{{name}}\"? This action cannot be undone.",
-      "questionnaire_closed": "Questionnaire \"{{name}}\" closed. The ISEP has been calculated.",
+      "questionnaire_closed": "Questionnaire \"{{name}}\" closed. The ISEP was calculated.",
       "questionnaire_close_error": "Error closing the questionnaire. Check if it has recorded responses.",
       "reschedule_error": "Error rescheduling the questionnaire.",
       "force_close_confirm": "Do you want to close the questionnaire \"{{name}}\" and calculate the ISEP with the existing responses?",
@@ -214,7 +246,13 @@
       "draft_saved": "Draft saved successfully.",
       "prepare_error": "Error preparing project data.",
       "identify_error": "Could not identify the created project.",
-      "prepare_draft_error": "Error preparing draft data."
+      "prepare_draft_error": "Error preparing draft data.",
+      "error_loading_project": "Failed to load the project.",
+      "error_loading_questionnaires": "Failed to load the questionnaires."
+    },
+    "creation_confirm": {
+      "title": "Confirm project creation",
+      "message": "A template will be created for this project and an email will be sent with access instructions. Do you want to confirm the project creation?"
     },
     "detail": {
       "publishing": "Publishing...",
@@ -253,13 +291,19 @@
       "not_defined": "Not defined",
       "no_reference": "No reference",
       "no_period": "No period defined",
+      "date_range": "{{start}} to {{end}}",
+      "from_date": "From {{date}}",
+      "until_date": "Until {{date}}",
       "reference_stage": "Stage",
       "reference_iteration": "Iteration",
       "reference_other": "Reference",
       "view_admin_mode": "You are viewing this questionnaire in administrative mode.",
       "view_representative_mode": "You have been assigned as the responsible representative to answer this questionnaire.",
       "view_completed_mode": "You have already submitted your answers and can review them at any time.",
-      "progress_percent": "{{percent}}% of representatives responded"
+      "progress_percent": "{{percent}}% of representatives responded",
+      "questionnaire_actions_aria": "Questionnaire actions",
+      "questionnaire_in_progress": "Questionnaire in progress",
+      "code_prefix": "Cod"
     },
     "type_selection": {
       "title": "Select Project Type",
@@ -281,6 +325,7 @@
       "saving": "Saving...",
       "add_step": "Add stage",
       "add_representative": "Add representative",
+      "create_representative": "Create new representative",
       "step_name_col": "Stage name",
       "date_range_col": "Application range",
       "weight_col": "Weight",
@@ -320,14 +365,27 @@
         "add_question_to_questionnaire": "Add at least one question to questionnaire \"{{name}}\".",
         "add_question_to_this": "Add at least one question to this questionnaire.",
         "invalid_iteration_duration": "Provide a valid iteration duration.",
-        "iteration_count_error": "Could not calculate the number of iterations."
+        "iteration_count_error": "Could not calculate the number of iterations.",
+        "prepare_data_error": "Error preparing the data.",
+        "prepare_draft_error": "Error preparing the draft data.",
+        "project_id_not_found": "Could not identify the created project.",
+        "field_template": "Template",
+        "field_project_name": "Project name",
+        "field_start_date": "Start date",
+        "field_deadline": "Deadline"
       },
+      "draft_unnamed": "Unnamed draft",
       "first_name_placeholder": "Enter name",
       "last_name_placeholder": "Enter last name",
       "email_placeholder": "Enter email",
       "weight_placeholder": "Enter weight",
       "charges_placeholder": "Select charges",
-      "try_again": "Try again"
+      "try_again": "Try again",
+      "template_modal_title": "Do you want to create a new stage or select from an existing template?",
+      "create_new_stage": "Create new stage",
+      "select_existing_stage": "Select existing",
+      "error_loading": "Failed to load project data.",
+      "iteration_fallback": "Iteration {{n}}"
     },
     "template_selector": {
       "title": "Select template",
@@ -335,12 +393,24 @@
       "placeholder": "Select template from an existing project",
       "import_external": "Import from external file"
     },
+    "questionnaire_iterative_modal": {
+      "create_title": "Create new questionnaire",
+      "edit_title": "Edit questionnaire",
+      "select_iteration_hint": "Select the iteration and enter the duration to calculate the range.",
+      "iteration_not_found": "Could not identify the selected iteration.",
+      "invalid_start_date": "Invalid project start date for range calculation.",
+      "exceeds_deadline": "The calculated range exceeds the project deadline. Adjust the duration or iteration.",
+      "fill_fields_to_calculate": "Fill in the fields to calculate"
+    },
     "reschedule": {
       "title_with_name": "Reschedule Questionnaire: {{name}}",
       "current_period": "Current period:",
       "new_start": "New start date",
       "new_end": "New end date",
-      "confirm_btn": "Reschedule"
+      "confirm_btn": "Reschedule",
+      "warning_start_today": "By setting the start date to today or a past date, the questionnaire status will be changed to \"In Progress\" immediately.",
+      "validator_end_before_start": "The end date cannot be earlier than the start date.",
+      "validator_start_before_ref": "The start date cannot be earlier than the project start date ({{date}})."
     },
     "stage_cascata": {
       "note_text": "The range below is recalculated in real time considering all project stages. When confirmed, the final calculation is reapplied.",
@@ -359,7 +429,9 @@
       "no_start_warning": "Enter a valid sequence and duration to calculate the application range.",
       "weight_label": "Weight (%)",
       "duration_label": "Stage duration (business days)",
-      "create_title": "Create new step - Cascata"
+      "create_title": "Create new step - Cascata",
+      "no_start_date_warning": "Enter the project start date to calculate the application range.",
+      "edit_title": "Edit stage - Cascata"
     },
     "stage_iterative": {
       "note_text": "The stage name must be unique in the project and the weight must be greater than zero.",
@@ -367,7 +439,8 @@
       "blank_name": "Provide a valid name for the stage.",
       "min_weight": "The minimum allowed weight is 1.",
       "create_title": "Create new step",
-      "weight_label": "Weight"
+      "weight_label": "Weight",
+      "edit_title": "Edit stage"
     },
     "q_iterative": {
       "name_label": "Questionnaire Name",
@@ -400,7 +473,9 @@
       "responses_created": "{{count}} response(s) created",
       "responses_updated": "{{count}} response(s) updated",
       "responses_deleted": "{{count}} response(s) removed",
-      "notifications_sent": "{{count}} notification(s) will be sent."
+      "notifications_sent": "{{count}} notification(s) will be sent.",
+      "title": "Confirm project update",
+      "confirm_label": "Confirm and Save"
     },
     "edit": {
       "loading": "Loading project data for editing...",
@@ -408,7 +483,8 @@
       "type_placeholder": "Project type"
     },
     "list": {
-      "situation": "Situation"
+      "situation": "Situation",
+      "error_loading": "Failed to load projects."
     }
   },
   "questionnaire": {
@@ -459,6 +535,13 @@
       "atrasado": "Overdue",
       "no_status": "No status"
     },
+    "respondent_status": {
+      "admin": "Administrator",
+      "not_associated": "Not associated",
+      "completed": "Answered",
+      "in_progress": "In progress",
+      "pending": "Pending"
+    },
     "attachment": {
       "add_evidence": "Add evidence",
       "add_justification": "Add justification",
@@ -482,7 +565,8 @@
       "link_pattern": "Enter an address starting with http:// or https://.",
       "desc_required": "Describe what will be accessed through this link.",
       "desc_minlength": "Use at least 3 characters.",
-      "header_hint": "Include details and links that help justify the selected response."
+      "header_hint": "Include details and links that help justify the selected response.",
+      "justification_label": "Justification or observations"
     },
     "response": {
       "loading": "Loading questionnaire...",
@@ -508,7 +592,10 @@
       "submit": "Submit responses",
       "no_questions": "No questions found for this questionnaire.",
       "total_questions": "Total questions",
-      "progress": "Progress"
+      "progress": "Progress",
+      "mandatory_response_aria": "Mandatory response",
+      "no_start_date": "No start date",
+      "no_end_date": "No end date"
     },
     "form": {
       "data_title": "Questionnaire Data",
@@ -544,7 +631,11 @@
       "create_btn": "Create",
       "save_btn": "Save",
       "cancel_btn": "Cancel",
-      "required_suffix": " *"
+      "required_suffix": " *",
+      "create_title": "Create new question",
+      "edit_title": "Edit question",
+      "stage_label": "Related stages",
+      "stage_placeholder": "Select stages"
     }
   },
   "dashboard": {
@@ -718,7 +809,8 @@
       "title": "Justification Word Cloud",
       "general_tab": "General",
       "justifications_count": "{{count}} justifications analyzed",
-      "no_words": "No words found for this domain."
+      "no_words": "No words found for this domain.",
+      "occurrences": "occurrences"
     },
     "ai_chat": {
       "open": "Open AI assistant",
@@ -731,7 +823,13 @@
       "stop_label": "Stop generation",
       "placeholder": "Ask a question...",
       "send_label": "Send message",
-      "question_prefix": "Ask: "
+      "question_prefix": "Ask: ",
+      "suggested_1": "Which member has the lowest ICP and why?",
+      "suggested_2": "Which domains are below 70%?",
+      "suggested_3": "Summarize the justifications for NO answers",
+      "suggested_4": "What does it mean to be in Band C?",
+      "suggested_5": "Compare ethical performance with process performance",
+      "error_msg": "Error getting AI response. Please try again."
     },
     "response_modal": {
       "loading": "Loading responses...",
@@ -818,12 +916,16 @@
       "debt_ethics": "Ethics Debt",
       "debt_tech": "Technical Debt",
       "isep_evolution_default": "ISEP Evolution",
-      "debt_evolution_default": "Debt Evolution by Iteration"
+      "debt_evolution_default": "Debt Evolution by Iteration",
+      "word_cloud_title": "Word Cloud of Justifications",
+      "word_cloud_subtext": "{{count}} justifications analyzed",
+      "word_cloud_tooltip": "{{name}}: <b>{{value}} occurrences</b>"
     }
   },
   "project": {
     "ai_usage": {
       "label": "Declared AI use in development",
+      "placeholder": "Select AI uses (optional)",
       "tooltip": "Indicate whether the project uses AI-based assistants in development. The declaration activates specific risk indicators in bulletins when results fall below the minimum band.",
       "options": {
         "NAO_UTILIZA": "Does not use",
@@ -832,7 +934,10 @@
         "GERACAO_CODIGO": "Used in code generation",
         "TESTES": "Used in testing",
         "DOCUMENTACAO": "Used in documentation",
-        "MANUTENCAO_REFATORACAO": "Used in maintenance or refactoring"
+        "MANUTENCAO_REFATORACAO": "Used in maintenance or refactoring",
+        "DESIGN": "Used in design/architecture",
+        "CODIFICACAO": "Used in coding",
+        "AI_GOVERNANCE": "AI governance applied"
       }
     }
   },
@@ -885,12 +990,53 @@
     }
   },
   "ai": {
-    "insights": "AI insights",
-    "explain": "Explanation of the results",
-    "risk_report": "Risk report",
-    "chat": "Chat with AI",
-    "unavailable": "AI module temporarily unavailable.",
-    "loading": "Generating analysis..."
+    "token": {
+      "title": "AI Token",
+      "status": {
+        "configured": "Configured",
+        "notConfigured": "Not configured",
+        "updatedAt": "Updated on {{date}}"
+      },
+      "form": {
+        "label": "Paste your Groq Cloud token here",
+        "placeholder": "gsk_…",
+        "showToken": "Show",
+        "hideToken": "Hide",
+        "save": "Save",
+        "remove": "Remove token"
+      },
+      "saved": "Token saved successfully.",
+      "removed": "Token removed.",
+      "missing": {
+        "title": "AI token required",
+        "body": "To use this artificial intelligence feature you need to register your own Groq Cloud token. This token is linked only to your account, is stored in an encrypted format and can be removed at any time.",
+        "configureNow": "Configure now",
+        "cancel": "Cancel"
+      },
+      "errors": {
+        "not_configured": "AI token not configured. Register your token in settings to use this feature.",
+        "invalid": "Could not read your AI token. Register it again.",
+        "empty": "Enter a valid AI token.",
+        "encryption_failed": "Failed to secure the AI token. Try again.",
+        "unauthenticated": "You must be authenticated to manage your AI token."
+      },
+      "status_label": "Current status:",
+      "info": {
+        "why_para1": "Why do we need your token? The AI features of EthicalSoft Compliance (insight generation, ISEP results explanation, risk report and Q&A chat) consume the Groq Cloud API. So you have full control over usage, consumption and data privacy, each user uses their own personal key.",
+        "why_para2": "Registering your token takes less than a minute, is free and gives you immediate access to all AI features of the platform.",
+        "security_title": "How we protect your token",
+        "security_item1": "Your token is encrypted at rest with AES-256-GCM before being saved in the database.",
+        "security_item2": "We never display your full token — only a mask like gsk_…Zn5tj.",
+        "security_item3": "The token is exclusively linked to your account and is never shared with other users.",
+        "security_item4": "In all calls, your token is sent directly to Groq Cloud.",
+        "security_item5": "You can remove your token at any time, and removal is immediate.",
+        "instructions_title": "How to get your Groq Cloud key (free)",
+        "instructions_step1": "Go to console.groq.com and create an account.",
+        "instructions_step2": "In the side panel, open API Keys and click \"Create API Key\".",
+        "instructions_step3": "Give it a name (e.g. \"EthicalSoft Compliance\") and copy the key — it starts with gsk_…",
+        "instructions_step4": "Come back to this screen, paste the key in the field below and click Save."
+      }
+    }
   },
   "notifications": {
     "title": "Notifications",
@@ -904,7 +1050,9 @@
       "add_question": "Add at least one question before confirming the questionnaire.",
       "link_stage": "All questions must be linked to the current stage.",
       "add_stage_first": "Register at least one stage before adding questions.",
-      "link_stages": "Link at least one stage to each question before confirming."
+      "link_stages": "Link at least one stage to each question before confirming.",
+      "stage_selection_placeholder": "Select related stages",
+      "stage_selection_label": "Related stages"
     },
     "response": {
       "select_answer_first": "Select \"Yes\" or \"No\" before attaching evidence.",
@@ -914,7 +1062,8 @@
       "draft_empty": "No responses to save as draft.",
       "draft_saved": "Draft saved successfully.",
       "invalid_questionnaire_id": "Invalid questionnaire identifier.",
-      "not_associated": "You are not associated with this questionnaire."
+      "not_associated": "You are not associated with this questionnaire.",
+      "load_error": "Could not load the questionnaire."
     },
     "attachment": {
       "fill_before_save": "Fill in the evidence/justifications before saving."
@@ -924,10 +1073,16 @@
       "add_questions": "Add at least one question to each questionnaire.",
       "save_success": "Project updated successfully.",
       "save_error": "Unexpected error processing the update response.",
-      "review_required": "Review the required fields before saving."
+      "review_required": "Review the required fields before saving.",
+      "update_blocked": "Update blocked:\n• {{reasons}}",
+      "updated_with_warnings": "Project updated with warnings:\n• {{warns}}",
+      "operation_blocked": "Operation blocked:\n• {{errorList}}",
+      "conflict_retry": "Conflict: Some changes cannot be applied. Check the data and try again."
     },
     "project_detail": {
-      "nothing_to_copy": "No content to copy."
+      "nothing_to_copy": "No content to copy.",
+      "reminder_status_required": "Only in-progress questionnaires can receive reminders.",
+      "no_pending_reps": "There are no pending representatives with an available email address for this questionnaire."
     },
     "questionnaire_dashboard": {
       "closed_success": "Questionnaire closed. ISEP will be calculated.",
@@ -939,7 +1094,9 @@
     },
     "session": {
       "draft_saved_redirect": "Draft saved successfully. You will be redirected to login.",
-      "draft_save_failed": "Could not save draft. Unsaved data may be lost."
+      "draft_save_failed": "Could not save draft. Unsaved data may be lost.",
+      "expiring_confirm": "Your session is about to expire. Would you like to save your changes as a draft before being logged out?",
+      "expired_redirect": "Your session has expired. You will be redirected to login."
     },
     "guard": {
       "direct_access_denied": "Direct access to this route is not allowed."
@@ -1017,7 +1174,20 @@
     "network": "Failed to communicate with the server.",
     "forbidden": "You do not have permission to access this resource.",
     "not_found": "Resource not found.",
-    "validation": "There are required fields that have not been filled in correctly."
+    "validation": "There are required fields that have not been filled in correctly.",
+    "session_expired": "Session expired, please log in again.",
+    "no_file_data": "No file selected for upload.",
+    "http": {
+      "400": "The request is malformed or contains invalid data.",
+      "401": "Invalid credentials. Check your username and password.",
+      "403": "You do not have permission to access this resource.",
+      "404": "The requested resource was not found.",
+      "409": "A conflict occurred with the submitted data.",
+      "422": "The submitted data cannot be processed.",
+      "429": "Too many requests. Please try again later.",
+      "500": "Internal server error. Please try again later.",
+      "503": "The service is temporarily unavailable."
+    }
   },
   "breadcrumb": {
     "home": "Home",
@@ -1037,6 +1207,7 @@
     "reset-password": "Change password",
     "cascata": "Cascata",
     "iterativo": "Iterative",
+    "individual": "Individual",
     "of": "of"
   },
   "header": {
@@ -1064,37 +1235,13 @@
   "shared_multi_select_open_alt": "Open dropdown",
   "shared_multi_select_search_placeholder": "Search...",
   "shared_multi_select_no_options": "No options found",
-  "ai": {
-    "token": {
-      "title": "AI Token",
-      "status": {
-        "configured": "Configured",
-        "notConfigured": "Not configured",
-        "updatedAt": "Updated on {{date}}"
-      },
-      "form": {
-        "label": "Paste your Groq Cloud token here",
-        "placeholder": "gsk_…",
-        "showToken": "Show",
-        "hideToken": "Hide",
-        "save": "Save",
-        "remove": "Remove token"
-      },
-      "saved": "Token saved successfully.",
-      "removed": "Token removed.",
-      "missing": {
-        "title": "AI token required",
-        "body": "To use this artificial intelligence feature you need to register your own Groq Cloud token. This token is linked only to your account, is stored in an encrypted format and can be removed at any time.",
-        "configureNow": "Configure now",
-        "cancel": "Cancel"
-      },
-      "errors": {
-        "not_configured": "AI token not configured. Register your token in settings to use this feature.",
-        "invalid": "Could not read your AI token. Register it again.",
-        "empty": "Enter a valid AI token.",
-        "encryption_failed": "Failed to secure the AI token. Try again.",
-        "unauthenticated": "You must be authenticated to manage your AI token."
-      }
+  "shared_info_explainer_unavailable": "Explanation not available.",
+  "shared": {
+    "validation": {
+      "min_date_today": "The date cannot be earlier than today.",
+      "date_order": "The start date cannot be later than the deadline.",
+      "invalid_date": "Invalid date format.",
+      "invalid_field": "Invalid field."
     }
   }
 }

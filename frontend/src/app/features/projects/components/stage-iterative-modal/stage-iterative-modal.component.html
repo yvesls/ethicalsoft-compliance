@@ -4,15 +4,15 @@
   <form [formGroup]="form" (ngSubmit)="confirm()">
     <div class="form-grid form-grid-2">
       <app-input
-        label="Nome"
-        placeholder="Informe o nome"
+        [label]="'projects.fields.name' | translate"
+        [placeholder]="'projects.form.name_placeholder' | translate"
         formControlName="name"
         [control]="form.get('name')"
         [required]="true"
       ></app-input>
 
       <app-input
-        label="Peso"
+        [label]="'projects.stage_iterative.weight_label' | translate"
         type="number"
         placeholder="1"
         formControlName="weight"
@@ -22,24 +22,24 @@
     </div>
 
     <div class="info-message">
-      <p><strong>Nota:</strong> O nome da etapa deve ser único no projeto e o peso deve ser maior que zero.</p>
+      <p>{{ 'projects.stage_iterative.note_text' | translate }}</p>
     </div>
 
     @if (form.get('name')?.hasError('duplicateStageName') && (form.get('name')?.dirty || form.get('name')?.touched)) {
       <div class="validation-feedback error">
-        Já existe uma etapa com este nome. Use um nome diferente.
+        {{ 'projects.stage_iterative.duplicate_name' | translate }}
       </div>
     }
 
     @if (form.get('name')?.hasError('blankValue') && (form.get('name')?.dirty || form.get('name')?.touched)) {
       <div class="validation-feedback error">
-        Informe um nome válido para a etapa.
+        {{ 'projects.stage_iterative.blank_name' | translate }}
       </div>
     }
 
     @if (form.get('weight')?.hasError('min') && (form.get('weight')?.dirty || form.get('weight')?.touched)) {
       <div class="validation-feedback error">
-        O peso mínimo permitido é 1.
+        {{ 'projects.stage_iterative.min_weight' | translate }}
       </div>
     }
 
@@ -49,7 +49,7 @@
         class="btn btn-primary"
         [disabled]="form.invalid"
       >
-        Confirmar
+        {{ 'common.confirm' | translate }}
       </button>
     </div>
   </form>

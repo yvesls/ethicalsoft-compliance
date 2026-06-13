@@ -13,12 +13,12 @@ import { MissingAiTokenDialogComponent } from '../../../../shared/components/mis
   imports: [AiPanelComponent],
   template: `
     <app-ai-panel
-      [title]="translate.instant('dashboard.ai_widgets.insights_title')"
+      title="dashboard.ai_widgets.insights_title"
       icon="bi-lightbulb"
       [result]="result()"
       [loading]="loading()"
-      [buttonLabel]="translate.instant('dashboard.ai_widgets.insights_btn')"
-      [loadingLabel]="translate.instant('dashboard.ai_widgets.insights_loading')"
+      buttonLabel="dashboard.ai_widgets.insights_btn"
+      loadingLabel="dashboard.ai_widgets.insights_loading"
       (generate)="generate()"
     />
   `,
@@ -55,7 +55,7 @@ export class AiInsightsWidgetComponent {
           content: null,
           model: null,
           generatedAt: '',
-          fallbackMessage: 'Erro ao conectar com o serviço de IA. Tente novamente.',
+          fallbackMessage: this.translate.instant('dashboard.ai_widgets.error_msg'),
         });
         this.loading.set(false);
       },

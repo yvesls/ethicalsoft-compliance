@@ -1,7 +1,8 @@
+import { LoggerService } from '../../../../core/services/logger.service';
 import { Component, inject, Input, signal, ElementRef, ViewChild, AfterViewChecked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MarkdownPipe } from '../../../../shared/utils/markdown.pipe';
 import { AiDashboardService } from '../../services/ai-dashboard.service';
 import { AiTokenService } from '../../../../core/ai/ai-token.service';
@@ -14,12 +15,12 @@ interface ChatMessage {
   timestamp: Date;
 }
 
-const SUGGESTED_QUESTIONS = [
-  'Qual membro tem o menor ICP e por quê?',
-  'Quais domínios estão abaixo de 70%?',
-  'Resuma as justificativas de respostas NÃO',
-  'O que significa estar na Faixa C?',
-  'Compare o desempenho ético com o de processo',
+const SUGGESTED_QUESTION_KEYS = [
+  'dashboard.ai_chat.suggested_1',
+  'dashboard.ai_chat.suggested_2',
+  'dashboard.ai_chat.suggested_3',
+  'dashboard.ai_chat.suggested_4',
+  'dashboard.ai_chat.suggested_5',
 ];
 
 @Component({
@@ -38,6 +39,7 @@ export class AiChatWidgetComponent implements AfterViewChecked {
   private readonly aiService = inject(AiDashboardService);
   private readonly aiTokenService = inject(AiTokenService);
   private readonly modalService = inject(ModalService);
+  private readonly translate = inject(TranslateService);
 
   isOpen = signal(false);
   messages = signal<ChatMessage[]>([]);
@@ -46,7 +48,9 @@ export class AiChatWidgetComponent implements AfterViewChecked {
   private streamSub: Subscription | null = null;
   private shouldScroll = false;
 
-  readonly suggestedQuestions = SUGGESTED_QUESTIONS;
+  get suggestedQuestions(): string[] {
+    return SUGGESTED_QUESTION_KEYS.map(k => this.translate.instant(k));
+  }
 
   ngAfterViewChecked(): void {
     if (this.shouldScroll) {
@@ -110,7 +114,7 @@ export class AiChatWidgetComponent implements AfterViewChecked {
             if (lastMsg.role === 'assistant' && !lastMsg.content) {
               updated[updated.length - 1] = {
                 ...lastMsg,
-                content: 'Erro ao obter resposta da IA. Tente novamente.',
+                content: this.translate.instant('dashboard.ai_chat.error_msg'),
               };
             }
             return updated;
@@ -150,8 +154,8 @@ export class AiChatWidgetComponent implements AfterViewChecked {
       if (el) {
         el.scrollTop = el.scrollHeight;
       }
-    } catch {
-      // ignore
+    } catch (error) {
+      LoggerService.warn('AiChatWidget: Erro ao rolar para o final do chat.', error);
     }
   }
 }
