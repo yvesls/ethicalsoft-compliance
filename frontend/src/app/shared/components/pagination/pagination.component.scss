@@ -1,4 +1,5 @@
 @use '../../../../assets/scss/base/vars' as *;
+@use '../../../../assets/scss/base/media-queries' as *;
 
 :host {
   display: block;
@@ -8,6 +9,10 @@
 .pagination-container {
   display: flex;
   justify-content: start;
+
+  @include for-phone-only {
+    justify-content: center;
+  }
 }
 
 .pagination-list {

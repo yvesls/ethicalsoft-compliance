@@ -1,10 +1,19 @@
 @use 'sass:color';
 @use '../../../../../assets/scss/base/vars' as *;
+@use '../../../../../assets/scss/base/media-queries' as *;
 
 :host {
   display: block;
   width: 100%;
   padding: 1.5rem 2rem;
+
+  @include for-tablet-landscape-down {
+    padding: 1.25rem 1.5rem;
+  }
+
+  @include for-phone-only {
+    padding: 1rem;
+  }
 }
 
 .project-detail-page {
@@ -28,6 +37,10 @@
     color: $blue-primary;
     font-weight: 600;
     font-size: 1.8rem;
+
+    @include for-phone-only {
+      font-size: 1.4rem;
+    }
   }
 
   .project-code {
@@ -47,6 +60,28 @@
     width: 1rem;
     height: 1rem;
     margin-right: 0.4rem;
+  }
+
+  @include for-tablet-landscape-down {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+  }
+
+  @include for-phone-only {
+    padding: 1rem;
+  }
+}
+
+.project-header__actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+
+  @include for-tablet-landscape-down {
+    width: 100%;
+    justify-content: flex-start;
   }
 }
 
@@ -319,6 +354,11 @@
     border-radius: $radius-default;
     padding: 0.75rem 1rem;
     border: 1px solid rgba(0, 0, 0, 0.05);
+
+    @include for-tablet-landscape-down {
+      min-width: unset;
+      width: 100%;
+    }
   }
 
   &__actions-label {

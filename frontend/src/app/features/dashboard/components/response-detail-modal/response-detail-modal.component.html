@@ -42,52 +42,54 @@
 
       <div class="response-modal__body">
         @if (d.answers.length) {
-          <table class="table table-hover align-middle response-modal__table">
-            <thead>
-              <tr>
-                <th>{{ 'dashboard.response_modal.question_col' | translate }}</th>
-                <th class="text-center">{{ 'dashboard.response_modal.answer_col' | translate }}</th>
-                <th>{{ 'dashboard.response_modal.justification_col' | translate }}</th>
-                <th>{{ 'dashboard.response_modal.evidence_col' | translate }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (a of d.answers; track a.questionId) {
+          <div class="table-responsive">
+            <table class="table table-hover align-middle response-modal__table">
+              <thead>
                 <tr>
-                  <td class="response-modal__question-text">{{ a.questionText }}</td>
-                  <td class="text-center">
-                    <span class="response-badge" [class.response-badge--yes]="a.response" [class.response-badge--no]="!a.response">
-                      {{ a.response ? ('dashboard.response_modal.yes' | translate) : ('dashboard.response_modal.no' | translate) }}
-                    </span>
-                  </td>
-                  <td>
-                    @if (a.justification) {
-                      <span>{{ a.justification.descricao }}</span>
-                      @if (a.justification.url) {
-                        <a [href]="a.justification.url" target="_blank" class="response-modal__link">
-                          <i class="bi bi-link-45deg"></i> Link
-                        </a>
-                      }
-                    } @else {
-                      <span class="text-muted">—</span>
-                    }
-                  </td>
-                  <td>
-                    @if (a.evidence) {
-                      <span>{{ a.evidence.descricao }}</span>
-                      @if (a.evidence.url) {
-                        <a [href]="a.evidence.url" target="_blank" class="response-modal__link">
-                          <i class="bi bi-link-45deg"></i> Link
-                        </a>
-                      }
-                    } @else {
-                      <span class="text-muted">—</span>
-                    }
-                  </td>
+                  <th>{{ 'dashboard.response_modal.question_col' | translate }}</th>
+                  <th class="text-center">{{ 'dashboard.response_modal.answer_col' | translate }}</th>
+                  <th>{{ 'dashboard.response_modal.justification_col' | translate }}</th>
+                  <th>{{ 'dashboard.response_modal.evidence_col' | translate }}</th>
                 </tr>
-              }
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                @for (a of d.answers; track a.questionId) {
+                  <tr>
+                    <td class="response-modal__question-text">{{ a.questionText }}</td>
+                    <td class="text-center">
+                      <span class="response-badge" [class.response-badge--yes]="a.response" [class.response-badge--no]="!a.response">
+                        {{ a.response ? ('dashboard.response_modal.yes' | translate) : ('dashboard.response_modal.no' | translate) }}
+                      </span>
+                    </td>
+                    <td>
+                      @if (a.justification) {
+                        <span>{{ a.justification.descricao }}</span>
+                        @if (a.justification.url) {
+                          <a [href]="a.justification.url" target="_blank" class="response-modal__link">
+                            <i class="bi bi-link-45deg"></i> Link
+                          </a>
+                        }
+                      } @else {
+                        <span class="text-muted">—</span>
+                      }
+                    </td>
+                    <td>
+                      @if (a.evidence) {
+                        <span>{{ a.evidence.descricao }}</span>
+                        @if (a.evidence.url) {
+                          <a [href]="a.evidence.url" target="_blank" class="response-modal__link">
+                            <i class="bi bi-link-45deg"></i> Link
+                          </a>
+                        }
+                      } @else {
+                        <span class="text-muted">—</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
         } @else {
           <p class="text-muted text-center py-4">{{ 'dashboard.response_modal.no_responses' | translate }}</p>
         }

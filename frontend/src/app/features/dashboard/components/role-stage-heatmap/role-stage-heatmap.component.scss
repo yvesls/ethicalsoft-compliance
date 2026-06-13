@@ -1,4 +1,10 @@
+.heatmap-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .heatmap-chart {
   width: 100%;
+  min-width: 560px;
   height: 400px;
 }

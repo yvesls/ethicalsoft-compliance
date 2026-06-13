@@ -1,4 +1,10 @@
+.bar-chart-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .bar-chart {
   width: 100%;
+  min-width: 480px;
   height: 380px;
 }

@@ -232,7 +232,7 @@ app-footer {
 	}
 }
 
-@media (max-width: 768px) {
+@include for-tablet-down {
 	.layout-container {
 		grid-template-columns: var(--sidebar-width) 1fr;
 	}
@@ -354,14 +354,38 @@ app-footer {
 
   &.form-grid-4 {
     grid-template-columns: repeat(4, 1fr);
+
+    @include for-tablet-landscape-down {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @include for-phone-only {
+      grid-template-columns: 1fr;
+    }
   }
 
   &.form-grid-3 {
     grid-template-columns: repeat(3, 1fr);
+
+    @include for-tablet-landscape-down {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @include for-phone-only {
+      grid-template-columns: 1fr;
+    }
   }
 
   &.form-grid-2 {
     grid-template-columns: repeat(2, 1fr);
+
+    @include for-phone-only {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .form-span-full {
+    grid-column: 1 / -1;
   }
 }
 
