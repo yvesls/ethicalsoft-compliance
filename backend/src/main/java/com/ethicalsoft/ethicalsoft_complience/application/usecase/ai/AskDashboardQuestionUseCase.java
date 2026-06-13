@@ -18,14 +18,15 @@ public class AskDashboardQuestionUseCase {
     private final AiDashboardContextProvider contextProvider;
     private final LlmAnalysisPort llmAnalysisPort;
 
-    public void execute(Long projectId, Integer questionnaireId, String question, SseEmitter emitter) {
-        log.info("[ai-qa] Pergunta Q&A projeto={} questionário={}: '{}'",
-                projectId, questionnaireId, question);
+    public void execute(Long projectId, Integer questionnaireId, String question,
+                        SseEmitter emitter, String language, Long userId) {
+        log.info("[ai-qa] Pergunta Q&A projeto={} questionário={} idioma={} userId={}: '{}'",
+                projectId, questionnaireId, language, userId, question);
 
         DashboardSnapshot snapshot = contextProvider.buildSnapshot(projectId, questionnaireId);
 
         CompletableFuture.runAsync(() ->
-                llmAnalysisPort.askQuestion(question, snapshot, emitter)
+                llmAnalysisPort.askQuestion(question, snapshot, emitter, language, userId)
         );
     }
 }

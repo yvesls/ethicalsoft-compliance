@@ -9,6 +9,7 @@ import {
   Page,
 } from '../../interfaces/dashboard.interface';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FilterBarComponent } from '../../../../shared/components/filter-bar/filter-bar.component';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
 import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
@@ -29,6 +30,7 @@ interface UniqueMember {
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    TranslateModule,
     FilterBarComponent,
     PaginationComponent,
     SelectComponent,
@@ -44,6 +46,7 @@ export class ConsolidatedAnswersPageComponent implements OnInit {
   private readonly notificationService = inject(NotificationService);
   private readonly modalService = inject(ModalService);
   private readonly roleService = inject(RoleService);
+  private readonly translate = inject(TranslateService);
 
   projectId!: number;
   questionnaireId: number | null = null;
@@ -80,8 +83,8 @@ export class ConsolidatedAnswersPageComponent implements OnInit {
   filterForm!: FormGroup;
 
   responseOptions: SelectOption[] = [
-    { value: 'true', label: 'SIM' },
-    { value: 'false', label: 'NÃO' },
+    { value: 'true', label: this.translate.instant('common.yes') },
+    { value: 'false', label: this.translate.instant('common.no') },
   ];
 
   get gridColumns(): string {
@@ -90,8 +93,8 @@ export class ConsolidatedAnswersPageComponent implements OnInit {
 
   get pageTitle(): string {
     return this.mode === 'project'
-      ? 'Respostas Consolidadas do Projeto'
-      : 'Respostas Consolidadas do Questionário';
+      ? this.translate.instant('dashboard.consolidated.project_title')
+      : this.translate.instant('dashboard.consolidated.questionnaire_title');
   }
 
   ngOnInit(): void {
@@ -146,7 +149,7 @@ export class ConsolidatedAnswersPageComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.notificationService.showError('Erro ao carregar respostas consolidadas.');
+        this.notificationService.showError(this.translate.instant('dashboard.consolidated.load_error'));
         this.loading.set(false);
       },
     });

@@ -63,6 +63,7 @@ export interface ProjectCreationPayload {
 	iterations?: IterationPayload[];
 	questionnaires?: QuestionnairePayload[];
 	representatives?: RepresentativePayload[];
+	aiUsageScopes?: string[];
 }
 
 export interface ProjectCreationResponse {

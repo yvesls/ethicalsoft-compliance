@@ -13,6 +13,7 @@ import { BasePageComponent, RestoreParams } from '../../../core/abstractions/bas
 import { NotificationService } from '../../../core/services/notification.service'
 import { RouteParams } from '../../../core/services/router.service'
 import { AuthStore } from '../../../shared/stores/auth.store'
+import { TranslateModule, TranslateService } from '@ngx-translate/core'
 import { createValidateCode, ValidateCodeInterface } from '../../../shared/interfaces/auth/validate-code.interface'
 
 type CodeControl = FormControl<string>
@@ -26,7 +27,7 @@ interface CodeVerificationParams extends Record<string, unknown> {
 
 @Component({
 	selector: 'app-code-verification',
-	imports: [CommonModule, ReactiveFormsModule],
+	imports: [CommonModule, ReactiveFormsModule, TranslateModule],
 	templateUrl: './code-verification.component.html',
 	styleUrls: ['./code-verification.component.scss'],
 })
@@ -36,6 +37,7 @@ export class CodeVerificationComponent extends BasePageComponent<CodeVerificatio
 	private readonly formBuilder = inject(FormBuilder)
 	private readonly notificationService = inject(NotificationService)
 	private readonly authStore = inject(AuthStore)
+	private readonly translate = inject(TranslateService)
 	private validateCode: ValidateCodeInterface = createValidateCode()
 
 	protected override onInit(): void {
@@ -115,7 +117,7 @@ export class CodeVerificationComponent extends BasePageComponent<CodeVerificatio
 
 		this.authStore.validateCode(this.validateCode).subscribe({
 			next: () => {
-				this.notificationService.showSuccess('Código de recuperação validado com sucesso.')
+				this.notificationService.showSuccess(this.translate.instant('auth.messages.code_verified'))
 				this.routerService.navigateTo('reset-password', {
 					params: {
 						email: this.validateCode.email,

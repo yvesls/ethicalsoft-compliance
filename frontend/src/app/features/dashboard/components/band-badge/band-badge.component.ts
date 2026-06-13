@@ -1,11 +1,12 @@
 import { Component, Input } from '@angular/core';
 import { NgClass } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
 import { Band, BAND_META } from '../../interfaces/dashboard.interface';
 
 @Component({
   selector: 'app-band-badge',
   standalone: true,
-  imports: [NgClass],
+  imports: [NgClass, TranslateModule],
   templateUrl: './band-badge.component.html',
   styleUrl: './band-badge.component.scss',
 })

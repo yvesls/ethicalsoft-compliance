@@ -1,6 +1,7 @@
 import {
   CommonModule
 } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
@@ -18,7 +19,7 @@ import {
 @Component({
   selector: 'app-accordion-panel',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslateModule],
   templateUrl: './accordion-panel.component.html',
   styleUrls: ['./accordion-panel.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,

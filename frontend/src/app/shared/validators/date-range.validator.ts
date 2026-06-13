@@ -1,19 +1,8 @@
 import { AbstractControl, ValidationErrors, ValidatorFn } from "@angular/forms";
-
-/**
- * Validador de grupo para garantir que a data de início
- * não seja posterior à data limite (deadline).
- *
- * @param startDateKey
- * @param deadlineKey
- */
 export function dateRangeValidator(
   startDateKey: string,
   deadlineKey: string,
-  message?: string
 ): ValidatorFn {
-  const defaultMessage = 'A data de início não pode ser posterior ao prazo limite.';
-
   return (control: AbstractControl): ValidationErrors | null => {
     const startDateControl = control.get(startDateKey);
     const deadlineControl = control.get(deadlineKey);
@@ -23,9 +12,9 @@ export function dateRangeValidator(
     }
 
     if (startDateControl.hasError('dateOrder')) {
-  const errors = startDateControl.errors ? { ...startDateControl.errors } : {};
-  delete errors['dateOrder'];
-  startDateControl.setErrors(Object.keys(errors).length > 0 ? errors : null);
+      const errors = startDateControl.errors ? { ...startDateControl.errors } : {};
+      delete errors['dateOrder'];
+      startDateControl.setErrors(Object.keys(errors).length > 0 ? errors : null);
     }
 
     const startDateStr = startDateControl.value;
@@ -45,14 +34,11 @@ export function dateRangeValidator(
     const deadlineDate = new Date(Number(endParts[0]), Number(endParts[1]) - 1, Number(endParts[2]));
 
     if (startDate > deadlineDate) {
-      const errorMessage = message || defaultMessage;
       startDateControl.setErrors({
         ...startDateControl.errors,
-        dateOrder: errorMessage
+        dateOrder: true,
       });
-      return {
-        dateOrder: errorMessage
-      } satisfies ValidationErrors;
+      return { dateOrder: true } satisfies ValidationErrors;
     }
 
     return null;

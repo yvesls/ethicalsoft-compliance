@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, Input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { ModalService } from '../../../../core/services/modal.service';
 import { NotificationService } from '../../../../core/services/notification.service';
@@ -16,33 +17,40 @@ export interface AttachmentModalValue {
 @Component({
   selector: 'app-questionnaire-attachment-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, InputComponent],
+  imports: [CommonModule, ReactiveFormsModule, InputComponent, TranslateModule],
   templateUrl: './questionnaire-attachment-modal.component.html',
   styleUrls: ['./questionnaire-attachment-modal.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class QuestionnaireAttachmentModalComponent implements OnInit {
   @Input() mode: AttachmentModalMode = 'positive';
-  @Input() title = 'Adicionar evidências';
-  @Input() descriptionLabel = 'Observações / evidências';
-  @Input() attachmentsLabel = 'Links de evidências';
+  @Input() title = 'questionnaire.attachment.add_evidence';
+  @Input() descriptionLabel = 'questionnaire.attachment.observations_label';
+  @Input() attachmentsLabel = 'questionnaire.attachment.links_label';
   @Input() initialValue?: AttachmentModalValue;
   @Input() onSave?: (value: AttachmentModalValue) => void;
 
   private readonly fb = inject(FormBuilder);
   private readonly modalService = inject(ModalService);
   private readonly notification = inject(NotificationService);
+  private readonly translate = inject(TranslateService);
 
   readonly descriptionMaxLength = 500;
   private readonly urlPattern = /^https?:\/\/[^\s]+$/i;
-  readonly linkValidationMessages: Record<string, string> = {
-    required: 'Informe um link ou remova o campo.',
-    pattern: 'Digite um endereço iniciando com http:// ou https://.',
-  };
-  readonly descriptionValidationMessages: Record<string, string> = {
-    required: 'Descreva o que será acessado por este link.',
-    minlength: 'Use pelo menos 3 caracteres.',
-  };
+
+  get linkValidationMessages(): Record<string, string> {
+    return {
+      required: this.translate.instant('questionnaire.attachment.link_required'),
+      pattern: this.translate.instant('questionnaire.attachment.link_pattern'),
+    };
+  }
+
+  get descriptionValidationMessages(): Record<string, string> {
+    return {
+      required: this.translate.instant('questionnaire.attachment.desc_required'),
+      minlength: this.translate.instant('questionnaire.attachment.desc_minlength'),
+    };
+  }
 
   readonly form: FormGroup = this.fb.group({
     note: this.fb.control('', [
@@ -80,7 +88,7 @@ export class QuestionnaireAttachmentModalComponent implements OnInit {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       this.attachments.markAllAsTouched();
-      this.notification.showWarning('Preencha as evidências/justificativas antes de salvar.');
+      this.notification.showWarning(this.translate.instant('questionnaire.attachment.incomplete_error'));
       return;
     }
 
@@ -106,15 +114,15 @@ export class QuestionnaireAttachmentModalComponent implements OnInit {
 
   private applyModeLabels(): void {
     if (this.mode === 'positive') {
-      this.title = 'Adicionar evidências';
-      this.descriptionLabel = 'Observações ou contexto adicional';
-      this.attachmentsLabel = 'Links de evidências';
+      this.title = 'questionnaire.attachment.add_evidence';
+      this.descriptionLabel = 'questionnaire.attachment.observations_context';
+      this.attachmentsLabel = 'questionnaire.attachment.links_label';
       return;
     }
 
-    this.title = 'Adicionar justificativa';
-    this.descriptionLabel = 'Justificativa ou observações';
-    this.attachmentsLabel = 'Links para documentos de suporte';
+    this.title = 'questionnaire.attachment.add_justification';
+    this.descriptionLabel = 'questionnaire.attachment.justification_label';
+    this.attachmentsLabel = 'questionnaire.attachment.links_support';
   }
 
   private initializeFormValues(): void {

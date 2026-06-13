@@ -119,7 +119,6 @@ public class DashboardSnapshotAssembler {
                 .filter(r -> QuestionnaireResponseStatus.COMPLETED.equals(r.getStatus()))
                 .toList();
 
-        // Build question → domain map
         Set<Long> allQuestionIds = responses.stream()
                 .filter(r -> r.getAnswers() != null)
                 .flatMap(r -> r.getAnswers().stream())

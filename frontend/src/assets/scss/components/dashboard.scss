@@ -68,6 +68,19 @@
 	box-shadow: $box-shadow-primary;
 }
 
+// --- Cabecalho de card com titulo e icone de info ---
+
+.dash-card-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: var(--spacing-r-md);
+
+	.dash-section-title {
+		margin-bottom: 0;
+	}
+}
+
 // --- Titulos de secao dentro de cards ---
 
 .dash-section-title {
@@ -88,6 +101,12 @@
 	flex-direction: column;
 	gap: var(--spacing-r-md);
 
+	.kpi-label-row {
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
+	}
+
 	.kpi-label {
 		font-size: 0.75rem;
 		color: $neutral-text-light;
@@ -95,6 +114,12 @@
 		text-transform: uppercase;
 		letter-spacing: 0.05em;
 		margin: 0;
+	}
+
+	.kpi-band-row {
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
 	}
 
 	.kpi-value {

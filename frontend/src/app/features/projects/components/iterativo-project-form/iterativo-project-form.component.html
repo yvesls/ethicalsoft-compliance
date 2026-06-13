@@ -1,7 +1,12 @@
 <form [formGroup]="projectForm" (ngSubmit)="onSubmit()">
 
+  <div class="form-help-row">
+    <app-info-explainer key="compliance_score" />
+    <app-info-explainer key="project_iteration" />
+  </div>
+
   <app-accordion-panel
-    title="Projeto"
+    [title]="'projects.sections.project' | translate"
     [required]="true"
     [isOpenExternal]="panelStates.project"
     [disabled]="false"
@@ -10,8 +15,8 @@
   >
     <div class="form-grid form-grid-4">
       <app-select
-        label="Template"
-        placeholder="Selecione o template"
+        [label]="'projects.fields.template' | translate"
+        [placeholder]="'projects.form.template_placeholder' | translate"
         formControlName="template"
         [options]="templateOptions"
         [control]="getControl('template')"
@@ -19,15 +24,15 @@
         [allowClear]="true"
       ></app-select>
       <app-input
-        label="Nome"
-        placeholder="Informe o nome"
+        [label]="'projects.fields.name' | translate"
+        [placeholder]="'projects.form.name_placeholder' | translate"
         formControlName="name"
         [control]="getControl('name')"
         [required]="true"
       ></app-input>
       <app-select
-        label="Tipo"
-        placeholder="Selecione o tipo"
+        [label]="'projects.fields.type' | translate"
+        [placeholder]="'projects.form.type_placeholder' | translate"
         formControlName="type"
         [options]="projectTypeOptions"
         [control]="getControl('type')"
@@ -35,9 +40,9 @@
         [allowClear]="true"
       ></app-select>
       <app-input
-        label="Data de início"
+        [label]="'projects.fields.start_date' | translate"
         type="date"
-        placeholder="Data de início"
+        [placeholder]="'projects.form.start_date_placeholder' | translate"
         formControlName="startDate"
         [control]="getControl('startDate')"
         [required]="true"
@@ -47,8 +52,8 @@
 
     <div class="form-grid form-grid-4">
       <app-input
-        label="Prazo limite"
-        placeholder="Prazo limite"
+        [label]="'projects.fields.deadline' | translate"
+        [placeholder]="'projects.form.deadline_placeholder' | translate"
         type="date"
         formControlName="deadline"
         [control]="getControl('deadline')"
@@ -56,15 +61,15 @@
       >
       </app-input>
       <app-input
-        label="Duração das Iterações (dias úteis)"
-        placeholder="Informe a duração das Iterações"
+        [label]="'projects.form.iteration_duration_label' | translate"
+        [placeholder]="'projects.form.iteration_duration_placeholder' | translate"
         type="number"
         formControlName="iterationDuration"
         [control]="getControl('iterationDuration')"
         [required]="true"
       ></app-input>
       <app-input
-        label="Número de Iterações (calculado)"
+        [label]="'projects.form.iteration_count_label' | translate"
         type="number"
         formControlName="iterationCount"
         [control]="getControl('iterationCount')"
@@ -72,13 +77,24 @@
       ></app-input>
     </div>
 
+    <div class="form-grid form-grid-4">
+      <div class="form-span-full">
+        <app-multi-select
+          [label]="'project.ai_usage.label' | translate"
+          formControlName="aiUsageScopes"
+          [options]="aiUsageScopeOptions"
+          [placeholder]="'project.ai_usage.placeholder' | translate"
+        />
+      </div>
+    </div>
+
     <div class="panel-actions">
-      <button type="button" class="btn btn-primary" (click)="continueToNextPanel('project')">Continuar</button>
+      <button type="button" class="btn btn-primary" (click)="continueToNextPanel('project')">{{ 'common.continue' | translate }}</button>
     </div>
   </app-accordion-panel>
 
   <app-accordion-panel
-    title="Etapas"
+    [title]="'projects.sections.stages' | translate"
     [required]="true"
     [isOpenExternal]="panelStates.stages"
     [disabled]="!canOpenPanel('stages')"
@@ -89,9 +105,9 @@
       <table class="steps-table steps-table-iterativo">
         <thead>
           <tr>
-            <th>Nome da etapa</th>
-            <th>Peso</th>
-            <th>Ação</th>
+            <th>{{ 'projects.form.step_name_col' | translate }}</th>
+            <th>{{ 'projects.fields.weight' | translate }}</th>
+            <th>{{ 'projects.form.action_col' | translate }}</th>
           </tr>
         </thead>
         <tbody formArrayName="stages">
@@ -103,19 +119,19 @@
                 <button
                   type="button"
                   class="btn-icon btn-edit"
-                  title="Editar etapa"
+                  [title]="'projects.form.edit_step' | translate"
                   (click)="editStage(i)"
                 >
-                  <img src="assets/icons/pen-edit.svg" alt="Editar" />
+                  <img src="assets/icons/pen-edit.svg" [attr.alt]="'common.edit' | translate" />
                 </button>
                 <button
                   type="button"
                   class="btn-icon btn-delete"
-                  title="Remover etapa"
+                  [title]="'projects.form.remove_step' | translate"
                   (click)="removeStage(i)"
                   [disabled]="stagesFormArray.length === 1"
                 >
-                  <img src="assets/icons/trash.svg" alt="Remover" />
+                  <img src="assets/icons/trash.svg" [attr.alt]="'common.remove' | translate" />
                 </button>
               </td>
             </tr>
@@ -129,17 +145,17 @@
             (click)="addStage()"
           >
             <span class="plus-icon">+</span>
-            Adicionar etapa
+            {{ 'projects.form.add_step' | translate }}
           </button>
       </div>
       <div class="panel-actions">
-        <button type="button" class="btn btn-primary" (click)="continueToNextPanel('stages')">Continuar</button>
+        <button type="button" class="btn btn-primary" (click)="continueToNextPanel('stages')">{{ 'common.continue' | translate }}</button>
       </div>
     </div>
   </app-accordion-panel>
 
   <app-accordion-panel
-    title="Representantes"
+    [title]="'projects.sections.representatives' | translate"
     [required]="true"
     [isOpenExternal]="panelStates.representatives"
     [disabled]="!canOpenPanel('representatives')"
@@ -150,12 +166,12 @@
       <table class="steps-table representatives-table">
         <thead>
           <tr>
-            <th>Nome</th>
-            <th class="text-start">Sobrenome</th>
-            <th class="text-start">Email</th>
-            <th>Peso</th>
-            <th class="text-start">Encargos</th>
-            <th>Ação</th>
+            <th>{{ 'projects.fields.name' | translate }}</th>
+            <th class="text-start">{{ 'projects.fields.last_name' | translate }}</th>
+            <th class="text-start">{{ 'projects.fields.email' | translate }}</th>
+            <th>{{ 'projects.fields.weight' | translate }}</th>
+            <th class="text-start">{{ 'projects.fields.charges' | translate }}</th>
+            <th>{{ 'projects.form.action_col' | translate }}</th>
           </tr>
         </thead>
         <tbody formArrayName="representatives">
@@ -170,18 +186,18 @@
                 <button
                   type="button"
                   class="btn-icon btn-edit"
-                  title="Editar representante"
+                  [title]="'projects.form.edit_representative' | translate"
                   (click)="editRepresentative(i)"
                 >
-                  <img src="assets/icons/pen-edit.svg" alt="Editar" />
+                  <img src="assets/icons/pen-edit.svg" [attr.alt]="'common.edit' | translate" />
                 </button>
                 <button
                   type="button"
                   class="btn-icon btn-delete"
-                  title="Remover representante"
+                  [title]="'projects.form.remove_representative' | translate"
                   (click)="removeRepresentative(i)"
                 >
-                  <img src="assets/icons/trash.svg" alt="Remover" />
+                  <img src="assets/icons/trash.svg" [attr.alt]="'common.remove' | translate" />
                 </button>
               </td>
             </tr>
@@ -194,17 +210,17 @@
           class="btn btn-secundary"
           (click)="addRepresentative()"
         >
-          <span class="plus-icon">+</span> Adicionar representante
+          <span class="plus-icon">+</span> {{ 'projects.form.add_representative' | translate }}
         </button>
       </div>
       <div class="panel-actions">
-        <button type="button" class="btn btn-primary" (click)="continueToNextPanel('representatives')">Continuar</button>
+        <button type="button" class="btn btn-primary" (click)="continueToNextPanel('representatives')">{{ 'common.continue' | translate }}</button>
       </div>
     </div>
   </app-accordion-panel>
 
   <app-accordion-panel
-    title="Questionários"
+    [title]="'projects.sections.questionnaires' | translate"
     [required]="true"
     [isOpenExternal]="panelStates.questionnaires"
     [disabled]="!canOpenPanel('questionnaires')"
@@ -216,11 +232,11 @@
         <table class="questionnaires-table">
           <thead>
             <tr>
-              <th>Nome</th>
-              <th class="text-start">Iteração</th>
-              <th class="text-center">Peso</th>
-              <th class="text-start">Faixa de aplicação</th>
-              <th class="text-center">Ação</th>
+              <th>{{ 'projects.fields.name' | translate }}</th>
+              <th class="text-start">{{ 'projects.form.iteration_col' | translate }}</th>
+              <th class="text-center">{{ 'projects.fields.weight' | translate }}</th>
+              <th class="text-start">{{ 'projects.form.date_range_col' | translate }}</th>
+              <th class="text-center">{{ 'projects.form.action_col' | translate }}</th>
             </tr>
           </thead>
           <tbody formArrayName="questionnaires">
@@ -234,10 +250,10 @@
                   <button
                     type="button"
                     class="btn-icon"
-                    title="Editar questionário"
+                    [title]="'projects.form.edit_questionnaire' | translate"
                     (click)="editQuestionnaire(i)"
                   >
-                    <img src="assets/icons/pen-edit.svg" alt="Editar" />
+                    <img src="assets/icons/pen-edit.svg" [attr.alt]="'common.edit' | translate" />
                   </button>
                 </td>
               </tr>
@@ -245,7 +261,7 @@
                 <tr class="questionnaire-error-row">
                   <td colspan="5">
                     <div class="questionnaire-error-message">
-                      <img src="assets/icons/exclamation.svg" alt="Erro" class="error-icon" />
+                      <img src="assets/icons/exclamation.svg" [attr.alt]="'common.error' | translate" class="error-icon" />
                       <span>{{ getQuestionnaireQuestionErrorMessage(i) }}</span>
                     </div>
                   </td>
@@ -265,14 +281,14 @@
       [disabled]="isSavingDraft || isSubmitting"
       (click)="saveDraft()"
     >
-      {{ isSavingDraft ? 'Salvando rascunho...' : 'Salvar como Rascunho' }}
+      {{ isSavingDraft ? ('projects.form.saving_draft' | translate) : ('projects.actions.save_draft' | translate) }}
     </button>
     <button
       type="submit"
       class="btn btn-primary"
       [disabled]="projectForm.invalid || isSubmitting || isSavingDraft"
     >
-      {{ isSubmitting ? 'Salvando...' : 'Salvar projeto' }}
+      {{ isSubmitting ? ('projects.form.saving' | translate) : ('projects.actions.save' | translate) }}
     </button>
   </div>
 </form>

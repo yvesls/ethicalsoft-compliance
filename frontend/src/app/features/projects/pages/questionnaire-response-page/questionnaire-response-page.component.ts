@@ -8,6 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { take } from 'rxjs';
@@ -42,7 +43,7 @@ type PageMode = 'respond' | 'view';
 @Component({
   selector: 'app-questionnaire-response-page',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslateModule],
   templateUrl: './questionnaire-response-page.component.html',
   styleUrls: ['./questionnaire-response-page.component.scss'],
   providers: [QuestionnaireAnswerCacheService],
@@ -61,6 +62,7 @@ export class QuestionnaireResponsePageComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly draftCacheService = inject(DraftCacheService);
   private readonly sessionExpirationService = inject(SessionExpirationService);
+  private readonly translate = inject(TranslateService);
 
   private projectId: string | null = null;
   private questionnaireId: number | null = null;
@@ -131,7 +133,7 @@ export class QuestionnaireResponsePageComponent implements OnInit {
 
   openAttachmentModal(answer: QuestionnaireAnswerDocument): void {
     if (answer.response === null) {
-      this.notification.showWarning('Selecione "Sim" ou "Não" antes de anexar evidências.');
+      this.notification.showWarning(this.translate.instant('notifications.response.select_answer_first'));
       return;
     }
 
@@ -165,7 +167,7 @@ export class QuestionnaireResponsePageComponent implements OnInit {
     };
 
     if (!this.projectId || this.questionnaireId === null) {
-      this.notification.showError('Projeto ou questionário inválido.');
+      this.notification.showError(this.translate.instant('notifications.response.invalid_ids'));
       return;
     }
 
@@ -183,7 +185,7 @@ export class QuestionnaireResponsePageComponent implements OnInit {
           const submittedIds = currentAnswers.map((a) => a.questionId);
           this.answerCache.clearSubmitted(submittedIds);
 
-          this.notification.showSuccess('Respostas enviadas com sucesso.');
+          this.notification.showSuccess(this.translate.instant('notifications.response.submit_success'));
           this.loadResponse();
         },
         error: (msg) => this.notification.showError(msg),
@@ -197,7 +199,7 @@ export class QuestionnaireResponsePageComponent implements OnInit {
 
     const currentAnswers = this.answers();
     if (!this.projectId || this.questionnaireId === null) {
-      this.notification.showError('Dados insuficientes para salvar o rascunho.');
+      this.notification.showError(this.translate.instant('notifications.response.draft_no_ids'));
       return;
     }
 
@@ -206,7 +208,7 @@ export class QuestionnaireResponsePageComponent implements OnInit {
     );
 
     if (!answersWithContent.length) {
-      this.notification.showWarning('Nenhuma resposta para salvar como rascunho.');
+      this.notification.showWarning(this.translate.instant('notifications.response.draft_empty'));
       return;
     }
 
@@ -244,7 +246,7 @@ export class QuestionnaireResponsePageComponent implements OnInit {
             this.draftCacheService.remove(draftKey);
           }
 
-          this.notification.showSuccess('Rascunho salvo com sucesso.');
+          this.notification.showSuccess(this.translate.instant('notifications.response.draft_saved'));
         },
         error: (msg) => {
           this.isSavingDraft.set(false);
@@ -284,16 +286,18 @@ export class QuestionnaireResponsePageComponent implements OnInit {
   getRespondentStatusLabel(): string {
     const respondent = this.getCurrentRespondent();
     if (!respondent) {
-      return this.isAdmin() ? 'Administrador' : 'Não associado';
+      return this.isAdmin()
+        ? this.translate.instant('questionnaire.respondent_status.admin')
+        : this.translate.instant('questionnaire.respondent_status.not_associated');
     }
 
     switch (respondent.status) {
       case QuestionnaireResponseStatus.Completed:
-        return 'Respondido';
+        return this.translate.instant('questionnaire.respondent_status.completed');
       case QuestionnaireResponseStatus.InProgress:
-        return 'Em andamento';
+        return this.translate.instant('questionnaire.respondent_status.in_progress');
       default:
-        return 'Pendente';
+        return this.translate.instant('questionnaire.respondent_status.pending');
     }
   }
 
@@ -344,11 +348,11 @@ export class QuestionnaireResponsePageComponent implements OnInit {
     }
 
     if (questionnaire.stageName) {
-      return `Etapa: ${questionnaire.stageName}`;
+      return `${this.translate.instant('projects.detail.stage_label')}: ${questionnaire.stageName}`;
     }
 
     if (questionnaire.iterationName) {
-      return `Iteração: ${questionnaire.iterationName}`;
+      return `${this.translate.instant('projects.detail.iteration_label')}: ${questionnaire.iterationName}`;
     }
 
     return '';
@@ -362,10 +366,10 @@ export class QuestionnaireResponsePageComponent implements OnInit {
 
     const start = questionnaire.applicationStartDate
       ? new Date(questionnaire.applicationStartDate).toLocaleDateString('pt-BR')
-      : 'Sem data inicial';
+      : this.translate.instant('questionnaire.response.no_start_date');
     const end = questionnaire.applicationEndDate
       ? new Date(questionnaire.applicationEndDate).toLocaleDateString('pt-BR')
-      : 'Sem data final';
+      : this.translate.instant('questionnaire.response.no_end_date');
 
     return `${start} - ${end}`;
   }
@@ -410,7 +414,7 @@ export class QuestionnaireResponsePageComponent implements OnInit {
         this.requestedMode = modeFromQuery === 'view' ? 'view' : 'respond';
 
         if (!this.projectId || this.questionnaireId === null || Number.isNaN(this.questionnaireId)) {
-          this.notification.showError('Identificador do questionário inválido.');
+          this.notification.showError(this.translate.instant('notifications.response.invalid_questionnaire_id'));
           this.onNavigateBack();
           return;
         }
@@ -449,7 +453,7 @@ export class QuestionnaireResponsePageComponent implements OnInit {
           this.state.set({ status: 'loaded', error: null, data: mergedPayload });
         },
         error: () => {
-          this.state.set({ status: 'error', error: 'Não foi possível carregar o questionário.', data: null });
+          this.state.set({ status: 'error', error: this.translate.instant('notifications.response.load_error'), data: null });
         },
       });
   }
@@ -457,7 +461,7 @@ export class QuestionnaireResponsePageComponent implements OnInit {
   private resolvePageMode(payload: QuestionnaireResponsePayload): PageMode {
     const respondent = this.getCurrentRespondent(payload);
     if (!respondent) {
-      this.notification.showWarning('Você não está associado a este questionário.');
+      this.notification.showWarning(this.translate.instant('notifications.response.not_associated'));
       this.onNavigateBack();
       return 'view';
     }

@@ -1,7 +1,3 @@
-/**
- * Utilitários para cálculo de dias úteis
- * Implementa a BR08 - Previsão de data limite de resposta dos questionários
- */
 
 export interface BusinessDaysConfig {
   excludeWeekends?: boolean;
@@ -26,13 +22,6 @@ export class BusinessDaysUtils {
     return this.normalizeToLocalDate(date);
   }
 
-  /**
-   * Adiciona dias úteis a uma data, excluindo fins de semana e feriados
-   * @param startDate Data inicial
-   * @param days Número de dias úteis a adicionar
-   * @param config Configuração para exclusão de fins de semana e feriados
-   * @returns Nova data com os dias úteis adicionados
-   */
   static addBusinessDays(
     startDate: Date,
     days: number,
@@ -56,13 +45,6 @@ export class BusinessDaysUtils {
     return result;
   }
 
-  /**
-   * Calcula o número de dias úteis entre duas datas
-   * @param startDate Data inicial
-   * @param endDate Data final
-   * @param config Configuração para exclusão de fins de semana e feriados
-   * @returns Número de dias úteis
-   */
   static calculateBusinessDays(
     startDate: Date,
     endDate: Date,
@@ -87,16 +69,6 @@ export class BusinessDaysUtils {
     return count;
   }
 
-  /**
-   * Calcula a faixa de aplicação de questionário baseado na BR08
-   * - Data de abertura: 10% do esforço da fase
-   * - Data limite: 90% do esforço da fase
-   *
-   * @param stageStartDate Data de início da etapa
-   * @param stageDurationDays Duração da etapa em dias úteis
-   * @param config Configuração para exclusão de fins de semana e feriados
-   * @returns Objeto com as datas de abertura e fechamento
-   */
   static calculateApplicationRange(
     stageStartDate: Date,
     stageDurationDays: number,

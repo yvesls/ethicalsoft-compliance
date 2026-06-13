@@ -1,9 +1,9 @@
 <aside [class.collapsed]="isCollapsed" class="sidebar">
 	<div class="sidebar-layout">
-		<button class="sidebar-toggler" type="button" (click)="toggleSidebar()" aria-label="Alternar sidebar">
+		<button class="sidebar-toggler" type="button" (click)="toggleSidebar()" [attr.aria-label]="'sidebar.toggle' | translate">
 			<img
 				src="../../../../assets/icons/{{ isCollapsed ? 'right' : 'left' }}.svg"
-				alt="Toggle Sidebar"
+				[attr.alt]="'sidebar.toggle' | translate"
 				width="12"
 			/>
 		</button>
@@ -29,11 +29,11 @@
 									@if (item.icon) {
 										<img
 											src="../../../../assets/icons/{{ item.icon }}.svg"
-											alt="{{ item.label }}"
+											[attr.alt]="item.label | translate"
 										/>
 									}
 								</span>
-								<span class="menu-title">{{ item.label }}</span>
+								<span class="menu-title">{{ item.label | translate }}</span>
 							</li>
 						}
 					</ul>
@@ -43,12 +43,15 @@
 
 		<div class="sidebar-footer">
 			<div class="exit">
-				<button (click)="exit()" aria-label="Abrir notificações" class="unstyled-btn">
-					<img src="../../../../assets/icons/exit.svg" alt="exit" />
+				<button (click)="exit()" [attr.aria-label]="'sidebar.exit' | translate" class="unstyled-btn">
+					<img src="../../../../assets/icons/exit.svg" [attr.alt]="'sidebar.exit' | translate" />
 				</button>
 			</div>
-			<div class="footer-box">
-				<span>Version 1.0</span>
+			<div class="footer-meta">
+				<app-language-selector />
+				<div class="footer-box">
+					<span>{{ 'sidebar.version' | translate: { version: '1.0' } }}</span>
+				</div>
 			</div>
 		</div>
 	</div>

@@ -1,0 +1,41 @@
+<div class="language-selector" [class.is-open]="open">
+  <button
+    type="button"
+    class="language-trigger"
+    [attr.aria-label]="'i18n.select_language' | translate"
+    [attr.aria-expanded]="open"
+    [attr.title]="'i18n.select_language' | translate"
+    (click)="toggle($event)"
+  >
+    <img
+      src="assets/icons/language.svg"
+      class="language-icon"
+      [attr.alt]="'i18n.select_language' | translate"
+      aria-hidden="true"
+    />
+    <span class="language-code">{{ shortCode(current) }}</span>
+    <span class="language-chevron" aria-hidden="true">&#9662;</span>
+  </button>
+
+  @if (open) {
+    <ul class="language-list" role="listbox" [attr.aria-label]="'i18n.select_language' | translate">
+      @for (language of languages; track language.code) {
+        <li
+          role="option"
+          tabindex="0"
+          [attr.aria-selected]="language.code === current"
+          [class.active]="language.code === current"
+          (click)="select(language.code, $event)"
+          (keydown.enter)="select(language.code, $event)"
+          (keydown.space)="select(language.code, $event)"
+        >
+          <span class="language-list__code">{{ shortCode(language.code) }}</span>
+          <span class="language-list__label">{{ language.label }}</span>
+          @if (language.code === current) {
+            <span class="language-list__check" aria-hidden="true">&#10003;</span>
+          }
+        </li>
+      }
+    </ul>
+  }
+</div>

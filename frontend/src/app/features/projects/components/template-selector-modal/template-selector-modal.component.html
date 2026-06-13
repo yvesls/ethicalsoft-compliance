@@ -1,5 +1,5 @@
 <div class="modal-header">
-  <h2>Selecionar template</h2>
+  <h2>{{ 'projects.template_selector.title' | translate }}</h2>
   <button class="close-btn" (click)="close()">×</button>
 </div>
 
@@ -8,7 +8,7 @@
     <div class="template-selector">
     <app-select
       label=""
-      placeholder="Selecione o template a partir de um projeto existente"
+      [placeholder]="'projects.template_selector.placeholder' | translate"
       [options]="templateOptions"
       [formControl]="templateControl"
     ></app-select>
@@ -17,7 +17,7 @@
 
   @if (isLoading) {
     <div class="loading">
-      <p>Carregando templates...</p>
+      <p>{{ 'projects.template_selector.loading' | translate }}</p>
     </div>
   }
 </div>
@@ -28,7 +28,7 @@
     class="btn btn-secondary"
     (click)="importFromExternal()"
   >
-    Importar de arquivo externo
+    {{ 'projects.template_selector.import_external' | translate }}
   </button>
 
   <button
@@ -37,6 +37,6 @@
     [disabled]="!templateControl.value"
     (click)="confirm()"
   >
-    Confirmar
+    {{ 'common.confirm' | translate }}
   </button>
 </div>

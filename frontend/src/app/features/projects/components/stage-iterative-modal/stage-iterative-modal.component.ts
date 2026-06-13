@@ -1,5 +1,6 @@
 import { Component, Output, EventEmitter, inject, ChangeDetectorRef, ChangeDetectionStrategy, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { ModalService } from '../../../../core/services/modal.service';
 import { InputComponent } from '../../../../shared/components/input/input.component';
@@ -14,7 +15,7 @@ export interface StageIterativeData {
 @Component({
   selector: 'app-stage-iterative-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, InputComponent],
+  imports: [CommonModule, ReactiveFormsModule, InputComponent, TranslateModule],
   templateUrl: './stage-iterative-modal.component.html',
   styleUrls: ['./stage-iterative-modal.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -29,11 +30,12 @@ export interface StageIterativeData {
   private modalService = inject(ModalService);
   private fb = inject(FormBuilder);
   private cdr = inject(ChangeDetectorRef);
+  private readonly translate = inject(TranslateService);
 
   form!: FormGroup;
   actionType: ActionType = ActionType.CREATE;
   stageData?: StageIterativeData;
-  modalTitle = 'Criar nova etapa';
+  modalTitle = '';
 
   constructor() {
     this.initializeForm();
@@ -98,9 +100,11 @@ export interface StageIterativeData {
   }
 
   private updateModalTitle(): void {
-    this.modalTitle = this.actionType === ActionType.EDIT
-      ? 'Editar etapa'
-      : 'Criar nova etapa';
+    this.modalTitle = this.translate.instant(
+      this.actionType === ActionType.EDIT
+        ? 'projects.stage_iterative.edit_title'
+        : 'projects.stage_iterative.create_title'
+    );
   }
 
   confirm(): void {

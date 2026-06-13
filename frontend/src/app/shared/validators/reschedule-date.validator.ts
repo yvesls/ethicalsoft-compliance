@@ -6,9 +6,9 @@ export class RescheduleDateValidators {
   static endDateAfterStartDate(
     startDateKey: string,
     endDateKey: string,
-    message?: string
+    message = ''
   ): ValidatorFn {
-    const defaultMessage = 'A data de término não pode ser anterior à data de início.';
+    const defaultMessage = message;
 
     return (control: AbstractControl): ValidationErrors | null => {
       const startControl = control.get(startDateKey);
@@ -43,7 +43,7 @@ export class RescheduleDateValidators {
   static startDateNotBefore(
     startDateKey: string,
     getReferenceDate: () => string | null,
-    referenceName = 'data de referência'
+    getErrorMessage: (formattedDate: string) => string
   ): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
       const startControl = control.get(startDateKey);
@@ -62,7 +62,7 @@ export class RescheduleDateValidators {
 
       if (start < referenceDate) {
         const formatted = BusinessDaysUtils.formatDateBR(referenceDate);
-        const errorMessage = `A data de início não pode ser anterior à ${referenceName} (${formatted}).`;
+        const errorMessage = getErrorMessage(formatted);
 
         startControl.setErrors({
           ...startControl.errors,

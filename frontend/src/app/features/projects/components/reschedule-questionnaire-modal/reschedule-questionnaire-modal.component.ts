@@ -10,6 +10,7 @@ import {
   inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import {
   FormControl,
   FormGroup,
@@ -34,7 +35,7 @@ export interface RescheduleModalInput {
 @Component({
   selector: 'app-reschedule-questionnaire-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, InputComponent],
+  imports: [CommonModule, ReactiveFormsModule, InputComponent, TranslateModule],
   templateUrl: './reschedule-questionnaire-modal.component.html',
   styleUrls: ['./reschedule-questionnaire-modal.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -49,6 +50,7 @@ export class RescheduleQuestionnaireModalComponent implements OnInit, OnDestroy 
 
   private readonly modalService = inject(ModalService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly translate = inject(TranslateService);
   private readonly destroy$ = new Subject<void>();
 
   form!: FormGroup;
@@ -72,12 +74,13 @@ export class RescheduleQuestionnaireModalComponent implements OnInit, OnDestroy 
         validators: [
           RescheduleDateValidators.endDateAfterStartDate(
             'newApplicationStartDate',
-            'newApplicationEndDate'
+            'newApplicationEndDate',
+            this.translate.instant('projects.reschedule.validator_end_before_start')
           ),
           RescheduleDateValidators.startDateNotBefore(
             'newApplicationStartDate',
             () => this.projectStartDate,
-            'data de início do projeto'
+            (date) => this.translate.instant('projects.reschedule.validator_start_before_ref', { date })
           ),
         ],
       }
@@ -128,7 +131,7 @@ export class RescheduleQuestionnaireModalComponent implements OnInit, OnDestroy 
 
     const today = new Date().toISOString().split('T')[0];
     this.warningMessage = start <= today
-      ? 'Ao definir a data de início para hoje ou uma data passada, o status do questionário será alterado para "Em Andamento" imediatamente.'
+      ? this.translate.instant('projects.reschedule.warning_start_today')
       : '';
   }
 

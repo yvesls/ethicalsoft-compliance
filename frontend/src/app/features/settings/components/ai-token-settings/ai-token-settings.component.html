@@ -1,0 +1,81 @@
+<div class="ai-token-settings">
+  <div class="settings-card">
+    <div class="card-header">
+      <i class="bi bi-robot"></i>
+      <h2>{{ 'ai.token.title' | translate }}</h2>
+    </div>
+
+    <div class="info-block">
+      <p>{{ 'ai.token.info.why_para1' | translate }}</p>
+      <p>{{ 'ai.token.info.why_para2' | translate }}</p>
+    </div>
+
+    <div class="security-block">
+      <h3>{{ 'ai.token.info.security_title' | translate }}</h3>
+      <ul>
+        <li>{{ 'ai.token.info.security_item1' | translate }}</li>
+        <li>{{ 'ai.token.info.security_item2' | translate }}</li>
+        <li>{{ 'ai.token.info.security_item3' | translate }}</li>
+        <li>{{ 'ai.token.info.security_item4' | translate }}</li>
+        <li>{{ 'ai.token.info.security_item5' | translate }}</li>
+      </ul>
+    </div>
+
+    <div class="instructions-block">
+      <h3>{{ 'ai.token.info.instructions_title' | translate }}</h3>
+      <ol>
+        <li>{{ 'ai.token.info.instructions_step1' | translate }}</li>
+        <li>{{ 'ai.token.info.instructions_step2' | translate }}</li>
+        <li>{{ 'ai.token.info.instructions_step3' | translate }}</li>
+        <li>{{ 'ai.token.info.instructions_step4' | translate }}</li>
+      </ol>
+    </div>
+
+    <div class="status-block">
+      <span class="status-label">{{ 'ai.token.status_label' | translate }}</span>
+      @if (status()?.configured) {
+        <span class="status-badge status-badge--ok">
+          <i class="bi bi-check-circle-fill"></i>
+          {{ 'ai.token.status.configured' | translate }}
+          @if (status()?.tokenHint) { · {{ status()!.tokenHint }} }
+        </span>
+      } @else {
+        <span class="status-badge status-badge--warn">
+          <i class="bi bi-exclamation-circle-fill"></i>
+          {{ 'ai.token.status.notConfigured' | translate }}
+        </span>
+      }
+    </div>
+
+    <div class="form-block">
+      <form [formGroup]="form" (ngSubmit)="save()">
+        <div class="token-input-wrapper">
+          <input
+            [type]="showToken() ? 'text' : 'password'"
+            formControlName="token"
+            class="form-control"
+            [placeholder]="'ai.token.form.placeholder' | translate"
+            autocomplete="off"
+          />
+          <button type="button" class="toggle-btn" (click)="toggleShowToken()">
+            <i [class]="showToken() ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+            {{ (showToken() ? 'ai.token.form.hideToken' : 'ai.token.form.showToken') | translate }}
+          </button>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" [disabled]="form.invalid || saving()">
+            <i class="bi bi-save"></i>
+            {{ saving() ? ('common.saving' | translate) : ('ai.token.form.save' | translate) }}
+          </button>
+          @if (status()?.configured) {
+            <button type="button" class="btn btn-danger" [disabled]="removing()" (click)="remove()">
+              <i class="bi bi-trash"></i>
+              {{ removing() ? ('common.loading' | translate) : ('ai.token.form.remove' | translate) }}
+            </button>
+          }
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

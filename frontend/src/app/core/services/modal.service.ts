@@ -4,6 +4,7 @@ import { FormGroup } from '@angular/forms'
 import { NavigationExtras, NavigationStart, Router } from '@angular/router'
 import { Observable, Subject } from 'rxjs'
 import { filter } from 'rxjs/operators'
+import { TranslateService } from '@ngx-translate/core'
 import { NotificationService } from './notification.service'
 import { LoggerService } from './logger.service'
 
@@ -14,6 +15,7 @@ export class ModalService implements OnDestroy {
 	private readonly appRef = inject(ApplicationRef)
 	private readonly notificationService = inject(NotificationService)
 	private readonly router = inject(Router)
+	private readonly translate = inject(TranslateService)
 
 	private modalRef: ComponentRef<unknown> | null = null
 	private modalElement: HTMLElement | null = null
@@ -60,7 +62,7 @@ export class ModalService implements OnDestroy {
 
 			this.isConfirming = true
 			this.notificationService.showConfirm(
-				'Você tem alterações não salvas. Deseja sair mesmo assim?',
+				this.translate.instant('common.unsaved_changes_navigate'),
 				() => {
 					this.isConfirming = false
 					this.close()
@@ -124,7 +126,7 @@ export class ModalService implements OnDestroy {
 		if (form?.touched && !this.isConfirming) {
 			this.isConfirming = true
 			this.notificationService.showConfirm(
-				'Você tem alterações não salvas. Deseja fechar mesmo assim?',
+				this.translate.instant('common.unsaved_changes_close'),
 				() => {
 					this.isConfirming = false
 					this.close()

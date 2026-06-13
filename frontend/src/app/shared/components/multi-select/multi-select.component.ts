@@ -6,9 +6,11 @@ import {
   ElementRef,
   HostListener,
   OnInit,
+  inject,
   signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import {
   ControlValueAccessor,
   NG_VALUE_ACCESSOR,
@@ -26,7 +28,7 @@ export interface MultiSelectOption {
 @Component({
   selector: 'app-multi-select',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslateModule],
   templateUrl: './multi-select.component.html',
   styleUrls: ['./multi-select.component.scss'],
   providers: [
@@ -40,7 +42,8 @@ export interface MultiSelectOption {
 export class MultiSelectComponent implements ControlValueAccessor, OnInit {
   @Input() label = '';
   @Input() id = '';
-  @Input() placeholder = 'Selecione...';
+  @Input() placeholder = 'common.select';
+  private readonly translate = inject(TranslateService);
   @Input() required = false;
   @Input() labelClasses = '';
   @Input() validationMessages: Record<string, string> = {};
@@ -181,14 +184,14 @@ export class MultiSelectComponent implements ControlValueAccessor, OnInit {
 
   get displayText(): string {
     const count = this.selectedValues.length;
-    if (count === 0) return this.placeholder;
+    if (count === 0) return this.translate.instant(this.placeholder);
     if (count === 1) {
       const option = this.options.find(
         (o) => o.value === this.selectedValues[0]
       );
-      return option?.label || this.placeholder;
+      return option?.label || this.translate.instant(this.placeholder);
     }
-    return `${count} ${count === 1 ? 'item selecionado' : 'itens selecionados'}`;
+    return `${count} ${this.translate.instant('common.items_selected')}`;
   }
 
   get hasRemovableItems(): boolean {
@@ -218,9 +221,9 @@ export class MultiSelectComponent implements ControlValueAccessor, OnInit {
       }
 
       if (typeof errorValue === 'object' && errorValue && 'message' in errorValue) {
-        return (errorValue as { message?: string }).message ?? 'Campo inválido';
+        return (errorValue as { message?: string }).message ?? this.translate.instant('shared.validation.invalid_field');
       }
-      return `Campo inválido`;
+      return this.translate.instant('shared.validation.invalid_field');
     });
   }
 }

@@ -1,5 +1,6 @@
-import { Component, Input, forwardRef, OnInit } from '@angular/core'
+import { Component, Input, forwardRef, OnInit, inject } from '@angular/core'
 import { CommonModule } from '@angular/common'
+import { TranslateModule, TranslateService } from '@ngx-translate/core'
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, AbstractControl } from '@angular/forms'
 import { noop } from 'rxjs'
 import { capitalizeWords } from '../../../core/utils/common-utils'
@@ -9,7 +10,7 @@ type InputValue = string | number | null
 @Component({
   selector: 'app-input',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslateModule],
   templateUrl: './input.component.html',
   styleUrls: ['./input.component.scss'],
   providers: [
@@ -21,6 +22,8 @@ type InputValue = string | number | null
   ],
 })
 export class InputComponent implements ControlValueAccessor, OnInit {
+  private readonly translate = inject(TranslateService)
+
   @Input() label = ''
   @Input() type = 'text'
   @Input() id = ''
@@ -128,6 +131,15 @@ export class InputComponent implements ControlValueAccessor, OnInit {
         return this.validationMessages[key];
       }
 
+      const knownKeys: Record<string, string> = {
+        minDateToday: 'shared.validation.min_date_today',
+        dateOrder: 'shared.validation.date_order',
+        invalidDate: 'shared.validation.invalid_date',
+      };
+      if (knownKeys[key]) {
+        return this.translate.instant(knownKeys[key]);
+      }
+
       const errorValue = errors[key as keyof typeof errors];
 
       if (typeof errorValue === 'string') {
@@ -135,9 +147,9 @@ export class InputComponent implements ControlValueAccessor, OnInit {
       }
 
       if (typeof errorValue === 'object' && errorValue && 'message' in errorValue) {
-        return (errorValue as { message?: string }).message ?? 'Campo inválido';
+        return (errorValue as { message?: string }).message ?? this.translate.instant('shared.validation.invalid_field');
       }
-      return `Campo inválido`;
+      return this.translate.instant('shared.validation.invalid_field');
     });
   }
 

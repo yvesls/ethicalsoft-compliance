@@ -1,21 +1,21 @@
 <header>
 	<div class="header-left">
 		@if (canGoBack) {
-			<button class="unstyled-btn back-btn" (click)="goBack()" aria-label="Voltar">
-				<img src="../../../../assets/icons/arrow-left.svg" alt="Voltar" height="18px" />
+			<button class="unstyled-btn back-btn" (click)="goBack()" [attr.aria-label]="'header.back' | translate">
+				<img src="../../../../assets/icons/arrow-left.svg" [attr.alt]="'header.back' | translate" height="18px" />
 			</button>
 		}
 		<h2 class="breadcrumb">
 			@for (segment of routeSegments; track segment.path; let last = $last) {
 				@if (!last) {
 					@if (segment.clickable) {
-						<a class="breadcrumb-link" [routerLink]="segment.path">{{ segment.label }}</a>
+						<a class="breadcrumb-link" [routerLink]="segment.path">{{ segment.label | translate }}</a>
 					} @else {
-						<span class="breadcrumb-label">{{ segment.label }}</span>
+						<span class="breadcrumb-label">{{ segment.label | translate }}</span>
 					}
 					<span class="breadcrumb-separator"> &gt; </span>
 				} @else {
-					<span class="breadcrumb-current">{{ segment.label }}</span>
+					<span class="breadcrumb-current">{{ segment.label | translate }}</span>
 				}
 			}
 		</h2>
@@ -23,8 +23,8 @@
 	<div class="notification-section">
 		<ul>
 			<li>
-				<button (click)="openNotifications()" aria-label="Abrir notificações" class="unstyled-btn notification-toggle">
-					<img src="../../../../assets/icons/notification.svg" alt="Notificações" height="20px" />
+				<button (click)="openNotifications()" [attr.aria-label]="'header.open_notifications' | translate" class="unstyled-btn notification-toggle">
+					<img src="../../../../assets/icons/notification.svg" [attr.alt]="'header.notifications_title' | translate" height="20px" />
 					@if (unreadCount > 0) {
 						<span class="notification-badge">{{ unreadCount }}</span>
 					}
@@ -32,15 +32,15 @@
 				@if (isPanelOpen) {
 					<div class="notification-panel">
 						<div class="notification-panel__header">
-							<span>Notificações</span>
+							<span>{{ 'header.notifications_title' | translate }}</span>
 							<div class="notification-panel__header-actions">
 								@if (unreadCount > 0) {
-									<button class="unstyled-btn icon-btn" title="Marcar todas como lidas" (click)="markAllAsRead()" [disabled]="isLoading || isMarkingAll">
-										<img src="../../../../assets/icons/envelopes-bulkl.svg" alt="Marcar todas como lidas" height="18px" />
+									<button class="unstyled-btn icon-btn" [title]="'header.mark_all_read' | translate" (click)="markAllAsRead()" [disabled]="isLoading || isMarkingAll">
+										<img src="../../../../assets/icons/envelopes-bulkl.svg" [attr.alt]="'header.mark_all_read' | translate" height="18px" />
 									</button>
 								}
-								<button class="unstyled-btn icon-btn" title="Recarregar" (click)="loadNotifications()" [disabled]="isLoading">
-									<img src="../../../../assets/icons/reload-arrow.svg" alt="Recarregar" height="16px" />
+								<button class="unstyled-btn icon-btn" [title]="'header.reload' | translate" (click)="loadNotifications()" [disabled]="isLoading">
+									<img src="../../../../assets/icons/reload-arrow.svg" [attr.alt]="'header.reload' | translate" height="16px" />
 								</button>
 							</div>
 						</div>
@@ -71,18 +71,18 @@
 												<small>{{ n.createdAt | date: 'short' }}</small>
 											</div>
 											<div class="notification-item__actions">
-												<button class="unstyled-btn icon-btn" title="Marcar como lida" (click)="markAsRead(n)" [disabled]="n.status === 'READ'">
-													<img src="../../../../assets/icons/envelope-open.svg" alt="Marcar como lida" height="16px" />
+												<button class="unstyled-btn icon-btn" [title]="'header.mark_as_read' | translate" (click)="markAsRead(n)" [disabled]="n.status === 'READ'">
+													<img src="../../../../assets/icons/envelope-open.svg" [attr.alt]="'header.mark_as_read' | translate" height="16px" />
 												</button>
 											</div>
 										</li>
 									}
 								</ul>
 							} @else {
-								<div class="notification-panel__empty">Sem notificações</div>
+								<div class="notification-panel__empty">{{ 'header.no_notifications' | translate }}</div>
 							}
 						} @else {
-							<div class="notification-panel__loading">Carregando...</div>
+							<div class="notification-panel__loading">{{ 'header.loading' | translate }}</div>
 						}
 					</div>
 				}

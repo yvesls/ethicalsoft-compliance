@@ -1,5 +1,6 @@
 import { Component, OnInit, Output, EventEmitter, inject, Input, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ModalService } from '../../../../core/services/modal.service';
 import { InputComponent } from '../../../../shared/components/input/input.component';
@@ -22,7 +23,7 @@ interface DateRange {
 @Component({
   selector: 'app-create-stage-cascata-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, InputComponent],
+  imports: [CommonModule, ReactiveFormsModule, InputComponent, TranslateModule],
   templateUrl: './create-stage-cascata-modal.component.html',
   styleUrls: ['./create-stage-cascata-modal.component.scss']
 })

@@ -9,6 +9,7 @@ import { AuthStore } from '../../../shared/stores/auth.store'
 import { InputComponent } from '../../../shared/components/input/input.component'
 import { CustomValidators } from '../../../shared/validators/custom.validator'
 import { createRegister, RegisterInterface } from '../../../shared/interfaces/auth/register.interface'
+import { TranslateModule, TranslateService } from '@ngx-translate/core'
 import { TermsComponent } from '../terms/terms.component'
 
 type RegisterFormGroup = FormGroup<{
@@ -36,7 +37,7 @@ interface RegisterFormValue {
 @Component({
 	selector: 'app-register',
 	standalone: true,
-	imports: [CommonModule, ReactiveFormsModule, InputComponent],
+	imports: [CommonModule, ReactiveFormsModule, InputComponent, TranslateModule],
 	templateUrl: './register.component.html',
 	styleUrls: ['./register.component.scss'],
 })
@@ -46,6 +47,7 @@ export class RegisterComponent extends BasePageComponent<RegisterRouteParams> {
 	private readonly authStore = inject(AuthStore)
 	private readonly notificationService = inject(NotificationService)
 	private readonly modalService = inject(ModalService)
+	private readonly translate = inject(TranslateService)
 
 	protected override onInit(): void {
 		this._initForm()
@@ -81,7 +83,7 @@ export class RegisterComponent extends BasePageComponent<RegisterRouteParams> {
 				firstName: this.formBuilder.nonNullable.control('', [Validators.required]),
 				lastName: this.formBuilder.nonNullable.control('', [Validators.required]),
 				email: this.formBuilder.nonNullable.control('', [Validators.required, Validators.email]),
-				password: this.formBuilder.nonNullable.control('', [Validators.required, CustomValidators.passwordValidator()]),
+				password: this.formBuilder.nonNullable.control('', [Validators.required, CustomValidators.passwordValidator(this.translate.instant.bind(this.translate))]),
 				confirmPassword: this.formBuilder.nonNullable.control('', [Validators.required]),
 				acceptedTerms: this.formBuilder.nonNullable.control(false, [Validators.requiredTrue]),
 			},
@@ -106,7 +108,7 @@ export class RegisterComponent extends BasePageComponent<RegisterRouteParams> {
 
 		this.authStore.register(registerPayload).subscribe({
 			next: () => {
-				this.notificationService.showSuccess('Registrado com sucesso.')
+				this.notificationService.showSuccess(this.translate.instant('auth.messages.registered'))
 				this.routerService.navigateTo('login')
 			},
 			error: (error: unknown) => {

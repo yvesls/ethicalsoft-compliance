@@ -10,19 +10,19 @@ export interface MenuItem {
 
 export const MENU_CONFIG: MenuItem[] = [
 	{
-		label: 'Home',
+		label: 'sidebar.home',
 		icon: 'home',
 		route: '/home',
 		roles: [RoleEnum.USER],
 	},
 	{
-		label: 'Projects',
+		label: 'sidebar.projects',
 		icon: 'projects',
 		route: '/projects',
 		roles: [RoleEnum.ADMIN, RoleEnum.USER],
 	},
 	{
-		label: 'Settings',
+		label: 'sidebar.settings',
 		icon: 'settings',
 		route: '/settings',
 		roles: [RoleEnum.ADMIN, RoleEnum.USER],

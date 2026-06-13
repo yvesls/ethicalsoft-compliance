@@ -1,5 +1,6 @@
 package com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model;
 
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.AiUsageScopeEnum;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.ProjectStatusEnum;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.ProjectTypeEnum;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.TimelineStatusEnum;
@@ -72,6 +73,13 @@ public class Project {
 
 	@Column(name = "current_situation", length = 100)
 	private String currentSituation;
+
+	@ElementCollection(targetClass = AiUsageScopeEnum.class, fetch = FetchType.LAZY)
+	@Enumerated(EnumType.STRING)
+	@CollectionTable(name = "project_ai_usage_scopes",
+			joinColumns = @JoinColumn(name = "project_id"))
+	@Column(name = "scope", length = 40, nullable = false)
+	private Set<AiUsageScopeEnum> aiUsageScopes;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "owner_id", nullable = false)

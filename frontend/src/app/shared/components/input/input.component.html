@@ -33,7 +33,7 @@
       >
         <img
           [src]="isPasswordVisible ? 'assets/icons/eye-slash.svg' : 'assets/icons/eye.svg'"
-          alt="Alternar visibilidade da senha"
+          [attr.alt]="'shared_input_toggle_password_alt' | translate"
         />
       </button>
     }

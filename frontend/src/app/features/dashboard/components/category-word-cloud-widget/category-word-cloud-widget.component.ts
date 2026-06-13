@@ -1,16 +1,8 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, Input, OnChanges, inject } from '@angular/core';
 import { NgxEchartsDirective } from 'ngx-echarts';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import type { EChartsOption } from 'echarts';
 import { WordEntry } from '../../interfaces/dashboard.interface';
-
-const DOMAIN_LABELS: Record<string, string> = {
-  ETHICS:   'Ética',
-  PROCESS:  'Processo',
-  QUALITY:  'Qualidade',
-  SECURITY: 'Segurança',
-  ESG:      'ESG',
-  FAIRNESS: 'Fairness',
-};
 
 const DOMAIN_COLORS: Record<string, string[]> = {
   ETHICS:   ['#1565c0', '#0d47a1', '#1976d2', '#42a5f5', '#1e88e5'],
@@ -26,7 +18,7 @@ const DEFAULT_COLORS = ['#1565c0', '#2e7d32', '#6a1b9a', '#00838f', '#c62828', '
 @Component({
   selector: 'app-category-word-cloud-widget',
   standalone: true,
-  imports: [NgxEchartsDirective],
+  imports: [NgxEchartsDirective, TranslateModule],
   templateUrl: './category-word-cloud-widget.component.html',
   styleUrl: './category-word-cloud-widget.component.scss',
 })
@@ -38,6 +30,8 @@ export class CategoryWordCloudWidgetComponent implements OnChanges {
   activeTab = 'GERAL';
   chartOptions: EChartsOption | null = null;
 
+  private readonly translate = inject(TranslateService);
+
   get categoryKeys(): string[] {
     if (!this.categoryWordFrequency) return [];
     return Object.keys(this.categoryWordFrequency).filter(
@@ -46,7 +40,8 @@ export class CategoryWordCloudWidgetComponent implements OnChanges {
   }
 
   domainLabel(key: string): string {
-    return DOMAIN_LABELS[key] ?? key;
+    const translated = this.translate.instant('question_domain.' + key);
+    return translated !== 'question_domain.' + key ? translated : key;
   }
 
   ngOnChanges(): void {
@@ -78,10 +73,12 @@ export class CategoryWordCloudWidgetComponent implements OnChanges {
       return;
     }
 
+    const occurrences = this.translate.instant('dashboard.cwc.occurrences');
+
     (this.chartOptions as unknown) = {
       tooltip: {
         formatter: (params: { name: string; value: number }) =>
-          `${params.name}: <b>${params.value} ocorrências</b>`,
+          `${params.name}: <b>${params.value} ${occurrences}</b>`,
       },
       series: [
         {

@@ -174,15 +174,6 @@ export function equalsArray<T>(a: readonly T[] | null | undefined, b: readonly T
 export function copy<T extends PlainObject>(obj: T): T {
 	return { ...obj }
 }
-
-/**
- * Capitaliza a primeira letra de cada palavra em uma string
- * @param text - Texto a ser capitalizado
- * @returns Texto com a primeira letra de cada palavra em maiúscula
- * @example
- * capitalizeWords('joão da silva') // returns 'João Da Silva'
- * capitalizeWords('MARIA SANTOS') // returns 'Maria Santos'
- */
 export function capitalizeWords(text: string | null | undefined): string {
 	if (!text || typeof text !== 'string') {
 		return ''

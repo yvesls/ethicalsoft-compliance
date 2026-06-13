@@ -1,8 +1,6 @@
 import { AbstractControl, ValidationErrors, ValidatorFn } from "@angular/forms";
 
-export function minDateTodayValidator(message?: string): ValidatorFn {
-  const defaultMessage = 'A data não pode ser anterior a hoje.';
-
+export function minDateTodayValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
     const dateStr = control.value;
 
@@ -12,7 +10,7 @@ export function minDateTodayValidator(message?: string): ValidatorFn {
 
     const parts = dateStr.split('-');
     if (parts.length !== 3) {
-      return { invalidDate: 'Formato de data inválido.' };
+      return { invalidDate: true };
     }
 
     const controlDate = new Date(
@@ -25,9 +23,7 @@ export function minDateTodayValidator(message?: string): ValidatorFn {
     today.setHours(0, 0, 0, 0);
 
     if (controlDate < today) {
-      return {
-        minDateToday: message || defaultMessage
-      };
+      return { minDateToday: true };
     }
 
     return null;

@@ -1,21 +1,24 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, Input, OnChanges, inject } from '@angular/core';
 import { NgxEchartsDirective } from 'ngx-echarts';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import type { EChartsOption } from 'echarts';
 import { IsepHistoryEntry, PersonalEvolutionEntry } from '../../interfaces/dashboard.interface';
 
 @Component({
   selector: 'app-debt-evolution-chart',
   standalone: true,
-  imports: [NgxEchartsDirective],
+  imports: [NgxEchartsDirective, TranslateModule],
   templateUrl: './debt-evolution-chart.component.html',
   styleUrl: './debt-evolution-chart.component.scss',
 })
 export class DebtEvolutionChartComponent implements OnChanges {
   @Input({ required: true }) entries: (IsepHistoryEntry | PersonalEvolutionEntry)[] = [];
-  @Input() title = 'Evolução da Dívida por Iteração';
+  @Input() title = '';
 
   chartOptions: EChartsOption = {};
   hasData = false;
+
+  private readonly translate = inject(TranslateService);
 
   ngOnChanges(): void {
     this.buildChart();
@@ -48,7 +51,7 @@ export class DebtEvolutionChartComponent implements OnChanges {
       },
       legend: {
         bottom: 8,
-        data: ['Dívida Ética', 'Dívida Técnica'],
+        data: [this.translate.instant('dashboard.chart.debt_ethics'), this.translate.instant('dashboard.chart.debt_tech')],
       },
       xAxis: {
         type: 'category',
@@ -65,7 +68,7 @@ export class DebtEvolutionChartComponent implements OnChanges {
       },
       series: [
         {
-          name: 'Dívida Ética',
+          name: this.translate.instant('dashboard.chart.debt_ethics'),
           type: 'line',
           data: ethicsData,
           symbol: 'circle',
@@ -76,7 +79,7 @@ export class DebtEvolutionChartComponent implements OnChanges {
           connectNulls: false,
         },
         {
-          name: 'Dívida Técnica',
+          name: this.translate.instant('dashboard.chart.debt_tech'),
           type: 'line',
           data: techData,
           symbol: 'circle',

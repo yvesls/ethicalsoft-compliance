@@ -11,6 +11,7 @@ import {
 } from '@angular/forms'
 import { RouterModule } from '@angular/router'
 import { catchError, finalize, switchMap, throwError } from 'rxjs'
+import { TranslateModule, TranslateService } from '@ngx-translate/core'
 import { InputComponent } from '../../../shared/components/input/input.component'
 import { NotificationService } from '../../../core/services/notification.service'
 import { AuthStore } from '../../../shared/stores/auth.store'
@@ -31,7 +32,7 @@ type ResetPasswordForm = FormGroup<{
 @Component({
 	selector: 'app-settings-reset-password',
 	standalone: true,
-	imports: [CommonModule, ReactiveFormsModule, RouterModule, InputComponent],
+	imports: [CommonModule, ReactiveFormsModule, RouterModule, InputComponent, TranslateModule],
 	templateUrl: './settings-reset-password.component.html',
 	styleUrl: './settings-reset-password.component.scss',
 })
@@ -42,6 +43,7 @@ export class SettingsResetPasswordComponent implements OnInit {
 	private readonly authenticationService = inject(AuthenticationService)
 	private readonly routerService = inject(RouterService)
 	private readonly modalService = inject(ModalService)
+	private readonly translate = inject(TranslateService)
 
 	private readonly invalidCurrentPasswordError = 'INVALID_CURRENT_PASSWORD'
 
@@ -63,19 +65,25 @@ export class SettingsResetPasswordComponent implements OnInit {
 
 	isSubmitting = false
 
-	readonly passwordValidationMessages = {
-		required: 'Informe a nova senha',
-		minlength: 'A senha deve ter pelo menos 8 caracteres',
-		weakPassword: 'A senha precisa ter letras maiúsculas, minúsculas, números e caracteres especiais',
+	get passwordValidationMessages() {
+		return {
+			required: this.translate.instant('settings.validation.new_password_required'),
+			minlength: this.translate.instant('settings.validation.min_length'),
+			weakPassword: this.translate.instant('settings.validation.weak_password'),
+		}
 	}
 
-	readonly confirmPasswordValidationMessages = {
-		required: 'Confirme a nova senha',
-		passwordsMismatch: 'As senhas precisam ser iguais',
+	get confirmPasswordValidationMessages() {
+		return {
+			required: this.translate.instant('settings.validation.confirm_required'),
+			passwordsMismatch: this.translate.instant('settings.validation.passwords_mismatch'),
+		}
 	}
 
-	readonly currentPasswordValidationMessages = {
-		required: 'Informe a senha atual',
+	get currentPasswordValidationMessages() {
+		return {
+			required: this.translate.instant('settings.validation.current_required'),
+		}
 	}
 
 	ngOnInit(): void {
@@ -102,7 +110,7 @@ export class SettingsResetPasswordComponent implements OnInit {
 
 		const user = this.authenticationService.getCurrentUser()
 		if (!user?.email) {
-			this.notificationService.showError('Não foi possível identificar o usuário logado.')
+			this.notificationService.showError(this.translate.instant('settings.errors.user_not_found'))
 			return
 		}
 
@@ -112,7 +120,7 @@ export class SettingsResetPasswordComponent implements OnInit {
 			.token(this.buildAuthPayload(user.email, currentPassword))
 			.pipe(
 				catchError(() => {
-					this.notificationService.showError('Senha atual não confere.')
+					this.notificationService.showError(this.translate.instant('settings.errors.wrong_password'))
 					return throwError(() => new Error(this.invalidCurrentPasswordError))
 				}),
 				switchMap(() =>
@@ -127,7 +135,7 @@ export class SettingsResetPasswordComponent implements OnInit {
 			.subscribe({
 				next: () => {
 					this.authenticationService.markFirstAccessCompleted()
-					this.notificationService.showSuccess('Senha atualizada com sucesso!')
+					this.notificationService.showSuccess(this.translate.instant('settings.messages.password_updated'))
 					this.form.reset({
 						currentPassword: '',
 						newPassword: '',

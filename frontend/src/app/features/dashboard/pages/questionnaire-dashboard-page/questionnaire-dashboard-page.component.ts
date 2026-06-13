@@ -29,6 +29,9 @@ import { ResponseDetailModalComponent } from '../../components/response-detail-m
 import { RouterService } from '../../../../core/services/router.service';
 import { ProjectContextService } from '../../../../core/services/project-context.service';
 import { RoleEnum } from '../../../../shared/enums/role.enum';
+import { DocumentEmissionService, DocumentEmissionRecordDTO, BulletinEmissionResult } from '../../../../core/services/document-emission.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { InfoExplainerComponent } from '../../../../shared/components/info-explainer/info-explainer.component';
 
 @Component({
   selector: 'app-questionnaire-dashboard-page',
@@ -36,6 +39,7 @@ import { RoleEnum } from '../../../../shared/enums/role.enum';
   imports: [
     DecimalPipe,
     DatePipe,
+    TranslateModule,
     BandBadgeComponent,
     IsepKpiCardComponent,
     BandDistributionChartComponent,
@@ -49,6 +53,7 @@ import { RoleEnum } from '../../../../shared/enums/role.enum';
     AiExplainWidgetComponent,
     AiRiskReportWidgetComponent,
     AiChatWidgetComponent,
+    InfoExplainerComponent,
   ],
   templateUrl: './questionnaire-dashboard-page.component.html',
   styleUrl: './questionnaire-dashboard-page.component.scss',
@@ -61,6 +66,8 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
   private readonly modalService = inject(ModalService);
   private readonly routerService = inject(RouterService);
   private readonly projectContextService = inject(ProjectContextService);
+  private readonly documentEmissionService = inject(DocumentEmissionService);
+  private readonly translate = inject(TranslateService);
 
   projectId!: number;
   questionnaireId!: number;
@@ -72,6 +79,11 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
   loading = signal(true);
   loadError = signal(false);
   forceClosing = signal(false);
+  registeringBulletinEmission = signal(false);
+  downloadingBulletinPdf = signal(false);
+  emittingBulletin = signal(false);
+  emissions = signal<DocumentEmissionRecordDTO[]>([]);
+  loadingEmissions = signal(false);
 
   isAdmin = this.authService.userRoles$.value.includes(RoleEnum.ADMIN);
 
@@ -86,6 +98,18 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
     this.questionnaireId = Number(this.route.snapshot.paramMap.get('questionnaireId'));
     this.projectContextService.setCurrentProjectId(String(this.projectId));
     this.load();
+    this.loadEmissions();
+  }
+
+  loadEmissions(): void {
+    this.loadingEmissions.set(true);
+    this.documentEmissionService.getEmissions(this.projectId, 'NON_COMPLIANCE_BULLETIN', this.questionnaireId).subscribe({
+      next: (list) => {
+        this.emissions.set(list);
+        this.loadingEmissions.set(false);
+      },
+      error: () => this.loadingEmissions.set(false),
+    });
   }
 
   load(): void {
@@ -114,12 +138,12 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
 
         if (!this.dashboard()) {
           this.loadError.set(true);
-          this.notificationService.showError('Não foi possível carregar os dados do dashboard. O ISEP pode ainda não ter sido calculado para este questionário.');
+          this.notificationService.showError(this.translate.instant('dashboard.errors.load_questionnaire_isep'));
         }
       },
       error: () => {
         this.loadError.set(true);
-        this.notificationService.showError('Não foi possível carregar o dashboard do questionário.');
+        this.notificationService.showError(this.translate.instant('dashboard.errors.load_questionnaire'));
         this.loading.set(false);
       },
     });
@@ -141,7 +165,7 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
         a.click();
         URL.revokeObjectURL(url);
       },
-      error: () => this.notificationService.showError('Erro ao exportar JSON.'),
+      error: () => this.notificationService.showError(this.translate.instant('dashboard.errors.export_json')),
     });
   }
 
@@ -162,18 +186,78 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
 
   forceClose(): void {
     this.notificationService.showConfirm(
-      'Tem certeza que deseja encerrar o questionário? O ISEP será calculado com as respostas existentes.',
+      this.translate.instant('dashboard.questionnaire.force_close_confirm'),
       () => {
         this.forceClosing.set(true);
         this.dashboardService.forceCloseQuestionnaire(this.projectId, this.questionnaireId).subscribe({
           next: () => {
-            this.notificationService.showSuccess('Questionário encerrado. ISEP será calculado.');
+            this.notificationService.showSuccess(this.translate.instant('dashboard.questionnaire.closed_success'));
             this.load();
             this.forceClosing.set(false);
           },
           error: () => {
-            this.notificationService.showError('Erro ao encerrar o questionário.');
+            this.notificationService.showError(this.translate.instant('dashboard.errors.force_close'));
             this.forceClosing.set(false);
+          },
+        });
+      }
+    );
+  }
+
+  downloadBulletinPdf(): void {
+    this.downloadingBulletinPdf.set(true);
+    this.dashboardService.downloadBulletinPdf(this.projectId, this.questionnaireId).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `boletim-${this.questionnaireId}.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
+        this.downloadingBulletinPdf.set(false);
+      },
+      error: () => {
+        this.notificationService.showError(this.translate.instant('dashboard.errors.bulletin_download'));
+        this.downloadingBulletinPdf.set(false);
+      },
+    });
+  }
+
+  registerBulletinEmission(): void {
+    const confirmMsg = this.translate.instant('dashboard.bulletin.register_emission_confirm');
+    this.notificationService.showConfirm(confirmMsg, () => {
+      this.registeringBulletinEmission.set(true);
+      this.documentEmissionService.registerBulletinEmission(this.projectId, this.questionnaireId).subscribe({
+        next: (record) => {
+          const msg = this.translate.instant('dashboard.bulletin.emission_registered', { code: record.authenticityCode });
+          this.notificationService.showSuccess(msg);
+          this.registeringBulletinEmission.set(false);
+          this.loadEmissions();
+        },
+        error: () => {
+          this.notificationService.showError(this.translate.instant('dashboard.errors.register_emission'));
+          this.registeringBulletinEmission.set(false);
+        },
+      });
+    });
+  }
+
+  emitBulletinToRepresentatives(): void {
+    this.notificationService.showConfirm(
+      this.translate.instant('dashboard.bulletin.emit_confirm'),
+      () => {
+        this.emittingBulletin.set(true);
+        this.documentEmissionService.emitBulletinToRepresentatives(this.projectId, this.questionnaireId).subscribe({
+          next: (result: BulletinEmissionResult) => {
+            this.notificationService.showSuccess(
+              this.translate.instant('dashboard.bulletin.emit_success', { count: result.emittedCount, code: result.authenticityCode })
+            );
+            this.emittingBulletin.set(false);
+            this.loadEmissions();
+          },
+          error: () => {
+            this.notificationService.showError(this.translate.instant('dashboard.errors.bulletin_emit'));
+            this.emittingBulletin.set(false);
           },
         });
       }

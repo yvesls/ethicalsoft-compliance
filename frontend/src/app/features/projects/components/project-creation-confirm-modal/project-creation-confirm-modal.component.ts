@@ -1,21 +1,20 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
 	selector: 'app-project-creation-confirm-modal',
 	standalone: true,
-	imports: [CommonModule],
+	imports: [CommonModule, TranslateModule],
 	templateUrl: './project-creation-confirm-modal.component.html',
 	styleUrls: ['./project-creation-confirm-modal.component.scss'],
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProjectCreationConfirmModalComponent {
-	@Input() title = 'Confirmar criação do projeto';
-	@Input()
-	message =
-		'Um template será criado para este projeto e um e-mail será enviado com as instruções de acesso. Deseja confirmar a criação do projeto?';
-	@Input() confirmLabel = 'Confirmar';
-	@Input() cancelLabel = 'Cancelar';
+	@Input() title = 'projects.creation_confirm.title';
+	@Input() message = 'projects.creation_confirm.message';
+	@Input() confirmLabel = 'common.confirm';
+	@Input() cancelLabel = 'common.cancel';
 
 	@Output() confirmed = new EventEmitter<void>();
 	@Output() canceled = new EventEmitter<void>();

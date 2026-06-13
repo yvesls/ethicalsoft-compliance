@@ -3,7 +3,7 @@
     @switch (status) {
       @case ('loading') {
         <div class="empty-state">
-          <p>Carregando...</p>
+          <p>{{ 'common.loading' | translate }}</p>
         </div>
       }
       @case ('error') {
@@ -16,7 +16,7 @@
           <ng-content select="[listBody]"></ng-content>
         } @else {
           <div class="empty-state">
-            <p>{{ noItemsMessage }}</p>
+            <p>{{ noItemsMessage | translate }}</p>
           </div>
         }
       }

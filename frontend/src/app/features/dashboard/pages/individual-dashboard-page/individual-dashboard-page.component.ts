@@ -11,12 +11,14 @@ import { IndividualRadarChartComponent } from '../../components/individual-radar
 import { NotificationService } from '../../../../core/services/notification.service';
 import { AuthenticationService } from '../../../../core/services/authentication.service';
 import { ProjectStore } from '../../../../shared/stores/project.store';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-individual-dashboard-page',
   standalone: true,
   imports: [
     DecimalPipe,
+    TranslateModule,
     BandBadgeComponent,
     IsepKpiCardComponent,
     IsepEvolutionChartComponent,
@@ -31,6 +33,7 @@ export class IndividualDashboardPageComponent implements OnInit {
   private readonly notificationService = inject(NotificationService);
   private readonly authService = inject(AuthenticationService);
   private readonly projectStore = inject(ProjectStore);
+  private readonly translate = inject(TranslateService);
 
   projectId!: number;
   questionnaireId!: number;
@@ -48,7 +51,7 @@ export class IndividualDashboardPageComponent implements OnInit {
     const currentEmail = this.authService.getCurrentUser()?.email;
 
     if (!currentEmail) {
-      this.notificationService.showError('Usuário não autenticado.');
+      this.notificationService.showError(this.translate.instant('dashboard.errors.user_not_authenticated'));
       this.loading.set(false);
       return;
     }
@@ -78,8 +81,11 @@ export class IndividualDashboardPageComponent implements OnInit {
           this.loading.set(false);
         },
         error: (err: Error) => {
+          const isRepNotFound = err?.message?.includes('Representante não encontrado');
           this.notificationService.showError(
-            err?.message ?? 'Não foi possível carregar o painel individual.'
+            isRepNotFound
+              ? this.translate.instant('dashboard.errors.representative_not_found')
+              : this.translate.instant('dashboard.errors.load_individual')
           );
           this.loading.set(false);
         },

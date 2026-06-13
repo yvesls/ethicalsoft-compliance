@@ -10,7 +10,7 @@
   >
     <div class="ai-panel__title-row">
       <i class="bi" [class]="icon"></i>
-      <h3 class="ai-panel__title">{{ title }}</h3>
+      <h3 class="ai-panel__title">{{ title | translate }}</h3>
     </div>
     <div class="ai-panel__actions">
       @if (!result && !loading) {
@@ -18,13 +18,13 @@
           class="dash-btn dash-btn--ai"
           (click)="onGenerate(); $event.stopPropagation()"
         >
-          <i class="bi bi-stars"></i> {{ buttonLabel }}
+          <i class="bi bi-stars"></i> {{ buttonLabel | translate }}
         </button>
       }
       @if (result || loading) {
         <button
           class="ai-panel__toggle"
-          [attr.aria-label]="expanded() ? 'Recolher painel' : 'Expandir painel'"
+          [attr.aria-label]="expanded() ? ('dashboard.ai_panel_collapse' | translate) : ('dashboard.ai_panel_expand' | translate)"
           (click)="toggleExpanded(); $event.stopPropagation()"
           (keydown.enter)="toggleExpanded(); $event.stopPropagation()"
         >
@@ -39,7 +39,7 @@
       @if (loading) {
         <div class="ai-panel__loading">
           <div class="spinner-border spinner-border-sm text-primary"></div>
-          <span>{{ loadingLabel }}</span>
+          <span>{{ loadingLabel | translate }}</span>
         </div>
       }
 
@@ -55,7 +55,7 @@
             (click)="onGenerate()"
             [disabled]="loading"
           >
-            <i class="bi bi-arrow-clockwise"></i> Refazer
+            <i class="bi bi-arrow-clockwise"></i> {{ 'dashboard.ai_panel_retry' | translate }}
           </button>
         </div>
       }
@@ -63,13 +63,13 @@
       @if (result && !result.available) {
         <div class="ai-panel__fallback">
           <i class="bi bi-cloud-slash"></i>
-          <p>{{ result.fallbackMessage ?? 'IA indisponível no momento.' }}</p>
+          <p>{{ result.fallbackMessage ?? ('dashboard.ai_panel_unavailable' | translate) }}</p>
           <button
             class="dash-btn dash-btn--sm dash-btn--neutral"
             (click)="onGenerate()"
             [disabled]="loading"
           >
-            <i class="bi bi-arrow-clockwise"></i> Tentar novamente
+            <i class="bi bi-arrow-clockwise"></i> {{ 'common.retry' | translate }}
           </button>
         </div>
       }

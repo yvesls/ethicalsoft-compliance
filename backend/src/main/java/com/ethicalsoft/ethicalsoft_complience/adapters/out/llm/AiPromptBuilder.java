@@ -13,10 +13,9 @@ public class AiPromptBuilder {
 
     private static final String SYSTEM_ROLE = """
             Você é um analista sênior de conformidade ética em software do sistema EthicalSoft Compliance.
-            
+
             Você analisa dados do ISEP (Índice Sintético de Ética de Projeto), que mede a conformidade
             ética de projetos de software. Suas análises devem ser:
-            - Em português brasileiro (pt-BR)
             - Objetivas e acionáveis
             - Baseadas exclusivamente nos dados fornecidos
             - Com foco em riscos éticos, dívida ética e recomendações concretas
@@ -48,7 +47,21 @@ public class AiPromptBuilder {
             de processo, qualidade e segurança.
             """;
 
+    public String systemRole(String language) {
+        String langCode = (language == null || language.isBlank()) ? "pt-BR" : language.trim();
+        String instruction = switch (langCode) {
+            case "en-US" -> "Respond in English (US).";
+            case "es-ES" -> "Responde en español (es-ES).";
+            default -> "Responda em português brasileiro (pt-BR).";
+        };
+        return SYSTEM_ROLE + "\n\n**Language directive:** " + instruction;
+    }
+
     public Prompt buildInsightsPrompt(DashboardSnapshot snapshot) {
+        return buildInsightsPrompt(snapshot, null);
+    }
+
+    public Prompt buildInsightsPrompt(DashboardSnapshot snapshot, String language) {
         String userData = buildDataContext(snapshot) + "\n\n" + buildJustificationsContext(snapshot);
 
         String instruction = """
@@ -64,12 +77,16 @@ public class AiPromptBuilder {
                 """;
 
         return new Prompt(List.of(
-                new SystemMessage(SYSTEM_ROLE),
+                new SystemMessage(systemRole(language)),
                 new UserMessage(userData + "\n\n" + instruction)
         ));
     }
 
     public Prompt buildRiskReportPrompt(DashboardSnapshot snapshot) {
+        return buildRiskReportPrompt(snapshot, null);
+    }
+
+    public Prompt buildRiskReportPrompt(DashboardSnapshot snapshot, String language) {
         String userData = buildDataContext(snapshot) + "\n\n"
                 + buildMembersContext(snapshot) + "\n\n"
                 + buildHeatmapContext(snapshot) + "\n\n"
@@ -103,12 +120,16 @@ public class AiPromptBuilder {
                 """;
 
         return new Prompt(List.of(
-                new SystemMessage(SYSTEM_ROLE),
+                new SystemMessage(systemRole(language)),
                 new UserMessage(userData + "\n\n" + instruction)
         ));
     }
 
     public Prompt buildExplainIsepPrompt(DashboardSnapshot snapshot) {
+        return buildExplainIsepPrompt(snapshot, null);
+    }
+
+    public Prompt buildExplainIsepPrompt(DashboardSnapshot snapshot, String language) {
         String userData = buildDataContext(snapshot) + "\n\n"
                 + buildMembersContext(snapshot) + "\n\n"
                 + buildHeatmapContext(snapshot);
@@ -117,39 +138,43 @@ public class AiPromptBuilder {
                 Explique de forma didática e detalhada **como os resultados ISEP foram calculados** 
                 e **por que os valores são esses**. Estruture assim:
                 
-                ## 📐 Como o ISEP é Calculado
+                ## Como o ISEP é Calculado
                 Explique a fórmula: ICP de cada membro → média ponderada → ISEP.
                 Use os dados concretos do questionário para ilustrar.
                 
-                ## 🎯 Resultado Geral
+                ## Resultado Geral
                 Interprete o ISEP obtido, a faixa de conformidade e o que significa na prática.
                 
-                ## ⚖️ Pesos e Média Ponderada
+                ## Pesos e Média Ponderada
                 Explique como os pesos dos questionários afetam o resultado consolidado.
                 
-                ## 📊 Scores por Domínio — O que cada um significa
+                ## Scores por Domínio — O que cada um significa
                 Para cada domínio com score disponível, explique:
                 - O que ele mede
                 - Qual foi o valor obtido
                 - Se está em nível adequado ou preocupante
                 
-                ## 📉 Dívida Ética vs Dívida Técnica
+                ## Dívida Ética vs Dívida Técnica
                 Explique a diferença entre os dois indicadores e o que os valores atuais significam.
                 
-                ## 🏷️ Classificação por Faixa
+                ## Classificação por Faixa
                 Explique a distribuição dos membros por faixa e o que o desvio padrão indica.
                 
-                ## 💡 Conclusão
+                ## Conclusão
                 Resumo com os pontos-chave e o que o gestor deve focar.
                 """;
 
         return new Prompt(List.of(
-                new SystemMessage(SYSTEM_ROLE),
+                new SystemMessage(systemRole(language)),
                 new UserMessage(userData + "\n\n" + instruction)
         ));
     }
 
     public Prompt buildQaPrompt(String question, DashboardSnapshot snapshot) {
+        return buildQaPrompt(question, snapshot, null);
+    }
+
+    public Prompt buildQaPrompt(String question, DashboardSnapshot snapshot, String language) {
         String userData = buildDataContext(snapshot) + "\n\n"
                 + buildMembersContext(snapshot) + "\n\n"
                 + buildHeatmapContext(snapshot) + "\n\n"
@@ -157,16 +182,16 @@ public class AiPromptBuilder {
 
         String instruction = String.format("""
                 O usuário fez a seguinte pergunta sobre os dados do dashboard:
-                
+
                 **Pergunta:** %s
-                
+
                 Responda de forma clara, objetiva e baseada exclusivamente nos dados fornecidos.
                 Se a pergunta não puder ser respondida com os dados disponíveis, informe isso.
                 Use formatação Markdown para melhor legibilidade.
                 """, question);
 
         return new Prompt(List.of(
-                new SystemMessage(SYSTEM_ROLE),
+                new SystemMessage(systemRole(language)),
                 new UserMessage(userData + "\n\n" + instruction)
         ));
     }

@@ -1,6 +1,7 @@
 import { Component, Output, EventEmitter, inject, Input, ChangeDetectorRef, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BasePageComponent, RestoreParams } from '../../../../core/abstractions/base-page.component';
 import { ModalService } from '../../../../core/services/modal.service';
@@ -46,7 +47,7 @@ type QuestionnaireRestoreState = RestoreParams<GenericParams> & Partial<Question
 @Component({
   selector: 'app-questionnaire-iterative-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, InputComponent, SelectComponent],
+  imports: [CommonModule, ReactiveFormsModule, InputComponent, SelectComponent, TranslateModule],
   templateUrl: './questionnaire-iterative-modal.component.html',
   styleUrls: ['./questionnaire-iterative-modal.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -66,12 +67,13 @@ export class QuestionnaireIterativeModalComponent extends BasePageComponent impl
   private modalService = inject(ModalService);
   private fb = inject(FormBuilder);
   private cdr = inject(ChangeDetectorRef);
+  private readonly translate = inject(TranslateService);
 
   form!: FormGroup;
   calculatedDateRange: DateRange | null = null;
   actionType: ActionType = ActionType.CREATE;
   questionnaireData?: QuestionnaireIterativeData;
-  modalTitle = 'Criar novo questionário';
+  modalTitle = '';
   rangeFeedbackMessage = '';
 
   constructor() {
@@ -180,7 +182,7 @@ export class QuestionnaireIterativeModalComponent extends BasePageComponent impl
 
     if (!this.projectStartDate || !iteration || !this.iterationDuration || !durationDays) {
       this.calculatedDateRange = null;
-      this.rangeFeedbackMessage = 'Selecione a iteração e informe a duração para calcular a faixa.';
+      this.rangeFeedbackMessage = this.translate.instant('projects.questionnaire_iterative_modal.select_iteration_hint');
       this.cdr.detectChanges();
       return;
     }
@@ -188,7 +190,7 @@ export class QuestionnaireIterativeModalComponent extends BasePageComponent impl
     const iterationIndex = this.resolveIterationIndex(iteration);
     if (iterationIndex < 0) {
       this.calculatedDateRange = null;
-      this.rangeFeedbackMessage = 'Não foi possível identificar a iteração selecionada.';
+      this.rangeFeedbackMessage = this.translate.instant('projects.questionnaire_iterative_modal.iteration_not_found');
       this.cdr.detectChanges();
       return;
     }
@@ -198,7 +200,7 @@ export class QuestionnaireIterativeModalComponent extends BasePageComponent impl
 
     if (Number.isNaN(projectStart.getTime())) {
       this.calculatedDateRange = null;
-      this.rangeFeedbackMessage = 'Data de início do projeto inválida para cálculo da faixa.';
+      this.rangeFeedbackMessage = this.translate.instant('projects.questionnaire_iterative_modal.invalid_start_date');
       this.cdr.detectChanges();
       return;
     }
@@ -224,7 +226,7 @@ export class QuestionnaireIterativeModalComponent extends BasePageComponent impl
     };
 
     this.rangeFeedbackMessage = exceedsDeadline
-      ? 'A faixa calculada ultrapassa o prazo limite do projeto. Ajuste a duração ou a iteração.'
+      ? this.translate.instant('projects.questionnaire_iterative_modal.exceeds_deadline')
       : '';
 
     this.cdr.detectChanges();
@@ -256,9 +258,11 @@ export class QuestionnaireIterativeModalComponent extends BasePageComponent impl
   }
 
   private updateModalTitle(): void {
-    this.modalTitle = this.actionType === ActionType.EDIT
-      ? 'Editar questionário'
-      : 'Criar novo questionário';
+    this.modalTitle = this.translate.instant(
+      this.actionType === ActionType.EDIT
+        ? 'projects.questionnaire_iterative_modal.edit_title'
+        : 'projects.questionnaire_iterative_modal.create_title'
+    );
   }
 
   confirm(): void {
@@ -302,7 +306,7 @@ export class QuestionnaireIterativeModalComponent extends BasePageComponent impl
 
   getFormattedDateRange(): string {
     if (!this.calculatedDateRange) {
-      return 'Preencha os campos para calcular';
+      return this.translate.instant('projects.questionnaire_iterative_modal.fill_fields_to_calculate');
     }
 
     return `${FormUtils.formatDateBR(this.calculatedDateRange.startDate)} - ${FormUtils.formatDateBR(this.calculatedDateRange.endDate)}`;

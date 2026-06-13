@@ -1,6 +1,7 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, Input, OnChanges, inject } from '@angular/core';
 import { NgxEchartsDirective } from 'ngx-echarts';
 import type { EChartsOption } from 'echarts';
+import { TranslateService } from '@ngx-translate/core';
 import { WordEntry } from '../../interfaces/dashboard.interface';
 
 @Component({
@@ -11,6 +12,8 @@ import { WordEntry } from '../../interfaces/dashboard.interface';
   styleUrl: './word-cloud-widget.component.scss',
 })
 export class WordCloudWidgetComponent implements OnChanges {
+  private readonly translate = inject(TranslateService);
+
   @Input({ required: true }) words: WordEntry[] = [];
   @Input() totalJustifications = 0;
 
@@ -25,14 +28,14 @@ export class WordCloudWidgetComponent implements OnChanges {
 
     (this.chartOptions as unknown) = {
       title: {
-        text: 'Nuvem de Palavras das Justificativas',
-        subtext: `${this.totalJustifications} justificativas analisadas`,
+        text: this.translate.instant('dashboard.chart.word_cloud_title'),
+        subtext: this.translate.instant('dashboard.chart.word_cloud_subtext', { count: this.totalJustifications }),
         left: 'center',
         textStyle: { fontSize: 14 },
       },
       tooltip: {
         formatter: (params: { name: string; value: number }) =>
-          `${params.name}: <b>${params.value} ocorrências</b>`,
+          this.translate.instant('dashboard.chart.word_cloud_tooltip', { name: params.name, value: params.value }),
       },
       series: [
         {

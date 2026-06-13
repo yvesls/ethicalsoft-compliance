@@ -2,27 +2,27 @@ import { PasswordRule } from './password-rule'
 
 export const passwordRules: PasswordRule[] = [
   {
-    message: 'Ter entre 8 e 20 caracteres.',
+    message: 'auth.password_rules.length',
     test: (value) => value.length >= 8 && value.length <= 20,
   },
   {
-    message: 'Não conter caracteres repetidos.',
+    message: 'auth.password_rules.no_repeated',
     test: (value) => !/(.)\1+/.test(value),
   },
   {
-    message: 'Possuir letras maiúsculas.',
+    message: 'auth.password_rules.uppercase',
     test: (value) => /[A-Z]/.test(value),
   },
   {
-    message: 'Possuir uma letra minúscula.',
+    message: 'auth.password_rules.lowercase',
     test: (value) => /[a-z]/.test(value),
   },
   {
-    message: 'Possuir um número.',
+    message: 'auth.password_rules.number',
     test: (value) => /\d/.test(value),
   },
   {
-    message: 'Possuir um carácter especial.',
+    message: 'auth.password_rules.special_char',
     test: (value) => /[^A-Za-z0-9]/.test(value),
   },
 ]

@@ -1,18 +1,18 @@
 <div class="create-stage-modal">
-  <h2>Criar nova etapa - Cascata</h2>
+  <h2>{{ 'projects.stage_cascata.create_title' | translate }}</h2>
 
   <form [formGroup]="form" (ngSubmit)="confirm()">
     <div class="form-grid form-grid-2">
       <app-input
-        label="Nome"
-        placeholder="Informe o nome"
+        [label]="'projects.fields.name' | translate"
+        [placeholder]="'projects.form.name_placeholder' | translate"
         formControlName="name"
         [control]="form.get('name')"
         [required]="true"
       ></app-input>
 
       <app-input
-        label="Peso (%)"
+        [label]="'projects.stage_cascata.weight_label' | translate"
         type="number"
         placeholder="1"
         formControlName="weight"
@@ -23,7 +23,7 @@
 
     <div class="form-grid form-grid-1">
       <app-input
-        label="Duração da etapa (dias úteis)"
+        [label]="'projects.stage_cascata.duration_label' | translate"
         type="number"
         placeholder="5"
         formControlName="durationDays"
@@ -34,51 +34,43 @@
 
     @if (calculatedDateRange && !calculatedDateRange.exceedsDeadline) {
       <div class="date-range-preview">
-        <h3>Faixa de Aplicação do Questionário</h3>
+        <h3>{{ 'projects.stage_cascata.date_range_title' | translate }}</h3>
         <div class="date-info">
           <div class="date-item">
-            <span class="label">Data de Abertura (10%):</span>
+            <span class="label">{{ 'projects.stage_cascata.opening_label' | translate }}</span>
             <span class="value">{{ formatDateBR(calculatedDateRange.startDate) }}</span>
           </div>
           <div class="date-item">
-            <span class="label">Data Limite de Resposta (90%):</span>
+            <span class="label">{{ 'projects.stage_cascata.closing_label' | translate }}</span>
             <span class="value">{{ formatDateBR(calculatedDateRange.endDate) }}</span>
           </div>
         </div>
         <p class="info-text">
-          <small>
-            * Calculado automaticamente baseado em dias úteis, excluindo fins de semana.
-            As datas consideram 10% e 90% do esforço da fase conforme BR08.
-          </small>
+          <small>* {{ 'projects.stage_cascata.calc_info' | translate }}</small>
         </p>
       </div>
     }
 
-    <!-- Aviso de Ultrapassagem do Deadline -->
     @if (calculatedDateRange && calculatedDateRange.exceedsDeadline) {
       <div class="date-range-error">
-        <h3>⚠️ Faixa de Aplicação Ultrapassa o Prazo Limite</h3>
+        <h3>{{ 'projects.stage_cascata.error_title' | translate }}</h3>
         <div class="error-info">
-          <p>
-            A faixa de aplicação calculada para esta etapa ultrapassa o prazo limite do projeto.
-          </p>
+          <p>{{ 'projects.stage_cascata.error_text' | translate }}</p>
           <div class="date-item">
-            <span class="label">Data Limite de Resposta Calculada:</span>
+            <span class="label">{{ 'projects.stage_cascata.calc_end_label' | translate }}</span>
             <span class="value error">{{ formatDateBR(calculatedDateRange.endDate) }}</span>
           </div>
           <div class="date-item">
-            <span class="label">Prazo Limite do Projeto:</span>
+            <span class="label">{{ 'projects.stage_cascata.project_deadline_label' | translate }}</span>
             <span class="value">{{ formatDateBR(projectDeadline!) }}</span>
           </div>
           <p class="error-text">
-            <small>
-              Para criar esta etapa, você precisa ajustar:
-            </small>
+            <small>{{ 'projects.stage_cascata.adjust_hint' | translate }}</small>
           </p>
           <ul class="suggestions">
-            <li>Reduzir a duração da etapa</li>
-            <li>Estender o prazo limite do projeto</li>
-            <li>Ajustar a data de início do projeto</li>
+            <li>{{ 'projects.stage_cascata.reduce_duration' | translate }}</li>
+            <li>{{ 'projects.stage_cascata.extend_deadline' | translate }}</li>
+            <li>{{ 'projects.stage_cascata.adjust_start' | translate }}</li>
           </ul>
         </div>
       </div>
@@ -87,9 +79,7 @@
     @if (!calculatedDateRange && form.get('durationDays')?.value) {
       <div class="date-range-warning">
         <p class="warning-text">
-          <small>
-            ⚠️ Informe a data de início do projeto para calcular a faixa de aplicação.
-          </small>
+          <small>{{ 'projects.stage_cascata.no_start_date_warning' | translate }}</small>
         </p>
       </div>
     }
@@ -100,7 +90,7 @@
         class="btn btn-primary"
         [disabled]="form.invalid || !calculatedDateRange || calculatedDateRange.exceedsDeadline"
       >
-        Confirmar
+        {{ 'common.confirm' | translate }}
       </button>
     </div>
   </form>

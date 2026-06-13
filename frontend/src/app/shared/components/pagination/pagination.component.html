@@ -1,8 +1,8 @@
 @if (totalPages() > 1) {
-  <nav class="pagination-container" aria-label="Project pagination">
+  <nav class="pagination-container" [attr.aria-label]="'common.pagination' | translate">
     <ul class="pagination-list">
       <li class="page-item" [class.disabled]="currentPage === 1">
-        <button class="page-link" (click)="onPrevious()" [disabled]="currentPage === 1" aria-label="Previous page">
+        <button class="page-link" (click)="onPrevious()" [disabled]="currentPage === 1" [attr.aria-label]="'common.previous_page' | translate">
           &laquo;
         </button>
       </li>
@@ -29,7 +29,7 @@
       }
 
       <li class="page-item" [class.disabled]="currentPage === totalPages()">
-        <button class="page-link" (click)="onNext()" [disabled]="currentPage === totalPages()" aria-label="Next page">
+        <button class="page-link" (click)="onNext()" [disabled]="currentPage === totalPages()" [attr.aria-label]="'common.next_page' | translate">
           &raquo;
         </button>
       </li>
