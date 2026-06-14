@@ -8,10 +8,6 @@
     (toggled)="onPanelToggled('project', $event)"
     (attemptedToggle)="onAttemptedToggle('project')"
   >
-    <div class="form-help-row">
-      <app-info-explainer key="compliance_score" />
-      <app-info-explainer key="project_iteration" />
-    </div>
     <div class="form-grid form-grid-4">
       <app-select
         [label]="'projects.fields.template' | translate"

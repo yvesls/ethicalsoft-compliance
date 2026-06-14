@@ -138,7 +138,6 @@ interface IterativoProjectFormValue {
     SelectComponent,
     MultiSelectComponent,
     TranslateModule,
-    InfoExplainerComponent,
   ],
   templateUrl: './iterativo-project-form.component.html',
   styleUrls: ['./iterativo-project-form.component.scss'],

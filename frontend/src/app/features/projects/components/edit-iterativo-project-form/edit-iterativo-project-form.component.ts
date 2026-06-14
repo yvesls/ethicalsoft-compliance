@@ -79,7 +79,6 @@ type PanelStates = Record<PanelKey, boolean>;
     SelectComponent,
     MultiSelectComponent,
     TranslateModule,
-    InfoExplainerComponent,
   ],
   templateUrl: './edit-iterativo-project-form.component.html',
   styleUrls: ['./edit-iterativo-project-form.component.scss'],

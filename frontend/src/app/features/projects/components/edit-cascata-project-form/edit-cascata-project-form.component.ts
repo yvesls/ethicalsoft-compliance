@@ -80,7 +80,6 @@ type PanelStates = Record<PanelKey, boolean>;
     SelectComponent,
     MultiSelectComponent,
     TranslateModule,
-    InfoExplainerComponent,
   ],
   templateUrl: './edit-cascata-project-form.component.html',
   styleUrls: ['./edit-cascata-project-form.component.scss'],

@@ -69,18 +69,6 @@
   }
 }
 
-.form-help-row {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: flex-end;
-  margin-bottom: 0.75rem;
-  flex-wrap: wrap;
-
-  @include for-phone-only {
-    justify-content: flex-start;
-  }
-}
-
 .table-responsive-x {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
