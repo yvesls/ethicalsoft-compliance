@@ -212,6 +212,16 @@
       "questions": "Perguntas",
       "project": "Projeto"
     },
+    "alerts": {
+      "panel_title": "Pendências nos questionários",
+      "minimize": "Minimizar",
+      "panel_roles_label": "Papéis sem perguntas vinculadas",
+      "panel_stages_label": "Etapas sem perguntas vinculadas",
+      "panel_orphaned_roles_label": "Papéis vinculados a perguntas que não existem no projeto",
+      "panel_orphaned_stages_label": "Etapas vinculadas a perguntas que não existem no projeto",
+      "unlinked_roles": "Os seguintes papéis de representantes ainda não possuem perguntas vinculadas em nenhum questionário: {{roles}}",
+      "unlinked_stages": "As seguintes etapas ainda não possuem perguntas vinculadas em nenhum questionário: {{stages}}"
+    },
     "actions": {
       "publish": "Publicar projeto",
       "archive": "Arquivar projeto",
@@ -364,6 +374,9 @@
         "stage_exceeds_deadline": "A etapa \"{{stageName}}\" tem data de término ({{stageEndDate}}) que ultrapassa o prazo limite do projeto ({{deadline}}). Ajuste o prazo limite do projeto ou reduza o peso desta etapa.",
         "add_question_to_questionnaire": "Adicione pelo menos uma pergunta ao questionário \"{{name}}\".",
         "add_question_to_this": "Adicione pelo menos uma pergunta a este questionário.",
+        "rep_no_question_in_questionnaire": "O questionário \"{{name}}\" possui representante(s) sem perguntas vinculadas aos seus papéis.",
+        "rep_no_question_in_this": "Este questionário possui representante(s) sem perguntas vinculadas aos seus papéis.",
+        "rep_coverage_warning": "Há representantes sem perguntas vinculadas em um ou mais questionários.",
         "invalid_iteration_duration": "Informe uma duração válida para as iterações.",
         "iteration_count_error": "Não foi possível calcular a quantidade de iterações.",
         "prepare_data_error": "Erro ao preparar os dados.",
@@ -1024,7 +1037,9 @@
       "add_stage_first": "Cadastre ao menos uma etapa antes de adicionar perguntas.",
       "link_stages": "Associe ao menos uma etapa a cada pergunta antes de confirmar.",
       "stage_selection_placeholder": "Selecione as etapas relacionadas",
-      "stage_selection_label": "Etapas relacionadas"
+      "stage_selection_label": "Etapas relacionadas",
+      "out_of_project_roles": "As seguintes perguntas possuem papéis não presentes no projeto (IDs: {{ids}}). Edite-as para corrigir.",
+      "out_of_project_stages": "As seguintes perguntas possuem etapas não presentes no projeto (IDs: {{ids}}). Edite-as para corrigir."
     },
     "response": {
       "select_answer_first": "Selecione \"Sim\" ou \"Não\" antes de anexar evidências.",

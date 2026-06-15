@@ -21,10 +21,6 @@
       [disabled]="false"
       (toggled)="onPanelToggled('project', $event)"
     >
-      <div class="form-help-row">
-        <app-info-explainer key="compliance_score" />
-        <app-info-explainer key="project_iteration" />
-      </div>
       <div class="form-grid form-grid-4">
         <app-input
           [label]="'projects.fields.name' | translate"
@@ -77,17 +73,6 @@
           [control]="getControl('iterationCount')"
           [readonly]="true"
         ></app-input>
-      </div>
-
-      <div class="form-grid form-grid-4">
-        <div class="form-span-full">
-          <app-multi-select
-            [label]="'project.ai_usage.label' | translate"
-            formControlName="aiUsageScopes"
-            [options]="aiUsageScopeOptions"
-            [placeholder]="'project.ai_usage.placeholder' | translate"
-          />
-        </div>
       </div>
 
       @if (projectForm.errors && projectForm.errors['dateOrder']) {
@@ -264,6 +249,13 @@
         </div>
       </div>
     </app-accordion-panel>
+
+    <app-unlinked-items-panel
+      [unlinkedRoles]="unlinkedProjectRoles"
+      [unlinkedStages]="unlinkedProjectStages"
+      [orphanedRoles]="orphanedRolesInProject"
+      [orphanedStages]="orphanedStagesInProject"
+    ></app-unlinked-items-panel>
 
     <div class="page-actions">
       <button

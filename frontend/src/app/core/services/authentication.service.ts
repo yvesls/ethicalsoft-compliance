@@ -1,5 +1,6 @@
 import { Injectable, PLATFORM_ID, inject } from '@angular/core'
 import { isPlatformBrowser } from '@angular/common'
+import { Router } from '@angular/router'
 import { BehaviorSubject, catchError, map, Observable, of, Subscription, switchMap, tap, timer } from 'rxjs'
 import { JwtPayload, jwtDecode } from 'jwt-decode'
 import { AuthStore } from '../../shared/stores/auth.store'
@@ -25,6 +26,7 @@ export class AuthenticationService {
 	private readonly FIRST_ACCESS_COMPLETED_KEY = 'first_access_completed'
 
 	private readonly authStore = inject(AuthStore)
+	private readonly router = inject(Router)
 	private readonly routerService = inject(RouterService)
 	private readonly notificationService = inject(NotificationService)
 	private readonly storageService = inject(StorageService)
@@ -139,7 +141,9 @@ export class AuthenticationService {
 				catchError((error: unknown) => {
 				LoggerService.error('AuthenticationService: Error during token refresh', error)
 				this.logout()
-				this.notificationService.showError(this.translate.instant('errors.session_expired'))
+				if (!this.router.url.includes('login')) {
+					this.notificationService.showError(this.translate.instant('errors.session_expired'))
+				}
 				return of(false)
 				})
 			)

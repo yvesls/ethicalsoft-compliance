@@ -198,7 +198,7 @@ public class GetProjectEditSnapshotUseCase {
                                 ? question.getRoles().stream().map(Role::getId).collect(Collectors.toSet())
                                 : Set.of())
                         .roleNames(question.getRoles() != null
-                                ? question.getRoles().stream().map(Role::getDescription).sorted().collect(Collectors.toList())
+                                ? question.getRoles().stream().map(Role::getName).sorted().collect(Collectors.toList())
                                 : List.of())
                         .stageIds(question.getStages() != null
                                 ? question.getStages().stream().map(Stage::getId).sorted().collect(Collectors.toList())
@@ -230,7 +230,7 @@ public class GetProjectEditSnapshotUseCase {
                                     ? rep.getRoles().stream().map(Role::getId).collect(Collectors.toSet())
                                     : Set.of())
                             .roleNames(rep.getRoles() != null
-                                    ? rep.getRoles().stream().map(Role::getDescription).sorted().collect(Collectors.toList())
+                                    ? rep.getRoles().stream().map(Role::getName).sorted().collect(Collectors.toList())
                                     : List.of())
                             .weight(rep.getWeight())
                             .hasResponses(hasResponses)

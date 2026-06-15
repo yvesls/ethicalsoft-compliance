@@ -33,7 +33,6 @@ import { RoleSummary } from '../../../../shared/interfaces/role/role-summary.int
 import { AccordionPanelComponent } from '../../../../shared/components/accordion-panel/accordion-panel.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
-import { MultiSelectComponent, MultiSelectOption } from '../../../../shared/components/multi-select/multi-select.component';
 
 import { CustomValidators } from '../../../../shared/validators/custom.validator';
 import { ProjectDatesValidators } from '../../../../shared/validators/project-dates.validator';
@@ -65,6 +64,7 @@ import {
   RepresentativeData,
 } from '../representative-modal/representative-modal.component';
 import { QuestionData } from '../question-modal/question-modal.component';
+import { UnlinkedItemsPanelComponent } from '../../../../shared/components/unlinked-items-panel/unlinked-items-panel.component';
 
 type PanelKey = 'project' | 'steps' | 'representatives' | 'questionnaires';
 type PanelStates = Record<PanelKey, boolean>;
@@ -78,9 +78,8 @@ type PanelStates = Record<PanelKey, boolean>;
     AccordionPanelComponent,
     InputComponent,
     SelectComponent,
-    MultiSelectComponent,
     TranslateModule,
-    InfoExplainerComponent,
+    UnlinkedItemsPanelComponent,
   ],
   templateUrl: './edit-cascata-project-form.component.html',
   styleUrls: ['./edit-cascata-project-form.component.scss'],
@@ -113,8 +112,6 @@ export class EditCascataProjectFormComponent implements OnInit {
   };
 
   public projectTypeOptions: SelectOption[] = [];
-  public aiUsageScopeOptions: MultiSelectOption[] = [];
-
   public availableRoles: RoleSummary[] = [];
   private roleNameById = new Map<number, string>();
   private questionnaireQuestionErrors = new Set<number>();
@@ -128,15 +125,6 @@ export class EditCascataProjectFormComponent implements OnInit {
   ngOnInit(): void {
     this.projectTypeOptions = [
       { value: ProjectType.Cascata, label: this.translate.instant('projects.type.cascata') },
-    ];
-    this.aiUsageScopeOptions = [
-      { value: 'NAO_UTILIZA', label: this.translate.instant('project.ai_usage.options.NAO_UTILIZA') },
-      { value: 'REQUISITOS', label: this.translate.instant('project.ai_usage.options.REQUISITOS') },
-      { value: 'DESIGN', label: this.translate.instant('project.ai_usage.options.DESIGN') },
-      { value: 'CODIFICACAO', label: this.translate.instant('project.ai_usage.options.CODIFICACAO') },
-      { value: 'TESTES', label: this.translate.instant('project.ai_usage.options.TESTES') },
-      { value: 'DOCUMENTACAO', label: this.translate.instant('project.ai_usage.options.DOCUMENTACAO') },
-      { value: 'AI_GOVERNANCE', label: this.translate.instant('project.ai_usage.options.AI_GOVERNANCE') },
     ];
     this.route.params.pipe(take(1)).subscribe((params) => {
       this.projectId = params['projectId'];
@@ -160,7 +148,6 @@ export class EditCascataProjectFormComponent implements OnInit {
         type: [{ value: ProjectType.Cascata, disabled: true }, [Validators.required]],
         startDate: [null, [Validators.required]],
         deadline: [null, [Validators.required, CustomValidators.minDateToday()]],
-        aiUsageScopes: [[]],
         steps: this.fb.array([]),
         representatives: this.fb.array([]),
         questionnaires: this.fb.array([]),
@@ -253,7 +240,6 @@ export class EditCascataProjectFormComponent implements OnInit {
       type: data.type,
       startDate: data.startDate,
       deadline: data.deadline,
-      aiUsageScopes: data.aiUsageScopes ?? [],
     });
 
     const stepsArray = this.projectForm.get('steps') as FormArray;
@@ -537,6 +523,17 @@ export class EditCascataProjectFormComponent implements OnInit {
 
     const projectName = this.projectForm.get('name')?.value || this.translate.instant('common.project');
     const questions = questionnaire.questions || [];
+    const representativeRoleIds = Array.from(new Set(
+      this.representativesFormArray.controls
+        .flatMap(c => (c.get('roleIds')?.value as number[]) ?? [])
+        .filter((id): id is number => typeof id === 'number' && id > 0)
+    ));
+    const otherQuestionnairesQuestions: QuestionData[] = this.questionnairesFormArray.controls
+      .filter((_, i) => i !== index)
+      .flatMap(q => (q.get('questions')?.value as QuestionData[]) ?? []);
+    const allProjectStageNames: string[] = this.questionnairesFormArray.controls
+      .map(q => (q.get('stageName')?.value ?? q.get('name')?.value ?? '') as string)
+      .filter(Boolean);
 
     this.saveFormStateToCache();
 
@@ -551,6 +548,9 @@ export class EditCascataProjectFormComponent implements OnInit {
           applicationEndDate: questionnaire.applicationEndDate,
           stageName: questionnaire.stageName,
           questions,
+          representativeRoleIds,
+          otherQuestionnairesQuestions,
+          allProjectStageNames,
           returnToEdit: true,
           editProjectId: this.projectId,
         },
@@ -604,9 +604,15 @@ export class EditCascataProjectFormComponent implements OnInit {
   getQuestionnaireQuestionErrorMessage(index: number): string {
     const control = this.questionnairesFormArray.at(index) as FormGroup | null;
     const name = (control?.get('name')?.value ?? '').toString().trim();
+    const questions = control?.get('questions')?.value as QuestionData[] | undefined;
+    if (!questions?.length) {
+      return name
+        ? this.translate.instant('projects.form.validation.add_question_to_questionnaire', { name })
+        : this.translate.instant('projects.form.validation.add_question_to_this');
+    }
     return name
-      ? this.translate.instant('projects.form.validation.add_question_to_questionnaire', { name })
-      : this.translate.instant('projects.form.validation.add_question_to_this');
+      ? this.translate.instant('projects.form.validation.rep_no_question_in_questionnaire', { name })
+      : this.translate.instant('projects.form.validation.rep_no_question_in_this');
   }
 
   private validateQuestionnairesHaveQuestions(): boolean {
@@ -614,6 +620,15 @@ export class EditCascataProjectFormComponent implements OnInit {
     this.questionnairesFormArray.controls.forEach((control, index) => {
       const questions = control.get('questions')?.value as QuestionData[] | undefined;
       if (!questions || questions.length === 0) {
+        this.questionnaireQuestionErrors.add(index);
+        return;
+      }
+      const coveredRoleIds = new Set<number>(questions.flatMap(q => q.roleIds ?? []));
+      const hasUncoveredRep = this.representativesFormArray.controls.some(rep => {
+        const repRoles = rep.get('roleIds')?.value as number[] | undefined;
+        return !(repRoles ?? []).some(id => coveredRoleIds.has(id));
+      });
+      if (hasUncoveredRep) {
         this.questionnaireQuestionErrors.add(index);
       }
     });
@@ -625,6 +640,61 @@ export class EditCascataProjectFormComponent implements OnInit {
     }
     this.cdr.markForCheck();
     return !hasErrors;
+  }
+
+  get unlinkedProjectRoles(): string[] {
+    const repRoleIds = new Set<number>(
+      this.representativesFormArray.controls.flatMap(c => (c.get('roleIds')?.value as number[]) ?? [])
+    );
+    const coveredRoleIds = new Set<number>(
+      this.questionnairesFormArray.controls
+        .flatMap(q => (q.get('questions')?.value as QuestionData[]) ?? [])
+        .flatMap(q => q.roleIds ?? [])
+    );
+    return Array.from(repRoleIds)
+      .filter(id => !coveredRoleIds.has(id))
+      .map(id => this.roleNameById.get(id) ?? `ID:${id}`);
+  }
+
+  get unlinkedProjectStages(): string[] {
+    return this.questionnairesFormArray.controls
+      .filter(q => !(q.get('questions')?.value as QuestionData[] | undefined)?.length)
+      .map(q => (q.get('stageName')?.value ?? q.get('name')?.value ?? '') as string)
+      .filter(Boolean);
+  }
+
+  get orphanedRolesInProject(): string[] {
+    const repRoleIds = new Set<number>(
+      this.representativesFormArray.controls.flatMap(c => (c.get('roleIds')?.value as number[]) ?? [])
+    );
+    if (!repRoleIds.size) return [];
+    const orphanedNames = new Set<string>();
+    this.questionnairesFormArray.controls
+      .flatMap(q => (q.get('questions')?.value as QuestionData[]) ?? [])
+      .forEach(q => {
+        (q.roleIds ?? []).forEach(id => {
+          if (!repRoleIds.has(id)) orphanedNames.add(this.roleNameById.get(id) ?? `ID:${id}`);
+        });
+      });
+    return Array.from(orphanedNames);
+  }
+
+  get orphanedStagesInProject(): string[] {
+    const validStages = new Set<string>(
+      this.questionnairesFormArray.controls
+        .map(q => (q.get('stageName')?.value ?? q.get('name')?.value ?? '') as string)
+        .filter(Boolean)
+    );
+    if (!validStages.size) return [];
+    const orphanedStages = new Set<string>();
+    this.questionnairesFormArray.controls
+      .flatMap(q => (q.get('questions')?.value as QuestionData[]) ?? [])
+      .forEach(q => {
+        (q.stageNames ?? []).forEach(s => {
+          if (!validStages.has(s)) orphanedStages.add(s);
+        });
+      });
+    return Array.from(orphanedStages);
   }
 
   canOpenPanel(): boolean {
@@ -663,7 +733,6 @@ export class EditCascataProjectFormComponent implements OnInit {
         type: fv.type,
         startDate: fv.startDate,
         deadline: fv.deadline,
-        aiUsageScopes: fv.aiUsageScopes ?? [],
       }, { emitEvent: false });
 
       const stepsArray = this.projectForm.get('steps') as FormArray;
@@ -894,12 +963,10 @@ export class EditCascataProjectFormComponent implements OnInit {
     if (!name) throw new Error(this.translate.instant('projects.form.validation.name_required'));
     if (!formValue.startDate) throw new Error(this.translate.instant('projects.form.validation.start_date_required'));
 
-    const aiUsageScopes: string[] = formValue.aiUsageScopes ?? [];
     return {
       name,
       startDate: formValue.startDate,
       deadline: formValue.deadline || null,
-      aiUsageScopes: aiUsageScopes.length ? aiUsageScopes : undefined,
       dryRun: false,
       stages: this.buildStagePayloads(),
       iterations: this.buildIterationPayloads(),

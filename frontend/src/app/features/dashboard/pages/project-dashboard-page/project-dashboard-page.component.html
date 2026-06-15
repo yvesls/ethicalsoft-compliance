@@ -9,7 +9,7 @@
         </div>
 
         <div class="dash-actions">
-          <button class="dash-btn dash-btn--neutral" (click)="downloadCsv()">
+          <button class="dash-btn dash-btn--neutral" [disabled]="!d.completedQuestionnaires" (click)="downloadCsv()">
             <i class="bi bi-download"></i> {{ 'dashboard.export_csv' | translate }}
           </button>
           <button

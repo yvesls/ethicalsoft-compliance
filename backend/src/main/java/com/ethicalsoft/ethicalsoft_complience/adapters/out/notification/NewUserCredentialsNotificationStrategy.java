@@ -37,7 +37,9 @@ public class NewUserCredentialsNotificationStrategy implements NotificationTypeS
         String tempPassword = Optional.ofNullable(command.context().get("tempPassword")).map(Object::toString).orElse("");
         String projectName = Optional.ofNullable(command.context().get("projectName")).map(Object::toString).orElse("");
         String adminName = Optional.ofNullable(command.context().get("adminName")).map(Object::toString).orElse("");
-        String resetLink = Optional.ofNullable(command.context().get("resetLink")).map(Object::toString).orElse("");
+        String resetLink = Optional.ofNullable(command.context().get("resetLink")).map(Object::toString)
+                .filter(value -> !value.isBlank())
+                .orElse("/login");
         String supportEmail = Optional.ofNullable(command.context().get("supportEmail")).map(Object::toString).orElse("");
         String environment = Optional.ofNullable(command.context().get("environment")).map(Object::toString).orElse("");
 

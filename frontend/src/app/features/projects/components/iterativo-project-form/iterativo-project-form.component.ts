@@ -28,7 +28,6 @@ import {
 import { AccordionPanelComponent } from '../../../../shared/components/accordion-panel/accordion-panel.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
-import { MultiSelectComponent, MultiSelectOption } from '../../../../shared/components/multi-select/multi-select.component';
 
 import { CustomValidators } from '../../../../shared/validators/custom.validator';
 import { capitalizeWords } from '../../../../core/utils/common-utils';
@@ -66,6 +65,7 @@ import { SessionExpirationService } from '../../../../core/services/session-expi
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { LoggerService } from '../../../../core/services/logger.service';
 import { InfoExplainerComponent } from '../../../../shared/components/info-explainer/info-explainer.component';
+import { UnlinkedItemsPanelComponent } from '../../../../shared/components/unlinked-items-panel/unlinked-items-panel.component';
 
 export interface Representative {
   id?: number | string | null;
@@ -120,7 +120,6 @@ interface IterativoProjectFormValue {
   deadline: string | null;
   iterationDuration: number;
   iterationCount: number | null;
-  aiUsageScopes?: string[];
   iterations?: Iteration[];
   stages?: Stage[];
   representatives?: Representative[];
@@ -136,9 +135,8 @@ interface IterativoProjectFormValue {
     AccordionPanelComponent,
     InputComponent,
     SelectComponent,
-    MultiSelectComponent,
     TranslateModule,
-    InfoExplainerComponent,
+    UnlinkedItemsPanelComponent,
   ],
   templateUrl: './iterativo-project-form.component.html',
   styleUrls: ['./iterativo-project-form.component.scss'],
@@ -173,8 +171,6 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
 
   public templateOptions: SelectOption[] = [];
   public projectTypeOptions: SelectOption[] = [];
-  public aiUsageScopeOptions: MultiSelectOption[] = [];
-
   public availableRoles: RoleSummary[] = [];
   private roleNameById = new Map<number, string>();
 
@@ -193,16 +189,6 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
     this.projectTypeOptions = [
       { value: ProjectType.Iterativo, label: this.translate.instant('projects.type.iterativo') },
     ];
-    this.aiUsageScopeOptions = [
-      { value: 'NAO_UTILIZA', label: this.translate.instant('project.ai_usage.options.NAO_UTILIZA') },
-      { value: 'REQUISITOS', label: this.translate.instant('project.ai_usage.options.REQUISITOS') },
-      { value: 'DESIGN_ARQUITETURA', label: this.translate.instant('project.ai_usage.options.DESIGN_ARQUITETURA') },
-      { value: 'GERACAO_CODIGO', label: this.translate.instant('project.ai_usage.options.GERACAO_CODIGO') },
-      { value: 'TESTES', label: this.translate.instant('project.ai_usage.options.TESTES') },
-      { value: 'DOCUMENTACAO', label: this.translate.instant('project.ai_usage.options.DOCUMENTACAO') },
-      { value: 'MANUTENCAO_REFATORACAO', label: this.translate.instant('project.ai_usage.options.MANUTENCAO_REFATORACAO') },
-    ];
-
     this.projectForm = this.fb.group(
       {
         template: [null, [Validators.required]],
@@ -215,7 +201,6 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
         deadline: [null, [CustomValidators.minDateToday()]],
         iterationDuration: [10, [Validators.required, Validators.min(1)]],
         iterationCount: [null],
-        aiUsageScopes: [[]],
         iterations: this.fb.array([]),
         stages: this.fb.array([]),
         representatives: this.buildRepresentativesForm(),
@@ -504,10 +489,6 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
         next: (template) => {
           this.selectedTemplateData = template;
 
-          this.projectForm.patchValue({
-            name: template.name
-          });
-
           if (template.defaultIterationDuration) {
             this.projectForm.patchValue({
               iterationDuration: template.defaultIterationDuration
@@ -637,10 +618,15 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
   getQuestionnaireQuestionErrorMessage(index: number): string {
     const control = this.questionnairesFormArray.at(index) as FormGroup | null;
     const name = (control?.get('name')?.value ?? '').toString().trim();
-    if (name) {
-      return this.translate.instant('projects.form.validation.add_question_to_questionnaire', { name });
+    const questions = control?.get('questions')?.value as QuestionData[] | undefined;
+    if (!questions?.length) {
+      return name
+        ? this.translate.instant('projects.form.validation.add_question_to_questionnaire', { name })
+        : this.translate.instant('projects.form.validation.add_question_to_this');
     }
-    return this.translate.instant('projects.form.validation.add_question_to_this');
+    return name
+      ? this.translate.instant('projects.form.validation.rep_no_question_in_questionnaire', { name })
+      : this.translate.instant('projects.form.validation.rep_no_question_in_this');
   }
 
   private validateQuestionnairesHaveQuestions(): boolean {
@@ -649,6 +635,15 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
     this.questionnairesFormArray.controls.forEach((control, index) => {
       const questions = control.get('questions')?.value as QuestionData[] | undefined;
       if (!questions || questions.length === 0) {
+        this.questionnaireQuestionErrors.add(index);
+        return;
+      }
+      const coveredRoleIds = new Set<number>(questions.flatMap(q => q.roleIds ?? []));
+      const hasUncoveredRep = this.representativesFormArray.controls.some(rep => {
+        const repRoles = rep.get('roleIds')?.value as number[] | undefined;
+        return !(repRoles ?? []).some(id => coveredRoleIds.has(id));
+      });
+      if (hasUncoveredRep) {
         this.questionnaireQuestionErrors.add(index);
       }
     });
@@ -662,6 +657,68 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
 
     this.cdr.markForCheck();
     return !hasErrors;
+  }
+
+  get unlinkedProjectRoles(): string[] {
+    const repRoleIds = new Set<number>(
+      this.representativesFormArray.controls.flatMap(c => (c.get('roleIds')?.value as number[]) ?? [])
+    );
+    const coveredRoleIds = new Set<number>(
+      this.questionnairesFormArray.controls
+        .flatMap(q => (q.get('questions')?.value as QuestionData[]) ?? [])
+        .flatMap(q => q.roleIds ?? [])
+    );
+    return Array.from(repRoleIds)
+      .filter(id => !coveredRoleIds.has(id))
+      .map(id => this.roleNameById.get(id) ?? `ID:${id}`);
+  }
+
+  get unlinkedProjectStages(): string[] {
+    const stageNames = new Set<string>(
+      this.stagesFormArray.controls
+        .map(c => c.get('name')?.value)
+        .filter((n): n is string => typeof n === 'string' && n.trim().length > 0)
+    );
+    const coveredStages = new Set<string>(
+      this.questionnairesFormArray.controls
+        .flatMap(q => (q.get('questions')?.value as QuestionData[]) ?? [])
+        .flatMap(q => q.stageNames ?? [])
+    );
+    return Array.from(stageNames).filter(s => !coveredStages.has(s));
+  }
+
+  get orphanedRolesInProject(): string[] {
+    const repRoleIds = new Set<number>(
+      this.representativesFormArray.controls.flatMap(c => (c.get('roleIds')?.value as number[]) ?? [])
+    );
+    if (!repRoleIds.size) return [];
+    const orphanedNames = new Set<string>();
+    this.questionnairesFormArray.controls
+      .flatMap(q => (q.get('questions')?.value as QuestionData[]) ?? [])
+      .forEach(q => {
+        (q.roleIds ?? []).forEach(id => {
+          if (!repRoleIds.has(id)) orphanedNames.add(this.roleNameById.get(id) ?? `ID:${id}`);
+        });
+      });
+    return Array.from(orphanedNames);
+  }
+
+  get orphanedStagesInProject(): string[] {
+    const validStages = new Set<string>(
+      this.stagesFormArray.controls
+        .map(c => c.get('name')?.value)
+        .filter((n): n is string => typeof n === 'string' && n.trim().length > 0)
+    );
+    if (!validStages.size) return [];
+    const orphanedStages = new Set<string>();
+    this.questionnairesFormArray.controls
+      .flatMap(q => (q.get('questions')?.value as QuestionData[]) ?? [])
+      .forEach(q => {
+        (q.stageNames ?? []).forEach(s => {
+          if (!validStages.has(s)) orphanedStages.add(s);
+        });
+      });
+    return Array.from(orphanedStages);
   }
 
   private handleQuestionnaireQuestionUpdate(index: number, questions: QuestionData[] | undefined): void {
@@ -771,8 +828,15 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
       return;
     }
     const projectName = this.projectForm.get('name')?.value || this.translate.instant('common.new_project');
-
-  const questions = this.getQuestionsForQuestionnaire(questionnaire);
+    const questions = this.getQuestionsForQuestionnaire(questionnaire);
+    const representativeRoleIds = Array.from(new Set(
+      this.representativesFormArray.controls
+        .flatMap(c => (c.get('roleIds')?.value as number[]) ?? [])
+        .filter((id): id is number => typeof id === 'number' && id > 0)
+    ));
+    const otherQuestionnairesQuestions: QuestionData[] = this.questionnairesFormArray.controls
+      .filter((_, i) => i !== index)
+      .flatMap(q => (q.get('questions')?.value as QuestionData[]) ?? []);
 
     this.routerService.navigateTo('/projects/questionnaire/iterativo', {
       params: {
@@ -784,6 +848,8 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
           iteration: questionnaire.iteration,
           questions: questions,
           stages: this.getAvailableStageNames(),
+          representativeRoleIds,
+          otherQuestionnairesQuestions,
         }
       }
     });
@@ -1090,7 +1156,7 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
       startDate: formValue.startDate ?? '',
       deadline: formValue.deadline || null,
       status: 'RASCUNHO',
-      aiUsageScopes: formValue.aiUsageScopes?.length ? formValue.aiUsageScopes : undefined,
+
       iterationDuration: iterationDuration > 0 ? iterationDuration : undefined,
       iterationCount: iterationCount > 0 ? iterationCount : undefined,
       stages: stages.length ? stages : undefined,
@@ -1146,7 +1212,7 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
       startDate,
       deadline: formValue.deadline || null,
       status: 'ABERTO',
-      aiUsageScopes: formValue.aiUsageScopes?.length ? formValue.aiUsageScopes : undefined,
+
       iterationDuration,
       iterationCount,
       stages: stages.length ? stages : undefined,

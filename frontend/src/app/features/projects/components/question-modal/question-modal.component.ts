@@ -45,6 +45,7 @@ export class QuestionModalComponent implements OnInit {
   @Input() editData?: QuestionData;
   @Input() mode: ActionType = ActionType.CREATE;
   @Input() stageConfig?: QuestionStageConfig;
+  @Input() allowedRoleIds?: number[];
   @Output() questionCreated = new EventEmitter<QuestionData>();
   @Output() questionUpdated = new EventEmitter<QuestionData>();
 
@@ -100,8 +101,11 @@ export class QuestionModalComponent implements OnInit {
       .subscribe({
         next: (roles) => {
           const resolvedRoles = roles ?? [];
-          this.roleOptions = resolvedRoles.map(this.mapRoleToOption);
           this.rolesLookup = new Map(resolvedRoles.map((role) => [role.id, role.name]));
+          const filtered = this.allowedRoleIds?.length
+            ? resolvedRoles.filter(r => this.allowedRoleIds!.includes(r.id))
+            : resolvedRoles;
+          this.roleOptions = filtered.map(this.mapRoleToOption);
           this.applyPendingRoleNameConversion();
         },
         error: (error) => {

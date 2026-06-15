@@ -35,6 +35,13 @@
     ou iteração.
   </p>
 
+  <#if projectLink?? && projectLink?has_content>
+    <p>
+      Acesse o painel do projeto para revisar os detalhes:
+      <a href="${projectLink}">${projectLink}</a>.
+    </p>
+  </#if>
+
   <p style="color:#9aa5b1; font-size:12px;">
     Emitido por ${emittedBy!"Analista de Qualidade"} em ${emittedAtFormatted!"N/D"}.
   </p>

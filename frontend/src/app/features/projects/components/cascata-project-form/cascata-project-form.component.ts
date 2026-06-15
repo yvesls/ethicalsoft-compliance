@@ -26,7 +26,6 @@ import {
 import { AccordionPanelComponent } from '../../../../shared/components/accordion-panel/accordion-panel.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
-import { MultiSelectComponent, MultiSelectOption } from '../../../../shared/components/multi-select/multi-select.component';
 
 import { CustomValidators } from '../../../../shared/validators/custom.validator';
 import { ProjectDatesValidators } from '../../../../shared/validators/project-dates.validator';
@@ -64,6 +63,7 @@ import { SessionExpirationService } from '../../../../core/services/session-expi
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { LoggerService } from '../../../../core/services/logger.service';
 import { InfoExplainerComponent } from '../../../../shared/components/info-explainer/info-explainer.component';
+import { UnlinkedItemsPanelComponent } from '../../../../shared/components/unlinked-items-panel/unlinked-items-panel.component';
 
 export interface Representative {
   id?: number | string | null;
@@ -115,7 +115,6 @@ interface CascataProjectFormValue {
   type: ProjectType;
   startDate: string | null;
   deadline: string | null;
-  aiUsageScopes?: string[];
   steps?: CascataStageFormValue[];
   representatives?: Representative[];
   questionnaires?: Questionnaire[];
@@ -130,9 +129,8 @@ interface CascataProjectFormValue {
     AccordionPanelComponent,
     InputComponent,
     SelectComponent,
-    MultiSelectComponent,
     TranslateModule,
-    InfoExplainerComponent,
+    UnlinkedItemsPanelComponent,
   ],
   templateUrl: './cascata-project-form.component.html',
   styleUrls: ['./cascata-project-form.component.scss'],
@@ -167,8 +165,6 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
 
   public templateOptions: SelectOption[] = [];
   public projectTypeOptions: SelectOption[] = [];
-  public aiUsageScopeOptions: MultiSelectOption[] = [];
-
   public availableRoles: RoleSummary[] = [];
   private roleNameById = new Map<number, string>();
 
@@ -186,16 +182,6 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
     this.projectTypeOptions = [
       { value: ProjectType.Cascata, label: this.translate.instant('projects.type.cascata') },
     ];
-    this.aiUsageScopeOptions = [
-      { value: 'NAO_UTILIZA', label: this.translate.instant('project.ai_usage.options.NAO_UTILIZA') },
-      { value: 'REQUISITOS', label: this.translate.instant('project.ai_usage.options.REQUISITOS') },
-      { value: 'DESIGN_ARQUITETURA', label: this.translate.instant('project.ai_usage.options.DESIGN_ARQUITETURA') },
-      { value: 'GERACAO_CODIGO', label: this.translate.instant('project.ai_usage.options.GERACAO_CODIGO') },
-      { value: 'TESTES', label: this.translate.instant('project.ai_usage.options.TESTES') },
-      { value: 'DOCUMENTACAO', label: this.translate.instant('project.ai_usage.options.DOCUMENTACAO') },
-      { value: 'MANUTENCAO_REFATORACAO', label: this.translate.instant('project.ai_usage.options.MANUTENCAO_REFATORACAO') },
-    ];
-
     this.projectForm = this.fb.group(
       {
         template: [null, [Validators.required]],
@@ -219,7 +205,6 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
             ProjectDatesValidators.deadlineAllowsExistingStages()
           ]
         ],
-        aiUsageScopes: [[]],
         steps: this.buildCascataStepsForm(),
         representatives: this.buildRepresentativesForm(),
         questionnaires: this.fb.array([]),
@@ -493,11 +478,6 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
       .subscribe({
         next: (template) => {
           this.selectedTemplateData = template;
-
-          this.projectForm.patchValue({
-            name: template.name
-          });
-
           this.cdr.detectChanges();
         },
         error: (error) => {
@@ -833,8 +813,18 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
       return;
     }
     const projectName = this.projectForm.get('name')?.value || this.translate.instant('common.new_project');
-
     const questions = this.getQuestionsForQuestionnaire(questionnaire);
+    const representativeRoleIds = Array.from(new Set(
+      this.representativesFormArray.controls
+        .flatMap(c => (c.get('roleIds')?.value as number[]) ?? [])
+        .filter((id): id is number => typeof id === 'number' && id > 0)
+    ));
+    const otherQuestionnairesQuestions: QuestionData[] = this.questionnairesFormArray.controls
+      .filter((_, i) => i !== index)
+      .flatMap(q => (q.get('questions')?.value as QuestionData[]) ?? []);
+    const allProjectStageNames: string[] = this.questionnairesFormArray.controls
+      .map(q => (q.get('stageName')?.value ?? q.get('name')?.value ?? '') as string)
+      .filter(Boolean);
 
     this.routerService.navigateTo('/projects/questionnaire/cascata', {
       params: {
@@ -846,7 +836,10 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
           applicationStartDate: questionnaire.applicationStartDate,
           applicationEndDate: questionnaire.applicationEndDate,
           stageName: questionnaire.stageName,
-          questions: questions
+          questions: questions,
+          representativeRoleIds,
+          otherQuestionnairesQuestions,
+          allProjectStageNames,
         }
       }
     });
@@ -978,10 +971,15 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
   getQuestionnaireQuestionErrorMessage(index: number): string {
     const control = this.questionnairesFormArray.at(index) as FormGroup | null;
     const name = (control?.get('name')?.value ?? '').toString().trim();
-    if (name) {
-      return this.translate.instant('projects.form.validation.add_question_to_questionnaire', { name });
+    const questions = control?.get('questions')?.value as QuestionData[] | undefined;
+    if (!questions?.length) {
+      return name
+        ? this.translate.instant('projects.form.validation.add_question_to_questionnaire', { name })
+        : this.translate.instant('projects.form.validation.add_question_to_this');
     }
-    return this.translate.instant('projects.form.validation.add_question_to_this');
+    return name
+      ? this.translate.instant('projects.form.validation.rep_no_question_in_questionnaire', { name })
+      : this.translate.instant('projects.form.validation.rep_no_question_in_this');
   }
 
   private validateQuestionnairesHaveQuestions(): boolean {
@@ -990,6 +988,15 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
     this.questionnairesFormArray.controls.forEach((control, index) => {
       const questions = control.get('questions')?.value as QuestionData[] | undefined;
       if (!questions || questions.length === 0) {
+        this.questionnaireQuestionErrors.add(index);
+        return;
+      }
+      const coveredRoleIds = new Set<number>(questions.flatMap(q => q.roleIds ?? []));
+      const hasUncoveredRep = this.representativesFormArray.controls.some(rep => {
+        const repRoles = rep.get('roleIds')?.value as number[] | undefined;
+        return !(repRoles ?? []).some(id => coveredRoleIds.has(id));
+      });
+      if (hasUncoveredRep) {
         this.questionnaireQuestionErrors.add(index);
       }
     });
@@ -1003,6 +1010,61 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
 
     this.cdr.markForCheck();
     return !hasErrors;
+  }
+
+  get unlinkedProjectRoles(): string[] {
+    const repRoleIds = new Set<number>(
+      this.representativesFormArray.controls.flatMap(c => (c.get('roleIds')?.value as number[]) ?? [])
+    );
+    const coveredRoleIds = new Set<number>(
+      this.questionnairesFormArray.controls
+        .flatMap(q => (q.get('questions')?.value as QuestionData[]) ?? [])
+        .flatMap(q => q.roleIds ?? [])
+    );
+    return Array.from(repRoleIds)
+      .filter(id => !coveredRoleIds.has(id))
+      .map(id => this.roleNameById.get(id) ?? `ID:${id}`);
+  }
+
+  get unlinkedProjectStages(): string[] {
+    return this.questionnairesFormArray.controls
+      .filter(q => !(q.get('questions')?.value as QuestionData[] | undefined)?.length)
+      .map(q => (q.get('stageName')?.value ?? q.get('name')?.value ?? '') as string)
+      .filter(Boolean);
+  }
+
+  get orphanedRolesInProject(): string[] {
+    const repRoleIds = new Set<number>(
+      this.representativesFormArray.controls.flatMap(c => (c.get('roleIds')?.value as number[]) ?? [])
+    );
+    if (!repRoleIds.size) return [];
+    const orphanedNames = new Set<string>();
+    this.questionnairesFormArray.controls
+      .flatMap(q => (q.get('questions')?.value as QuestionData[]) ?? [])
+      .forEach(q => {
+        (q.roleIds ?? []).forEach(id => {
+          if (!repRoleIds.has(id)) orphanedNames.add(this.roleNameById.get(id) ?? `ID:${id}`);
+        });
+      });
+    return Array.from(orphanedNames);
+  }
+
+  get orphanedStagesInProject(): string[] {
+    const validStages = new Set<string>(
+      this.questionnairesFormArray.controls
+        .map(q => (q.get('stageName')?.value ?? q.get('name')?.value ?? '') as string)
+        .filter(Boolean)
+    );
+    if (!validStages.size) return [];
+    const orphanedStages = new Set<string>();
+    this.questionnairesFormArray.controls
+      .flatMap(q => (q.get('questions')?.value as QuestionData[]) ?? [])
+      .forEach(q => {
+        (q.stageNames ?? []).forEach(s => {
+          if (!validStages.has(s)) orphanedStages.add(s);
+        });
+      });
+    return Array.from(orphanedStages);
   }
 
   private handleQuestionnaireQuestionUpdate(index: number, questions: QuestionData[] | undefined): void {
@@ -1410,7 +1472,7 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
       startDate: formValue.startDate ?? '',
       deadline: formValue.deadline || null,
       status: 'RASCUNHO',
-      aiUsageScopes: formValue.aiUsageScopes?.length ? formValue.aiUsageScopes : undefined,
+
       stages: stages.length ? stages : undefined,
       questionnaires: questionnaires.length ? questionnaires : undefined,
       representatives: representatives.length ? representatives : undefined,
@@ -1452,7 +1514,7 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
       startDate,
       deadline: formValue.deadline || null,
       status: 'ABERTO',
-      aiUsageScopes: formValue.aiUsageScopes?.length ? formValue.aiUsageScopes : undefined,
+
       stages: stages.length ? stages : undefined,
       questionnaires: questionnaires.length ? questionnaires : undefined,
       representatives: representatives.length ? representatives : undefined,

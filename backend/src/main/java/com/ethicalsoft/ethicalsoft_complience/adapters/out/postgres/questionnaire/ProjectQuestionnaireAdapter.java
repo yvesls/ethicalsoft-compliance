@@ -154,11 +154,18 @@ public class ProjectQuestionnaireAdapter implements ProjectQuestionnaireCommandP
                                         Questionnaire questionnaire,
                                         List<QuestionnaireResponse.AnswerDocument> answerTemplate) {
 
+        if (answerTemplate == null || answerTemplate.isEmpty()) {
+            throw new BusinessException(
+                    "Não foi possível gerar a base de respostas do questionário '" + questionnaire.getName()
+                            + "': nenhuma pergunta vinculada foi encontrada. A criação do projeto foi interrompida.");
+        }
+
+        questionnaireResponseRepository.save(buildResponse(project, questionnaire, null, answerTemplate));
+
         Set<Representative> representatives = Optional.ofNullable(project.getRepresentatives()).orElse(Collections.emptySet())
                 .stream().filter(r -> r.getDeletionDate() == null).collect(Collectors.toSet());
 
         if (representatives.isEmpty()) {
-            questionnaireResponseRepository.save(buildResponse(project, questionnaire, null, answerTemplate));
             return;
         }
 

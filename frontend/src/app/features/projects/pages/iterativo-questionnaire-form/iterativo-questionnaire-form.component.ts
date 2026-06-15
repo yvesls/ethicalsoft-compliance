@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy, signal, WritableSignal, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, WritableSignal, ChangeDetectorRef, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormsModule, Validators } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -22,6 +22,7 @@ import { QuestionnaireQuestionResponse, QuestionnaireRawResponse } from '../../.
 import { Page } from '../../../../shared/interfaces/pageable.interface';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
 import { RoleSummary } from '../../../../shared/interfaces/role/role-summary.interface';
+import { UnlinkedItemsPanelComponent } from '../../../../shared/components/unlinked-items-panel/unlinked-items-panel.component';
 
 interface IterativoQuestionnaireRouteParams extends GenericParams {
   questionnaireIndex?: number;
@@ -35,6 +36,8 @@ interface IterativoQuestionnaireRouteParams extends GenericParams {
   iteration?: string;
   questions?: QuestionData[];
   stages?: string[];
+  representativeRoleIds?: number[];
+  otherQuestionnairesQuestions?: QuestionData[];
   returnTo?: string;
   returnToEdit?: boolean;
   editProjectId?: string;
@@ -47,7 +50,7 @@ type IterativoQuestionnaireRestoreParams = RestoreParams<IterativoQuestionnaireR
 @Component({
   selector: 'app-iterativo-questionnaire-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, AccordionPanelComponent, InputComponent, SelectComponent, PaginationComponent, TranslateModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, AccordionPanelComponent, InputComponent, SelectComponent, PaginationComponent, TranslateModule, UnlinkedItemsPanelComponent],
   templateUrl: './iterativo-questionnaire-form.component.html',
   styleUrls: ['./iterativo-questionnaire-form.component.scss']
 })
@@ -65,6 +68,7 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
   private skipStatePersistence = false;
   private stageSelectionConfig?: QuestionStageConfig;
   private returnTo: string | null = null;
+  private allowedRoleIds: number[] = [];
 
   readonly mode = signal<ActionType>(ActionType.EDIT);
   readonly isViewMode = signal(false);
@@ -76,6 +80,9 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
   readonly pageSize = signal(10);
 
   private roleNameById = new Map<number, string>();
+  private _rolesReady = signal(false);
+  private _projectStageNames = signal<string[]>([]);
+  private _otherProjectQuestions: QuestionData[] = [];
 
   form!: FormGroup;
   questions: WritableSignal<QuestionData[]> = signal([]);
@@ -89,6 +96,64 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
   selectedQuestionIds = signal<Set<string>>(new Set());
 
   roleFilterOptions: SelectOption[] = [];
+  readonly outOfProjectRoles = computed(() => {
+    this._rolesReady();
+    if (!this.allowedRoleIds.length) return [];
+    const covered = new Set([
+      ...this._otherProjectQuestions.flatMap(q => q.roleIds ?? []),
+      ...this.questions().flatMap(q => q.roleIds ?? []),
+    ]);
+    return this.allowedRoleIds
+      .filter(id => !covered.has(id))
+      .map(id => this.roleNameById.get(id) ?? `ID:${id}`);
+  });
+  readonly outOfProjectStages = computed(() => {
+    const stages = this._projectStageNames();
+    if (!stages.length) return [];
+    const covered = new Set([
+      ...this._otherProjectQuestions.flatMap(q => q.stageNames ?? []),
+      ...this.questions().flatMap(q => q.stageNames ?? []),
+    ]);
+    return stages.filter(s => !covered.has(s));
+  });
+
+  readonly orphanedRolesInQuestions = computed(() => {
+    this._rolesReady();
+    if (!this.allowedRoleIds.length) return [];
+    const validRoleIds = new Set(this.allowedRoleIds);
+    const orphanedNames = new Set<string>();
+    this.questions().forEach(q => {
+      (q.roleIds ?? []).forEach(id => {
+        if (!validRoleIds.has(id)) orphanedNames.add(this.roleNameById.get(id) ?? `ID:${id}`);
+      });
+    });
+    return Array.from(orphanedNames);
+  });
+
+  readonly orphanedStagesInQuestions = computed(() => {
+    const validStages = new Set(this._projectStageNames());
+    if (!validStages.size) return [];
+    const orphanedStages = new Set<string>();
+    this.questions().forEach(q => {
+      (q.stageNames ?? []).forEach(s => {
+        if (!validStages.has(s)) orphanedStages.add(s);
+      });
+    });
+    return Array.from(orphanedStages);
+  });
+
+  readonly invalidQuestionIds = computed(() => {
+    this._rolesReady();
+    const validRoleIds = new Set(this.allowedRoleIds);
+    const validStages = new Set(this._projectStageNames());
+    const invalidIds = new Set<string>();
+    this.questions().forEach(q => {
+      const hasOrphanedRole = validRoleIds.size > 0 && (q.roleIds ?? []).some(id => !validRoleIds.has(id));
+      const hasOrphanedStage = validStages.size > 0 && (q.stageNames ?? []).some(s => !validStages.has(s));
+      if ((hasOrphanedRole || hasOrphanedStage) && q.id) invalidIds.add(q.id);
+    });
+    return invalidIds;
+  });
 
   private questionModalSubscription?: Subscription;
 
@@ -123,12 +188,15 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
 
     this.questionnaireIndex = typeof data.questionnaireIndex === 'number' ? data.questionnaireIndex : null;
     this.questionnaireMetadata = data;
+    this.allowedRoleIds = Array.isArray(data.representativeRoleIds) ? data.representativeRoleIds : [];
+    this._otherProjectQuestions = Array.isArray(data.otherQuestionnairesQuestions) ? data.otherQuestionnairesQuestions : [];
     const stageNames = this.normalizeStageNamesList(data.stages);
     this.stageSelectionConfig = this.buildStageSelectionConfig(stageNames);
 
     if (data.projectName) {
       this.projectName.set(data.projectName);
     }
+    this._projectStageNames.set(stageNames);
     if (data.questions && Array.isArray(data.questions)) {
       this.questions.set(this.normalizeQuestionList(data.questions));
     }
@@ -250,12 +318,14 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
       .pipe(take(1))
       .subscribe({
         next: (roles) => {
-          this.roleFilterOptions = (roles ?? []).map((role) => ({
-            value: role.name,
-            label: role.name,
-          }));
-          this.roleNameById = new Map((roles ?? []).map((role: RoleSummary) => [role.id, role.name]));
+          const allRoles = roles ?? [];
+          this.roleNameById = new Map(allRoles.map((role: RoleSummary) => [role.id, role.name]));
+          const filtered = this.allowedRoleIds.length
+            ? allRoles.filter(r => this.allowedRoleIds.includes(r.id))
+            : allRoles;
+          this.roleFilterOptions = filtered.map((role) => ({ value: role.name, label: role.name }));
           this.refreshQuestionRoleNames();
+          this._rolesReady.set(true);
           this.cdr.markForCheck();
         },
         error: (error) => {
@@ -316,7 +386,8 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
 
     this.modalService.open(QuestionModalComponent, 'medium-card', {
       mode: ActionType.CREATE,
-      stageConfig: this.stageSelectionConfig
+      stageConfig: this.stageSelectionConfig,
+      allowedRoleIds: this.allowedRoleIds.length ? this.allowedRoleIds : undefined,
     });
 
     const modalInstance = this.modalService.getActiveInstance<QuestionModalComponent>();
@@ -338,7 +409,8 @@ export class IterativoQuestionnaireFormComponent extends BasePageComponent<Itera
     this.modalService.open(QuestionModalComponent, 'medium-card', {
       mode: ActionType.EDIT,
       editData: question,
-      stageConfig: this.stageSelectionConfig
+      stageConfig: this.stageSelectionConfig,
+      allowedRoleIds: this.allowedRoleIds.length ? this.allowedRoleIds : undefined,
     });
 
     const modalInstance = this.modalService.getActiveInstance<QuestionModalComponent>();

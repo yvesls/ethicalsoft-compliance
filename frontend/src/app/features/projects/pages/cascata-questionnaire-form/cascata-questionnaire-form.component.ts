@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy, signal, WritableSignal, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, WritableSignal, ChangeDetectorRef, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -21,6 +21,7 @@ import { QuestionnaireQuestionResponse, QuestionnaireRawResponse } from '../../.
 import { Page } from '../../../../shared/interfaces/pageable.interface';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
 import { RoleSummary } from '../../../../shared/interfaces/role/role-summary.interface';
+import { UnlinkedItemsPanelComponent } from '../../../../shared/components/unlinked-items-panel/unlinked-items-panel.component';
 
 interface CascataQuestionnaireRouteParams extends GenericParams {
   questionnaireIndex?: number;
@@ -33,6 +34,9 @@ interface CascataQuestionnaireRouteParams extends GenericParams {
   applicationStartDate?: string;
   applicationEndDate?: string;
   questions?: QuestionData[];
+  representativeRoleIds?: number[];
+  otherQuestionnairesQuestions?: QuestionData[];
+  allProjectStageNames?: string[];
   returnTo?: string;
   returnToEdit?: boolean;
   editProjectId?: string;
@@ -45,7 +49,7 @@ type CascataQuestionnaireRestoreParams = RestoreParams<CascataQuestionnaireRoute
 @Component({
   selector: 'app-cascata-questionnaire-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, AccordionPanelComponent, InputComponent, SelectComponent, PaginationComponent, TranslateModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, AccordionPanelComponent, InputComponent, SelectComponent, PaginationComponent, TranslateModule, UnlinkedItemsPanelComponent],
   templateUrl: './cascata-questionnaire-form.component.html',
   styleUrls: ['./cascata-questionnaire-form.component.scss']
 })
@@ -62,6 +66,7 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
   private skipStatePersistence = false;
   private currentStageName: string | null = null;
   private returnTo: string | null = null;
+  private allowedRoleIds: number[] = [];
 
   readonly mode = signal<ActionType>(ActionType.EDIT);
   readonly isViewMode = signal(false);
@@ -72,6 +77,9 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
   readonly currentPage = signal(0);
   readonly pageSize = signal(10);
   private roleNameById = new Map<number, string>();
+  private _rolesReady = signal(false);
+  private _otherProjectQuestions: QuestionData[] = [];
+  private _allProjectStageNames: string[] = [];
 
   form!: FormGroup;
   questions: WritableSignal<QuestionData[]> = signal([]);
@@ -84,6 +92,63 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
   selectedQuestionIds = signal<Set<string>>(new Set());
 
   roleFilterOptions: SelectOption[] = [];
+  readonly outOfProjectRoles = computed(() => {
+    this._rolesReady();
+    if (!this.allowedRoleIds.length) return [];
+    const covered = new Set([
+      ...this._otherProjectQuestions.flatMap(q => q.roleIds ?? []),
+      ...this.questions().flatMap(q => q.roleIds ?? []),
+    ]);
+    return this.allowedRoleIds
+      .filter(id => !covered.has(id))
+      .map(id => this.roleNameById.get(id) ?? `ID:${id}`);
+  });
+  readonly outOfProjectStages = computed(() => {
+    if (!this._allProjectStageNames.length) return [];
+    const covered = new Set([
+      ...this._otherProjectQuestions.flatMap(q => q.stageNames ?? []),
+      ...this.questions().flatMap(q => q.stageNames ?? []),
+    ]);
+    return this._allProjectStageNames.filter(s => !covered.has(s));
+  });
+
+  readonly orphanedRolesInQuestions = computed(() => {
+    this._rolesReady();
+    if (!this.allowedRoleIds.length) return [];
+    const validRoleIds = new Set(this.allowedRoleIds);
+    const orphanedNames = new Set<string>();
+    this.questions().forEach(q => {
+      (q.roleIds ?? []).forEach(id => {
+        if (!validRoleIds.has(id)) orphanedNames.add(this.roleNameById.get(id) ?? `ID:${id}`);
+      });
+    });
+    return Array.from(orphanedNames);
+  });
+
+  readonly orphanedStagesInQuestions = computed(() => {
+    if (!this._allProjectStageNames.length) return [];
+    const validStages = new Set(this._allProjectStageNames);
+    const orphanedStages = new Set<string>();
+    this.questions().forEach(q => {
+      (q.stageNames ?? []).forEach(s => {
+        if (!validStages.has(s)) orphanedStages.add(s);
+      });
+    });
+    return Array.from(orphanedStages);
+  });
+
+  readonly invalidQuestionIds = computed(() => {
+    this._rolesReady();
+    const validRoleIds = new Set(this.allowedRoleIds);
+    const validStages = new Set(this._allProjectStageNames);
+    const invalidIds = new Set<string>();
+    this.questions().forEach(q => {
+      const hasOrphanedRole = validRoleIds.size > 0 && (q.roleIds ?? []).some(id => !validRoleIds.has(id));
+      const hasOrphanedStage = validStages.size > 0 && (q.stageNames ?? []).some(s => !validStages.has(s));
+      if ((hasOrphanedRole || hasOrphanedStage) && q.id) invalidIds.add(q.id);
+    });
+    return invalidIds;
+  });
 
   private questionModalSubscription?: Subscription;
 
@@ -111,14 +176,16 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
       .pipe(take(1))
       .subscribe({
         next: (roles) => {
-          this.roleFilterOptions = (roles ?? []).map((role) => ({
-            value: role.name,
-            label: role.name,
-          }));
-          this.roleNameById = new Map((roles ?? []).map((role: RoleSummary) => [role.id, role.name]));
+          const allRoles = roles ?? [];
+          this.roleNameById = new Map(allRoles.map((role: RoleSummary) => [role.id, role.name]));
+          const filtered = this.allowedRoleIds.length
+            ? allRoles.filter(r => this.allowedRoleIds.includes(r.id))
+            : allRoles;
+          this.roleFilterOptions = filtered.map((role) => ({ value: role.name, label: role.name }));
           this.questions.update((questions) =>
             questions.map((question) => this.assignStageMetadata({ ...question }))
           );
+          this._rolesReady.set(true);
           this.cdr.markForCheck();
         },
         error: (error) => {
@@ -148,6 +215,9 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
     this.questionnaireIndex = typeof data.questionnaireIndex === 'number' ? data.questionnaireIndex : null;
     this.questionnaireMetadata = data;
     this.currentStageName = data.stageName ?? data.name ?? null;
+    this.allowedRoleIds = Array.isArray(data.representativeRoleIds) ? data.representativeRoleIds : [];
+    this._otherProjectQuestions = Array.isArray(data.otherQuestionnairesQuestions) ? data.otherQuestionnairesQuestions : [];
+    this._allProjectStageNames = Array.isArray(data.allProjectStageNames) ? data.allProjectStageNames : [];
 
     if (data.questions && Array.isArray(data.questions)) {
       this.questions.set(this.annotateQuestionsWithStage(data.questions));
@@ -298,7 +368,8 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
       return;
     }
     this.modalService.open(QuestionModalComponent, 'medium-card', {
-      mode: ActionType.CREATE
+      mode: ActionType.CREATE,
+      allowedRoleIds: this.allowedRoleIds.length ? this.allowedRoleIds : undefined,
     });
 
     const modalInstance = this.modalService.getActiveInstance<QuestionModalComponent>();
@@ -318,7 +389,8 @@ export class CascataQuestionnaireFormComponent extends BasePageComponent<Cascata
     }
     this.modalService.open(QuestionModalComponent, 'medium-card', {
       mode: ActionType.EDIT,
-      editData: question
+      editData: question,
+      allowedRoleIds: this.allowedRoleIds.length ? this.allowedRoleIds : undefined,
     });
 
     const modalInstance = this.modalService.getActiveInstance<QuestionModalComponent>();

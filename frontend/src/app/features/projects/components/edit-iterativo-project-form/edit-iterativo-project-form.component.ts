@@ -33,7 +33,6 @@ import { RoleSummary } from '../../../../shared/interfaces/role/role-summary.int
 import { AccordionPanelComponent } from '../../../../shared/components/accordion-panel/accordion-panel.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
-import { MultiSelectComponent, MultiSelectOption } from '../../../../shared/components/multi-select/multi-select.component';
 
 import { CustomValidators } from '../../../../shared/validators/custom.validator';
 import { FormUtils } from '../../../../shared/utils/form-utils';
@@ -64,6 +63,7 @@ import {
   RepresentativeData,
 } from '../representative-modal/representative-modal.component';
 import { QuestionData } from '../question-modal/question-modal.component';
+import { UnlinkedItemsPanelComponent } from '../../../../shared/components/unlinked-items-panel/unlinked-items-panel.component';
 
 type PanelKey = 'project' | 'stages' | 'representatives' | 'questionnaires';
 type PanelStates = Record<PanelKey, boolean>;
@@ -77,9 +77,8 @@ type PanelStates = Record<PanelKey, boolean>;
     AccordionPanelComponent,
     InputComponent,
     SelectComponent,
-    MultiSelectComponent,
     TranslateModule,
-    InfoExplainerComponent,
+    UnlinkedItemsPanelComponent,
   ],
   templateUrl: './edit-iterativo-project-form.component.html',
   styleUrls: ['./edit-iterativo-project-form.component.scss'],
@@ -112,8 +111,6 @@ export class EditIterativoProjectFormComponent implements OnInit {
   };
 
   public projectTypeOptions: SelectOption[] = [];
-  public aiUsageScopeOptions: MultiSelectOption[] = [];
-
   public availableRoles: RoleSummary[] = [];
   private roleNameById = new Map<number, string>();
   private questionnaireQuestionErrors = new Set<number>();
@@ -125,15 +122,6 @@ export class EditIterativoProjectFormComponent implements OnInit {
   ngOnInit(): void {
     this.projectTypeOptions = [
       { value: ProjectType.Iterativo, label: this.translate.instant('projects.type.iterativo') },
-    ];
-    this.aiUsageScopeOptions = [
-      { value: 'NAO_UTILIZA', label: this.translate.instant('project.ai_usage.options.NAO_UTILIZA') },
-      { value: 'REQUISITOS', label: this.translate.instant('project.ai_usage.options.REQUISITOS') },
-      { value: 'DESIGN', label: this.translate.instant('project.ai_usage.options.DESIGN') },
-      { value: 'CODIFICACAO', label: this.translate.instant('project.ai_usage.options.CODIFICACAO') },
-      { value: 'TESTES', label: this.translate.instant('project.ai_usage.options.TESTES') },
-      { value: 'DOCUMENTACAO', label: this.translate.instant('project.ai_usage.options.DOCUMENTACAO') },
-      { value: 'AI_GOVERNANCE', label: this.translate.instant('project.ai_usage.options.AI_GOVERNANCE') },
     ];
     this.route.params.pipe(take(1)).subscribe((params) => {
       this.projectId = params['projectId'];
@@ -159,7 +147,6 @@ export class EditIterativoProjectFormComponent implements OnInit {
         deadline: [null],
         iterationDuration: [10, [Validators.required, Validators.min(1)]],
         iterationCount: [null],
-        aiUsageScopes: [[]],
         stages: this.fb.array([]),
         iterations: this.fb.array([]),
         representatives: this.fb.array([]),
@@ -302,7 +289,6 @@ export class EditIterativoProjectFormComponent implements OnInit {
       deadline: data.deadline,
       iterationDuration: data.iterationDuration ?? 10,
       iterationCount: data.configuredIterationCount ?? data.iterations?.length ?? null,
-      aiUsageScopes: data.aiUsageScopes ?? [],
     });
 
     const stagesArray = this.projectForm.get('stages') as FormArray;
@@ -577,6 +563,14 @@ export class EditIterativoProjectFormComponent implements OnInit {
     const projectName = this.projectForm.get('name')?.value || this.translate.instant('common.project');
     const questions = questionnaire.questions || [];
     const stages = this.getAvailableStageNames();
+    const representativeRoleIds = Array.from(new Set(
+      this.representativesFormArray.controls
+        .flatMap(c => (c.get('roleIds')?.value as number[]) ?? [])
+        .filter((id): id is number => typeof id === 'number' && id > 0)
+    ));
+    const otherQuestionnairesQuestions: QuestionData[] = this.questionnairesFormArray.controls
+      .filter((_, i) => i !== index)
+      .flatMap(q => (q.get('questions')?.value as QuestionData[]) ?? []);
 
     this.saveFormStateToCache();
 
@@ -590,6 +584,8 @@ export class EditIterativoProjectFormComponent implements OnInit {
           iteration: questionnaire.iterationName ?? questionnaire.name,
           questions,
           stages,
+          representativeRoleIds,
+          otherQuestionnairesQuestions,
           returnToEdit: true,
           editProjectId: this.projectId,
         },
@@ -652,9 +648,15 @@ export class EditIterativoProjectFormComponent implements OnInit {
   getQuestionnaireQuestionErrorMessage(index: number): string {
     const control = this.questionnairesFormArray.at(index) as FormGroup | null;
     const name = (control?.get('name')?.value ?? '').toString().trim();
+    const questions = control?.get('questions')?.value as QuestionData[] | undefined;
+    if (!questions?.length) {
+      return name
+        ? this.translate.instant('projects.form.validation.add_question_to_questionnaire', { name })
+        : this.translate.instant('projects.form.validation.add_question_to_this');
+    }
     return name
-      ? this.translate.instant('projects.form.validation.add_question_to_questionnaire', { name })
-      : this.translate.instant('projects.form.validation.add_question_to_this');
+      ? this.translate.instant('projects.form.validation.rep_no_question_in_questionnaire', { name })
+      : this.translate.instant('projects.form.validation.rep_no_question_in_this');
   }
 
   private validateQuestionnairesHaveQuestions(): boolean {
@@ -662,6 +664,15 @@ export class EditIterativoProjectFormComponent implements OnInit {
     this.questionnairesFormArray.controls.forEach((control, index) => {
       const questions = control.get('questions')?.value as QuestionData[] | undefined;
       if (!questions || questions.length === 0) {
+        this.questionnaireQuestionErrors.add(index);
+        return;
+      }
+      const coveredRoleIds = new Set<number>(questions.flatMap(q => q.roleIds ?? []));
+      const hasUncoveredRep = this.representativesFormArray.controls.some(rep => {
+        const repRoles = rep.get('roleIds')?.value as number[] | undefined;
+        return !(repRoles ?? []).some(id => coveredRoleIds.has(id));
+      });
+      if (hasUncoveredRep) {
         this.questionnaireQuestionErrors.add(index);
       }
     });
@@ -781,6 +792,68 @@ export class EditIterativoProjectFormComponent implements OnInit {
     this.cdr.markForCheck();
   }
 
+  get unlinkedProjectRoles(): string[] {
+    const repRoleIds = new Set<number>(
+      this.representativesFormArray.controls.flatMap(c => (c.get('roleIds')?.value as number[]) ?? [])
+    );
+    const coveredRoleIds = new Set<number>(
+      this.questionnairesFormArray.controls
+        .flatMap(q => (q.get('questions')?.value as QuestionData[]) ?? [])
+        .flatMap(q => q.roleIds ?? [])
+    );
+    return Array.from(repRoleIds)
+      .filter(id => !coveredRoleIds.has(id))
+      .map(id => this.roleNameById.get(id) ?? `ID:${id}`);
+  }
+
+  get unlinkedProjectStages(): string[] {
+    const stageNames = new Set<string>(
+      this.stagesFormArray.controls
+        .map(c => c.get('name')?.value)
+        .filter((n): n is string => typeof n === 'string' && n.trim().length > 0)
+    );
+    const coveredStages = new Set<string>(
+      this.questionnairesFormArray.controls
+        .flatMap(q => (q.get('questions')?.value as QuestionData[]) ?? [])
+        .flatMap(q => q.stageNames ?? [])
+    );
+    return Array.from(stageNames).filter(s => !coveredStages.has(s));
+  }
+
+  get orphanedRolesInProject(): string[] {
+    const repRoleIds = new Set<number>(
+      this.representativesFormArray.controls.flatMap(c => (c.get('roleIds')?.value as number[]) ?? [])
+    );
+    if (!repRoleIds.size) return [];
+    const orphanedNames = new Set<string>();
+    this.questionnairesFormArray.controls
+      .flatMap(q => (q.get('questions')?.value as QuestionData[]) ?? [])
+      .forEach(q => {
+        (q.roleIds ?? []).forEach(id => {
+          if (!repRoleIds.has(id)) orphanedNames.add(this.roleNameById.get(id) ?? `ID:${id}`);
+        });
+      });
+    return Array.from(orphanedNames);
+  }
+
+  get orphanedStagesInProject(): string[] {
+    const validStages = new Set<string>(
+      this.stagesFormArray.controls
+        .map(c => c.get('name')?.value)
+        .filter((n): n is string => typeof n === 'string' && n.trim().length > 0)
+    );
+    if (!validStages.size) return [];
+    const orphanedStages = new Set<string>();
+    this.questionnairesFormArray.controls
+      .flatMap(q => (q.get('questions')?.value as QuestionData[]) ?? [])
+      .forEach(q => {
+        (q.stageNames ?? []).forEach(s => {
+          if (!validStages.has(s)) orphanedStages.add(s);
+        });
+      });
+    return Array.from(orphanedStages);
+  }
+
   canOpenPanel(): boolean {
     return true;
   }
@@ -819,7 +892,6 @@ export class EditIterativoProjectFormComponent implements OnInit {
         deadline: fv.deadline,
         iterationDuration: fv.iterationDuration,
         iterationCount: fv.iterationCount,
-        aiUsageScopes: fv.aiUsageScopes ?? [],
       }, { emitEvent: false });
 
       const stagesArray = this.projectForm.get('stages') as FormArray;
@@ -999,7 +1071,6 @@ export class EditIterativoProjectFormComponent implements OnInit {
 
     const iterationDuration = Number(formValue.iterationDuration) || undefined;
     const iterationCount = Number(formValue.iterationCount) || undefined;
-    const aiUsageScopes: string[] = formValue.aiUsageScopes ?? [];
 
     return {
       name,
@@ -1007,7 +1078,6 @@ export class EditIterativoProjectFormComponent implements OnInit {
       deadline: formValue.deadline || null,
       iterationDuration,
       iterationCount,
-      aiUsageScopes: aiUsageScopes.length ? aiUsageScopes : undefined,
       dryRun: false,
       stages: this.buildStagePayloads(),
       iterations: this.buildIterationPayloads(),

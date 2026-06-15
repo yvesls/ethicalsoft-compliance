@@ -113,12 +113,18 @@ public class QuestionnaireReminderNotificationStrategy implements NotificationTy
             Long recipientUserId = userRepository.findByEmail(email).map(User::getId).orElse(null);
             List<String> recipientRoles = notificationRoleResolver.resolveRoles(email, projectId);
 
+            String recipientName = userRepository.findByEmail(email)
+                    .map(User::getFirstName)
+                    .filter(name -> name != null && !name.isBlank())
+                    .orElse("participante");
+
             Map<String, String> placeholders = Map.of(
-                    "recipientName", Optional.ofNullable(email).orElse(""),
+                    "recipientName", recipientName,
                     "senderRole", String.join(",", Optional.ofNullable(sender.roles()).orElse(List.of())),
                     "questionnaireName", Optional.ofNullable(context.questionnaireName()).orElse(""),
                     "projectName", Optional.ofNullable(projectName).orElse(""),
-                    "period", Optional.ofNullable(context.period()).orElse("")
+                    "period", Optional.ofNullable(context.period()).orElse(""),
+                    "projectLink", "/projects/" + projectId
             );
 
             channelSender.send(template, placeholders, builder -> builder
