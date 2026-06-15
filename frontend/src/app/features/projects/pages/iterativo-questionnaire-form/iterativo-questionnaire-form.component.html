@@ -96,7 +96,7 @@
             </thead>
             <tbody>
               @for (question of filteredQuestions; track question.id) {
-                <tr [class.row-selected]="isQuestionSelected(question.id!)">
+                <tr [class.row-selected]="isQuestionSelected(question.id!)" [class.row-invalid]="invalidQuestionIds().has(question.id!)">
                   @if (!isViewMode()) {
                     <td class="text-center cell-checkbox">
                       <input
@@ -106,7 +106,12 @@
                       />
                     </td>
                   }
-                  <td class="text-center cell-id">{{ question.id }}</td>
+                  <td class="text-center cell-id">
+                    {{ question.id }}
+                    @if (invalidQuestionIds().has(question.id!)) {
+                      <span class="orphan-indicator" title="{{ 'projects.alerts.panel_orphaned_roles_label' | translate }}">⚠</span>
+                    }
+                  </td>
                   <td class="text-start">{{ question.value }}</td>
                   <td>
                     @let stageLabels = getStageLabels(question);
@@ -199,3 +204,10 @@
     </div>
   </footer>
 </form>
+
+<app-unlinked-items-panel
+  [unlinkedRoles]="outOfProjectRoles()"
+  [unlinkedStages]="outOfProjectStages()"
+  [orphanedRoles]="orphanedRolesInQuestions()"
+  [orphanedStages]="orphanedStagesInQuestions()"
+></app-unlinked-items-panel>

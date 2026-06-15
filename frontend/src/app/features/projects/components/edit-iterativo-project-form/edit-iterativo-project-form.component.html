@@ -75,17 +75,6 @@
         ></app-input>
       </div>
 
-      <div class="form-grid form-grid-4">
-        <div class="form-span-full">
-          <app-multi-select
-            [label]="'project.ai_usage.label' | translate"
-            formControlName="aiUsageScopes"
-            [options]="aiUsageScopeOptions"
-            [placeholder]="'project.ai_usage.placeholder' | translate"
-          />
-        </div>
-      </div>
-
       @if (projectForm.errors && projectForm.errors['dateOrder']) {
         <div class="validation-errors">
           <div class="error-message">
@@ -260,6 +249,13 @@
         </div>
       </div>
     </app-accordion-panel>
+
+    <app-unlinked-items-panel
+      [unlinkedRoles]="unlinkedProjectRoles"
+      [unlinkedStages]="unlinkedProjectStages"
+      [orphanedRoles]="orphanedRolesInProject"
+      [orphanedStages]="orphanedStagesInProject"
+    ></app-unlinked-items-panel>
 
     <div class="page-actions">
       <button

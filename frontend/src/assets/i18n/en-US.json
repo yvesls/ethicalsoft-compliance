@@ -212,6 +212,16 @@
       "questions": "Questions",
       "project": "Project"
     },
+    "alerts": {
+      "panel_title": "Questionnaire pending items",
+      "minimize": "Minimize",
+      "panel_roles_label": "Roles with no linked questions",
+      "panel_stages_label": "Stages with no linked questions",
+      "panel_orphaned_roles_label": "Roles linked to questions that no longer exist in the project",
+      "panel_orphaned_stages_label": "Stages linked to questions that no longer exist in the project",
+      "unlinked_roles": "The following representative roles have no questions linked in any questionnaire: {{roles}}",
+      "unlinked_stages": "The following stages have no questions linked in any questionnaire: {{stages}}"
+    },
     "actions": {
       "publish": "Publish project",
       "archive": "Archive project",
@@ -364,6 +374,9 @@
         "stage_exceeds_deadline": "Stage \"{{stageName}}\" has an end date ({{stageEndDate}}) that exceeds the project deadline ({{deadline}}). Adjust the project deadline or reduce this stage's weight.",
         "add_question_to_questionnaire": "Add at least one question to questionnaire \"{{name}}\".",
         "add_question_to_this": "Add at least one question to this questionnaire.",
+        "rep_no_question_in_questionnaire": "Questionnaire \"{{name}}\" has representative(s) with no questions linked to their roles.",
+        "rep_no_question_in_this": "This questionnaire has representative(s) with no questions linked to their roles.",
+        "rep_coverage_warning": "There are representatives with no linked questions in one or more questionnaires.",
         "invalid_iteration_duration": "Provide a valid iteration duration.",
         "iteration_count_error": "Could not calculate the number of iterations.",
         "prepare_data_error": "Error preparing the data.",
@@ -1052,7 +1065,9 @@
       "add_stage_first": "Register at least one stage before adding questions.",
       "link_stages": "Link at least one stage to each question before confirming.",
       "stage_selection_placeholder": "Select related stages",
-      "stage_selection_label": "Related stages"
+      "stage_selection_label": "Related stages",
+      "out_of_project_roles": "The following questions have roles not present in the project (IDs: {{ids}}). Edit them to fix.",
+      "out_of_project_stages": "The following questions have stages not present in the project (IDs: {{ids}}). Edit them to fix."
     },
     "response": {
       "select_answer_first": "Select \"Yes\" or \"No\" before attaching evidence.",

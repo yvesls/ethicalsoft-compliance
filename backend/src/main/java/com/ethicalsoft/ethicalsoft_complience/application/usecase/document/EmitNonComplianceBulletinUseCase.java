@@ -30,6 +30,9 @@ public class EmitNonComplianceBulletinUseCase {
     private final NotificationEmailSender emailSender;
     private final RegisterDocumentEmissionUseCase registerEmissionUseCase;
 
+    @org.springframework.beans.factory.annotation.Value("${app.frontend.url}")
+    private String frontendBaseUrl;
+
     public record BulletinEmissionResult(String documentCode, int totalRecipients,
                                          int sent, int skipped) {
     }
@@ -68,7 +71,7 @@ public class EmitNonComplianceBulletinUseCase {
             }
             try {
                 emailSender.sendWithAttachment(email, subject, templateLink,
-                        buildModel(representative, bulletin, emittedBy, emittedAtFormatted),
+                        buildModel(representative, bulletin, emittedBy, emittedAtFormatted, projectId),
                         bulletin.content(), bulletin.fileName());
                 sent++;
             } catch (RuntimeException e) {
@@ -99,7 +102,7 @@ public class EmitNonComplianceBulletinUseCase {
 
     private Map<String, Object> buildModel(Representative representative,
                                            GenerateNonComplianceBulletinUseCase.GeneratedBulletin bulletin,
-                                           String emittedBy, String emittedAtFormatted) {
+                                           String emittedBy, String emittedAtFormatted, Long projectId) {
         Map<String, Object> model = new HashMap<>();
         model.put("recipientName", representative.getUser() != null
                 ? representative.getUser().getFirstName() : "Participante");
@@ -110,7 +113,19 @@ public class EmitNonComplianceBulletinUseCase {
         model.put("minimumBand", EthicalComplianceBand.MINIMUM_ACCEPTABLE.name());
         model.put("emittedBy", emittedBy);
         model.put("emittedAtFormatted", emittedAtFormatted);
+        model.put("projectLink", buildProjectLink(projectId));
         return model;
+    }
+
+    private String buildProjectLink(Long projectId) {
+        if (frontendBaseUrl == null || frontendBaseUrl.isBlank() || projectId == null) {
+            return "";
+        }
+        String base = frontendBaseUrl.trim();
+        if (base.endsWith("/")) {
+            base = base.substring(0, base.length() - 1);
+        }
+        return base + "/projects/" + projectId;
     }
 
     private String resolveSubject(NotificationTemplateDocument template,

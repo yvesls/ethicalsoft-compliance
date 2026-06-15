@@ -1,0 +1,68 @@
+@if (hasItems) {
+  @if (isOpen) {
+    <div class="unlinked-panel">
+      <div class="unlinked-panel__header">
+        <div class="unlinked-panel__title">
+          <span class="unlinked-panel__icon">⚠</span>
+          <span>{{ 'projects.alerts.panel_title' | translate }}</span>
+        </div>
+        <button
+          type="button"
+          class="unlinked-panel__btn unlinked-panel__btn--minimize"
+          (click)="toggle()"
+          [title]="'projects.alerts.minimize' | translate"
+        >
+          −
+        </button>
+      </div>
+
+      <div class="unlinked-panel__body">
+        @if (unlinkedRoles.length) {
+          <p class="unlinked-panel__section-label">{{ 'projects.alerts.panel_roles_label' | translate }}</p>
+          <ul class="unlinked-panel__list">
+            @for (role of unlinkedRoles; track role) {
+              <li class="unlinked-panel__item">{{ role }}</li>
+            }
+          </ul>
+        }
+
+        @if (unlinkedStages.length) {
+          <p class="unlinked-panel__section-label">{{ 'projects.alerts.panel_stages_label' | translate }}</p>
+          <ul class="unlinked-panel__list">
+            @for (stage of unlinkedStages; track stage) {
+              <li class="unlinked-panel__item">{{ stage }}</li>
+            }
+          </ul>
+        }
+
+        @if (orphanedRoles.length) {
+          <p class="unlinked-panel__section-label unlinked-panel__section-label--error">{{ 'projects.alerts.panel_orphaned_roles_label' | translate }}</p>
+          <ul class="unlinked-panel__list unlinked-panel__list--error">
+            @for (role of orphanedRoles; track role) {
+              <li class="unlinked-panel__item unlinked-panel__item--error">{{ role }}</li>
+            }
+          </ul>
+        }
+
+        @if (orphanedStages.length) {
+          <p class="unlinked-panel__section-label unlinked-panel__section-label--error">{{ 'projects.alerts.panel_orphaned_stages_label' | translate }}</p>
+          <ul class="unlinked-panel__list unlinked-panel__list--error">
+            @for (stage of orphanedStages; track stage) {
+              <li class="unlinked-panel__item unlinked-panel__item--error">{{ stage }}</li>
+            }
+          </ul>
+        }
+      </div>
+    </div>
+  } @else {
+    <button
+      type="button"
+      class="unlinked-panel__badge"
+      (click)="toggle()"
+      [title]="'projects.alerts.panel_title' | translate"
+    >
+      <span class="unlinked-panel__badge-icon">⚠</span>
+      <span class="unlinked-panel__badge-count">{{ totalCount }}</span>
+    </button>
+  }
+}

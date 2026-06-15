@@ -105,3 +105,15 @@
 .row-selected {
   background-color: rgba($blue-primary, 0.06);
 }
+
+.row-invalid {
+  background-color: rgba(#b42318, 0.05);
+}
+
+.orphan-indicator {
+  display: inline-block;
+  margin-left: 0.25rem;
+  color: #b42318;
+  font-size: 0.75rem;
+  cursor: help;
+}
