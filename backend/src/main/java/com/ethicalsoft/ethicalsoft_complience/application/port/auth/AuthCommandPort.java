@@ -10,5 +10,7 @@ public interface AuthCommandPort {
     AuthDTO refresh(RefreshTokenDTO refreshTokenDTO);
     void logout(RefreshTokenDTO refreshTokenDTO);
     void register(RegisterUserDTO registerUserDTO);
+    AuthDTO googleAuth(com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.auth.GoogleAuthDTO googleAuthDTO);
+    void acceptTerms(com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.auth.AcceptTermsDTO acceptTermsDTO);
 }
 

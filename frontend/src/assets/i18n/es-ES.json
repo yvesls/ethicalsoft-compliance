@@ -70,7 +70,8 @@
       "forgot_password": "Olvidé mi contraseña",
       "register": "Registrarse",
       "analyst_intro": "¿Es analista y desea utilizar el software en su proyecto?",
-      "register_link": "¡Regístrese!"
+      "register_link": "¡Regístrese!",
+      "or": "o"
     },
     "register": {
       "title": "Registro",
@@ -92,7 +93,8 @@
       "terms_suffix": "del Ethical Software Compliance",
       "submit": "Registrarse",
       "has_account": "¿Ya tienes una cuenta?",
-      "login_link": "Iniciar sesión ahora"
+      "login_link": "Iniciar sesión ahora",
+      "or": "o"
     },
     "recovery": {
       "title": "Recuperar cuenta",
@@ -1145,7 +1147,10 @@
       "terms_suffix": "y Políticas de Privacidad.",
       "terms_error": "Es necesario aceptar los términos y condiciones.",
       "submit": "Actualizar contraseña",
-      "cancel": "Cancelar"
+      "cancel": "Cancelar",
+      "google_title": "¡Bienvenido!",
+      "google_subtitle": "Para finalizar tu registro, acepta los términos de uso.",
+      "accept_terms_btn": "Confirmar y continuar"
     },
     "first_access": {
       "eyebrow": "Primer acceso",
@@ -1157,7 +1162,8 @@
       "cta": "Entendido, voy a actualizarla"
     },
     "messages": {
-      "password_updated": "¡Contraseña actualizada con éxito!"
+      "password_updated": "¡Contraseña actualizada con éxito!",
+      "terms_accepted": "¡Términos aceptados! Bienvenido al sistema."
     },
     "errors": {
       "user_not_found": "No se pudo identificar al usuario conectado.",

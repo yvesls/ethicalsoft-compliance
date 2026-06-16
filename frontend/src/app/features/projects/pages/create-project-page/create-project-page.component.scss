@@ -10,7 +10,7 @@
   }
 
   @include for-phone-only {
-    padding: 1rem;
+    padding: 0.75rem 0;
   }
 }
 
@@ -81,6 +81,24 @@
   -webkit-overflow-scrolling: touch;
 }
 
+::ng-deep .steps-table-iterativo {
+  @include for-phone-only {
+    min-width: 22rem;
+  }
+}
+
+::ng-deep .representatives-table {
+  @include for-phone-only {
+    min-width: 38rem;
+  }
+}
+
+::ng-deep .questionnaires-table {
+  @include for-phone-only {
+    min-width: 36rem;
+  }
+}
+
 ::ng-deep .steps-table,
 ::ng-deep .representatives-table,
 ::ng-deep .questionnaires-table {
@@ -91,6 +109,10 @@
 
   display: table;
   table-layout: fixed;
+
+  @include for-phone-only {
+    table-layout: auto;
+  }
 
   thead {
     background-color: transparent;

@@ -1,3 +1,5 @@
+@use '../../../../assets/scss/base/_media-queries' as *;
+
 .bar-chart-scroll {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -7,4 +9,9 @@
   width: 100%;
   min-width: 480px;
   height: 380px;
+
+  @include for-phone-only {
+    min-width: 320px;
+    height: 260px;
+  }
 }

@@ -19,7 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @RestController
-@RequestMapping("/projects/{projectId}")
+@RequestMapping("/api/projects/{projectId}")
 @RequiredArgsConstructor
 public class ComplianceDocumentController {
 

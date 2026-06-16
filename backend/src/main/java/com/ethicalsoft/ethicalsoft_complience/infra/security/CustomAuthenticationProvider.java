@@ -34,6 +34,11 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 			return new UsernameNotFoundException( "Username not found." );
 		} );
 
+		if ( user.getPassword() == null ) {
+			log.warn("[auth-provider] Usuário {} não possui senha local (conta Google)", username);
+			throw new BadCredentialsException( "This account uses Google Sign-In. Please log in with Google." );
+		}
+
 		if ( passwordEncoder.matches( password, user.getPassword() ) ) {
 			log.info("[auth-provider] Usuário {} autenticado com sucesso", username);
 			return new UsernamePasswordAuthenticationToken( user, null, user.getAuthorities() );

@@ -1,11 +1,13 @@
 import { CommonModule } from '@angular/common'
-import { Component, inject } from '@angular/core'
+import { AfterViewInit, Component, ElementRef, inject, ViewChild } from '@angular/core'
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms'
 import { BasePageComponent, RestoreParams } from '../../../core/abstractions/base-page.component'
 import { RouteParams } from '../../../core/services/router.service'
 import { ModalService } from '../../../core/services/modal.service'
 import { NotificationService } from '../../../core/services/notification.service'
 import { AuthStore } from '../../../shared/stores/auth.store'
+import { AuthenticationService } from '../../../core/services/authentication.service'
+import { GoogleAuthService } from '../../../core/services/google-auth.service'
 import { InputComponent } from '../../../shared/components/input/input.component'
 import { CustomValidators } from '../../../shared/validators/custom.validator'
 import { createRegister, RegisterInterface } from '../../../shared/interfaces/auth/register.interface'
@@ -41,16 +43,33 @@ interface RegisterFormValue {
 	templateUrl: './register.component.html',
 	styleUrls: ['./register.component.scss'],
 })
-export class RegisterComponent extends BasePageComponent<RegisterRouteParams> {
+export class RegisterComponent extends BasePageComponent<RegisterRouteParams> implements AfterViewInit {
+	@ViewChild('googleBtn') googleBtnRef!: ElementRef<HTMLDivElement>
+
 	form!: RegisterFormGroup
 	private readonly formBuilder = inject(FormBuilder)
 	private readonly authStore = inject(AuthStore)
 	private readonly notificationService = inject(NotificationService)
 	private readonly modalService = inject(ModalService)
 	private readonly translate = inject(TranslateService)
+	private readonly authService = inject(AuthenticationService)
+	private readonly googleAuthService = inject(GoogleAuthService)
+	private googleCredentialSub?: ReturnType<typeof this.googleAuthService.credential$.subscribe>
 
 	protected override onInit(): void {
 		this._initForm()
+	}
+
+	ngAfterViewInit(): void {
+		this.googleCredentialSub = this.googleAuthService.credential$.subscribe(idToken => {
+			this.authService.googleLogin(idToken, false)
+		})
+		this.googleAuthService.renderButton(this.googleBtnRef.nativeElement)
+	}
+
+	override ngOnDestroy(): void {
+		this.googleCredentialSub?.unsubscribe()
+		super.ngOnDestroy()
 	}
 
 	protected override save(): RouteParams<RegisterRouteParams> {

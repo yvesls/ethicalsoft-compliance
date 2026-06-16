@@ -124,6 +124,24 @@ export class AuthenticationService {
 		})
 	}
 
+	googleLogin(idToken: string, keepSession = false): void {
+		this.authStore.googleAuth(idToken).subscribe({
+			next: (tokenData: AuthTokenInterface) => {
+				this.setAuthToken(tokenData, keepSession)
+				const redirectUrl = this.shouldForcePasswordReset() ? '/settings/reset-password' : '/home'
+				this.routerService.navigateTo(redirectUrl)
+			},
+			error: (error: unknown) => {
+				LoggerService.error('AuthenticationService: Error during Google login', error)
+				this.notificationService.showError(error)
+			},
+		})
+	}
+
+	isGoogleUser(): boolean {
+		return this._user?.authProvider === 'GOOGLE'
+	}
+
 	refreshToken(): Observable<boolean> {
 		if (!this._authToken || !this._authToken.refreshToken) {
 			LoggerService.warn('AuthenticationService: No refresh token available, unable to refresh.')
@@ -237,6 +255,7 @@ export class AuthenticationService {
 			exp: decoded.exp ?? 0,
 			roles: decoded.roles ?? [],
 			isFirstAccess,
+			authProvider: decoded.authProvider ?? 'LOCAL',
 			name: decoded.name ?? '',
 			email: decoded.email ?? '',
 			avatarUrl: decoded.avatarUrl ?? '',
@@ -327,6 +346,7 @@ export class AuthenticationService {
 interface DecodedAuthToken extends JwtPayload {
 	roles?: string[]
 	isFirstAccess?: boolean
+	authProvider?: string
 	name?: string
 	email?: string
 	avatarUrl?: string
@@ -339,5 +359,6 @@ export interface UserInterface {
 	name: string
 	email: string
 	isFirstAccess: boolean
+	authProvider?: string
 	avatarUrl?: string
 }

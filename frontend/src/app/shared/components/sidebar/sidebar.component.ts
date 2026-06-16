@@ -1,4 +1,4 @@
-import { Component, ElementRef, Renderer2, DestroyRef, inject, OnInit } from '@angular/core'
+import { Component, ElementRef, HostListener, Renderer2, DestroyRef, inject, OnInit } from '@angular/core'
 import { MenuService } from '../../../core/services/menu.service'
 import { Observable } from 'rxjs'
 import { LayoutStateService } from '../../../core/services/layout-state.service'
@@ -44,9 +44,19 @@ export class SidebarComponent implements OnInit {
 			this.layoutStateService.sidebarMobileOpened$
 				.pipe(takeUntilDestroyed(this.destroyRef))
 				.subscribe((state) => {
-					this.isCollapsed = state
+					this.sidebarOpened = state
 					this.updateSidebarClass()
 				})
+		}
+	}
+
+	@HostListener('document:click', ['$event'])
+	onDocumentClick(event: MouseEvent): void {
+		if (!this.isMobile || !this.sidebarOpened) return
+		if (!(this.el.nativeElement as HTMLElement).contains(event.target as Node)) {
+			this.sidebarOpened = false
+			this.layoutStateService.setSidebarMobileState(false)
+			this.updateSidebarClass()
 		}
 	}
 

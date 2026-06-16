@@ -50,4 +50,12 @@ export class AuthStore extends BaseStore {
 	resetPassword(resetPassword: ResetPasswordInterface): Observable<void> {
 		return this.requestService.makePost(this.getUrl('reset-password'), { data: resetPassword })
 	}
+
+	googleAuth(idToken: string): Observable<AuthTokenInterface> {
+		return this.requestService.makePost(this.getUrl('google'), { data: { idToken }, useAuth: false })
+	}
+
+	acceptTerms(email: string): Observable<void> {
+		return this.requestService.makePost(this.getUrl('accept-terms'), { data: { email } })
+	}
 }

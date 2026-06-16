@@ -38,9 +38,11 @@ public class TokenService {
                                     .map( GrantedAuthority::getAuthority )
                                     .toList()
                     )
-                    .withClaim( "email", user.getEmail()	)
+                    .withClaim( "email", user.getEmail() )
                     .withClaim( "name", user.getFirstName() )
                     .withClaim( "isFirstAccess", user.isFirstAccess() )
+                    .withClaim( "authProvider", user.getAuthProvider() != null ? user.getAuthProvider().name() : "LOCAL" )
+                    .withClaim( "avatarUrl", user.getAvatarUrl() )
                     .sign( algorithm );
 
 		} catch ( JWTCreationException e ) {

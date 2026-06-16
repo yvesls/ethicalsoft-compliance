@@ -1,3 +1,5 @@
+@use '../../../../../assets/scss/base/_media-queries' as *;
+
 .update-preview-modal {
   padding: 0.5rem 0.5rem;
   color: #1f2933;
@@ -147,10 +149,20 @@
   justify-content: center;
   gap: 1rem;
   margin-top: 1.5rem;
+  flex-wrap: wrap;
+
+  @include for-phone-only {
+    flex-direction: column-reverse;
+  }
 }
 
 .update-preview-modal__btn {
   min-width: 9rem;
+
+  @include for-phone-only {
+    min-width: unset;
+    width: 100%;
+  }
   padding: 0.75rem 1.5rem;
   border-radius: 0.75rem;
   border: none;
