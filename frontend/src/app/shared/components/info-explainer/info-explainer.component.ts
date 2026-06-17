@@ -32,6 +32,7 @@ export class InfoExplainerComponent implements OnInit, OnDestroy {
   isOpen = signal(false);
   entry = signal<ExplanationEntry | null>(null);
   popoverPosition = signal<'right' | 'left'>('right');
+  popoverStyle = signal<Record<string, string>>({});
 
   ngOnInit(): void {
     this.explanationService
@@ -55,7 +56,23 @@ export class InfoExplainerComponent implements OnInit, OnDestroy {
   private computePosition(): void {
     const rect = this.elementRef.nativeElement.getBoundingClientRect();
     const spaceRight = window.innerWidth - rect.right;
-    this.popoverPosition.set(spaceRight < 340 ? 'left' : 'right');
+    const centerY = rect.top + rect.height / 2;
+
+    if (spaceRight >= 340) {
+      this.popoverPosition.set('right');
+      this.popoverStyle.set({
+        top: `${centerY}px`,
+        left: `${rect.right + 10}px`,
+        right: 'auto',
+      });
+    } else {
+      this.popoverPosition.set('left');
+      this.popoverStyle.set({
+        top: `${centerY}px`,
+        right: `${window.innerWidth - rect.left + 10}px`,
+        left: 'auto',
+      });
+    }
   }
 
   @HostListener('document:click', ['$event'])

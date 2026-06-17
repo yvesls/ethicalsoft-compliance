@@ -38,9 +38,7 @@
 }
 
 .popover {
-  position: absolute;
-  top: 50%;
-  left: calc(100% + 10px);
+  position: fixed;
   transform: translateY(-50%);
   width: min(300px, calc(100vw - 2rem));
   max-height: 320px;
@@ -50,21 +48,24 @@
   border-radius: 8px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
   padding: 14px 16px;
-  z-index: 1050;
+  z-index: 9999;
   animation: popoverIn 150ms ease-out;
+  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+  scrollbar-width: thin;
 
   &.position-left {
-    left: auto;
-    right: calc(100% + 10px);
     animation: popoverInLeft 150ms ease-out;
   }
 
+  &::-webkit-scrollbar { width: 5px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.15); border-radius: 3px; }
+
   @media (max-width: 600px) {
-    position: fixed;
-    top: auto;
+    top: auto !important;
     bottom: 1rem;
-    left: 1rem;
-    right: 1rem;
+    left: 1rem !important;
+    right: 1rem !important;
     width: auto;
     transform: none;
     animation: popoverInUp 150ms ease-out;
@@ -91,12 +92,6 @@
     color: #555;
     line-height: 1.5;
   }
-
-  &::-webkit-scrollbar { width: 5px; }
-  &::-webkit-scrollbar-track { background: transparent; }
-  &::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.15); border-radius: 3px; }
-  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
-  scrollbar-width: thin;
 }
 
 @keyframes popoverIn {
