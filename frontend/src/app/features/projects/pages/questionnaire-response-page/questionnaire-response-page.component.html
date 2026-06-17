@@ -37,7 +37,7 @@
 
           <div class="response-summary__stats">
             <div class="stat-card">
-              <span class="stat-card__label">{{ 'questionnaire.response.answered_stat' | translate }}</span>
+              <span class="stat-card__label">{{ 'questionnaire.response.answered_stat' | translate }} <app-info-explainer key="questionnaire_answered_stat" /></span>
               <strong class="stat-card__value">{{ answeredCount() }}/{{ totalQuestions() }}</strong>
             </div>
             <div class="stat-card">
@@ -45,7 +45,7 @@
               <strong class="stat-card__value">{{ totalQuestions() }}</strong>
             </div>
             <div class="stat-card stat-card--progress">
-              <span class="stat-card__label">{{ 'questionnaire.response.progress' | translate }}</span>
+              <span class="stat-card__label">{{ 'questionnaire.response.progress' | translate }} <app-info-explainer key="questionnaire_progress" /></span>
               <div class="progress-track">
                 <div class="progress-track__fill" [style.width.%]="progressPercentage()"></div>
               </div>
@@ -97,6 +97,7 @@
                   <div class="response-row__attachments">
                     <p class="attachment-title">
                       {{ answer.response === false ? ('questionnaire.response.justification' | translate) : ('questionnaire.response.observations' | translate) }}
+                      <app-info-explainer [key]="answer.response === false ? 'question_justification' : 'question_observations'" />
                     </p>
                     @if ((answer.response === false ? answer.justification?.descricao : answer.evidence?.descricao)) {
                       <p class="attachment-description">

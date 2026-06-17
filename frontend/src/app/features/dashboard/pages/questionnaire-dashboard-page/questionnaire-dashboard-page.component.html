@@ -78,6 +78,7 @@
           [label]="'dashboard.standard_deviation' | translate"
           [value]="d.teamStandardDeviationPercent"
           [secondary]="d.teamStandardDeviationPercent !== null && d.teamStandardDeviationPercent > 15 ? ('dashboard.questionnaire.high_divergence' | translate) : ('dashboard.questionnaire.consensus' | translate)"
+          infoKey="standard_deviation"
         />
       </div>
 
@@ -163,13 +164,16 @@
 
       @if (d.memberResults.length) {
         <div class="dash-card mt-4">
-          <h2 class="dash-section-title">{{ 'dashboard.questionnaire.member_results' | translate }}</h2>
+          <div class="dash-card-header">
+            <h2 class="dash-section-title">{{ 'dashboard.questionnaire.member_results' | translate }}</h2>
+            <app-info-explainer key="member_results" />
+          </div>
           <div class="table-responsive">
             <table class="table table-hover align-middle">
               <thead>
                 <tr>
                   <th>{{ 'dashboard.questionnaire.member' | translate }}</th>
-                  <th>{{ 'dashboard.questionnaire.table_icp' | translate }}</th>
+                  <th>{{ 'dashboard.questionnaire.table_icp' | translate }} <app-info-explainer key="icp_metric" /></th>
                   <th>{{ 'dashboard.band' | translate }}</th>
                   <th class="text-center">{{ 'common.actions' | translate }}</th>
                 </tr>

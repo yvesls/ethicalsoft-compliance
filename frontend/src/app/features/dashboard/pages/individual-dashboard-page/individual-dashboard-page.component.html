@@ -15,16 +15,20 @@
           [value]="d.personalIcpPercent"
           [band]="d.personalBand"
           [secondary]="'dashboard.individual.personal_compliance' | translate"
+          infoKey="personal_icp"
+          bandInfoKey="band_classification"
         />
         <app-isep-kpi-card
           [label]="'dashboard.individual.personal_average' | translate"
           [value]="d.personalHistoricalAveragePercent"
           [secondary]="'dashboard.individual.my_iterations_avg' | translate"
+          infoKey="personal_historical_average"
         />
         <app-isep-kpi-card
           [label]="'dashboard.individual.team_average' | translate"
           [value]="d.teamAnonymousAveragePercent"
           [secondary]="d.teamAnonymousAverage === null ? ('dashboard.individual.isep_not_calculated' | translate) : ('dashboard.individual.team_average_secondary' | translate)"
+          infoKey="team_anonymous_average"
         />
       </div>
 
@@ -37,6 +41,10 @@
 
       @if (d.personalEvolution.length > 1) {
         <div class="dash-card mt-4">
+          <div class="dash-card-header">
+            <span></span>
+            <app-info-explainer key="personal_evolution" />
+          </div>
           <app-isep-evolution-chart
             [entries]="d.personalEvolution"
             [title]="'dashboard.individual.personal_evolution' | translate"

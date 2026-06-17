@@ -1,55 +1,296 @@
 {
   "isep_percent": {
     "title": "Percentual ISEP",
-    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+    "description": "O ISEP (Índice de Score Ético do Projeto) representa a porcentagem ponderada de respostas 'SIM' nos questionários éticos. É o principal indicador de maturidade ética do projeto — quanto maior, maior a conformidade da equipe com os princípios éticos de engenharia de software.",
+    "items": [
+      "Calculado sobre todas as respostas da iteração",
+      "Considera o peso de cada representante e questionário",
+      "Exibido em barra de progresso e classificação por banda"
+    ]
   },
   "ethics_debt": {
     "title": "Dívida Ética",
-    "description": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "description": "Representa o acúmulo de decisões técnicas e de negócio tomadas sem a devida avaliação de seus impactos éticos. Cada resposta 'NÃO' no questionário evidencia um ponto de não conformidade que, se não revisado, contribui para a dívida ética do projeto.",
     "items": [
-      "Primeiro elemento de exemplo",
-      "Segundo elemento de exemplo",
-      "Terceiro elemento de exemplo"
+      "Gerada por atalhos tomados sob pressão de prazo",
+      "Inclui omissões de rastreabilidade, privacidade e justiça",
+      "Pode exigir revisão e novo ciclo de questionários"
     ]
   },
   "tech_debt": {
     "title": "Dívida Técnica",
-    "description": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+    "description": "Representa o custo futuro de manutenção decorrente de decisões técnicas apressadas — código sem testes, arquitetura improvisada, documentação ausente. Está relacionada à dívida ética quando essas decisões afetam a transparência e a rastreabilidade do desenvolvimento.",
+    "items": [
+      "Medida pelo impacto nas iterações seguintes",
+      "Inclui refatorações, reescritas e correções emergenciais",
+      "Alta dívida técnica tende a aumentar a dívida ética"
+    ]
   },
   "band_classification": {
     "title": "Classificação por Banda",
-    "description": "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+    "description": "As bandas categorizam o nível de conformidade ética atingido em uma iteração ou no projeto como um todo, de A (melhor) a E (pior). A faixa mínima aceitável é definida pelo Analista de Qualidade no cadastro do projeto.",
     "items": [
-      "Banda A - Excelente",
-      "Banda B - Bom",
-      "Banda C - Aceitável"
+      "Banda A (≥ 90%) — Excelente conformidade ética",
+      "Banda B (≥ 75%) — Boa conformidade",
+      "Banda C (≥ 60%) — Conformidade aceitável",
+      "Banda D (≥ 40%) — Conformidade insuficiente",
+      "Banda E (< 40%) — Conformidade crítica"
     ]
   },
   "governance_dimensions": {
     "title": "Dimensões de Governança",
-    "description": "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.",
+    "description": "O sistema avalia a conformidade ética em quatro dimensões inspiradas no COBIT 2019 e nos princípios de governança de TI. Cada dimensão agrupa perguntas do questionário relacionadas a um aspecto específico da governança do projeto.",
     "items": [
-      "Ética",
-      "Processo",
-      "Fairness",
-      "ESG"
+      "Ética — Princípios morais e responsabilidade social",
+      "Processo — Rastreabilidade e qualidade do processo de desenvolvimento",
+      "Fairness — Justiça, equidade e inclusão no software",
+      "ESG — Ambiental, Social e de Governança"
     ]
   },
   "personal_conformity": {
     "title": "Conformidade Pessoal",
-    "description": "Totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo."
+    "description": "Indica o percentual de respostas 'SIM' que você, individualmente, registrou no questionário desta iteração. Reflete o grau com que suas ações e decisões estão alinhadas aos princípios éticos esperados para seu perfil no projeto.",
+    "items": [
+      "Calculada apenas sobre suas respostas",
+      "Comparável à média da equipe para identificar gaps",
+      "Compõe o resultado geral da iteração com seu peso"
+    ]
   },
   "team_average": {
     "title": "Média da Equipe",
-    "description": "Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores.",
+    "description": "Média aritmética simples (sem ponderação) do ISEP individual de todos os membros que já responderam o questionário. Permite comparar seu desempenho com o restante da equipe de forma anônima.",
     "items": [
-      "Comparação com a equipe",
-      "Benchmarking interno",
-      "Identificação de gaps"
+      "Calculada sem considerar pesos por representante",
+      "Atualizada conforme os membros vão respondendo",
+      "Diferença em relação à média indica gaps ou destaques"
     ]
   },
   "questionnaire_status": {
     "title": "Status do Questionário",
-    "description": "Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit."
+    "description": "Indica a situação atual do questionário dentro da iteração. Um questionário só gera resultados no dashboard quando todos os membros vinculados a ele tiverem respondido dentro do prazo estabelecido.",
+    "items": [
+      "Em andamento — Prazo vigente, respostas abertas",
+      "Pendente — Ainda há membros sem resposta",
+      "Concluído — Todos responderam; resultado disponível",
+      "Expirado — Prazo encerrado sem conclusão total"
+    ]
+  },
+  "project_template": {
+    "title": "Template de Projeto",
+    "description": "O template define um conjunto de perguntas éticas pré-configuradas que será usado como base para os questionários do projeto. Ele pode ser reutilizado em múltiplos projetos e editado pelo Analista de Qualidade a qualquer momento antes de uma iteração entrar em vigor."
+  },
+  "project_type": {
+    "title": "Tipo de Projeto",
+    "description": "Define a metodologia de gestão do projeto, que determina como as iterações e os questionários serão organizados.",
+    "items": [
+      "Iterativo — Projeto dividido em sprints; cada sprint tem seu próprio questionário com todas as fases",
+      "Cascata — Projeto dividido em fases sequenciais fixas: Iniciação, Requisitos, Projeto, Desenvolvimento e Testes"
+    ]
+  },
+  "project_status": {
+    "title": "Status do Projeto",
+    "description": "Descreve em que situação o projeto se encontra no ciclo de vida da plataforma.",
+    "items": [
+      "Aberto — Criado e disponível para que os membros respondam",
+      "Rascunho — Criação não finalizada pelo Analista de Qualidade",
+      "Arquivado — Encerrado antes da conclusão",
+      "Concluído — Todos os questionários respondidos e projeto finalizado"
+    ]
+  },
+  "iteration_duration": {
+    "title": "Duração da Iteração",
+    "description": "Número de dias úteis que cada iteração (sprint) dura. O sistema usa este valor para calcular automaticamente as datas de abertura e encerramento de cada questionário, com base nos percentuais de esforço da SISP: a abertura ocorre em 10% do prazo da fase e o encerramento em 90%."
+  },
+  "iteration_count": {
+    "title": "Quantidade de Iterações",
+    "description": "Número total de iterações (sprints) do projeto, calculado automaticamente com base nas datas de início, prazo limite e duração de cada iteração. Cada iteração gera um questionário independente que deve ser respondido pelos membros da equipe dentro do prazo calculado."
+  },
+  "stage_weight": {
+    "title": "Peso da Etapa",
+    "description": "Define a importância relativa desta etapa no cálculo do ISEP final do projeto. Etapas com peso maior têm mais influência no resultado geral. A soma dos pesos de todas as etapas deve ser proporcional ao esforço esperado em cada fase do projeto."
+  },
+  "stage_sequence": {
+    "title": "Sequência das Fases",
+    "description": "Em projetos Cascata, as fases são executadas de forma sequencial e obrigatória — uma só começa após a outra ser concluída. A sequência padrão é: Iniciação → Requisitos → Projeto → Desenvolvimento → Testes."
+  },
+  "representative_weight": {
+    "title": "Peso do Representante",
+    "description": "Define o quanto a opinião deste representante influencia o ISEP ponderado da iteração. Perfis com maior responsabilidade sobre decisões éticas (ex.: Gerente de Projeto, Analista de Qualidade) podem receber peso maior. Apenas membros com Nível 2 de acesso podem editar esses pesos.",
+    "items": [
+      "Valores maiores aumentam a influência do membro no resultado",
+      "Permite refletir a hierarquia de responsabilidade ética",
+      "Editável a qualquer momento antes do encerramento da iteração"
+    ]
+  },
+  "questionnaire_weight": {
+    "title": "Peso do Questionário",
+    "description": "Define a importância relativa deste questionário no cálculo do ISEP geral da iteração ou do projeto. Questionários de fases mais críticas do desenvolvimento podem receber pesos maiores para refletir seu impacto ético."
+  },
+  "questionnaire_min_band": {
+    "title": "Faixa Mínima Aceitável",
+    "description": "Define o nível mínimo de conformidade ética (banda) que o projeto ou a iteração deve atingir. Se o resultado final ficar abaixo desta faixa, é gerado um Boletim de Não Conformidade e os membros podem revisar suas respostas para tentar atingir a classificação mínima."
+  },
+  "question_roles": {
+    "title": "Papéis da Pergunta",
+    "description": "Indica quais perfis de representantes devem responder a esta pergunta. Cada representante só visualiza as perguntas atribuídas ao seu papel no projeto — ex.: uma pergunta sobre arquitetura técnica pode ser direcionada apenas ao Arquiteto de Software e ao Líder de Equipe.",
+    "items": [
+      "Cliente", "Gerente de Projeto", "Líder de Equipe",
+      "Arquiteto de Software", "Desenvolvedor", "Analista de Qualidade"
+    ]
+  },
+  "question_stages": {
+    "title": "Etapas da Pergunta",
+    "description": "Em projetos Iterativos, indica em quais fases da sprint esta pergunta será exibida. Em projetos Cascata, indica em qual fase sequencial do projeto ela se aplica. Isso permite filtrar e direcionar as perguntas conforme o momento do desenvolvimento."
+  },
+  "question_justification": {
+    "title": "Justificativa (Resposta NÃO)",
+    "description": "Quando a resposta é NÃO, é esperado que o participante justifique o motivo da não conformidade. A justificativa é registrada na trilha de auditoria e compõe o Boletim de Não Conformidade caso o resultado fique abaixo da faixa mínima.",
+    "items": [
+      "Descreva brevemente o motivo da não conformidade",
+      "Adicione links ou evidências que documentem a situação",
+      "A justificativa pode ser revisada em iterações futuras"
+    ]
+  },
+  "question_observations": {
+    "title": "Observações e Evidências (Resposta SIM)",
+    "description": "Quando a resposta é SIM, você pode incluir observações ou evidências que reforcem a conformidade registrada — como links para documentos, commits, atas de reunião ou qualquer artefato que demonstre a aderência ao princípio ético avaliado.",
+    "items": [
+      "Evidências tornam o resultado auditável e rastreável",
+      "Links e arquivos são armazenados na trilha de auditoria",
+      "Opcional, mas recomendado para maior transparência"
+    ]
+  },
+  "questionnaire_progress": {
+    "title": "Progresso de Resposta",
+    "description": "Indica quantas perguntas você já respondeu em relação ao total do questionário. O sistema salva rascunhos automaticamente, então você pode retomar de onde parou. O envio final só é possível após responder todas as perguntas."
+  },
+  "questionnaire_answered_stat": {
+    "title": "Respostas Registradas",
+    "description": "Mostra quantas das N perguntas do questionário você já respondeu e confirmou. Rascunhos salvos contam como respondidas para fins de progresso, mas o envio oficial só é feito ao clicar em 'Enviar respostas'."
+  },
+  "questionnaire_completion_rate": {
+    "title": "Taxa de Conclusão",
+    "description": "Percentual de questionários concluídos (todos os membros responderam) em relação ao total de questionários do projeto. O dashboard de projeto só exibe o ISEP consolidado quando a taxa de conclusão for 100%.",
+    "items": [
+      "Acompanhe quem ainda não respondeu",
+      "Use a notificação para lembrar membros pendentes",
+      "100% é necessário para gerar o certificado ético"
+    ]
+  },
+  "standard_deviation": {
+    "title": "Desvio Padrão",
+    "description": "Mede o grau de divergência entre as respostas dos membros da equipe. Um desvio padrão acima de 15% indica que há visões significativamente diferentes sobre conformidade ética — o que merece atenção e discussão interna.",
+    "items": [
+      "Baixo (< 10%) — Alta consistência de visão na equipe",
+      "Médio (10–15%) — Divergência aceitável",
+      "Alto (> 15%) — Visões muito divergentes; investigar"
+    ]
+  },
+  "team_simple_average": {
+    "title": "Média Simples da Equipe",
+    "description": "Média aritmética do ISEP individual de todos os membros, sem considerar os pesos por representante. Diferente do ISEP ponderado, esta métrica trata todos os membros como igualmente importantes e serve como referência de consenso."
+  },
+  "personal_icp": {
+    "title": "ICP — Índice de Conformidade Pessoal",
+    "description": "Seu percentual de respostas 'SIM' no questionário desta iteração, calculado sobre as perguntas atribuídas ao seu perfil. O ICP reflete o quanto suas decisões e ações estão alinhadas aos princípios éticos esperados para seu papel no projeto.",
+    "items": [
+      "Calculado apenas sobre suas respostas",
+      "Contribui para o ISEP da iteração com o seu peso",
+      "Pode ser comparado à média anônima da equipe"
+    ]
+  },
+  "personal_historical_average": {
+    "title": "Histórico Pessoal",
+    "description": "Média do seu ICP ao longo de todas as iterações em que você participou neste projeto. Permite acompanhar sua evolução ética ao longo do tempo e identificar tendências de melhoria ou regressão."
+  },
+  "team_anonymous_average": {
+    "title": "Média Anônima da Equipe",
+    "description": "Média do ICP de todos os outros membros da equipe, exibida de forma anônima para fins de benchmarking. Permite que você compare sua conformidade ética com a do grupo sem expor resultados individuais."
+  },
+  "personal_evolution": {
+    "title": "Evolução Pessoal",
+    "description": "Gráfico que mostra como seu ICP variou ao longo das iterações do projeto. Uma tendência de alta indica melhoria contínua na conformidade ética; uma tendência de baixa pode sinalizar dificuldades que merecem atenção."
+  },
+  "icp_metric": {
+    "title": "ICP por Membro",
+    "description": "Índice de Conformidade Pessoal — percentual de respostas 'SIM' de cada membro da equipe no questionário desta iteração, ponderado pelo peso do seu perfil. Membros com maior peso têm ICP de maior impacto no ISEP geral.",
+    "items": [
+      "ICP acima da faixa mínima = conformidade ética aprovada",
+      "ICP abaixo da faixa = contribui para o Boletim de Não Conformidade",
+      "Clique em 'Ver respostas' para detalhes individuais"
+    ]
+  },
+  "member_results": {
+    "title": "Resultados por Membro",
+    "description": "Tabela com o ICP individual de cada representante que participou desta iteração. Permite identificar quais perfis atingiram a faixa mínima aceitável e quais precisam revisar suas respostas antes do encerramento.",
+    "items": [
+      "Clique em 'Ver respostas' para o detalhamento de cada membro",
+      "Membros abaixo da faixa mínima aparecem destacados",
+      "Resultados só são exibidos após todos responderem"
+    ]
+  },
+  "debt_indicators": {
+    "title": "Indicadores de Dívida",
+    "description": "Painel que apresenta a relação entre Dívida Ética e Dívida Técnica acumulada no projeto. A dívida ética é derivada das respostas 'NÃO' e justificativas; a dívida técnica, de padrões de desenvolvimento inadequados identificados nos questionários.",
+    "items": [
+      "Dívida Ética alta: muitas decisões sem avaliação ética adequada",
+      "Dívida Técnica alta: atalhos técnicos que comprometem a qualidade",
+      "Ambas devem ser monitoradas e reduzidas a cada iteração"
+    ]
+  },
+  "justification_column": {
+    "title": "Justificativa",
+    "description": "Texto registrado pelo representante ao responder NÃO a uma pergunta ética. A justificativa explica o motivo da não conformidade e compõe a trilha de auditoria do projeto. É revisada pelo Analista de Qualidade ao emitir boletins.",
+    "items": [
+      "Obrigatória em respostas NÃO",
+      "Parte da trilha de auditoria e do Boletim de Não Conformidade",
+      "Pode ser revisada em novo ciclo de respostas"
+    ]
+  },
+  "evidence_column": {
+    "title": "Evidências",
+    "description": "Arquivos, links ou anotações enviados pelo representante para apoiar e documentar suas respostas. Evidências tornam o resultado auditável e são armazenadas na trilha de auditoria do projeto.",
+    "items": [
+      "Links para documentos, commits ou atas de reunião",
+      "Arquivos de comprovação (PDFs, imagens, logs)",
+      "Opcional para SIM; complementar para NÃO"
+    ]
+  },
+  "project_situation": {
+    "title": "Situação do Projeto",
+    "description": "Resumo do estado atual do projeto: quantas iterações foram concluídas, quantas estão em andamento e se há questionários pendentes. Permite ao gestor ter uma visão rápida do progresso geral sem precisar acessar cada questionário individualmente."
+  },
+  "questionnaire_respondents": {
+    "title": "Respondentes",
+    "description": "Mostra quantos membros da equipe já concluíram o questionário desta iteração em relação ao total esperado. Todos os membros vinculados precisam responder para que o resultado seja calculado e o dashboard seja liberado."
+  },
+  "questionnaire_pending": {
+    "title": "Pendências",
+    "description": "Lista de membros que ainda não responderam o questionário. Use o botão de notificação para enviar um lembrete automático a estes participantes, informando os questionários pendentes e o prazo de encerramento."
+  },
+  "representative_roles": {
+    "title": "Funções dos Representantes",
+    "description": "Cada projeto tem até 6 representantes, um por função. Cada função recebe perguntas específicas do questionário e tem um peso configurável na composição do ISEP.",
+    "items": [
+      "Cliente — Perspectiva de uso e impacto do produto",
+      "Gerente de Projeto — Governança e tomada de decisão",
+      "Líder de Equipe — Coordenação técnica e de pessoas",
+      "Arquiteto de Software — Decisões de design e arquitetura",
+      "Desenvolvedor — Implementação e qualidade de código",
+      "Analista de Qualidade — Administrador do sistema; acesso total"
+    ]
+  },
+  "questionnaire_date_range": {
+    "title": "Período de Vigência",
+    "description": "Intervalo de datas durante o qual os membros podem responder este questionário. Calculado automaticamente pelo sistema com base na duração da iteração e nos percentuais de esforço da SISP: a abertura ocorre em 10% e o encerramento em 90% do prazo da fase.",
+    "items": [
+      "Datas calculadas em dias úteis (sem fins de semana e feriados)",
+      "O prazo pode ser reajustado manualmente pelo Analista de Qualidade",
+      "Após o encerramento, não é mais possível responder"
+    ]
+  },
+  "question_filter_role": {
+    "title": "Filtrar por Papel",
+    "description": "Filtra a lista de perguntas para exibir apenas aquelas atribuídas a um determinado perfil de representante. Útil ao configurar ou revisar questionários para garantir que cada papel tenha as perguntas corretas."
   }
 }

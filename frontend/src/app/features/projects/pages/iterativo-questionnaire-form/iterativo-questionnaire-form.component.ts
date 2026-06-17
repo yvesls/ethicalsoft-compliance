@@ -23,6 +23,7 @@ import { Page } from '../../../../shared/interfaces/pageable.interface';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
 import { RoleSummary } from '../../../../shared/interfaces/role/role-summary.interface';
 import { UnlinkedItemsPanelComponent } from '../../../../shared/components/unlinked-items-panel/unlinked-items-panel.component';
+import { InfoExplainerComponent } from '../../../../shared/components/info-explainer/info-explainer.component';
 
 interface IterativoQuestionnaireRouteParams extends GenericParams {
   questionnaireIndex?: number;
@@ -50,7 +51,7 @@ type IterativoQuestionnaireRestoreParams = RestoreParams<IterativoQuestionnaireR
 @Component({
   selector: 'app-iterativo-questionnaire-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, AccordionPanelComponent, InputComponent, SelectComponent, PaginationComponent, TranslateModule, UnlinkedItemsPanelComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, AccordionPanelComponent, InputComponent, SelectComponent, PaginationComponent, TranslateModule, UnlinkedItemsPanelComponent, InfoExplainerComponent],
   templateUrl: './iterativo-questionnaire-form.component.html',
   styleUrls: ['./iterativo-questionnaire-form.component.scss']
 })

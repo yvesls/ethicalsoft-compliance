@@ -12,6 +12,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
 import { AuthenticationService } from '../../../../core/services/authentication.service';
 import { ProjectStore } from '../../../../shared/stores/project.store';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { InfoExplainerComponent } from '../../../../shared/components/info-explainer/info-explainer.component';
 
 @Component({
   selector: 'app-individual-dashboard-page',
@@ -23,6 +24,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     IsepKpiCardComponent,
     IsepEvolutionChartComponent,
     IndividualRadarChartComponent,
+    InfoExplainerComponent,
   ],
   templateUrl: './individual-dashboard-page.component.html',
   styleUrl: './individual-dashboard-page.component.scss',
