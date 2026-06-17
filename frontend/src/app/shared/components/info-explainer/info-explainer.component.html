@@ -19,6 +19,7 @@
     <div
       class="popover"
       [class.position-left]="popoverPosition() === 'left'"
+      [ngStyle]="popoverStyle()"
       role="tooltip"
     >
       @if (entry(); as e) {
