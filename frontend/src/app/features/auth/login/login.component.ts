@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common'
-import { Component, inject } from '@angular/core'
+import { AfterViewInit, Component, ElementRef, inject, ViewChild } from '@angular/core'
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms'
 import { BasePageComponent, RestoreParams } from '../../../core/abstractions/base-page.component'
 import { RouteParams } from '../../../core/services/router.service'
 import { AuthenticationService } from '../../../core/services/authentication.service'
+import { GoogleAuthService } from '../../../core/services/google-auth.service'
 import { AuthInterface } from '../../../shared/interfaces/auth/auth.interface'
 import { TranslateModule } from '@ngx-translate/core'
 import { InputComponent } from '../../../shared/components/input/input.component'
@@ -25,13 +26,30 @@ interface LoginRouteParams extends Record<string, unknown> {
 	templateUrl: './login.component.html',
 	styleUrls: ['./login.component.scss'],
 })
-export class LoginComponent extends BasePageComponent<LoginRouteParams> {
+export class LoginComponent extends BasePageComponent<LoginRouteParams> implements AfterViewInit {
+	@ViewChild('googleBtn') googleBtnRef!: ElementRef<HTMLDivElement>
+
 	form!: LoginFormGroup
 	private readonly formBuilder = inject(FormBuilder)
 	private readonly authService = inject(AuthenticationService)
+	private readonly googleAuthService = inject(GoogleAuthService)
+	private googleCredentialSub?: ReturnType<typeof this.googleAuthService.credential$.subscribe>
 
 	protected override onInit(): void {
 		this._initForm()
+	}
+
+	ngAfterViewInit(): void {
+		this.googleCredentialSub = this.googleAuthService.credential$.subscribe(idToken => {
+			const keepSession = this.form.get('keepSession')?.value ?? false
+			this.authService.googleLogin(idToken, keepSession)
+		})
+		this.googleAuthService.renderButton(this.googleBtnRef.nativeElement)
+	}
+
+	override ngOnDestroy(): void {
+		this.googleCredentialSub?.unsubscribe()
+		super.ngOnDestroy()
 	}
 
 	protected override save(): RouteParams<LoginRouteParams> {

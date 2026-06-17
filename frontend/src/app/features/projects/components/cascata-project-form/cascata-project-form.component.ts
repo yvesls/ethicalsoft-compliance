@@ -131,6 +131,7 @@ interface CascataProjectFormValue {
     SelectComponent,
     TranslateModule,
     UnlinkedItemsPanelComponent,
+    InfoExplainerComponent,
   ],
   templateUrl: './cascata-project-form.component.html',
   styleUrls: ['./cascata-project-form.component.scss'],

@@ -2,6 +2,7 @@ package com.ethicalsoft.ethicalsoft_complience.controller;
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.auth.*;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.auth.*;
+import org.springframework.http.ResponseEntity;
 import com.ethicalsoft.ethicalsoft_complience.controller.base.BaseController;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,8 @@ public class AuthController extends BaseController {
     private final RequestRecoveryUseCase requestRecoveryUseCase;
     private final ValidateCodeUseCase validateCodeUseCase;
     private final ResetPasswordUseCase resetPasswordUseCase;
+    private final GoogleAuthUseCase googleAuthUseCase;
+    private final AcceptTermsUseCase acceptTermsUseCase;
 
     @PostMapping( "/token" )
     public AuthDTO token(@Valid @RequestBody LoginDTO loginDTO ) {
@@ -58,5 +61,16 @@ public class AuthController extends BaseController {
     @PostMapping( "/reset-password" )
     public void resetPassword( @Valid @RequestBody PasswordResetDTO passwordResetDTO ) {
         resetPasswordUseCase.execute( passwordResetDTO );
+    }
+
+    @PostMapping( "/google" )
+    public AuthDTO googleAuth( @Valid @RequestBody GoogleAuthDTO googleAuthDTO ) {
+        return googleAuthUseCase.execute( googleAuthDTO );
+    }
+
+    @PostMapping( "/accept-terms" )
+    public ResponseEntity<Void> acceptTerms( @Valid @RequestBody AcceptTermsDTO acceptTermsDTO ) {
+        acceptTermsUseCase.execute( acceptTermsDTO );
+        return ResponseEntity.ok().build();
     }
 }

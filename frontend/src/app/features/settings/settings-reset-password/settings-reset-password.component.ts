@@ -29,6 +29,10 @@ type ResetPasswordForm = FormGroup<{
 	acceptedTerms: FormControl<boolean>
 }>
 
+type GoogleFirstAccessForm = FormGroup<{
+	acceptedTerms: FormControl<boolean>
+}>
+
 @Component({
 	selector: 'app-settings-reset-password',
 	standalone: true,
@@ -48,6 +52,7 @@ export class SettingsResetPasswordComponent implements OnInit {
 	private readonly invalidCurrentPasswordError = 'INVALID_CURRENT_PASSWORD'
 
 	showTerms = false
+	isGoogleUser = false
 
 	form: ResetPasswordForm = this.formBuilder.nonNullable.group(
 		{
@@ -62,6 +67,10 @@ export class SettingsResetPasswordComponent implements OnInit {
 		},
 		{ validators: (group) => this.passwordsMatchValidator(group) }
 	)
+
+	googleForm: GoogleFirstAccessForm = this.formBuilder.nonNullable.group({
+		acceptedTerms: this.formBuilder.nonNullable.control(false, [Validators.requiredTrue]),
+	})
 
 	isSubmitting = false
 
@@ -87,6 +96,7 @@ export class SettingsResetPasswordComponent implements OnInit {
 	}
 
 	ngOnInit(): void {
+		this.isGoogleUser = this.authenticationService.isGoogleUser()
 		this.showFirstAccessModal()
 		this.configureTermsVisibility()
 	}
@@ -100,6 +110,36 @@ export class SettingsResetPasswordComponent implements OnInit {
 			control?.setValue(true, { emitEvent: false })
 			control?.updateValueAndValidity({ emitEvent: false })
 		}
+	}
+
+	acceptTermsOnly(): void {
+		if (!this.googleForm.valid) {
+			this.googleForm.markAllAsTouched()
+			return
+		}
+
+		const user = this.authenticationService.getCurrentUser()
+		if (!user?.email) {
+			this.notificationService.showError(this.translate.instant('settings.errors.user_not_found'))
+			return
+		}
+
+		this.isSubmitting = true
+		this.authStore.acceptTerms(user.email).pipe(
+			finalize(() => (this.isSubmitting = false))
+		).subscribe({
+			next: () => {
+				this.authenticationService.markFirstAccessCompleted()
+				this.notificationService.showSuccess(this.translate.instant('settings.messages.terms_accepted'))
+				this.authenticationService.refreshToken().subscribe({
+					complete: () => { void this.routerService.navigateTo('/home') },
+					error: () => { void this.routerService.navigateTo('/home') },
+				})
+			},
+			error: (error: unknown) => {
+				this.notificationService.showError(error)
+			},
+		})
 	}
 
 	resetPassword(): void {

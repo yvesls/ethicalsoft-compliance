@@ -63,16 +63,19 @@
           [label]="'dashboard.project.questionnaires_completed' | translate"
           [value]="completionPercent"
           [secondary]="'dashboard.project.completed_of' | translate: { completed: d.completedQuestionnaires, total: d.totalQuestionnaires }"
+          infoKey="questionnaire_completion_rate"
         />
         <app-isep-kpi-card
           [label]="'dashboard.project.team_simple_average' | translate"
           [value]="d.teamSimpleAveragePercent"
           [secondary]="d.teamSimpleAveragePercent !== null ? ('dashboard.project.isep_average' | translate) : ('dashboard.project.no_data' | translate)"
+          infoKey="team_simple_average"
         />
         <app-isep-kpi-card
           [label]="'dashboard.standard_deviation' | translate"
           [value]="d.teamStandardDeviationPercent"
           [secondary]="d.teamStandardDeviationPercent !== null && d.teamStandardDeviationPercent > 15 ? ('dashboard.project.high_divergence' | translate) : ('dashboard.project.consistency' | translate)"
+          infoKey="standard_deviation"
         />
       </div>
 

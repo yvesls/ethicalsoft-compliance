@@ -70,7 +70,8 @@
       "forgot_password": "Forgot my password",
       "register": "Register",
       "analyst_intro": "Are you an analyst and want to use the software in your project?",
-      "register_link": "Sign up!"
+      "register_link": "Sign up!",
+      "or": "or"
     },
     "register": {
       "title": "Register",
@@ -92,7 +93,8 @@
       "terms_suffix": "of Ethical Software Compliance",
       "submit": "Register",
       "has_account": "Already have an account?",
-      "login_link": "Sign in now"
+      "login_link": "Sign in now",
+      "or": "or"
     },
     "recovery": {
       "title": "Recover account",
@@ -1145,7 +1147,10 @@
       "terms_suffix": "and Privacy Policy.",
       "terms_error": "You must accept the terms and conditions.",
       "submit": "Update password",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "google_title": "Welcome!",
+      "google_subtitle": "To complete your registration, please accept the terms of use.",
+      "accept_terms_btn": "Confirm and continue"
     },
     "first_access": {
       "eyebrow": "First access",
@@ -1157,7 +1162,8 @@
       "cta": "Got it, I'll update it"
     },
     "messages": {
-      "password_updated": "Password updated successfully!"
+      "password_updated": "Password updated successfully!",
+      "terms_accepted": "Terms accepted! Welcome to the system."
     },
     "errors": {
       "user_not_found": "Could not identify the logged-in user.",

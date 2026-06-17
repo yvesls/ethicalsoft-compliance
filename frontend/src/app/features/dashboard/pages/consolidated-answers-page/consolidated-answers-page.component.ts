@@ -17,6 +17,7 @@ import { InputComponent } from '../../../../shared/components/input/input.compon
 import { ResponseDetailModalComponent } from '../../components/response-detail-modal/response-detail-modal.component';
 import { ModalService } from '../../../../core/services/modal.service';
 import { RoleService } from '../../../../core/services/role.service';
+import { InfoExplainerComponent } from '../../../../shared/components/info-explainer/info-explainer.component';
 
 interface UniqueMember {
   representativeId: number;
@@ -35,6 +36,7 @@ interface UniqueMember {
     PaginationComponent,
     SelectComponent,
     InputComponent,
+    InfoExplainerComponent,
   ],
   templateUrl: './consolidated-answers-page.component.html',
   styleUrl: './consolidated-answers-page.component.scss',

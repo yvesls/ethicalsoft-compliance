@@ -80,6 +80,7 @@ type PanelStates = Record<PanelKey, boolean>;
     SelectComponent,
     TranslateModule,
     UnlinkedItemsPanelComponent,
+    InfoExplainerComponent,
   ],
   templateUrl: './edit-cascata-project-form.component.html',
   styleUrls: ['./edit-cascata-project-form.component.scss'],

@@ -192,7 +192,7 @@ app-header {
 	}
 
 	@include for-phone-only {
-		padding: 1rem;
+		padding: 0.75rem 0;
 	}
 }
 
@@ -353,6 +353,10 @@ app-footer {
   gap: 1.5rem;
   width: 100%;
   margin-bottom: 1.5rem;
+
+  > * {
+    min-width: 0;
+  }
 
   &.form-grid-4 {
     grid-template-columns: repeat(4, 1fr);

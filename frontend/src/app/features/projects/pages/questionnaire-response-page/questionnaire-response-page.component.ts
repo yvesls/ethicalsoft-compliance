@@ -31,6 +31,7 @@ import { AuthenticationService, UserInterface } from '../../../../core/services/
 import { RoleEnum } from '../../../../shared/enums/role.enum';
 import { DraftCacheService } from '../../../../core/services/draft-cache.service';
 import { SessionExpirationService } from '../../../../core/services/session-expiration.service';
+import { InfoExplainerComponent } from '../../../../shared/components/info-explainer/info-explainer.component';
 
 interface QuestionnaireResponseState {
   status: 'loading' | 'loaded' | 'error';
@@ -43,7 +44,7 @@ type PageMode = 'respond' | 'view';
 @Component({
   selector: 'app-questionnaire-response-page',
   standalone: true,
-  imports: [CommonModule, TranslateModule],
+  imports: [CommonModule, TranslateModule, InfoExplainerComponent],
   templateUrl: './questionnaire-response-page.component.html',
   styleUrls: ['./questionnaire-response-page.component.scss'],
   providers: [QuestionnaireAnswerCacheService],

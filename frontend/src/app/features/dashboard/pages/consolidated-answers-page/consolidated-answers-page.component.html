@@ -81,7 +81,10 @@
 
       @if (uniqueMembers().length) {
         <div class="dash-card mb-3">
-          <h2 class="dash-section-title">{{ 'dashboard.consolidated.members_title' | translate }}</h2>
+          <div class="dash-card-header">
+            <h2 class="dash-section-title">{{ 'dashboard.consolidated.members_title' | translate }}</h2>
+            <app-info-explainer key="member_results" />
+          </div>
           <div class="consolidated__members-grid">
             @for (member of uniqueMembers(); track member.representativeId) {
               <div class="consolidated__member-chip">
@@ -107,8 +110,8 @@
                 }
                 <th>{{ 'dashboard.consolidated.question_col' | translate }}</th>
                 <th class="text-center">{{ 'dashboard.consolidated.answer_col' | translate }}</th>
-                <th>{{ 'dashboard.consolidated.justification_col' | translate }}</th>
-                <th>{{ 'dashboard.consolidated.evidence_col' | translate }}</th>
+                <th>{{ 'dashboard.consolidated.justification_col' | translate }} <app-info-explainer key="justification_column" /></th>
+                <th>{{ 'dashboard.consolidated.evidence_col' | translate }} <app-info-explainer key="evidence_column" /></th>
               </tr>
             </thead>
             <tbody>

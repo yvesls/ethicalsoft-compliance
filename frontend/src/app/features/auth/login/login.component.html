@@ -47,6 +47,12 @@
 			<button class="btn btn-primary col-12" type="submit" [disabled]="form.invalid">{{ 'auth.login.submit' | translate }}</button>
 		</div>
 	</form>
+	<div class="google-divider">
+		<span>{{ 'auth.login.or' | translate }}</span>
+	</div>
+
+	<div #googleBtn class="google-btn-wrapper"></div>
+
 	<p class="register">
 		{{ 'auth.login.analyst_intro' | translate }}
 		<button class="link" type="button" (click)="goToRegister()">{{ 'auth.login.register_link' | translate }}</button>

@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/ai/me/token")
+@RequestMapping("/api/ai/me/token")
 @RequiredArgsConstructor
 public class UserAiTokenController {
 

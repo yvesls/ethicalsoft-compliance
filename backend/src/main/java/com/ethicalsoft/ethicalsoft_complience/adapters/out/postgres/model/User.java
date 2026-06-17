@@ -1,5 +1,6 @@
 package com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model;
 
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.AuthProviderEnum;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.UserRoleEnum;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -43,7 +44,7 @@ public class User implements UserDetails {
 	@Column( name = "last_name", nullable = false )
 	private String lastName;
 
-	@Column( name = "password", nullable = false )
+	@Column( name = "password" )
 	private String password;
 
 	@Column( name = "accepted_terms" )
@@ -55,6 +56,16 @@ public class User implements UserDetails {
 	@Enumerated(EnumType.STRING)
 	@Column(name = "role")
 	private UserRoleEnum role;
+
+	@Enumerated(EnumType.STRING)
+	@Column(name = "auth_provider", nullable = false)
+	private AuthProviderEnum authProvider = AuthProviderEnum.LOCAL;
+
+	@Column(name = "google_id")
+	private String googleId;
+
+	@Column(name = "avatar_url")
+	private String avatarUrl;
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {

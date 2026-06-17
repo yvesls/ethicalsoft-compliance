@@ -55,16 +55,19 @@
           (ngModelChange)="onFilterChange()"
         ></app-input>
 
-        <app-select
-          class="flex-grow-1"
-          [label]="'questionnaire.form.filter_role' | translate"
-          [placeholder]="'questionnaire.form.all_roles' | translate"
-          [(ngModel)]="selectedRole"
-          [ngModelOptions]="{standalone: true}"
-          [options]="roleFilterOptions"
-          [allowClear]="true"
-          (ngModelChange)="onFilterChange()"
-        ></app-select>
+        <div class="flex-grow-1 d-flex align-items-end gap-1">
+          <app-select
+            class="flex-grow-1"
+            [label]="'questionnaire.form.filter_role' | translate"
+            [placeholder]="'questionnaire.form.all_roles' | translate"
+            [(ngModel)]="selectedRole"
+            [ngModelOptions]="{standalone: true}"
+            [options]="roleFilterOptions"
+            [allowClear]="true"
+            (ngModelChange)="onFilterChange()"
+          ></app-select>
+          <app-info-explainer key="question_filter_role" />
+        </div>
       </div>
 
       <div class="separation-line"></div>
@@ -90,8 +93,8 @@
                 }
                 <th class="text-center">{{ 'questionnaire.form.id_col' | translate }}</th>
                 <th class="text-start">{{ 'questionnaire.form.question_col' | translate }}</th>
-                <th class="text-start">{{ 'questionnaire.form.stage_col' | translate }}</th>
-                <th class="text-start">{{ 'questionnaire.form.roles_col' | translate }}</th>
+                <th class="text-start">{{ 'questionnaire.form.stage_col' | translate }} <app-info-explainer key="question_stages" /></th>
+                <th class="text-start">{{ 'questionnaire.form.roles_col' | translate }} <app-info-explainer key="question_roles" /></th>
                 <th class="text-center">{{ 'questionnaire.form.action_col' | translate }}</th>
               </tr>
             </thead>

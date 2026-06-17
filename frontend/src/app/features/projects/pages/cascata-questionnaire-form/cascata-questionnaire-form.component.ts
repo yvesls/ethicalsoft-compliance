@@ -22,6 +22,7 @@ import { Page } from '../../../../shared/interfaces/pageable.interface';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
 import { RoleSummary } from '../../../../shared/interfaces/role/role-summary.interface';
 import { UnlinkedItemsPanelComponent } from '../../../../shared/components/unlinked-items-panel/unlinked-items-panel.component';
+import { InfoExplainerComponent } from '../../../../shared/components/info-explainer/info-explainer.component';
 
 interface CascataQuestionnaireRouteParams extends GenericParams {
   questionnaireIndex?: number;
@@ -49,7 +50,7 @@ type CascataQuestionnaireRestoreParams = RestoreParams<CascataQuestionnaireRoute
 @Component({
   selector: 'app-cascata-questionnaire-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, AccordionPanelComponent, InputComponent, SelectComponent, PaginationComponent, TranslateModule, UnlinkedItemsPanelComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, AccordionPanelComponent, InputComponent, SelectComponent, PaginationComponent, TranslateModule, UnlinkedItemsPanelComponent, InfoExplainerComponent],
   templateUrl: './cascata-questionnaire-form.component.html',
   styleUrls: ['./cascata-questionnaire-form.component.scss']
 })
