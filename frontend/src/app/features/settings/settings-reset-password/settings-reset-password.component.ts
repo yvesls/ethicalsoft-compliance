@@ -1,5 +1,4 @@
-import { CommonModule } from '@angular/common'
-import { Component, OnInit, inject } from '@angular/core'
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core'
 import {
 	AbstractControl,
 	FormBuilder,
@@ -36,8 +35,9 @@ type GoogleFirstAccessForm = FormGroup<{
 @Component({
 	selector: 'app-settings-reset-password',
 	standalone: true,
-	imports: [CommonModule, ReactiveFormsModule, RouterModule, InputComponent, TranslateModule],
+	imports: [ReactiveFormsModule, RouterModule, InputComponent, TranslateModule],
 	templateUrl: './settings-reset-password.component.html',
+	changeDetection: ChangeDetectionStrategy.Eager,
 	styleUrl: './settings-reset-password.component.scss',
 })
 export class SettingsResetPasswordComponent implements OnInit {
@@ -125,21 +125,26 @@ export class SettingsResetPasswordComponent implements OnInit {
 		}
 
 		this.isSubmitting = true
-		this.authStore.acceptTerms(user.email).pipe(
-			finalize(() => (this.isSubmitting = false))
-		).subscribe({
-			next: () => {
-				this.authenticationService.markFirstAccessCompleted()
-				this.notificationService.showSuccess(this.translate.instant('settings.messages.terms_accepted'))
-				this.authenticationService.refreshToken().subscribe({
-					complete: () => { void this.routerService.navigateTo('/home') },
-					error: () => { void this.routerService.navigateTo('/home') },
-				})
-			},
-			error: (error: unknown) => {
-				this.notificationService.showError(error)
-			},
-		})
+		this.authStore
+			.acceptTerms(user.email)
+			.pipe(finalize(() => (this.isSubmitting = false)))
+			.subscribe({
+				next: () => {
+					this.authenticationService.markFirstAccessCompleted()
+					this.notificationService.showSuccess(this.translate.instant('settings.messages.terms_accepted'))
+					this.authenticationService.refreshToken().subscribe({
+						complete: () => {
+							void this.routerService.navigateTo('/home')
+						},
+						error: () => {
+							void this.routerService.navigateTo('/home')
+						},
+					})
+				},
+				error: (error: unknown) => {
+					this.notificationService.showError(error)
+				},
+			})
 	}
 
 	resetPassword(): void {
@@ -183,8 +188,12 @@ export class SettingsResetPasswordComponent implements OnInit {
 						acceptedTerms: false,
 					})
 					this.authenticationService.refreshToken().subscribe({
-						complete: () => { void this.routerService.navigateTo('/settings') },
-						error: () => { void this.routerService.navigateTo('/settings') },
+						complete: () => {
+							void this.routerService.navigateTo('/settings')
+						},
+						error: () => {
+							void this.routerService.navigateTo('/settings')
+						},
 					})
 				},
 				error: (error: unknown) => {
@@ -206,9 +215,7 @@ export class SettingsResetPasswordComponent implements OnInit {
 		const hasNumber = /\d/.test(value)
 		const hasSpecial = /[^A-Za-z0-9]/.test(value)
 
-		return hasUpperCase && hasLowerCase && hasNumber && hasSpecial
-			? null
-			: { weakPassword: true }
+		return hasUpperCase && hasLowerCase && hasNumber && hasSpecial ? null : { weakPassword: true }
 	}
 
 	private passwordsMatchValidator(control: AbstractControl): ValidationErrors | null {

@@ -2,7 +2,16 @@ import { LoggerService } from '../../../core/services/logger.service'
 import { InternalNotificationService } from '../../../core/services/internal-notification.service'
 import { NotificationResponse, NotificationStatus } from '../../interfaces/notification/notification.interface'
 import { NotificationService } from '../../../core/services/notification.service'
-import { Component, OnInit, inject, DestroyRef, HostListener, OnDestroy, AfterViewInit } from '@angular/core'
+import {
+	Component,
+	OnInit,
+	inject,
+	DestroyRef,
+	HostListener,
+	OnDestroy,
+	AfterViewInit,
+	ChangeDetectionStrategy,
+} from '@angular/core'
 import { RouterService } from '../../../core/services/router.service'
 import { Router, NavigationEnd, RouterModule } from '@angular/router'
 import { filter } from 'rxjs/operators'
@@ -11,161 +20,168 @@ import { CommonModule, Location } from '@angular/common'
 import { TranslateModule, TranslateService } from '@ngx-translate/core'
 
 @Component({
-  selector: 'app-header',
-  standalone: true,
-  imports: [CommonModule, RouterModule, TranslateModule],
-  templateUrl: './header.component.html',
-  styleUrl: './header.component.scss',
+	selector: 'app-header',
+	standalone: true,
+	imports: [CommonModule, RouterModule, TranslateModule],
+	templateUrl: './header.component.html',
+	changeDetection: ChangeDetectionStrategy.Eager,
+	styleUrl: './header.component.scss',
 })
 export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
-  routerPath = ''
-  routeSegments: { label: string; path: string; clickable: boolean }[] = []
-  canGoBack = false
-  isPanelOpen = false
-  isLoading = false
-  isMarkingAll = false
-  errorMessage = ''
-  notifications: NotificationResponse[] = []
-  private lastLoadedAt: number | null = null
-  private refreshTimerId: ReturnType<typeof setInterval> | null = null
+	routerPath = ''
+	routeSegments: { label: string; path: string; clickable: boolean }[] = []
+	canGoBack = false
+	isPanelOpen = false
+	isLoading = false
+	isMarkingAll = false
+	errorMessage = ''
+	notifications: NotificationResponse[] = []
+	private lastLoadedAt: number | null = null
+	private refreshTimerId: ReturnType<typeof setInterval> | null = null
 
-  private router = inject(Router)
-  private location = inject(Location)
-  private destroyRef = inject(DestroyRef)
-  private routerService = inject(RouterService)
-  private notificationService = inject(NotificationService)
-  private internalNotificationService = inject(InternalNotificationService)
-  private translate = inject(TranslateService)
+	private router = inject(Router)
+	private location = inject(Location)
+	private destroyRef = inject(DestroyRef)
+	private routerService = inject(RouterService)
+	private notificationService = inject(NotificationService)
+	private internalNotificationService = inject(InternalNotificationService)
+	private translate = inject(TranslateService)
 
-  private static readonly TOP_LEVEL_ROUTES = ['/home', '/projects', '/settings']
+	private static readonly TOP_LEVEL_ROUTES = ['/home', '/projects', '/settings']
 
-  ngOnInit(): void {
-    this.routerPath = this.routerService.getFormattedRoute()
-    this.routeSegments = this.routerService.getFormattedRouteSegments()
-    this.canGoBack = this.computeCanGoBack(this.router.url)
+	ngOnInit(): void {
+		this.routerPath = this.routerService.getFormattedRoute()
+		this.routeSegments = this.routerService.getFormattedRouteSegments()
+		this.canGoBack = this.computeCanGoBack(this.router.url)
 
-    this.router.events
-      .pipe(filter((event) => event instanceof NavigationEnd), takeUntilDestroyed(this.destroyRef))
-      .subscribe((event) => {
-        this.routerPath = this.routerService.getFormattedRoute()
-        this.routeSegments = this.routerService.getFormattedRouteSegments()
-        this.canGoBack = this.computeCanGoBack(event.urlAfterRedirects)
-        this.closePanel()
-      })
-  }
+		this.router.events
+			.pipe(
+				filter((event) => event instanceof NavigationEnd),
+				takeUntilDestroyed(this.destroyRef)
+			)
+			.subscribe((event) => {
+				this.routerPath = this.routerService.getFormattedRoute()
+				this.routeSegments = this.routerService.getFormattedRouteSegments()
+				this.canGoBack = this.computeCanGoBack(event.urlAfterRedirects)
+				this.closePanel()
+			})
+	}
 
-  goBack(): void {
-    this.location.back()
-  }
+	goBack(): void {
+		this.location.back()
+	}
 
-  private computeCanGoBack(url: string): boolean {
-    const path = url.split('?')[0].split('#')[0]
-    return !HeaderComponent.TOP_LEVEL_ROUTES.includes(path)
-  }
+	private computeCanGoBack(url: string): boolean {
+		const path = url.split('?')[0].split('#')[0]
+		return !HeaderComponent.TOP_LEVEL_ROUTES.includes(path)
+	}
 
-  openNotifications(): void {
-    this.isPanelOpen = !this.isPanelOpen
-    if (this.isPanelOpen) {
-      void this.loadNotificationsIfStale()
-    }
-  }
+	openNotifications(): void {
+		this.isPanelOpen = !this.isPanelOpen
+		if (this.isPanelOpen) {
+			void this.loadNotificationsIfStale()
+		}
+	}
 
-  closePanel(): void {
-    this.isPanelOpen = false
-  }
+	closePanel(): void {
+		this.isPanelOpen = false
+	}
 
-  async loadNotifications(force = false): Promise<void> {
-    if (!force && this.lastLoadedAt && Date.now() - this.lastLoadedAt < 5 * 60 * 1000) {
-      return
-    }
-    this.isLoading = true
-    this.errorMessage = ''
-    try {
-      const result = await this.internalNotificationService.list()
-      this.notifications = (result ?? []).filter((n) => n.status === 'UNREAD')
-      this.lastLoadedAt = Date.now()
-    } catch (error: unknown) {
-      LoggerService.error('HeaderComponent: Erro ao carregar notificações.', error)
-      this.errorMessage = this.translate.instant('common.notifications_load_error')
-      this.notificationService.showError(error)
-    } finally {
-      this.isLoading = false
-    }
-  }
+	async loadNotifications(force = false): Promise<void> {
+		if (!force && this.lastLoadedAt && Date.now() - this.lastLoadedAt < 5 * 60 * 1000) {
+			return
+		}
+		this.isLoading = true
+		this.errorMessage = ''
+		try {
+			const result = await this.internalNotificationService.list()
+			this.notifications = (result ?? []).filter((n) => n.status === 'UNREAD')
+			this.lastLoadedAt = Date.now()
+		} catch (error: unknown) {
+			LoggerService.error('HeaderComponent: Erro ao carregar notificações.', error)
+			this.errorMessage = this.translate.instant('common.notifications_load_error')
+			this.notificationService.showError(error)
+		} finally {
+			this.isLoading = false
+		}
+	}
 
-  async markAsRead(notification: NotificationResponse): Promise<void> {
-    if (notification.status === 'READ') return
-    await this.updateStatus(notification, 'READ')
-    await this.loadNotifications(true)
-  }
+	async markAsRead(notification: NotificationResponse): Promise<void> {
+		if (notification.status === 'READ') return
+		await this.updateStatus(notification, 'READ')
+		await this.loadNotifications(true)
+	}
 
-  async markAllAsRead(): Promise<void> {
-    const unread = this.notifications.filter((n) => n.status === 'UNREAD')
-    if (!unread.length) return
-    this.isMarkingAll = true
-    try {
-      await Promise.all(unread.map((n) => this.internalNotificationService.updateStatus(n.id, 'READ')))
-      await this.loadNotifications(true)
-    } catch (error: unknown) {
-      LoggerService.error('HeaderComponent: Erro ao marcar todas notificações como lidas.', error)
-      this.notificationService.showError(error)
-    } finally {
-      this.isMarkingAll = false
-    }
-  }
+	async markAllAsRead(): Promise<void> {
+		const unread = this.notifications.filter((n) => n.status === 'UNREAD')
+		if (!unread.length) return
+		this.isMarkingAll = true
+		try {
+			await Promise.all(unread.map((n) => this.internalNotificationService.updateStatus(n.id, 'READ')))
+			await this.loadNotifications(true)
+		} catch (error: unknown) {
+			LoggerService.error('HeaderComponent: Erro ao marcar todas notificações como lidas.', error)
+			this.notificationService.showError(error)
+		} finally {
+			this.isMarkingAll = false
+		}
+	}
 
-  async deleteNotification(notification: NotificationResponse): Promise<void> {
-    await this.updateStatus(notification, 'DELETED')
-    await this.loadNotifications(true)
-  }
+	async deleteNotification(notification: NotificationResponse): Promise<void> {
+		await this.updateStatus(notification, 'DELETED')
+		await this.loadNotifications(true)
+	}
 
-  private async updateStatus(notification: NotificationResponse, status: NotificationStatus): Promise<void> {
-    try {
-      await this.internalNotificationService.updateStatus(notification.id, status)
-      this.notifications = this.notifications
-        .map((n) => (n.id === notification.id ? { ...n, status } : n))
-        .filter((n) => n.status === 'UNREAD')
-    } catch (error: unknown) {
-      LoggerService.error('HeaderComponent: Erro ao atualizar status da notificação.', error)
-      this.notificationService.showError(error)
-    }
-  }
+	private async updateStatus(notification: NotificationResponse, status: NotificationStatus): Promise<void> {
+		try {
+			await this.internalNotificationService.updateStatus(notification.id, status)
+			this.notifications = this.notifications
+				.map((n) => (n.id === notification.id ? { ...n, status } : n))
+				.filter((n) => n.status === 'UNREAD')
+		} catch (error: unknown) {
+			LoggerService.error('HeaderComponent: Erro ao atualizar status da notificação.', error)
+			this.notificationService.showError(error)
+		}
+	}
 
-  get unreadCount(): number {
-    return this.notifications.filter((n) => n.status === 'UNREAD').length
-  }
+	get unreadCount(): number {
+		return this.notifications.filter((n) => n.status === 'UNREAD').length
+	}
 
-  private loadNotificationsIfStale(): Promise<void> {
-    return this.loadNotifications(!this.lastLoadedAt || Date.now() - this.lastLoadedAt >= 5 * 60 * 1000)
-  }
+	private loadNotificationsIfStale(): Promise<void> {
+		return this.loadNotifications(!this.lastLoadedAt || Date.now() - this.lastLoadedAt >= 5 * 60 * 1000)
+	}
 
-  private startAutoRefresh(): void {
-    if (this.refreshTimerId) return
-    this.refreshTimerId = setInterval(() => {
-      void this.loadNotifications(true)
-    }, 5 * 60 * 1000)
-  }
+	private startAutoRefresh(): void {
+		if (this.refreshTimerId) return
+		this.refreshTimerId = setInterval(
+			() => {
+				void this.loadNotifications(true)
+			},
+			5 * 60 * 1000
+		)
+	}
 
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent): void {
-    if (!this.isPanelOpen) return
-    const target = event.target as Node | null
-    const panel = document.querySelector('.notification-panel')
-    const button = document.querySelector('.notification-toggle')
-    if (panel && panel.contains(target)) return
-    if (button && button.contains(target)) return
-    this.closePanel()
-  }
+	@HostListener('document:click', ['$event'])
+	onDocumentClick(event: MouseEvent): void {
+		if (!this.isPanelOpen) return
+		const target = event.target as Node | null
+		const panel = document.querySelector('.notification-panel')
+		const button = document.querySelector('.notification-toggle')
+		if (panel && panel.contains(target)) return
+		if (button && button.contains(target)) return
+		this.closePanel()
+	}
 
-  ngAfterViewInit(): void {
-    void this.loadNotifications(true)
-    this.startAutoRefresh()
-  }
+	ngAfterViewInit(): void {
+		void this.loadNotifications(true)
+		this.startAutoRefresh()
+	}
 
-  ngOnDestroy(): void {
-    if (this.refreshTimerId) {
-      clearInterval(this.refreshTimerId)
-      this.refreshTimerId = null
-    }
-  }
+	ngOnDestroy(): void {
+		if (this.refreshTimerId) {
+			clearInterval(this.refreshTimerId)
+			this.refreshTimerId = null
+		}
+	}
 }

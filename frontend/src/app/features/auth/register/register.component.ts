@@ -1,5 +1,4 @@
-import { CommonModule } from '@angular/common'
-import { AfterViewInit, Component, ElementRef, inject, ViewChild } from '@angular/core'
+import { AfterViewInit, Component, ElementRef, inject, ViewChild, ChangeDetectionStrategy } from '@angular/core'
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms'
 import { BasePageComponent, RestoreParams } from '../../../core/abstractions/base-page.component'
 import { RouteParams } from '../../../core/services/router.service'
@@ -39,8 +38,9 @@ interface RegisterFormValue {
 @Component({
 	selector: 'app-register',
 	standalone: true,
-	imports: [CommonModule, ReactiveFormsModule, InputComponent, TranslateModule],
+	imports: [ReactiveFormsModule, InputComponent, TranslateModule],
 	templateUrl: './register.component.html',
+	changeDetection: ChangeDetectionStrategy.Eager,
 	styleUrls: ['./register.component.scss'],
 })
 export class RegisterComponent extends BasePageComponent<RegisterRouteParams> implements AfterViewInit {
@@ -61,7 +61,7 @@ export class RegisterComponent extends BasePageComponent<RegisterRouteParams> im
 	}
 
 	ngAfterViewInit(): void {
-		this.googleCredentialSub = this.googleAuthService.credential$.subscribe(idToken => {
+		this.googleCredentialSub = this.googleAuthService.credential$.subscribe((idToken) => {
 			this.authService.googleLogin(idToken, false)
 		})
 		this.googleAuthService.renderButton(this.googleBtnRef.nativeElement)
@@ -102,7 +102,10 @@ export class RegisterComponent extends BasePageComponent<RegisterRouteParams> im
 				firstName: this.formBuilder.nonNullable.control('', [Validators.required]),
 				lastName: this.formBuilder.nonNullable.control('', [Validators.required]),
 				email: this.formBuilder.nonNullable.control('', [Validators.required, Validators.email]),
-				password: this.formBuilder.nonNullable.control('', [Validators.required, CustomValidators.passwordValidator(this.translate.instant.bind(this.translate))]),
+				password: this.formBuilder.nonNullable.control('', [
+					Validators.required,
+					CustomValidators.passwordValidator(this.translate.instant.bind(this.translate)),
+				]),
 				confirmPassword: this.formBuilder.nonNullable.control('', [Validators.required]),
 				acceptedTerms: this.formBuilder.nonNullable.control(false, [Validators.requiredTrue]),
 			},

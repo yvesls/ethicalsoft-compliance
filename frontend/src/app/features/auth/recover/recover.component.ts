@@ -1,5 +1,4 @@
-import { CommonModule } from '@angular/common'
-import { Component, inject } from '@angular/core'
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core'
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms'
 import { BasePageComponent, RestoreParams } from '../../../core/abstractions/base-page.component'
 import { RouteParams } from '../../../core/services/router.service'
@@ -20,11 +19,12 @@ interface RecoverRouteParams extends Record<string, unknown> {
 
 @Component({
 	selector: 'app-recover',
-	imports: [CommonModule, ReactiveFormsModule, InputComponent, TranslateModule],
+	imports: [ReactiveFormsModule, InputComponent, TranslateModule],
 	templateUrl: './recover.component.html',
+	changeDetection: ChangeDetectionStrategy.Eager,
 	styleUrl: './recover.component.scss',
 })
-	export class RecoverComponent extends BasePageComponent<RecoverRouteParams> {
+export class RecoverComponent extends BasePageComponent<RecoverRouteParams> {
 	form!: RecoverFormGroup
 	private passwordRecovery: PasswordRecoveryInterface = createPasswordRecovery()
 	private readonly formBuilder = inject(FormBuilder)
@@ -75,9 +75,7 @@ interface RecoverRouteParams extends Record<string, unknown> {
 
 		this.authStore.recover(this.passwordRecovery).subscribe({
 			next: () => {
-				this.notificationService.showSuccess(
-					this.translate.instant('auth.messages.recovery_sent')
-				)
+				this.notificationService.showSuccess(this.translate.instant('auth.messages.recovery_sent'))
 				this.routerService.navigateTo('code-verification', {
 					params: {
 						email,
@@ -92,5 +90,10 @@ interface RecoverRouteParams extends Record<string, unknown> {
 }
 
 function isRecoverFormValue(value: unknown): value is { email: string } {
-	return typeof value === 'object' && value !== null && 'email' in value && typeof (value as { email: string }).email === 'string'
+	return (
+		typeof value === 'object' &&
+		value !== null &&
+		'email' in value &&
+		typeof (value as { email: string }).email === 'string'
+	)
 }

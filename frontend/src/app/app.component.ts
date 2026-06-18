@@ -1,5 +1,5 @@
-import { Component, DestroyRef, OnInit, inject } from '@angular/core'
-import { CommonModule } from '@angular/common'
+import { Component, DestroyRef, OnInit, inject, ChangeDetectionStrategy } from '@angular/core'
+
 import { NgxSpinnerModule } from 'ngx-spinner'
 import { HeaderComponent } from './shared/components/header/header.component'
 import { FooterComponent } from './shared/components/footer/footer.component'
@@ -11,7 +11,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 @Component({
 	selector: 'app-root',
 	standalone: true,
-	imports: [RouterOutlet, CommonModule, NgxSpinnerModule, SidebarComponent, HeaderComponent, FooterComponent],
+	imports: [RouterOutlet, NgxSpinnerModule, SidebarComponent, HeaderComponent, FooterComponent],
+	changeDetection: ChangeDetectionStrategy.Eager,
 	templateUrl: './app.component.html',
 })
 export class AppComponent implements OnInit {
@@ -23,16 +24,12 @@ export class AppComponent implements OnInit {
 	private readonly destroyRef = inject(DestroyRef)
 
 	ngOnInit(): void {
-		this.layoutStateService.showLayout$
-			.pipe(takeUntilDestroyed(this.destroyRef))
-			.subscribe((state) => {
-				this.showLayout = state
-			})
+		this.layoutStateService.showLayout$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((state) => {
+			this.showLayout = state
+		})
 
-		this.layoutStateService.isSidebarCollapsed$
-			.pipe(takeUntilDestroyed(this.destroyRef))
-			.subscribe((state) => {
-				this.isSidebarCollapsed = state
-			})
+		this.layoutStateService.isSidebarCollapsed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((state) => {
+			this.isSidebarCollapsed = state
+		})
 	}
 }

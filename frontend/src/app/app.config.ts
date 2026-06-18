@@ -2,7 +2,7 @@ import { ApplicationConfig, PLATFORM_ID, inject, provideAppInitializer } from '@
 import { isPlatformBrowser } from '@angular/common'
 import { provideRouter, withComponentInputBinding } from '@angular/router'
 import { routes } from './app.routes'
-import { provideClientHydration } from '@angular/platform-browser'
+import { provideClientHydration, withNoIncrementalHydration } from '@angular/platform-browser'
 import { BrowserAnimationsModule, provideAnimations } from '@angular/platform-browser/animations'
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http'
 import { tokenInterceptorFn } from './core/interceptors/token.interceptor.fn'
@@ -22,55 +22,64 @@ import { provideEchartsCore } from 'ngx-echarts'
 import * as echarts from 'echarts/core'
 import { BarChart, HeatmapChart, RadarChart } from 'echarts/charts'
 import {
-  GridComponent,
-  TooltipComponent,
-  LegendComponent,
-  VisualMapComponent,
-  TitleComponent,
+	GridComponent,
+	TooltipComponent,
+	LegendComponent,
+	VisualMapComponent,
+	TitleComponent,
 } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 
 export const appConfig: ApplicationConfig = {
-  providers: [
-    provideRouter(routes, withComponentInputBinding()),
-    provideClientHydration(),
-    provideAnimations(),
-    BrowserAnimationsModule,
-    provideHttpClient(
-      withInterceptors([spinnerInterceptorFn, tokenInterceptorFn, projectContextInterceptorFn, languageHeaderInterceptorFn, errorTranslationInterceptorFn]),
-      withFetch()
-    ),
-    provideTranslateService({
-      defaultLanguage: 'pt-BR',
-      loader: provideTranslateHttpLoader({ prefix: './assets/i18n/', suffix: '.json' }),
-    }),
-    provideEchartsCore({ echarts }),
-    provideAppInitializer(() => {
-      const platformId = inject(PLATFORM_ID)
-      if (isPlatformBrowser(platformId)) {
-        echarts.use([
-          BarChart,
-          HeatmapChart,
-          RadarChart,
-          GridComponent,
-          TooltipComponent,
-          LegendComponent,
-          VisualMapComponent,
-          TitleComponent,
-          CanvasRenderer,
-        ])
-      }
-    }),
-    provideAppInitializer(() => {
-      const languageService = inject(LanguageService)
-      return languageService.initialize()
-    }),
-    provideAppInitializer(() => {
-      const aiTokenService = inject(AiTokenService)
-      const authService = inject(AuthenticationService)
-      if (authService.getToken()) {
-        aiTokenService.loadStatus().pipe(catchError(() => of(null))).subscribe()
-      }
-    }),
-  ],
+	providers: [
+		provideRouter(routes, withComponentInputBinding()),
+		provideClientHydration(withNoIncrementalHydration()),
+		provideAnimations(),
+		BrowserAnimationsModule,
+		provideHttpClient(
+			withInterceptors([
+				spinnerInterceptorFn,
+				tokenInterceptorFn,
+				projectContextInterceptorFn,
+				languageHeaderInterceptorFn,
+				errorTranslationInterceptorFn,
+			]),
+			withFetch()
+		),
+		provideTranslateService({
+			defaultLanguage: 'pt-BR',
+			loader: provideTranslateHttpLoader({ prefix: './assets/i18n/', suffix: '.json' }),
+		}),
+		provideEchartsCore({ echarts }),
+		provideAppInitializer(() => {
+			const platformId = inject(PLATFORM_ID)
+			if (isPlatformBrowser(platformId)) {
+				echarts.use([
+					BarChart,
+					HeatmapChart,
+					RadarChart,
+					GridComponent,
+					TooltipComponent,
+					LegendComponent,
+					VisualMapComponent,
+					TitleComponent,
+					CanvasRenderer,
+				])
+			}
+		}),
+		provideAppInitializer(() => {
+			const languageService = inject(LanguageService)
+			return languageService.initialize()
+		}),
+		provideAppInitializer(() => {
+			const aiTokenService = inject(AiTokenService)
+			const authService = inject(AuthenticationService)
+			if (authService.getToken()) {
+				aiTokenService
+					.loadStatus()
+					.pipe(catchError(() => of(null)))
+					.subscribe()
+			}
+		}),
+	],
 }

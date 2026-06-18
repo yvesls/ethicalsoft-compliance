@@ -1,130 +1,145 @@
-import { Component, Output, EventEmitter, inject, ChangeDetectorRef, ChangeDetectionStrategy, Input, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
-import { ModalService } from '../../../../core/services/modal.service';
-import { InputComponent } from '../../../../shared/components/input/input.component';
-import { ActionType } from '../../../../shared/enums/action-type.enum';
+import {
+	Component,
+	Output,
+	EventEmitter,
+	inject,
+	ChangeDetectorRef,
+	ChangeDetectionStrategy,
+	Input,
+	OnInit,
+} from '@angular/core'
+
+import { TranslateModule, TranslateService } from '@ngx-translate/core'
+import {
+	AbstractControl,
+	FormBuilder,
+	FormGroup,
+	ReactiveFormsModule,
+	ValidationErrors,
+	ValidatorFn,
+	Validators,
+} from '@angular/forms'
+import { ModalService } from '../../../../core/services/modal.service'
+import { InputComponent } from '../../../../shared/components/input/input.component'
+import { ActionType } from '../../../../shared/enums/action-type.enum'
 
 export interface StageIterativeData {
-  id?: string;
-  name: string;
-  weight: number;
+	id?: string
+	name: string
+	weight: number
 }
 
 @Component({
-  selector: 'app-stage-iterative-modal',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, InputComponent, TranslateModule],
-  templateUrl: './stage-iterative-modal.component.html',
-  styleUrls: ['./stage-iterative-modal.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+	selector: 'app-stage-iterative-modal',
+	standalone: true,
+	imports: [ReactiveFormsModule, InputComponent, TranslateModule],
+	templateUrl: './stage-iterative-modal.component.html',
+	styleUrls: ['./stage-iterative-modal.component.scss'],
+	changeDetection: ChangeDetectionStrategy.OnPush,
 })
-  export class StageIterativeModalComponent implements OnInit {
-  @Input() editData?: StageIterativeData;
-  @Input() mode: ActionType = ActionType.CREATE;
-    @Input() existingStageNames: string[] = [];
-  @Output() stageCreated = new EventEmitter<StageIterativeData>();
-  @Output() stageUpdated = new EventEmitter<StageIterativeData>();
+export class StageIterativeModalComponent implements OnInit {
+	@Input() editData?: StageIterativeData
+	@Input() mode: ActionType = ActionType.CREATE
+	@Input() existingStageNames: string[] = []
+	@Output() stageCreated = new EventEmitter<StageIterativeData>()
+	@Output() stageUpdated = new EventEmitter<StageIterativeData>()
 
-  private modalService = inject(ModalService);
-  private fb = inject(FormBuilder);
-  private cdr = inject(ChangeDetectorRef);
-  private readonly translate = inject(TranslateService);
+	private modalService = inject(ModalService)
+	private fb = inject(FormBuilder)
+	private cdr = inject(ChangeDetectorRef)
+	private readonly translate = inject(TranslateService)
 
-  form!: FormGroup;
-  actionType: ActionType = ActionType.CREATE;
-  stageData?: StageIterativeData;
-  modalTitle = '';
+	form!: FormGroup
+	actionType: ActionType = ActionType.CREATE
+	stageData?: StageIterativeData
+	modalTitle = ''
 
-  constructor() {
-    this.initializeForm();
-  }
+	constructor() {
+		this.initializeForm()
+	}
 
-  ngOnInit(): void {
-    this.actionType = this.mode ?? ActionType.CREATE;
+	ngOnInit(): void {
+		this.actionType = this.mode ?? ActionType.CREATE
 
-    this.form.get('name')?.addValidators(this.stageNameUniquenessValidator());
-    this.form.get('name')?.updateValueAndValidity({ emitEvent: false });
+		this.form.get('name')?.addValidators(this.stageNameUniquenessValidator())
+		this.form.get('name')?.updateValueAndValidity({ emitEvent: false })
 
-    if (this.editData) {
-      this.stageData = this.editData;
-      this.form.patchValue(
-        {
-          name: this.editData.name,
-          weight: this.editData.weight,
-        },
-        { emitEvent: false }
-      );
-    }
+		if (this.editData) {
+			this.stageData = this.editData
+			this.form.patchValue(
+				{
+					name: this.editData.name,
+					weight: this.editData.weight,
+				},
+				{ emitEvent: false }
+			)
+		}
 
-    this.updateModalTitle();
-    this.cdr.detectChanges();
-  }
+		this.updateModalTitle()
+		this.cdr.detectChanges()
+	}
 
-  private initializeForm(): void {
-    this.form = this.fb.group({
-      name: ['', [Validators.required, this.nonBlankValidator()]],
-      weight: [1, [Validators.required, Validators.min(1)]]
-    });
-  }
+	private initializeForm(): void {
+		this.form = this.fb.group({
+			name: ['', [Validators.required, this.nonBlankValidator()]],
+			weight: [1, [Validators.required, Validators.min(1)]],
+		})
+	}
 
-  private nonBlankValidator(): ValidatorFn {
-    return (control: AbstractControl): ValidationErrors | null => {
-      const value = (control.value ?? '').toString();
-      return value.trim().length === 0 ? { blankValue: true } : null;
-    };
-  }
+	private nonBlankValidator(): ValidatorFn {
+		return (control: AbstractControl): ValidationErrors | null => {
+			const value = (control.value ?? '').toString()
+			return value.trim().length === 0 ? { blankValue: true } : null
+		}
+	}
 
-  private stageNameUniquenessValidator(): ValidatorFn {
-    return (control: AbstractControl): ValidationErrors | null => {
-      const normalizedName = (control.value ?? '').toString().trim().toLowerCase();
+	private stageNameUniquenessValidator(): ValidatorFn {
+		return (control: AbstractControl): ValidationErrors | null => {
+			const normalizedName = (control.value ?? '').toString().trim().toLowerCase()
 
-      if (!normalizedName) {
-        return null;
-      }
+			if (!normalizedName) {
+				return null
+			}
 
-      if (this.actionType === ActionType.EDIT) {
-        const currentName = (this.editData?.name ?? '').toString().trim().toLowerCase();
-        if (currentName === normalizedName) {
-          return null;
-        }
-      }
+			if (this.actionType === ActionType.EDIT) {
+				const currentName = (this.editData?.name ?? '').toString().trim().toLowerCase()
+				if (currentName === normalizedName) {
+					return null
+				}
+			}
 
-      const duplicated = this.existingStageNames.some(
-        (name) => name.trim().toLowerCase() === normalizedName
-      );
+			const duplicated = this.existingStageNames.some((name) => name.trim().toLowerCase() === normalizedName)
 
-      return duplicated ? { duplicateStageName: true } : null;
-    };
-  }
+			return duplicated ? { duplicateStageName: true } : null
+		}
+	}
 
-  private updateModalTitle(): void {
-    this.modalTitle = this.translate.instant(
-      this.actionType === ActionType.EDIT
-        ? 'projects.stage_iterative.edit_title'
-        : 'projects.stage_iterative.create_title'
-    );
-  }
+	private updateModalTitle(): void {
+		this.modalTitle = this.translate.instant(
+			this.actionType === ActionType.EDIT
+				? 'projects.stage_iterative.edit_title'
+				: 'projects.stage_iterative.create_title'
+		)
+	}
 
-  confirm(): void {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
+	confirm(): void {
+		if (this.form.invalid) {
+			this.form.markAllAsTouched()
+			return
+		}
 
-    const stageFormData: StageIterativeData = {
-      name: (this.form.value.name ?? '').toString().trim(),
-      weight: Number(this.form.value.weight)
-    };
+		const stageFormData: StageIterativeData = {
+			name: (this.form.value.name ?? '').toString().trim(),
+			weight: Number(this.form.value.weight),
+		}
 
-    if (this.actionType === ActionType.EDIT && this.stageData?.id) {
-      stageFormData.id = this.stageData.id;
-      this.stageUpdated.emit(stageFormData);
-    } else {
-      this.stageCreated.emit(stageFormData);
-    }
+		if (this.actionType === ActionType.EDIT && this.stageData?.id) {
+			stageFormData.id = this.stageData.id
+			this.stageUpdated.emit(stageFormData)
+		} else {
+			this.stageCreated.emit(stageFormData)
+		}
 
-    this.modalService.close();
-  }
+		this.modalService.close()
+	}
 }

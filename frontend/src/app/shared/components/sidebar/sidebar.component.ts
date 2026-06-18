@@ -1,4 +1,13 @@
-import { Component, ElementRef, HostListener, Renderer2, DestroyRef, inject, OnInit } from '@angular/core'
+import {
+	Component,
+	ElementRef,
+	HostListener,
+	Renderer2,
+	DestroyRef,
+	inject,
+	OnInit,
+	ChangeDetectionStrategy,
+} from '@angular/core'
 import { MenuService } from '../../../core/services/menu.service'
 import { Observable } from 'rxjs'
 import { LayoutStateService } from '../../../core/services/layout-state.service'
@@ -15,6 +24,7 @@ import { TranslateModule } from '@ngx-translate/core'
 	imports: [CommonModule, RouterModule, LanguageSelectorComponent, TranslateModule],
 	standalone: true,
 	templateUrl: './sidebar.component.html',
+	changeDetection: ChangeDetectionStrategy.Eager,
 	styleUrls: ['./sidebar.component.scss'],
 })
 export class SidebarComponent implements OnInit {
@@ -34,12 +44,10 @@ export class SidebarComponent implements OnInit {
 	}
 
 	ngOnInit() {
-		this.layoutStateService.isSidebarCollapsed$
-			.pipe(takeUntilDestroyed(this.destroyRef))
-			.subscribe((state) => {
-				this.isCollapsed = state
-				this.updateSidebarClass()
-			})
+		this.layoutStateService.isSidebarCollapsed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((state) => {
+			this.isCollapsed = state
+			this.updateSidebarClass()
+		})
 		if (this.isMobile) {
 			this.layoutStateService.sidebarMobileOpened$
 				.pipe(takeUntilDestroyed(this.destroyRef))
