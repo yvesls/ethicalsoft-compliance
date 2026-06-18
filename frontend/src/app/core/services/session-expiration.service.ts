@@ -3,11 +3,13 @@ import { Subject, Subscription, timer } from 'rxjs';
 import { NotificationService } from './notification.service';
 import { LoggerService } from './logger.service';
 import { TranslateService } from '@ngx-translate/core';
+import { AuthStore } from '../../shared/stores/auth.store';
 
 @Injectable({ providedIn: 'root' })
 export class SessionExpirationService implements OnDestroy {
   private readonly notification = inject(NotificationService);
   private readonly translate = inject(TranslateService);
+  private readonly authStore = inject(AuthStore);
 
   private readonly WARNING_BEFORE_EXPIRY_MS = 2 * 60 * 1000;
 
@@ -23,9 +25,13 @@ export class SessionExpirationService implements OnDestroy {
   private readonly _sessionExpired$ = new Subject<void>();
   readonly sessionExpired$ = this._sessionExpired$.asObservable();
 
+  private readonly _sessionExtended$ = new Subject<void>();
+  readonly sessionExtended$ = this._sessionExtended$.asObservable();
+
   private pendingDraftSaver: (() => Promise<void> | void) | null = null;
 
   private logoutHandler: (() => void) | null = null;
+  private sessionExtendHandler: ((callback: (expirationTime: number) => void) => void) | null = null;
 
   ngOnDestroy(): void {
     this.cancelTimers();
@@ -35,6 +41,10 @@ export class SessionExpirationService implements OnDestroy {
 
   registerLogoutHandler(handler: () => void): void {
     this.logoutHandler = handler;
+  }
+
+  registerSessionExtendHandler(handler: (callback: (expirationTime: number) => void) => void): void {
+    this.sessionExtendHandler = handler;
   }
 
   scheduleWarning(tokenExpirationMs: number): void {
@@ -88,11 +98,11 @@ export class SessionExpirationService implements OnDestroy {
         () => this.onUserDeclinedSave()
       );
     } else {
-      this.notification.showWarning(
-        this.translate.instant('notifications.session.expired_redirect')
+      this.notification.showSessionExpiration(
+        this.translate.instant('notifications.session.expired_redirect'),
+        () => this.onUserExtendedSession(),
+        () => this.onUserDeclinedExtension()
       );
-      setTimeout(() => this.forceLogout(), 3000);
-      return;
     }
 
     this.graceTimerSub = timer(this.GRACE_PERIOD_MS).subscribe(() => {
@@ -118,6 +128,30 @@ export class SessionExpirationService implements OnDestroy {
   }
 
   private onUserDeclinedSave(): void {
+    this.cancelGraceTimer();
+    this.forceLogout();
+  }
+
+  private onUserExtendedSession(): void {
+    this.cancelGraceTimer();
+    this.cancelWarningTimer();
+    this.isWarningVisible = false;
+
+    LoggerService.info('SessionExpirationService: Usuário estendeu a sessão.');
+
+    if (this.sessionExtendHandler) {
+      // The handler accepts a callback that will be called with the new expiration time
+      this.sessionExtendHandler((newExpirationTime: number) => {
+        LoggerService.info(`SessionExpirationService: Sessão estendida até ${new Date(newExpirationTime)}`);
+        this.scheduleWarning(newExpirationTime);
+        this._sessionExtended$.next();
+      });
+    } else {
+      LoggerService.error('SessionExpirationService: Nenhum handler de extensão de sessão registrado!');
+    }
+  }
+
+  private onUserDeclinedExtension(): void {
     this.cancelGraceTimer();
     this.forceLogout();
   }

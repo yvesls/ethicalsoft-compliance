@@ -9,5 +9,7 @@ public interface RefreshTokenPort {
     String validateRefreshToken(RefreshTokenDTO refreshTokenDTO);
 
     void deleteRefreshToken(RefreshTokenDTO refreshTokenDTO);
+
+    Long extendRefreshTokenExpiry(String token);
 }
 

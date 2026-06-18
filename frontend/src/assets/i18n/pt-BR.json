@@ -1085,7 +1085,10 @@
       "draft_saved_redirect": "Rascunho salvo com sucesso. Você será redirecionado para o login.",
       "draft_save_failed": "Não foi possível salvar o rascunho. Seus dados não salvos podem ser perdidos.",
       "expiring_confirm": "Sua sessão está prestes a expirar. Deseja salvar suas alterações como rascunho antes de ser desconectado?",
-      "expired_redirect": "Sua sessão expirou. Você será redirecionado para o login."
+      "expired_redirect": "Sua sessão está prestes a expirar.",
+      "extend": "Estender Sessão",
+      "logout": "Sair",
+      "extended": "Sessão estendida com sucesso."
     },
     "guard": {
       "direct_access_denied": "Acesso direto a esta rota não é permitido."
@@ -1197,6 +1200,7 @@
     "not_found": "Recurso não encontrado.",
     "validation": "Há campos obrigatórios que não foram preenchidos corretamente.",
     "session_expired": "Sessão expirada, faça login novamente.",
+    "session_extension_failed": "Não foi possível estender sua sessão. Você será desconectado.",
     "no_file_data": "Nenhum arquivo selecionado para envio.",
     "http": {
       "400": "A requisição está mal formada ou contém dados inválidos.",

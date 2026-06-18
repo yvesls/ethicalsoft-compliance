@@ -1112,8 +1112,11 @@
     "session": {
       "draft_saved_redirect": "Borrador guardado. Será redirigido al inicio de sesión.",
       "draft_save_failed": "No se pudo guardar el borrador. Los datos no guardados pueden perderse.",
-      "expiring_confirm": "Su sesión está a punto de expirar. ¿Desea guardar sus cambios como borrador antes de ser desconectado?",
-      "expired_redirect": "Su sesión ha expirado. Será redirigido al inicio de sesión."
+      "expiring_confirm": "Su sesión está a punto de expirar.",
+      "expired_redirect": "Su sesión ha expirado. Será redirigido al inicio de sesión.",
+      "extend": "Extender Sesión",
+      "logout": "Cerrar Sesión",
+      "extended": "Sesión extendida exitosamente."
     },
     "guard": {
       "direct_access_denied": "El acceso directo a esta ruta no está permitido."
@@ -1197,6 +1200,7 @@
     "not_found": "Recurso no encontrado.",
     "validation": "Hay campos obligatorios que no se han completado correctamente.",
     "session_expired": "Sesión expirada, vuelva a iniciar sesión.",
+    "session_extension_failed": "No se pudo extender su sesión. Será desconectado.",
     "no_file_data": "Ningún archivo seleccionado para enviar.",
     "http": {
       "400": "La solicitud está mal formada o contiene datos inválidos.",
