@@ -1,649 +1,687 @@
-import { Component, inject, OnInit, OnDestroy, signal, WritableSignal, ChangeDetectorRef, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import {
+	Component,
+	inject,
+	OnInit,
+	OnDestroy,
+	signal,
+	WritableSignal,
+	ChangeDetectorRef,
+	computed,
+	ChangeDetectionStrategy,
+} from '@angular/core'
 
-import { BasePageComponent, RestoreParams } from '../../../../core/abstractions/base-page.component';
-import { LoggerService } from '../../../../core/services/logger.service';
-import { ModalService } from '../../../../core/services/modal.service';
-import { NotificationService } from '../../../../core/services/notification.service';
-import { ActionType } from '../../../../shared/enums/action-type.enum';
-import { QuestionModalComponent, QuestionData } from '../../components/question-modal/question-modal.component';
-import { AccordionPanelComponent } from '../../../../shared/components/accordion-panel/accordion-panel.component';
-import { InputComponent } from '../../../../shared/components/input/input.component';
-import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
-import { Subscription } from 'rxjs';
-import { take } from 'rxjs/operators';
-import { GenericParams, RouteParams } from '../../../../core/services/router.service';
-import { RoleService } from '../../../../core/services/role.service';
-import { QuestionnaireQueryStore } from '../../../../shared/stores/questionnaire-query.store';
-import { QuestionnaireQuestionResponse, QuestionnaireRawResponse } from '../../../../shared/interfaces/questionnaire/questionnaire-query.interface';
-import { Page } from '../../../../shared/interfaces/pageable.interface';
-import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
-import { RoleSummary } from '../../../../shared/interfaces/role/role-summary.interface';
-import { UnlinkedItemsPanelComponent } from '../../../../shared/components/unlinked-items-panel/unlinked-items-panel.component';
-import { InfoExplainerComponent } from '../../../../shared/components/info-explainer/info-explainer.component';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms'
+import { TranslateModule, TranslateService } from '@ngx-translate/core'
+
+import { BasePageComponent, RestoreParams } from '../../../../core/abstractions/base-page.component'
+import { LoggerService } from '../../../../core/services/logger.service'
+import { ModalService } from '../../../../core/services/modal.service'
+import { NotificationService } from '../../../../core/services/notification.service'
+import { ActionType } from '../../../../shared/enums/action-type.enum'
+import { QuestionModalComponent, QuestionData } from '../../components/question-modal/question-modal.component'
+import { AccordionPanelComponent } from '../../../../shared/components/accordion-panel/accordion-panel.component'
+import { InputComponent } from '../../../../shared/components/input/input.component'
+import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component'
+import { Subscription } from 'rxjs'
+import { take } from 'rxjs/operators'
+import { GenericParams, RouteParams } from '../../../../core/services/router.service'
+import { RoleService } from '../../../../core/services/role.service'
+import { QuestionnaireQueryStore } from '../../../../shared/stores/questionnaire-query.store'
+import {
+	QuestionnaireQuestionResponse,
+	QuestionnaireRawResponse,
+} from '../../../../shared/interfaces/questionnaire/questionnaire-query.interface'
+import { Page } from '../../../../shared/interfaces/pageable.interface'
+import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component'
+import { RoleSummary } from '../../../../shared/interfaces/role/role-summary.interface'
+import { UnlinkedItemsPanelComponent } from '../../../../shared/components/unlinked-items-panel/unlinked-items-panel.component'
+import { InfoExplainerComponent } from '../../../../shared/components/info-explainer/info-explainer.component'
 
 interface CascataQuestionnaireRouteParams extends GenericParams {
-  questionnaireIndex?: number;
-  projectId?: string;
-  questionnaireId?: number;
-  mode?: ActionType;
-  stageName?: string;
-  sequence?: number | string;
-  name?: string;
-  applicationStartDate?: string;
-  applicationEndDate?: string;
-  questions?: QuestionData[];
-  representativeRoleIds?: number[];
-  otherQuestionnairesQuestions?: QuestionData[];
-  allProjectStageNames?: string[];
-  returnTo?: string;
-  returnToEdit?: boolean;
-  editProjectId?: string;
+	questionnaireIndex?: number
+	projectId?: string
+	questionnaireId?: number
+	mode?: ActionType
+	stageName?: string
+	sequence?: number | string
+	name?: string
+	applicationStartDate?: string
+	applicationEndDate?: string
+	questions?: QuestionData[]
+	representativeRoleIds?: number[]
+	otherQuestionnairesQuestions?: QuestionData[]
+	allProjectStageNames?: string[]
+	returnTo?: string
+	returnToEdit?: boolean
+	editProjectId?: string
 }
 
-const PENDING_QUESTIONNAIRE_UPDATE_KEY = 'pendingQuestionnaireUpdate';
+const PENDING_QUESTIONNAIRE_UPDATE_KEY = 'pendingQuestionnaireUpdate'
 
-type CascataQuestionnaireRestoreParams = RestoreParams<CascataQuestionnaireRouteParams>;
+type CascataQuestionnaireRestoreParams = RestoreParams<CascataQuestionnaireRouteParams>
 
 @Component({
-  selector: 'app-cascata-questionnaire-form',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, AccordionPanelComponent, InputComponent, SelectComponent, PaginationComponent, TranslateModule, UnlinkedItemsPanelComponent, InfoExplainerComponent],
-  templateUrl: './cascata-questionnaire-form.component.html',
-  styleUrls: ['./cascata-questionnaire-form.component.scss']
+	selector: 'app-cascata-questionnaire-form',
+	standalone: true,
+	imports: [
+		ReactiveFormsModule,
+		FormsModule,
+		AccordionPanelComponent,
+		InputComponent,
+		SelectComponent,
+		PaginationComponent,
+		TranslateModule,
+		UnlinkedItemsPanelComponent,
+		InfoExplainerComponent,
+	],
+	templateUrl: './cascata-questionnaire-form.component.html',
+	changeDetection: ChangeDetectionStrategy.Eager,
+	styleUrls: ['./cascata-questionnaire-form.component.scss'],
 })
-export class CascataQuestionnaireFormComponent extends BasePageComponent<CascataQuestionnaireRouteParams> implements OnInit, OnDestroy {
-  private modalService = inject(ModalService);
-  private fb = inject(FormBuilder);
-  private cdr = inject(ChangeDetectorRef);
-  private notificationService = inject(NotificationService);
-  private readonly translate = inject(TranslateService);
-  private roleService = inject(RoleService);
-  private questionnaireQueryStore = inject(QuestionnaireQueryStore);
-  private questionnaireIndex: number | null = null;
-  private questionnaireMetadata: CascataQuestionnaireRouteParams | null = null;
-  private skipStatePersistence = false;
-  private currentStageName: string | null = null;
-  private returnTo: string | null = null;
-  private allowedRoleIds: number[] = [];
-
-  readonly mode = signal<ActionType>(ActionType.EDIT);
-  readonly isViewMode = signal(false);
-  readonly isLoadingQuestions = signal(false);
-  readonly viewProjectId = signal<string | null>(null);
-  readonly viewQuestionnaireId = signal<number | null>(null);
-  readonly pagination = signal<Page<unknown> | null>(null);
-  readonly currentPage = signal(0);
-  readonly pageSize = signal(10);
-  private roleNameById = new Map<number, string>();
-  private _rolesReady = signal(false);
-  private _otherProjectQuestions: QuestionData[] = [];
-  private _allProjectStageNames: string[] = [];
-
-  form!: FormGroup;
-  questions: WritableSignal<QuestionData[]> = signal([]);
-
-  questionnaireDataAccordionOpen = true;
-  questionsAccordionOpen = true;
-
-  searchTerm = '';
-  selectedRole = '';
-  selectedQuestionIds = signal<Set<string>>(new Set());
-
-  roleFilterOptions: SelectOption[] = [];
-  readonly outOfProjectRoles = computed(() => {
-    this._rolesReady();
-    if (!this.allowedRoleIds.length) return [];
-    const covered = new Set([
-      ...this._otherProjectQuestions.flatMap(q => q.roleIds ?? []),
-      ...this.questions().flatMap(q => q.roleIds ?? []),
-    ]);
-    return this.allowedRoleIds
-      .filter(id => !covered.has(id))
-      .map(id => this.roleNameById.get(id) ?? `ID:${id}`);
-  });
-  readonly outOfProjectStages = computed(() => {
-    if (!this._allProjectStageNames.length) return [];
-    const covered = new Set([
-      ...this._otherProjectQuestions.flatMap(q => q.stageNames ?? []),
-      ...this.questions().flatMap(q => q.stageNames ?? []),
-    ]);
-    return this._allProjectStageNames.filter(s => !covered.has(s));
-  });
-
-  readonly orphanedRolesInQuestions = computed(() => {
-    this._rolesReady();
-    if (!this.allowedRoleIds.length) return [];
-    const validRoleIds = new Set(this.allowedRoleIds);
-    const orphanedNames = new Set<string>();
-    this.questions().forEach(q => {
-      (q.roleIds ?? []).forEach(id => {
-        if (!validRoleIds.has(id)) orphanedNames.add(this.roleNameById.get(id) ?? `ID:${id}`);
-      });
-    });
-    return Array.from(orphanedNames);
-  });
-
-  readonly orphanedStagesInQuestions = computed(() => {
-    if (!this._allProjectStageNames.length) return [];
-    const validStages = new Set(this._allProjectStageNames);
-    const orphanedStages = new Set<string>();
-    this.questions().forEach(q => {
-      (q.stageNames ?? []).forEach(s => {
-        if (!validStages.has(s)) orphanedStages.add(s);
-      });
-    });
-    return Array.from(orphanedStages);
-  });
-
-  readonly invalidQuestionIds = computed(() => {
-    this._rolesReady();
-    const validRoleIds = new Set(this.allowedRoleIds);
-    const validStages = new Set(this._allProjectStageNames);
-    const invalidIds = new Set<string>();
-    this.questions().forEach(q => {
-      const hasOrphanedRole = validRoleIds.size > 0 && (q.roleIds ?? []).some(id => !validRoleIds.has(id));
-      const hasOrphanedStage = validStages.size > 0 && (q.stageNames ?? []).some(s => !validStages.has(s));
-      if ((hasOrphanedRole || hasOrphanedStage) && q.id) invalidIds.add(q.id);
-    });
-    return invalidIds;
-  });
-
-  private questionModalSubscription?: Subscription;
-
-  constructor() {
-    super();
-  }
-
-  protected override onInit(): void {
-    this.initializeForm();
-    this.loadRoleFilterOptions();
-  }
-
-  private initializeForm(): void {
-    this.form = this.fb.group({
-      sequence: [{ value: '', disabled: true }],
-      name: ['', Validators.required],
-      applicationStartDate: [{ value: '', disabled: true }],
-      applicationEndDate: [{ value: '', disabled: true }],
-    });
-  }
-
-  private loadRoleFilterOptions(): void {
-    this.roleService
-      .getRoles()
-      .pipe(take(1))
-      .subscribe({
-        next: (roles) => {
-          const allRoles = roles ?? [];
-          this.roleNameById = new Map(allRoles.map((role: RoleSummary) => [role.id, role.name]));
-          const filtered = this.allowedRoleIds.length
-            ? allRoles.filter(r => this.allowedRoleIds.includes(r.id))
-            : allRoles;
-          this.roleFilterOptions = filtered.map((role) => ({ value: role.name, label: role.name }));
-          this.questions.update((questions) =>
-            questions.map((question) => this.assignStageMetadata({ ...question }))
-          );
-          this._rolesReady.set(true);
-          this.cdr.markForCheck();
-        },
-        error: (error) => {
-          console.error('Falha ao carregar lista de papéis para filtro de questionário', error);
-        }
-      });
-  }
-
-  protected override loadParams(params: RouteParams<CascataQuestionnaireRouteParams>): void {
-    if (!params) return;
-
-    const data = (params.p ?? params) as CascataQuestionnaireRouteParams;
-
-    const resolvedDefaultMode =
-      typeof data.questionnaireId === 'number' ? ActionType.VIEW : ActionType.EDIT;
-    const incomingMode = data.mode ?? resolvedDefaultMode;
-    this.mode.set(incomingMode);
-    this.isViewMode.set(incomingMode === ActionType.VIEW);
-    this.viewProjectId.set(typeof data.projectId === 'string' ? data.projectId : null);
-    this.viewQuestionnaireId.set(typeof data.questionnaireId === 'number' ? data.questionnaireId : null);
-  if (typeof data.returnTo === 'string') {
-      this.returnTo = data.returnTo;
-    } else if (data.returnToEdit && typeof data.editProjectId === 'string') {
-      this.returnTo = `/projects/${data.editProjectId}/edit`;
-    }
-
-    this.questionnaireIndex = typeof data.questionnaireIndex === 'number' ? data.questionnaireIndex : null;
-    this.questionnaireMetadata = data;
-    this.currentStageName = data.stageName ?? data.name ?? null;
-    this.allowedRoleIds = Array.isArray(data.representativeRoleIds) ? data.representativeRoleIds : [];
-    this._otherProjectQuestions = Array.isArray(data.otherQuestionnairesQuestions) ? data.otherQuestionnairesQuestions : [];
-    this._allProjectStageNames = Array.isArray(data.allProjectStageNames) ? data.allProjectStageNames : [];
-
-    if (data.questions && Array.isArray(data.questions)) {
-      this.questions.set(this.annotateQuestionsWithStage(data.questions));
-    }
-
-    this.form.patchValue({
-      sequence: data.sequence,
-      name: data.name,
-      applicationStartDate: data.applicationStartDate,
-      applicationEndDate: data.applicationEndDate
-    });
-
-    if (this.isViewMode()) {
-      this.applyReadOnlyState();
-      this.loadViewData();
-    }
-    this.cdr.detectChanges();
-  }
-
-  private applyReadOnlyState(): void {
-    this.form.disable({ emitEvent: false });
-  }
-
-  private loadViewData(): void {
-    const projectId = this.viewProjectId();
-    const questionnaireId = this.viewQuestionnaireId();
-
-    if (!projectId || questionnaireId === null) {
-      return;
-    }
-
-    this.isLoadingQuestions.set(true);
-    this.questionnaireQueryStore
-      .getQuestionnaireRaw(projectId, questionnaireId)
-      .pipe(take(1))
-      .subscribe({
-        next: (raw: QuestionnaireRawResponse) => {
-          this.form.patchValue(
-            {
-              sequence: raw.id,
-              name: raw.name,
-              applicationStartDate: raw.applicationStartDate,
-              applicationEndDate: raw.applicationEndDate,
-            },
-            { emitEvent: false }
-          );
-          this.cdr.markForCheck();
-        },
-        error: () => {
-          this.notificationService.showError(this.translate.instant('notifications.questionnaire_form.load_data_error'));
-        },
-      });
-
-    this.fetchQuestionsPage(0);
-  }
-
-  private fetchQuestionsPage(page: number): void {
-    const projectId = this.viewProjectId();
-    const questionnaireId = this.viewQuestionnaireId();
-
-    if (!projectId || questionnaireId === null) {
-      this.isLoadingQuestions.set(false);
-      return;
-    }
-
-    this.currentPage.set(page);
-    this.isLoadingQuestions.set(true);
-
-    const questionText = this.searchTerm?.trim() || null;
-    const roleName = this.selectedRole || null;
-
-    this.questionnaireQueryStore
-      .listAllQuestions(projectId, questionnaireId, page, this.pageSize(), questionText, roleName)
-      .pipe(take(1))
-      .subscribe({
-        next: (result) => {
-          this.pagination.set(result as unknown as Page<unknown>);
-          const questions = (result.content ?? []).map((q: QuestionnaireQuestionResponse) => {
-            return this.assignStageMetadata({
-              id: String(q.id),
-              value: q.text,
-              roleIds: q.roleIds ?? [],
-              roleNames: this.mapRoleIdsToNames(q.roleIds ?? []),
-              stageNames: q.stageNames ?? [],
-            } as unknown as QuestionData);
-          });
-          this.questions.set(questions);
-          this.isLoadingQuestions.set(false);
-          this.cdr.markForCheck();
-        },
-        error: () => {
-          this.isLoadingQuestions.set(false);
-          this.notificationService.showError(this.translate.instant('notifications.questionnaire_form.load_questions_error'));
-        },
-      });
-  }
-
-  onPageChange(page: number): void {
-    const targetPage = Math.max(0, page - 1);
-    this.fetchQuestionsPage(targetPage);
-  }
-
-  onFilterChange(): void {
-    if (this.isViewMode()) {
-      this.currentPage.set(0);
-      this.fetchQuestionsPage(0);
-    }
-  }
-
-  getControl(controlName: string) {
-    return this.form.get(controlName);
-  }
-
-  get filteredQuestions(): QuestionData[] {
-    if (this.isViewMode()) {
-      return this.questions();
-    }
-
-    let filtered = this.questions();
-    const term = this.searchTerm.toLowerCase().trim();
-    const role = this.selectedRole;
-
-    if (term) {
-      filtered = filtered.filter(q => q.value.toLowerCase().includes(term));
-    }
-
-    if (role) {
-      filtered = filtered.filter(q => q.roleNames.includes(role));
-    }
-
-    return filtered;
-  }
-
-  getStageLabels(question: QuestionData): string[] {
-    return this.resolveQuestionStageNames(question);
-  }
-
-  toggleQuestionnaireDataAccordion(): void {
-    this.questionnaireDataAccordionOpen = !this.questionnaireDataAccordionOpen;
-  }
-
-  toggleQuestionsAccordion(): void {
-    this.questionsAccordionOpen = !this.questionsAccordionOpen;
-  }
-
-  openAddQuestionModal(): void {
-    if (this.isViewMode()) {
-      return;
-    }
-    this.modalService.open(QuestionModalComponent, 'medium-card', {
-      mode: ActionType.CREATE,
-      allowedRoleIds: this.allowedRoleIds.length ? this.allowedRoleIds : undefined,
-    });
-
-    const modalInstance = this.modalService.getActiveInstance<QuestionModalComponent>();
-    if (modalInstance) {
-      this.questionModalSubscription = modalInstance.questionCreated.subscribe((newQuestion: QuestionData) => {
-        if (!newQuestion.id) newQuestion.id = Date.now().toString();
-        const enriched = this.assignStageMetadata({ ...newQuestion });
-        this.questions.update(qs => [...qs, enriched]);
-        this.cdr.detectChanges();
-      });
-    }
-  }
-
-  openEditQuestionModal(question: QuestionData): void {
-    if (this.isViewMode()) {
-      return;
-    }
-    this.modalService.open(QuestionModalComponent, 'medium-card', {
-      mode: ActionType.EDIT,
-      editData: question,
-      allowedRoleIds: this.allowedRoleIds.length ? this.allowedRoleIds : undefined,
-    });
-
-    const modalInstance = this.modalService.getActiveInstance<QuestionModalComponent>();
-    if (modalInstance) {
-      this.questionModalSubscription = modalInstance.questionUpdated.subscribe((updatedQuestion: QuestionData) => {
-        this.replaceQuestion(updatedQuestion);
-        this.cdr.detectChanges();
-      });
-    }
-  }
-
-  deleteQuestion(question: QuestionData): void {
-    if (this.isViewMode()) {
-        return;
-    }
-    this.notificationService.showConfirm(
-      `Tem certeza que deseja excluir a pergunta: "${question.value}"?`,
-      () => {
-        this.questions.update(qs => qs.filter(q => q.id !== question.id));
-        this.clearSelection();
-        this.cdr.detectChanges();
-      }
-    );
-  }
-
-  toggleQuestionSelection(questionId: string): void {
-    const current = new Set(this.selectedQuestionIds());
-    if (current.has(questionId)) {
-      current.delete(questionId);
-    } else {
-      current.add(questionId);
-    }
-    this.selectedQuestionIds.set(current);
-  }
-
-  isQuestionSelected(questionId: string): boolean {
-    return this.selectedQuestionIds().has(questionId);
-  }
-
-  get isAllSelected(): boolean {
-    const visible = this.filteredQuestions;
-    return visible.length > 0 && visible.every(q => this.selectedQuestionIds().has(q.id!));
-  }
-
-  get hasSelectedQuestions(): boolean {
-    return this.selectedQuestionIds().size > 0;
-  }
-
-  get selectedCount(): number {
-    return this.selectedQuestionIds().size;
-  }
-
-  toggleSelectAll(): void {
-    const visible = this.filteredQuestions;
-    if (this.isAllSelected) {
-      this.selectedQuestionIds.set(new Set());
-    } else {
-      this.selectedQuestionIds.set(new Set(visible.map(q => q.id!)));
-    }
-  }
-
-  deleteSelectedQuestions(): void {
-    if (this.isViewMode()) return;
-    const count = this.selectedCount;
-    this.notificationService.showConfirm(
-      `Tem certeza que deseja excluir ${count} pergunta${count > 1 ? 's' : ''} selecionada${count > 1 ? 's' : ''}?`,
-      () => {
-        const ids = this.selectedQuestionIds();
-        this.questions.update(qs => qs.filter(q => !ids.has(q.id!)));
-        this.clearSelection();
-        this.cdr.detectChanges();
-      }
-    );
-  }
-
-  private clearSelection(): void {
-    this.selectedQuestionIds.set(new Set());
-  }
-
-  onConfirmAndGoBack(): void {
-    if (this.isViewMode()) {
-      this.navigateBack();
-      return;
-    }
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      this.notificationService.showWarning(this.translate.instant('notifications.questionnaire_form.fill_required'));
-      return;
-    }
-
-    if (!this.questions().length) {
-      this.notificationService.showWarning(this.translate.instant('notifications.questionnaire_form.add_question'));
-      return;
-    }
-
-    const hasStageMismatch = this.questions().some((question) => !this.hasStageMetadata(question));
-    if (hasStageMismatch) {
-      this.notificationService.showWarning(this.translate.instant('notifications.questionnaire_form.link_stage'));
-      return;
-    }
-
-    const formData = this.form.getRawValue();
-
-    const finalData = {
-      ...formData,
-      stageName: this.questionnaireMetadata?.stageName || formData.name,
-      questionnaireIndex: this.questionnaireIndex,
-      questions: this.questions()
-    };
-
-    try {
-      sessionStorage.setItem(PENDING_QUESTIONNAIRE_UPDATE_KEY, JSON.stringify(finalData));
-    } catch (error) {
-      LoggerService.error('CascataQuestionnaireForm: Erro ao persistir dados do questionário em sessionStorage', error);
-    }
-
-    this.navigateBack({ questionnaireUpdate: finalData });
-  }
-
-  onCancel(): void {
-    this.navigateBack();
-  }
-
-  private navigateBack(updatedParams?: GenericParams): void {
-    this.skipStatePersistence = true;
-    if (this.returnTo) {
-      this.routerService.navigateTo(this.returnTo);
-      return;
-    }
-
-    this.routerService.backToPrevious(0, true, updatedParams, '/projects');
-  }
-
-  private annotateQuestionsWithStage(questions?: QuestionData[]): QuestionData[] {
-    if (!questions?.length) {
-      return [];
-    }
-
-    return questions.map((question) => this.assignStageMetadata({ ...question }));
-  }
-
-  private assignStageMetadata(question: QuestionData): QuestionData {
-    const stageName = this.getEffectiveStageName();
-    const normalizedStageName = stageName?.trim();
-    question.roleNames = this.mapRoleIdsToNames(question.roleIds, question.roleNames);
-
-    if (normalizedStageName?.length) {
-      question.stageNames = [normalizedStageName];
-      question.stageName = normalizedStageName;
-      question.categoryStageName = normalizedStageName;
-      return question;
-    }
-
-    const stageNames = this.resolveQuestionStageNames(question);
-    question.stageNames = stageNames;
-    question.stageName = stageNames[0] ?? null;
-    question.categoryStageName = stageNames.length === 1 ? stageNames[0] : question.categoryStageName ?? null;
-    return question;
-  }
-
-  private mapRoleIdsToNames(roleIds?: number[] | null, fallbackNames?: string[]): string[] {
-    const ids = Array.isArray(roleIds) ? roleIds : [];
-    if (ids.length && this.roleNameById.size) {
-      const names = ids
-        .map((id) => this.roleNameById.get(Number(id)))
-        .filter((name): name is string => Boolean(name));
-
-      if (names.length) {
-        return Array.from(new Set(names));
-      }
-    }
-
-    return Array.isArray(fallbackNames) ? [...fallbackNames] : [];
-  }
-
-  private getEffectiveStageName(): string | null {
-    if (this.questionnaireMetadata?.stageName) {
-      return this.questionnaireMetadata.stageName;
-    }
-
-    if (this.currentStageName) {
-      return this.currentStageName;
-    }
-
-    const nameControlValue = this.form.get('name')?.value;
-    return typeof nameControlValue === 'string' ? nameControlValue : null;
-  }
-
-  private resolveQuestionStageNames(question: QuestionData | undefined): string[] {
-    if (!question) {
-      return [];
-    }
-
-    const normalized = Array.isArray(question.stageNames)
-      ? question.stageNames
-          .map((stage) => (typeof stage === 'string' ? stage.trim() : ''))
-          .filter((stage) => stage.length > 0)
-      : [];
-
-    if (normalized.length) {
-      return Array.from(new Set(normalized));
-    }
-
-    if (typeof question.stageName === 'string' && question.stageName.trim().length) {
-      return [question.stageName.trim()];
-    }
-
-    const fallbackStage = this.getEffectiveStageName();
-    return fallbackStage ? [fallbackStage.trim()] : [];
-  }
-
-  private hasStageMetadata(question: QuestionData | undefined): boolean {
-    return this.resolveQuestionStageNames(question).length > 0;
-  }
-
-  protected override save(): RouteParams<CascataQuestionnaireRouteParams> {
-    return {
-      formValue: this.form.getRawValue(),
-      questions: this.questions()
-    } satisfies CascataQuestionnaireRouteParams;
-  }
-
-  protected override restore(restoreParameter: CascataQuestionnaireRestoreParams): void {
-    if (!restoreParameter?.hasParams) {
-      return;
-    }
-
-    const formValue = restoreParameter['formValue'];
-    if (formValue) {
-      this.form.patchValue(formValue);
-      const castFormValue = formValue as { stageName?: string; name?: string };
-      const restoredName = castFormValue.stageName ?? castFormValue.name;
-      if (typeof restoredName === 'string') {
-        this.currentStageName = restoredName;
-      }
-    }
-
-    const savedQuestions = (restoreParameter['questions'] ?? restoreParameter.p?.['questions']) as QuestionData[] | undefined;
-    if (savedQuestions) {
-      this.questions.set(this.annotateQuestionsWithStage(savedQuestions));
-    }
-  }
-
-  private replaceQuestion(updatedQuestion: QuestionData): void {
-    const annotated = this.assignStageMetadata({ ...updatedQuestion });
-    this.questions.update((qs) => qs.map((q) => (q.id === annotated.id ? annotated : q)));
-  }
-
-  override ngOnDestroy(): void {
-    if (!this.skipStatePersistence) {
-      super.ngOnDestroy();
-    }
-    this.questionModalSubscription?.unsubscribe();
-  }
+export class CascataQuestionnaireFormComponent
+	extends BasePageComponent<CascataQuestionnaireRouteParams>
+	implements OnInit, OnDestroy
+{
+	private modalService = inject(ModalService)
+	private fb = inject(FormBuilder)
+	private cdr = inject(ChangeDetectorRef)
+	private notificationService = inject(NotificationService)
+	private readonly translate = inject(TranslateService)
+	private roleService = inject(RoleService)
+	private questionnaireQueryStore = inject(QuestionnaireQueryStore)
+	private questionnaireIndex: number | null = null
+	private questionnaireMetadata: CascataQuestionnaireRouteParams | null = null
+	private skipStatePersistence = false
+	private currentStageName: string | null = null
+	private returnTo: string | null = null
+	private allowedRoleIds: number[] = []
+
+	readonly mode = signal<ActionType>(ActionType.EDIT)
+	readonly isViewMode = signal(false)
+	readonly isLoadingQuestions = signal(false)
+	readonly viewProjectId = signal<string | null>(null)
+	readonly viewQuestionnaireId = signal<number | null>(null)
+	readonly pagination = signal<Page<unknown> | null>(null)
+	readonly currentPage = signal(0)
+	readonly pageSize = signal(10)
+	private roleNameById = new Map<number, string>()
+	private _rolesReady = signal(false)
+	private _otherProjectQuestions: QuestionData[] = []
+	private _allProjectStageNames: string[] = []
+
+	form!: FormGroup
+	questions: WritableSignal<QuestionData[]> = signal([])
+
+	questionnaireDataAccordionOpen = true
+	questionsAccordionOpen = true
+
+	searchTerm = ''
+	selectedRole = ''
+	selectedQuestionIds = signal<Set<string>>(new Set())
+
+	roleFilterOptions: SelectOption[] = []
+	readonly outOfProjectRoles = computed(() => {
+		this._rolesReady()
+		if (!this.allowedRoleIds.length) return []
+		const covered = new Set([
+			...this._otherProjectQuestions.flatMap((q) => q.roleIds ?? []),
+			...this.questions().flatMap((q) => q.roleIds ?? []),
+		])
+		return this.allowedRoleIds.filter((id) => !covered.has(id)).map((id) => this.roleNameById.get(id) ?? `ID:${id}`)
+	})
+	readonly outOfProjectStages = computed(() => {
+		if (!this._allProjectStageNames.length) return []
+		const covered = new Set([
+			...this._otherProjectQuestions.flatMap((q) => q.stageNames ?? []),
+			...this.questions().flatMap((q) => q.stageNames ?? []),
+		])
+		return this._allProjectStageNames.filter((s) => !covered.has(s))
+	})
+
+	readonly orphanedRolesInQuestions = computed(() => {
+		this._rolesReady()
+		if (!this.allowedRoleIds.length) return []
+		const validRoleIds = new Set(this.allowedRoleIds)
+		const orphanedNames = new Set<string>()
+		this.questions().forEach((q) => {
+			;(q.roleIds ?? []).forEach((id) => {
+				if (!validRoleIds.has(id)) orphanedNames.add(this.roleNameById.get(id) ?? `ID:${id}`)
+			})
+		})
+		return Array.from(orphanedNames)
+	})
+
+	readonly orphanedStagesInQuestions = computed(() => {
+		if (!this._allProjectStageNames.length) return []
+		const validStages = new Set(this._allProjectStageNames)
+		const orphanedStages = new Set<string>()
+		this.questions().forEach((q) => {
+			;(q.stageNames ?? []).forEach((s) => {
+				if (!validStages.has(s)) orphanedStages.add(s)
+			})
+		})
+		return Array.from(orphanedStages)
+	})
+
+	readonly invalidQuestionIds = computed(() => {
+		this._rolesReady()
+		const validRoleIds = new Set(this.allowedRoleIds)
+		const validStages = new Set(this._allProjectStageNames)
+		const invalidIds = new Set<string>()
+		this.questions().forEach((q) => {
+			const hasOrphanedRole = validRoleIds.size > 0 && (q.roleIds ?? []).some((id) => !validRoleIds.has(id))
+			const hasOrphanedStage = validStages.size > 0 && (q.stageNames ?? []).some((s) => !validStages.has(s))
+			if ((hasOrphanedRole || hasOrphanedStage) && q.id) invalidIds.add(q.id)
+		})
+		return invalidIds
+	})
+
+	private questionModalSubscription?: Subscription
+
+	constructor() {
+		super()
+	}
+
+	protected override onInit(): void {
+		this.initializeForm()
+		this.loadRoleFilterOptions()
+	}
+
+	private initializeForm(): void {
+		this.form = this.fb.group({
+			sequence: [{ value: '', disabled: true }],
+			name: ['', Validators.required],
+			applicationStartDate: [{ value: '', disabled: true }],
+			applicationEndDate: [{ value: '', disabled: true }],
+		})
+	}
+
+	private loadRoleFilterOptions(): void {
+		this.roleService
+			.getRoles()
+			.pipe(take(1))
+			.subscribe({
+				next: (roles) => {
+					const allRoles = roles ?? []
+					this.roleNameById = new Map(allRoles.map((role: RoleSummary) => [role.id, role.name]))
+					const filtered = this.allowedRoleIds.length
+						? allRoles.filter((r) => this.allowedRoleIds.includes(r.id))
+						: allRoles
+					this.roleFilterOptions = filtered.map((role) => ({ value: role.name, label: role.name }))
+					this.questions.update((questions) =>
+						questions.map((question) => this.assignStageMetadata({ ...question }))
+					)
+					this._rolesReady.set(true)
+					this.cdr.markForCheck()
+				},
+				error: (error) => {
+					console.error('Falha ao carregar lista de papéis para filtro de questionário', error)
+				},
+			})
+	}
+
+	protected override loadParams(params: RouteParams<CascataQuestionnaireRouteParams>): void {
+		if (!params) return
+
+		const data = (params.p ?? params) as CascataQuestionnaireRouteParams
+
+		const resolvedDefaultMode = typeof data.questionnaireId === 'number' ? ActionType.VIEW : ActionType.EDIT
+		const incomingMode = data.mode ?? resolvedDefaultMode
+		this.mode.set(incomingMode)
+		this.isViewMode.set(incomingMode === ActionType.VIEW)
+		this.viewProjectId.set(typeof data.projectId === 'string' ? data.projectId : null)
+		this.viewQuestionnaireId.set(typeof data.questionnaireId === 'number' ? data.questionnaireId : null)
+		if (typeof data.returnTo === 'string') {
+			this.returnTo = data.returnTo
+		} else if (data.returnToEdit && typeof data.editProjectId === 'string') {
+			this.returnTo = `/projects/${data.editProjectId}/edit`
+		}
+
+		this.questionnaireIndex = typeof data.questionnaireIndex === 'number' ? data.questionnaireIndex : null
+		this.questionnaireMetadata = data
+		this.currentStageName = data.stageName ?? data.name ?? null
+		this.allowedRoleIds = Array.isArray(data.representativeRoleIds) ? data.representativeRoleIds : []
+		this._otherProjectQuestions = Array.isArray(data.otherQuestionnairesQuestions)
+			? data.otherQuestionnairesQuestions
+			: []
+		this._allProjectStageNames = Array.isArray(data.allProjectStageNames) ? data.allProjectStageNames : []
+
+		if (data.questions && Array.isArray(data.questions)) {
+			this.questions.set(this.annotateQuestionsWithStage(data.questions))
+		}
+
+		this.form.patchValue({
+			sequence: data.sequence,
+			name: data.name,
+			applicationStartDate: data.applicationStartDate,
+			applicationEndDate: data.applicationEndDate,
+		})
+
+		if (this.isViewMode()) {
+			this.applyReadOnlyState()
+			this.loadViewData()
+		}
+		this.cdr.detectChanges()
+	}
+
+	private applyReadOnlyState(): void {
+		this.form.disable({ emitEvent: false })
+	}
+
+	private loadViewData(): void {
+		const projectId = this.viewProjectId()
+		const questionnaireId = this.viewQuestionnaireId()
+
+		if (!projectId || questionnaireId === null) {
+			return
+		}
+
+		this.isLoadingQuestions.set(true)
+		this.questionnaireQueryStore
+			.getQuestionnaireRaw(projectId, questionnaireId)
+			.pipe(take(1))
+			.subscribe({
+				next: (raw: QuestionnaireRawResponse) => {
+					this.form.patchValue(
+						{
+							sequence: raw.id,
+							name: raw.name,
+							applicationStartDate: raw.applicationStartDate,
+							applicationEndDate: raw.applicationEndDate,
+						},
+						{ emitEvent: false }
+					)
+					this.cdr.markForCheck()
+				},
+				error: () => {
+					this.notificationService.showError(
+						this.translate.instant('notifications.questionnaire_form.load_data_error')
+					)
+				},
+			})
+
+		this.fetchQuestionsPage(0)
+	}
+
+	private fetchQuestionsPage(page: number): void {
+		const projectId = this.viewProjectId()
+		const questionnaireId = this.viewQuestionnaireId()
+
+		if (!projectId || questionnaireId === null) {
+			this.isLoadingQuestions.set(false)
+			return
+		}
+
+		this.currentPage.set(page)
+		this.isLoadingQuestions.set(true)
+
+		const questionText = this.searchTerm?.trim() || null
+		const roleName = this.selectedRole || null
+
+		this.questionnaireQueryStore
+			.listAllQuestions(projectId, questionnaireId, page, this.pageSize(), questionText, roleName)
+			.pipe(take(1))
+			.subscribe({
+				next: (result) => {
+					this.pagination.set(result as unknown as Page<unknown>)
+					const questions = (result.content ?? []).map((q: QuestionnaireQuestionResponse) => {
+						return this.assignStageMetadata({
+							id: String(q.id),
+							value: q.text,
+							roleIds: q.roleIds ?? [],
+							roleNames: this.mapRoleIdsToNames(q.roleIds ?? []),
+							stageNames: q.stageNames ?? [],
+						} as unknown as QuestionData)
+					})
+					this.questions.set(questions)
+					this.isLoadingQuestions.set(false)
+					this.cdr.markForCheck()
+				},
+				error: () => {
+					this.isLoadingQuestions.set(false)
+					this.notificationService.showError(
+						this.translate.instant('notifications.questionnaire_form.load_questions_error')
+					)
+				},
+			})
+	}
+
+	onPageChange(page: number): void {
+		const targetPage = Math.max(0, page - 1)
+		this.fetchQuestionsPage(targetPage)
+	}
+
+	onFilterChange(): void {
+		if (this.isViewMode()) {
+			this.currentPage.set(0)
+			this.fetchQuestionsPage(0)
+		}
+	}
+
+	getControl(controlName: string) {
+		return this.form.get(controlName)
+	}
+
+	get filteredQuestions(): QuestionData[] {
+		if (this.isViewMode()) {
+			return this.questions()
+		}
+
+		let filtered = this.questions()
+		const term = this.searchTerm.toLowerCase().trim()
+		const role = this.selectedRole
+
+		if (term) {
+			filtered = filtered.filter((q) => q.value.toLowerCase().includes(term))
+		}
+
+		if (role) {
+			filtered = filtered.filter((q) => q.roleNames.includes(role))
+		}
+
+		return filtered
+	}
+
+	getStageLabels(question: QuestionData): string[] {
+		return this.resolveQuestionStageNames(question)
+	}
+
+	toggleQuestionnaireDataAccordion(): void {
+		this.questionnaireDataAccordionOpen = !this.questionnaireDataAccordionOpen
+	}
+
+	toggleQuestionsAccordion(): void {
+		this.questionsAccordionOpen = !this.questionsAccordionOpen
+	}
+
+	openAddQuestionModal(): void {
+		if (this.isViewMode()) {
+			return
+		}
+		this.modalService.open(QuestionModalComponent, 'medium-card', {
+			mode: ActionType.CREATE,
+			allowedRoleIds: this.allowedRoleIds.length ? this.allowedRoleIds : undefined,
+		})
+
+		const modalInstance = this.modalService.getActiveInstance<QuestionModalComponent>()
+		if (modalInstance) {
+			this.questionModalSubscription = modalInstance.questionCreated.subscribe((newQuestion: QuestionData) => {
+				if (!newQuestion.id) newQuestion.id = Date.now().toString()
+				const enriched = this.assignStageMetadata({ ...newQuestion })
+				this.questions.update((qs) => [...qs, enriched])
+				this.cdr.detectChanges()
+			})
+		}
+	}
+
+	openEditQuestionModal(question: QuestionData): void {
+		if (this.isViewMode()) {
+			return
+		}
+		this.modalService.open(QuestionModalComponent, 'medium-card', {
+			mode: ActionType.EDIT,
+			editData: question,
+			allowedRoleIds: this.allowedRoleIds.length ? this.allowedRoleIds : undefined,
+		})
+
+		const modalInstance = this.modalService.getActiveInstance<QuestionModalComponent>()
+		if (modalInstance) {
+			this.questionModalSubscription = modalInstance.questionUpdated.subscribe(
+				(updatedQuestion: QuestionData) => {
+					this.replaceQuestion(updatedQuestion)
+					this.cdr.detectChanges()
+				}
+			)
+		}
+	}
+
+	deleteQuestion(question: QuestionData): void {
+		if (this.isViewMode()) {
+			return
+		}
+		this.notificationService.showConfirm(`Tem certeza que deseja excluir a pergunta: "${question.value}"?`, () => {
+			this.questions.update((qs) => qs.filter((q) => q.id !== question.id))
+			this.clearSelection()
+			this.cdr.detectChanges()
+		})
+	}
+
+	toggleQuestionSelection(questionId: string): void {
+		const current = new Set(this.selectedQuestionIds())
+		if (current.has(questionId)) {
+			current.delete(questionId)
+		} else {
+			current.add(questionId)
+		}
+		this.selectedQuestionIds.set(current)
+	}
+
+	isQuestionSelected(questionId: string): boolean {
+		return this.selectedQuestionIds().has(questionId)
+	}
+
+	get isAllSelected(): boolean {
+		const visible = this.filteredQuestions
+		return visible.length > 0 && visible.every((q) => this.selectedQuestionIds().has(q.id!))
+	}
+
+	get hasSelectedQuestions(): boolean {
+		return this.selectedQuestionIds().size > 0
+	}
+
+	get selectedCount(): number {
+		return this.selectedQuestionIds().size
+	}
+
+	toggleSelectAll(): void {
+		const visible = this.filteredQuestions
+		if (this.isAllSelected) {
+			this.selectedQuestionIds.set(new Set())
+		} else {
+			this.selectedQuestionIds.set(new Set(visible.map((q) => q.id!)))
+		}
+	}
+
+	deleteSelectedQuestions(): void {
+		if (this.isViewMode()) return
+		const count = this.selectedCount
+		this.notificationService.showConfirm(
+			`Tem certeza que deseja excluir ${count} pergunta${count > 1 ? 's' : ''} selecionada${count > 1 ? 's' : ''}?`,
+			() => {
+				const ids = this.selectedQuestionIds()
+				this.questions.update((qs) => qs.filter((q) => !ids.has(q.id!)))
+				this.clearSelection()
+				this.cdr.detectChanges()
+			}
+		)
+	}
+
+	private clearSelection(): void {
+		this.selectedQuestionIds.set(new Set())
+	}
+
+	onConfirmAndGoBack(): void {
+		if (this.isViewMode()) {
+			this.navigateBack()
+			return
+		}
+		if (this.form.invalid) {
+			this.form.markAllAsTouched()
+			this.notificationService.showWarning(
+				this.translate.instant('notifications.questionnaire_form.fill_required')
+			)
+			return
+		}
+
+		if (!this.questions().length) {
+			this.notificationService.showWarning(
+				this.translate.instant('notifications.questionnaire_form.add_question')
+			)
+			return
+		}
+
+		const hasStageMismatch = this.questions().some((question) => !this.hasStageMetadata(question))
+		if (hasStageMismatch) {
+			this.notificationService.showWarning(this.translate.instant('notifications.questionnaire_form.link_stage'))
+			return
+		}
+
+		const formData = this.form.getRawValue()
+
+		const finalData = {
+			...formData,
+			stageName: this.questionnaireMetadata?.stageName || formData.name,
+			questionnaireIndex: this.questionnaireIndex,
+			questions: this.questions(),
+		}
+
+		try {
+			sessionStorage.setItem(PENDING_QUESTIONNAIRE_UPDATE_KEY, JSON.stringify(finalData))
+		} catch (error) {
+			LoggerService.error(
+				'CascataQuestionnaireForm: Erro ao persistir dados do questionário em sessionStorage',
+				error
+			)
+		}
+
+		this.navigateBack({ questionnaireUpdate: finalData })
+	}
+
+	onCancel(): void {
+		this.navigateBack()
+	}
+
+	private navigateBack(updatedParams?: GenericParams): void {
+		this.skipStatePersistence = true
+		if (this.returnTo) {
+			this.routerService.navigateTo(this.returnTo)
+			return
+		}
+
+		this.routerService.backToPrevious(0, true, updatedParams, '/projects')
+	}
+
+	private annotateQuestionsWithStage(questions?: QuestionData[]): QuestionData[] {
+		if (!questions?.length) {
+			return []
+		}
+
+		return questions.map((question) => this.assignStageMetadata({ ...question }))
+	}
+
+	private assignStageMetadata(question: QuestionData): QuestionData {
+		const stageName = this.getEffectiveStageName()
+		const normalizedStageName = stageName?.trim()
+		question.roleNames = this.mapRoleIdsToNames(question.roleIds, question.roleNames)
+
+		if (normalizedStageName?.length) {
+			question.stageNames = [normalizedStageName]
+			question.stageName = normalizedStageName
+			question.categoryStageName = normalizedStageName
+			return question
+		}
+
+		const stageNames = this.resolveQuestionStageNames(question)
+		question.stageNames = stageNames
+		question.stageName = stageNames[0] ?? null
+		question.categoryStageName = stageNames.length === 1 ? stageNames[0] : (question.categoryStageName ?? null)
+		return question
+	}
+
+	private mapRoleIdsToNames(roleIds?: number[] | null, fallbackNames?: string[]): string[] {
+		const ids = Array.isArray(roleIds) ? roleIds : []
+		if (ids.length && this.roleNameById.size) {
+			const names = ids
+				.map((id) => this.roleNameById.get(Number(id)))
+				.filter((name): name is string => Boolean(name))
+
+			if (names.length) {
+				return Array.from(new Set(names))
+			}
+		}
+
+		return Array.isArray(fallbackNames) ? [...fallbackNames] : []
+	}
+
+	private getEffectiveStageName(): string | null {
+		if (this.questionnaireMetadata?.stageName) {
+			return this.questionnaireMetadata.stageName
+		}
+
+		if (this.currentStageName) {
+			return this.currentStageName
+		}
+
+		const nameControlValue = this.form.get('name')?.value
+		return typeof nameControlValue === 'string' ? nameControlValue : null
+	}
+
+	private resolveQuestionStageNames(question: QuestionData | undefined): string[] {
+		if (!question) {
+			return []
+		}
+
+		const normalized = Array.isArray(question.stageNames)
+			? question.stageNames
+					.map((stage) => (typeof stage === 'string' ? stage.trim() : ''))
+					.filter((stage) => stage.length > 0)
+			: []
+
+		if (normalized.length) {
+			return Array.from(new Set(normalized))
+		}
+
+		if (typeof question.stageName === 'string' && question.stageName.trim().length) {
+			return [question.stageName.trim()]
+		}
+
+		const fallbackStage = this.getEffectiveStageName()
+		return fallbackStage ? [fallbackStage.trim()] : []
+	}
+
+	private hasStageMetadata(question: QuestionData | undefined): boolean {
+		return this.resolveQuestionStageNames(question).length > 0
+	}
+
+	protected override save(): RouteParams<CascataQuestionnaireRouteParams> {
+		return {
+			formValue: this.form.getRawValue(),
+			questions: this.questions(),
+		} satisfies CascataQuestionnaireRouteParams
+	}
+
+	protected override restore(restoreParameter: CascataQuestionnaireRestoreParams): void {
+		if (!restoreParameter?.hasParams) {
+			return
+		}
+
+		const formValue = restoreParameter['formValue']
+		if (formValue) {
+			this.form.patchValue(formValue)
+			const castFormValue = formValue as { stageName?: string; name?: string }
+			const restoredName = castFormValue.stageName ?? castFormValue.name
+			if (typeof restoredName === 'string') {
+				this.currentStageName = restoredName
+			}
+		}
+
+		const savedQuestions = (restoreParameter['questions'] ?? restoreParameter.p?.['questions']) as
+			| QuestionData[]
+			| undefined
+		if (savedQuestions) {
+			this.questions.set(this.annotateQuestionsWithStage(savedQuestions))
+		}
+	}
+
+	private replaceQuestion(updatedQuestion: QuestionData): void {
+		const annotated = this.assignStageMetadata({ ...updatedQuestion })
+		this.questions.update((qs) => qs.map((q) => (q.id === annotated.id ? annotated : q)))
+	}
+
+	override ngOnDestroy(): void {
+		if (!this.skipStatePersistence) {
+			super.ngOnDestroy()
+		}
+		this.questionModalSubscription?.unsubscribe()
+	}
 }

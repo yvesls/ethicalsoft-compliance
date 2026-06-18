@@ -1,5 +1,4 @@
-import { CommonModule } from '@angular/common'
-import { AfterViewInit, Component, ElementRef, inject, ViewChild } from '@angular/core'
+import { AfterViewInit, Component, ElementRef, inject, ViewChild, ChangeDetectionStrategy } from '@angular/core'
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms'
 import { BasePageComponent, RestoreParams } from '../../../core/abstractions/base-page.component'
 import { RouteParams } from '../../../core/services/router.service'
@@ -22,8 +21,9 @@ interface LoginRouteParams extends Record<string, unknown> {
 @Component({
 	selector: 'app-login',
 	standalone: true,
-	imports: [CommonModule, ReactiveFormsModule, InputComponent, TranslateModule],
+	imports: [ReactiveFormsModule, InputComponent, TranslateModule],
 	templateUrl: './login.component.html',
+	changeDetection: ChangeDetectionStrategy.Eager,
 	styleUrls: ['./login.component.scss'],
 })
 export class LoginComponent extends BasePageComponent<LoginRouteParams> implements AfterViewInit {
@@ -40,7 +40,7 @@ export class LoginComponent extends BasePageComponent<LoginRouteParams> implemen
 	}
 
 	ngAfterViewInit(): void {
-		this.googleCredentialSub = this.googleAuthService.credential$.subscribe(idToken => {
+		this.googleCredentialSub = this.googleAuthService.credential$.subscribe((idToken) => {
 			const keepSession = this.form.get('keepSession')?.value ?? false
 			this.authService.googleLogin(idToken, keepSession)
 		})

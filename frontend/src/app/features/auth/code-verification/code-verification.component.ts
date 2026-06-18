@@ -1,13 +1,5 @@
-import { CommonModule } from '@angular/common'
-import { Component, ElementRef, QueryList, ViewChildren, inject } from '@angular/core'
-import {
-	FormArray,
-	FormBuilder,
-	FormControl,
-	FormGroup,
-	ReactiveFormsModule,
-	Validators,
-} from '@angular/forms'
+import { Component, ElementRef, QueryList, ViewChildren, inject, ChangeDetectionStrategy } from '@angular/core'
+import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms'
 import { Params } from '@angular/router'
 import { BasePageComponent, RestoreParams } from '../../../core/abstractions/base-page.component'
 import { NotificationService } from '../../../core/services/notification.service'
@@ -27,8 +19,9 @@ interface CodeVerificationParams extends Record<string, unknown> {
 
 @Component({
 	selector: 'app-code-verification',
-	imports: [CommonModule, ReactiveFormsModule, TranslateModule],
+	imports: [ReactiveFormsModule, TranslateModule],
 	templateUrl: './code-verification.component.html',
+	changeDetection: ChangeDetectionStrategy.Eager,
 	styleUrls: ['./code-verification.component.scss'],
 })
 export class CodeVerificationComponent extends BasePageComponent<CodeVerificationParams> {

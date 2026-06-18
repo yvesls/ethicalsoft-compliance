@@ -1,229 +1,217 @@
 import {
-  Component,
-  Input,
-  forwardRef,
-  ViewChild,
-  ElementRef,
-  HostListener,
-  OnInit,
-  inject,
-  signal,
-} from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import {
-  ControlValueAccessor,
-  NG_VALUE_ACCESSOR,
-  AbstractControl,
-} from '@angular/forms';
-import { noop } from 'rxjs';
+	Component,
+	Input,
+	forwardRef,
+	ViewChild,
+	ElementRef,
+	HostListener,
+	OnInit,
+	inject,
+	signal,
+	ChangeDetectionStrategy,
+} from '@angular/core'
 
-type MultiSelectValue = string | number;
+import { TranslateModule, TranslateService } from '@ngx-translate/core'
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, AbstractControl } from '@angular/forms'
+import { noop } from 'rxjs'
+
+type MultiSelectValue = string | number
 
 export interface MultiSelectOption {
-  value: MultiSelectValue;
-  label: string;
+	value: MultiSelectValue
+	label: string
 }
 
 @Component({
-  selector: 'app-multi-select',
-  standalone: true,
-  imports: [CommonModule, TranslateModule],
-  templateUrl: './multi-select.component.html',
-  styleUrls: ['./multi-select.component.scss'],
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => MultiSelectComponent),
-      multi: true,
-    },
-  ],
+	selector: 'app-multi-select',
+	standalone: true,
+	imports: [TranslateModule],
+	templateUrl: './multi-select.component.html',
+	styleUrls: ['./multi-select.component.scss'],
+	changeDetection: ChangeDetectionStrategy.Eager,
+	providers: [
+		{
+			provide: NG_VALUE_ACCESSOR,
+			useExisting: forwardRef(() => MultiSelectComponent),
+			multi: true,
+		},
+	],
 })
 export class MultiSelectComponent implements ControlValueAccessor, OnInit {
-  @Input() label = '';
-  @Input() id = '';
-  @Input() placeholder = 'common.select';
-  private readonly translate = inject(TranslateService);
-  @Input() required = false;
-  @Input() labelClasses = '';
-  @Input() validationMessages: Record<string, string> = {};
-  @Input() control!: AbstractControl | null;
-  @Input() options: MultiSelectOption[] = [];
-  @Input() maxSelectedItems?: number;
-  @Input() itemsNotRemovable: MultiSelectValue[] = [];
+	@Input() label = ''
+	@Input() id = ''
+	@Input() placeholder = 'common.select'
+	private readonly translate = inject(TranslateService)
+	@Input() required = false
+	@Input() labelClasses = ''
+	@Input() validationMessages: Record<string, string> = {}
+	@Input() control!: AbstractControl | null
+	@Input() options: MultiSelectOption[] = []
+	@Input() maxSelectedItems?: number
+	@Input() itemsNotRemovable: MultiSelectValue[] = []
 
-  @ViewChild('dropdown') dropdownRef!: ElementRef<HTMLDivElement>;
-  @ViewChild('selectContainer') selectContainerRef!: ElementRef<HTMLDivElement>;
+	@ViewChild('dropdown') dropdownRef!: ElementRef<HTMLDivElement>
+	@ViewChild('selectContainer') selectContainerRef!: ElementRef<HTMLDivElement>
 
-  isOpen = signal(false);
-  searchTerm = signal('');
-  selectedValues: MultiSelectValue[] = [];
-  disabled = false;
-  touched = false;
+	isOpen = signal(false)
+	searchTerm = signal('')
+	selectedValues: MultiSelectValue[] = []
+	disabled = false
+	touched = false
 
-  private onChange: (value: MultiSelectValue[]) => void = () => { noop() };
-  private onTouched: () => void = () => { noop() };
+	private onChange: (value: MultiSelectValue[]) => void = () => {
+		noop()
+	}
+	private onTouched: () => void = () => {
+		noop()
+	}
 
-  ngOnInit(): void {
-    if (!this.id) {
-      this.id = this.label.toLowerCase().replaceAll(/\s/g, '-');
-    }
-  }
+	ngOnInit(): void {
+		if (!this.id) {
+			this.id = this.label.toLowerCase().replaceAll(/\s/g, '-')
+		}
+	}
 
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent): void {
-    const target = event.target as Node | null;
-    if (
-      this.selectContainerRef &&
-      target &&
-      !this.selectContainerRef.nativeElement.contains(target)
-    ) {
-      this.closeDropdown();
-    }
-  }
+	@HostListener('document:click', ['$event'])
+	onDocumentClick(event: MouseEvent): void {
+		const target = event.target as Node | null
+		if (this.selectContainerRef && target && !this.selectContainerRef.nativeElement.contains(target)) {
+			this.closeDropdown()
+		}
+	}
 
-  writeValue(value: MultiSelectValue[] | null): void {
-    this.selectedValues = value ?? [];
-  }
+	writeValue(value: MultiSelectValue[] | null): void {
+		this.selectedValues = value ?? []
+	}
 
-  registerOnChange(fn: (value: MultiSelectValue[]) => void): void {
-    this.onChange = fn;
-  }
+	registerOnChange(fn: (value: MultiSelectValue[]) => void): void {
+		this.onChange = fn
+	}
 
-  registerOnTouched(fn: () => void): void {
-    this.onTouched = fn;
-  }
+	registerOnTouched(fn: () => void): void {
+		this.onTouched = fn
+	}
 
-  setDisabledState(isDisabled: boolean): void {
-    this.disabled = isDisabled;
-  }
+	setDisabledState(isDisabled: boolean): void {
+		this.disabled = isDisabled
+	}
 
-  toggleDropdown(): void {
-    if (this.disabled) return;
+	toggleDropdown(): void {
+		if (this.disabled) return
 
-    this.isOpen.set(!this.isOpen());
+		this.isOpen.set(!this.isOpen())
 
-    if (!this.touched) {
-      this.touched = true;
-      this.onTouched();
-    }
-  }
+		if (!this.touched) {
+			this.touched = true
+			this.onTouched()
+		}
+	}
 
-  closeDropdown(): void {
-    this.isOpen.set(false);
-    this.searchTerm.set('');
-  }
+	closeDropdown(): void {
+		this.isOpen.set(false)
+		this.searchTerm.set('')
+	}
 
-  onSearchInput(event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
-    this.searchTerm.set(value);
-  }
+	onSearchInput(event: Event): void {
+		const value = (event.target as HTMLInputElement).value
+		this.searchTerm.set(value)
+	}
 
-  get filteredOptions(): MultiSelectOption[] {
-    const search = this.searchTerm().toLowerCase();
-    if (!search) {
-      return this.options;
-    }
-    return this.options.filter((option) =>
-      option.label.toLowerCase().includes(search)
-    );
-  }
+	get filteredOptions(): MultiSelectOption[] {
+		const search = this.searchTerm().toLowerCase()
+		if (!search) {
+			return this.options
+		}
+		return this.options.filter((option) => option.label.toLowerCase().includes(search))
+	}
 
-  isSelected(value: MultiSelectValue): boolean {
-    return this.selectedValues.includes(value);
-  }
+	isSelected(value: MultiSelectValue): boolean {
+		return this.selectedValues.includes(value)
+	}
 
-  isRemovable(value: MultiSelectValue): boolean {
-    return !this.itemsNotRemovable.includes(value);
-  }
+	isRemovable(value: MultiSelectValue): boolean {
+		return !this.itemsNotRemovable.includes(value)
+	}
 
-  toggleOption(option: MultiSelectOption): void {
-    const index = this.selectedValues.indexOf(option.value);
+	toggleOption(option: MultiSelectOption): void {
+		const index = this.selectedValues.indexOf(option.value)
 
-    if (index > -1) {
-      if (this.isRemovable(option.value)) {
-        this.selectedValues = this.selectedValues.filter(
-          (v) => v !== option.value
-        );
-      }
-    } else if (
-      !this.maxSelectedItems ||
-      this.selectedValues.length < this.maxSelectedItems
-    ) {
-      this.selectedValues = [...this.selectedValues, option.value];
-    }
+		if (index > -1) {
+			if (this.isRemovable(option.value)) {
+				this.selectedValues = this.selectedValues.filter((v) => v !== option.value)
+			}
+		} else if (!this.maxSelectedItems || this.selectedValues.length < this.maxSelectedItems) {
+			this.selectedValues = [...this.selectedValues, option.value]
+		}
 
-    this.onChange(this.selectedValues);
-  }
+		this.onChange(this.selectedValues)
+	}
 
-  removeSelectedItem(value: MultiSelectValue, event: Event): void {
-    event.stopPropagation();
+	removeSelectedItem(value: MultiSelectValue, event: Event): void {
+		event.stopPropagation()
 
-    if (!this.isRemovable(value) || this.disabled) return;
+		if (!this.isRemovable(value) || this.disabled) return
 
-    this.selectedValues = this.selectedValues.filter((v) => v !== value);
-    this.onChange(this.selectedValues);
-  }
+		this.selectedValues = this.selectedValues.filter((v) => v !== value)
+		this.onChange(this.selectedValues)
+	}
 
-  clearAll(event: Event): void {
-    event.stopPropagation();
+	clearAll(event: Event): void {
+		event.stopPropagation()
 
-    if (this.disabled) return;
+		if (this.disabled) return
 
-    this.selectedValues = this.selectedValues.filter(
-      (v) => !this.isRemovable(v)
-    );
-    this.onChange(this.selectedValues);
-  }
+		this.selectedValues = this.selectedValues.filter((v) => !this.isRemovable(v))
+		this.onChange(this.selectedValues)
+	}
 
-  getSelectedOptions(): MultiSelectOption[] {
-    return this.options.filter((option) =>
-      this.selectedValues.includes(option.value)
-    );
-  }
+	getSelectedOptions(): MultiSelectOption[] {
+		return this.options.filter((option) => this.selectedValues.includes(option.value))
+	}
 
-  get displayText(): string {
-    const count = this.selectedValues.length;
-    if (count === 0) return this.translate.instant(this.placeholder);
-    if (count === 1) {
-      const option = this.options.find(
-        (o) => o.value === this.selectedValues[0]
-      );
-      return option?.label || this.translate.instant(this.placeholder);
-    }
-    return `${count} ${this.translate.instant('common.items_selected')}`;
-  }
+	get displayText(): string {
+		const count = this.selectedValues.length
+		if (count === 0) return this.translate.instant(this.placeholder)
+		if (count === 1) {
+			const option = this.options.find((o) => o.value === this.selectedValues[0])
+			return option?.label || this.translate.instant(this.placeholder)
+		}
+		return `${count} ${this.translate.instant('common.items_selected')}`
+	}
 
-  get hasRemovableItems(): boolean {
-    return this.selectedValues.some((v) => this.isRemovable(v));
-  }
+	get hasRemovableItems(): boolean {
+		return this.selectedValues.some((v) => this.isRemovable(v))
+	}
 
-  getLabelForValue(value: MultiSelectValue): string {
-    return this.options.find(o => o.value === value)?.label || '';
-  }
+	getLabelForValue(value: MultiSelectValue): string {
+		return this.options.find((o) => o.value === value)?.label || ''
+	}
 
-  getErrorMessages(): string[] {
-    if (!this.control?.errors) {
-      return [];
-    }
+	getErrorMessages(): string[] {
+		if (!this.control?.errors) {
+			return []
+		}
 
-    const errors = this.control.errors;
+		const errors = this.control.errors
 
-    return Object.keys(errors).map((key) => {
-      if (this.validationMessages[key]) {
-        return this.validationMessages[key];
-      }
+		return Object.keys(errors).map((key) => {
+			if (this.validationMessages[key]) {
+				return this.validationMessages[key]
+			}
 
-      const errorValue = errors[key as keyof typeof errors];
+			const errorValue = errors[key as keyof typeof errors]
 
-      if (typeof errorValue === 'string') {
-        return errorValue;
-      }
+			if (typeof errorValue === 'string') {
+				return errorValue
+			}
 
-      if (typeof errorValue === 'object' && errorValue && 'message' in errorValue) {
-        return (errorValue as { message?: string }).message ?? this.translate.instant('shared.validation.invalid_field');
-      }
-      return this.translate.instant('shared.validation.invalid_field');
-    });
-  }
+			if (typeof errorValue === 'object' && errorValue && 'message' in errorValue) {
+				return (
+					(errorValue as { message?: string }).message ??
+					this.translate.instant('shared.validation.invalid_field')
+				)
+			}
+			return this.translate.instant('shared.validation.invalid_field')
+		})
+	}
 }

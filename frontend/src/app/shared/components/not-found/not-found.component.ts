@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core'
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core'
 import { RouterService } from '../../../core/services/router.service'
 import { TranslateModule } from '@ngx-translate/core'
 
@@ -7,6 +7,7 @@ import { TranslateModule } from '@ngx-translate/core'
 	standalone: true,
 	imports: [TranslateModule],
 	templateUrl: './not-found.component.html',
+	changeDetection: ChangeDetectionStrategy.Eager,
 	styleUrls: ['./not-found.component.scss'],
 })
 export class NotFoundComponent {

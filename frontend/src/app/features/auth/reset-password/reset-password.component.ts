@@ -1,5 +1,4 @@
-import { CommonModule } from '@angular/common'
-import { Component, inject } from '@angular/core'
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core'
 import {
 	AbstractControl,
 	FormBuilder,
@@ -37,8 +36,9 @@ interface ResetPasswordFormValue {
 @Component({
 	selector: 'app-reset-password',
 	standalone: true,
-	imports: [CommonModule, ReactiveFormsModule, InputComponent, TranslateModule],
+	imports: [ReactiveFormsModule, InputComponent, TranslateModule],
 	templateUrl: './reset-password.component.html',
+	changeDetection: ChangeDetectionStrategy.Eager,
 	styleUrl: './reset-password.component.scss',
 })
 export class ResetPasswordComponent extends BasePageComponent<ResetPasswordRouteParams> {
@@ -54,14 +54,14 @@ export class ResetPasswordComponent extends BasePageComponent<ResetPasswordRoute
 			required: this.translate.instant('auth.validation.password_required'),
 			minlength: this.translate.instant('auth.validation.password_min_length'),
 			weakPassword: this.translate.instant('auth.errors.weak_password'),
-		};
+		}
 	}
 
 	get confirmPasswordValidationMessages() {
 		return {
 			required: this.translate.instant('auth.validation.confirm_password_required'),
 			passwordsMismatch: this.translate.instant('auth.errors.passwords_do_not_match'),
-		};
+		}
 	}
 
 	protected override onInit(): void {
@@ -136,9 +136,7 @@ export class ResetPasswordComponent extends BasePageComponent<ResetPasswordRoute
 		const hasNumber = /\d/.test(value)
 		const hasSpecial = /[^A-Za-z0-9]/.test(value)
 
-		return hasUpperCase && hasLowerCase && hasNumber && hasSpecial
-			? null
-			: { weakPassword: true }
+		return hasUpperCase && hasLowerCase && hasNumber && hasSpecial ? null : { weakPassword: true }
 	}
 
 	private passwordsMatchValidator(control: AbstractControl): ValidationErrors | null {
@@ -169,7 +167,10 @@ export class ResetPasswordComponent extends BasePageComponent<ResetPasswordRoute
 		})
 	}
 
-	private getEmailFromParams(params: RouteParams<ResetPasswordRouteParams>, queryParams?: Params): string | undefined {
+	private getEmailFromParams(
+		params: RouteParams<ResetPasswordRouteParams>,
+		queryParams?: Params
+	): string | undefined {
 		const emailFromParams = typeof params['email'] === 'string' ? params['email'] : undefined
 		const emailFromPayload = typeof params.p?.email === 'string' ? params.p.email : undefined
 		const emailFromQuery = typeof queryParams?.['email'] === 'string' ? queryParams['email'] : undefined
