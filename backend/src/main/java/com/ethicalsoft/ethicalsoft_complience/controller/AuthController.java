@@ -27,6 +27,7 @@ public class AuthController extends BaseController {
     private final ResetPasswordUseCase resetPasswordUseCase;
     private final GoogleAuthUseCase googleAuthUseCase;
     private final AcceptTermsUseCase acceptTermsUseCase;
+    private final ExtendSessionUseCase extendSessionUseCase;
 
     @PostMapping( "/token" )
     public AuthDTO token(@Valid @RequestBody LoginDTO loginDTO ) {
@@ -72,5 +73,10 @@ public class AuthController extends BaseController {
     public ResponseEntity<Void> acceptTerms( @Valid @RequestBody AcceptTermsDTO acceptTermsDTO ) {
         acceptTermsUseCase.execute( acceptTermsDTO );
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping( "/extend-session" )
+    public ExtendSessionResponseDTO extendSession( @Valid @RequestBody ExtendSessionDTO extendSessionDTO ) {
+        return extendSessionUseCase.execute( extendSessionDTO );
     }
 }

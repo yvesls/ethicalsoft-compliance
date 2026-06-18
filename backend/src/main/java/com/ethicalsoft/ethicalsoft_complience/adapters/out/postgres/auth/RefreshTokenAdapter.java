@@ -96,5 +96,34 @@ public class RefreshTokenAdapter implements RefreshTokenPort {
             throw ex;
         }
     }
+
+    @Override
+    @Transactional
+    public Long extendRefreshTokenExpiry(String token) {
+        try {
+            log.info("[refresh-token] Estendendo expiração do refresh token");
+            String hashedToken = DigestUtils.sha256Hex(token);
+            var refreshTokenOpt = refreshTokenRepository.findByToken(hashedToken);
+            if (refreshTokenOpt.isEmpty()) {
+                throw new BusinessException("Refresh token not found or invalid.");
+            }
+
+            RefreshToken refreshToken = refreshTokenOpt.get();
+            if (refreshToken.getExpiryDate().isBefore(Instant.now())) {
+                refreshTokenRepository.delete(refreshToken);
+                throw new BusinessException("Refresh token expired.");
+            }
+
+            Instant newExpiryDate = Instant.now().plusMillis(refreshTokenDuration);
+            refreshToken.setExpiryDate(newExpiryDate);
+            refreshTokenRepository.save(refreshToken);
+
+            log.info("[refresh-token] Refresh token estendido com sucesso. Nova data de expiração: {}", newExpiryDate);
+            return newExpiryDate.toEpochMilli();
+        } catch (Exception ex) {
+            log.error("[refresh-token] Falha ao estender expiração do refresh token", ex);
+            throw ex;
+        }
+    }
 }
 

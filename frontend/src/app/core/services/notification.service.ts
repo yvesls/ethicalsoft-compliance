@@ -42,6 +42,11 @@ export class NotificationService {
 		this.showModal('confirm', this.translate.instant('notification.attention'), message, callbackConfirm, callbackCancel)
 	}
 
+	showSessionExpiration(message: string, callbackExtend: () => void, callbackLogout: () => void) {
+		LoggerService.warn('NotificationService: Showing session expiration modal.')
+		this.showModal('session-expiration', this.translate.instant('notification.attention'), message, callbackExtend, callbackLogout)
+	}
+
 	private formatErrorMessage(error: unknown): string {
 		if (typeof error === 'string') {
 			return error
@@ -71,7 +76,7 @@ export class NotificationService {
 	}
 
 	private showModal(
-		type: 'success' | 'warning' | 'error' | 'confirm',
+		type: 'success' | 'warning' | 'error' | 'confirm' | 'session-expiration',
 		title: string,
 		message: string,
 		callbackConfirm?: () => void,
@@ -87,18 +92,25 @@ export class NotificationService {
 		const modal = document.createElement('div')
 		modal.classList.add('modal', 'notification-modal', type)
 
+		const isSessionExpiration = type === 'session-expiration'
+		const isConfirm = type === 'confirm' || isSessionExpiration
+
+		const buttonLabels = isSessionExpiration
+			? { confirm: this.translate.instant('notifications.session.extend'), cancel: this.translate.instant('notifications.session.logout') }
+			: { confirm: this.translate.instant('notifications.confirm'), cancel: this.translate.instant('notifications.cancel') }
+
 		modal.innerHTML = `
       <div class="small-card modal-content" @modalAnimation>
         <div class="close text-end">x</div>
-        <img class="modal-icon" src="assets/icons/${type}.svg" alt="Ícone ${title}">
+        <img class="modal-icon" src="assets/icons/${isSessionExpiration ? 'warning' : type}.svg" alt="Ícone ${title}">
         <h2 class="modal-title">${title}</h2>
         <p class="modal-message">${message}</p>
         ${
-			type === 'confirm'
+			isConfirm
 				? `
           <div class="modal-buttons">
-            <button class="btn-cancel">Cancelar</button>
-            <button class="btn-confirm">Confirmar</button>
+            <button class="btn-cancel">${buttonLabels.cancel}</button>
+            <button class="btn-confirm">${buttonLabels.confirm}</button>
           </div>`
 				: ''
 		}
@@ -112,7 +124,7 @@ export class NotificationService {
 			LoggerService.info('NotificationService: Modal closed by user.')
 		})
 
-		if (type === 'confirm') {
+		if (isConfirm) {
 			modal.querySelector('.btn-cancel')?.addEventListener('click', () => {
 				this.closeModal()
 				callbackCancel?.()

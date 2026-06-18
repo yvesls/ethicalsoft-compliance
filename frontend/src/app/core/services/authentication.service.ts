@@ -40,6 +40,7 @@ export class AuthenticationService {
 
 	constructor() {
 		this.sessionExpirationService.registerLogoutHandler(() => this.logout())
+		this.sessionExpirationService.registerSessionExtendHandler((callback) => this.extendSession(callback))
 		this.loadStoredToken()
 	}
 
@@ -168,29 +169,58 @@ export class AuthenticationService {
 		}
 
 	logout(): void {
-			if (!this.isBrowser()) {
-				return
-			}
-			const refreshToken = this.getRefreshToken()
+		if (!this.isBrowser()) {
+			return
+		}
+		const refreshToken = this.getRefreshToken()
 
-			sessionStorage.clear()
-			localStorage.clear()
-			this._user = null
+		sessionStorage.clear()
+		localStorage.clear()
+		this._user = null
 		this.emitUserState()
 
-			this.cancelRefreshTimer()
-			this.sessionExpirationService.cancelWarning()
+		this.cancelRefreshTimer()
+		this.sessionExpirationService.cancelWarning()
 
-			if (refreshToken) {
-				this.authStore.logout(refreshToken).subscribe({
-					error: (err: unknown) => {
-						LoggerService.error('AuthenticationService: Backend logout failed', err)
-					},
-				})
-			}
-
-			this.routerService.rawNavigate('login')
+		if (refreshToken) {
+			this.authStore.logout(refreshToken).subscribe({
+				error: (err: unknown) => {
+					LoggerService.error('AuthenticationService: Backend logout failed', err)
+				},
+			})
 		}
+
+		this.routerService.rawNavigate('login')
+	}
+
+	extendSession(callback: (expirationTime: number) => void): void {
+		if (!this.isBrowser()) {
+			LoggerService.warn('AuthenticationService: Tentativa de estender sessão fora do navegador.')
+			return
+		}
+
+		const refreshToken = this.getRefreshToken()
+		if (!refreshToken) {
+			LoggerService.error('AuthenticationService: Nenhum refresh token disponível para estender sessão.')
+			return
+		}
+
+		LoggerService.info('AuthenticationService: Iniciando extensão de sessão.')
+
+		this.authStore.extendSession({ refreshToken }).subscribe({
+			next: (response: { newExpirationTime: number }) => {
+				LoggerService.info('AuthenticationService: Sessão estendida com sucesso.', response)
+				callback(response.newExpirationTime)
+				this.notificationService.showSuccess(this.translate.instant('notifications.session.extended'))
+			},
+			error: (err: unknown) => {
+				LoggerService.error('AuthenticationService: Erro ao estender sessão.', err)
+				this.notificationService.showError(this.translate.instant('errors.session_extension_failed'))
+				// Even on error, we'll logout after a delay
+				setTimeout(() => this.logout(), 2000)
+			},
+		})
+	}
 
 	private setAuthToken(tokenData: AuthTokenInterface | null, keepSession = false): void {
 		if (!tokenData) {

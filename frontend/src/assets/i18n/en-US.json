@@ -1112,8 +1112,11 @@
     "session": {
       "draft_saved_redirect": "Draft saved successfully. You will be redirected to login.",
       "draft_save_failed": "Could not save draft. Unsaved data may be lost.",
-      "expiring_confirm": "Your session is about to expire. Would you like to save your changes as a draft before being logged out?",
-      "expired_redirect": "Your session has expired. You will be redirected to login."
+      "expiring_confirm": "Your session is about to expire.",
+      "expired_redirect": "Your session has expired. You will be redirected to login.",
+      "extend": "Extend Session",
+      "logout": "Sign Out",
+      "extended": "Session extended successfully."
     },
     "guard": {
       "direct_access_denied": "Direct access to this route is not allowed."
@@ -1197,6 +1200,7 @@
     "not_found": "Resource not found.",
     "validation": "There are required fields that have not been filled in correctly.",
     "session_expired": "Session expired, please log in again.",
+    "session_extension_failed": "Could not extend your session. You will be logged out.",
     "no_file_data": "No file selected for upload.",
     "http": {
       "400": "The request is malformed or contains invalid data.",
