@@ -97,7 +97,7 @@ export class NotificationService {
 
 		const buttonLabels = isSessionExpiration
 			? { confirm: this.translate.instant('notifications.session.extend'), cancel: this.translate.instant('notifications.session.logout') }
-			: { confirm: this.translate.instant('notifications.confirm'), cancel: this.translate.instant('notifications.cancel') }
+			: { confirm: this.translate.instant('common.confirm'), cancel: this.translate.instant('common.cancel') }
 
 		modal.innerHTML = `
       <div class="small-card modal-content" @modalAnimation>

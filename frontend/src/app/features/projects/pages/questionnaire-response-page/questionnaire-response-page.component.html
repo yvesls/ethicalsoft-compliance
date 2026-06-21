@@ -44,6 +44,15 @@
               <span class="stat-card__label">{{ 'questionnaire.response.total_questions' | translate }}</span>
               <strong class="stat-card__value">{{ totalQuestions() }}</strong>
             </div>
+            <div class="stat-card">
+              <span class="stat-card__label">{{ 'questionnaire.response.estimated_time' | translate }}</span>
+              <strong class="stat-card__value">{{ estimatedResponseTime() }}</strong>
+              <span class="stat-card__hint">{{ 'questionnaire.response.estimated_time_hint' | translate }}</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-card__label">{{ 'questionnaire.response.response_deadline' | translate }}</span>
+              <strong class="stat-card__value">{{ responseDeadline() }}</strong>
+            </div>
             <div class="stat-card stat-card--progress">
               <span class="stat-card__label">{{ 'questionnaire.response.progress' | translate }} <app-info-explainer key="questionnaire_progress" /></span>
               <div class="progress-track">
