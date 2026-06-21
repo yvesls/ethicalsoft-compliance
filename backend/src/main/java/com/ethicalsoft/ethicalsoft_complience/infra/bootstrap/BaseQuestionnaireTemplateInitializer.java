@@ -42,19 +42,23 @@ public class BaseQuestionnaireTemplateInitializer {
     @PostConstruct
     public void seed() {
         try {
-            insertIfMissing(buildCascataBase());
-            insertIfMissing(buildIterativoBase());
+            upsertBaseTemplate(buildCascataBase());
+            upsertBaseTemplate(buildIterativoBase());
         } catch (Exception e) {
             log.warn("[template-init] Não foi possível inicializar templates base no MongoDB. " +
                     "A aplicação continuará normalmente. Erro: {}", e.getMessage());
         }
     }
 
-    private void insertIfMissing(ProjectTemplate t) {
-        if (!repository.existsById(t.getId())) {
-            repository.save(t);
-            log.info("[template-init] Template base '{}' inserido.", t.getName());
+    private void upsertBaseTemplate(ProjectTemplate t) {
+        if (t == null || t.getId() == null || t.getId().isBlank()) {
+            return;
         }
+        String templateId = java.util.Objects.requireNonNull(t.getId());
+        boolean existed = repository.existsById(templateId);
+        repository.save(t);
+        log.info("[template-init] Template base '{}' {}.",
+                t.getName(), existed ? "reconciliado" : "inserido");
     }
 
     private ProjectTemplate buildCascataBase() {
@@ -159,6 +163,7 @@ public class BaseQuestionnaireTemplateInitializer {
         all.addAll(buildProjeto(projStages));
         all.addAll(buildDesenvolvimento(devStages));
         all.addAll(buildTestes(testStages));
+        all.addAll(buildIterativeAiGovernanceQuestions());
         return all;
     }
 
@@ -221,6 +226,9 @@ public class BaseQuestionnaireTemplateInitializer {
         qs.add(q("Os riscos eticos do projeto foram documentados e comunicados a todos os envolvidos?", Set.of(r(GERENTE_PROJETO), r(ANALISTA_QUALIDADE), r(RESPONSAVEL_NEGOCIO)), "Iniciação", stgs));
         qs.add(q("Existe um canal definido para reportar preocupacoes eticas de forma anonima e segura?", Set.of(r(GERENTE_PROJETO), r(LIDER_EQUIPE), r(SUPORTE)), "Iniciação", stgs));
         qs.add(q("Os valores eticos do projeto estao explicitamente documentados e acessiveis a todos?", Set.of(r(GERENTE_PROJETO), r(LIDER_EQUIPE), r(CLIENTE)), "Iniciação", stgs));
+        qs.add(q("O projeto declarou se utiliza desenvolvimento assistido por IA e em quais atividades esse apoio sera empregado?", Set.of(r(GERENTE_PROJETO), r(RESPONSAVEL_NEGOCIO), r(CLIENTE)), "Iniciação", stgs));
+        qs.add(q("Foram definidas diretrizes sobre quais dados, credenciais ou informacoes internas nao podem ser enviados para ferramentas externas de IA?", Set.of(r(GERENTE_PROJETO), r(LIDER_EQUIPE), r(ARQUITETO_SOFTWARE), r(DESENVOLVEDOR)), "Iniciação", stgs));
+        qs.add(q("Foi definido quem realiza a revisao humana e a aprovacao final de artefatos produzidos com apoio de IA antes do uso no projeto?", Set.of(r(GERENTE_PROJETO), r(LIDER_EQUIPE), r(ANALISTA_QUALIDADE)), "Iniciação", stgs));
         return qs;
     }
 
@@ -297,6 +305,9 @@ public class BaseQuestionnaireTemplateInitializer {
 
         qs.add(q("Foram identificados requisitos que possam impactar negativamente grupos vulneraveis ou minorias?", Set.of(r(ANALISTA_REQUISITOS), r(CLIENTE), r(STAKEHOLDER)), "Requisitos", stgs));
         qs.add(q("Os requisitos contemplam conformidade com legislacao de protecao de dados (ex: LGPD, GDPR)?", Set.of(r(GERENTE_PROJETO), r(ANALISTA_REQUISITOS), r(RESPONSAVEL_NEGOCIO)), "Requisitos", stgs));
+        qs.add(q("Requisitos, historias ou criterios de aceite sugeridos por IA sao identificados e revisados por um responsavel humano antes da aprovacao?", Set.of(r(ANALISTA_REQUISITOS), r(GERENTE_PROJETO), r(CLIENTE)), "Requisitos", stgs));
+        qs.add(q("As sugestoes de IA usadas na etapa de requisitos foram avaliadas quanto a vieses, ambiguidades e impactos eticos antes de entrar no escopo?", Set.of(r(ANALISTA_REQUISITOS), r(ANALISTA_QUALIDADE), r(STAKEHOLDER)), "Requisitos", stgs));
+        qs.add(q("Ha rastreabilidade entre o artefato de requisitos produzido com apoio de IA e a decisao final aprovada pela equipe?", Set.of(r(ANALISTA_REQUISITOS), r(GERENTE_PROJETO), r(LIDER_EQUIPE)), "Requisitos", stgs));
         return qs;
     }
 
@@ -369,6 +380,8 @@ public class BaseQuestionnaireTemplateInitializer {
 
         qs.add(q("As decisoes arquiteturais consideram o impacto etico de longo prazo sobre usuarios e sociedade?", Set.of(r(ARQUITETO_SOFTWARE), r(GERENTE_PROJETO)), "Projeto", stgs));
         qs.add(q("Existe rastreabilidade entre decisoes de projeto e requisitos eticos documentados?", Set.of(r(ANALISTA_QUALIDADE), r(ANALISTA_REQUISITOS)), "Projeto", stgs));
+        qs.add(q("Decisoes arquiteturais ou de design sugeridas por IA foram justificadas e revisadas antes da adocao no projeto?", Set.of(r(ARQUITETO_SOFTWARE), r(DESIGNER), r(GERENTE_PROJETO)), "Projeto", stgs));
+        qs.add(q("O uso de IA em arquitetura ou design respeita restricoes de seguranca, licenciamento e confidencialidade definidas para o projeto?", Set.of(r(ARQUITETO_SOFTWARE), r(GERENTE_PROJETO), r(RESPONSAVEL_NEGOCIO)), "Projeto", stgs));
         return qs;
     }
 
@@ -433,6 +446,9 @@ public class BaseQuestionnaireTemplateInitializer {
         qs.add(q("Existe revisao de codigo com foco em identificar vieses algoritmicos ou praticas discriminatorias?", Set.of(r(DESENVOLVEDOR), r(ANALISTA_QUALIDADE)), "Desenvolvimento", stgs));
         qs.add(q("Os dados utilizados no desenvolvimento respeitam as politicas de privacidade e consentimento?", Set.of(r(DESENVOLVEDOR), r(GERENTE_PROJETO)), "Desenvolvimento", stgs));
         qs.add(q("As decisoes tecnicas de trade-off estao sendo documentadas com justificativa etica?", Set.of(r(DESENVOLVEDOR), r(ARQUITETO_SOFTWARE), r(LIDER_EQUIPE)), "Desenvolvimento", stgs));
+        qs.add(q("Codigo gerado com apoio de IA e identificado para revisao humana antes de merge, entrega ou publicacao?", Set.of(r(DESENVOLVEDOR), r(LIDER_EQUIPE), r(ANALISTA_QUALIDADE)), "Desenvolvimento", stgs));
+        qs.add(q("Sugestoes de IA para codigo foram verificadas quanto a licenciamento, seguranca e aderencia aos padroes tecnicos do projeto?", Set.of(r(DESENVOLVEDOR), r(ANALISTA_QUALIDADE), r(ARQUITETO_SOFTWARE)), "Desenvolvimento", stgs));
+        qs.add(q("Credenciais, dados pessoais ou informacoes internas foram excluidos de prompts enviados a ferramentas de IA durante o desenvolvimento?", Set.of(r(DESENVOLVEDOR), r(GERENTE_PROJETO), r(ARQUITETO_SOFTWARE)), "Desenvolvimento", stgs));
         return qs;
     }
 
@@ -498,6 +514,21 @@ public class BaseQuestionnaireTemplateInitializer {
         qs.add(q("Foram realizados testes especificos para detectar vieses nos resultados do software?", Set.of(r(ANALISTA_QUALIDADE), r(DESENVOLVEDOR)), "Testes", stgs));
         qs.add(q("Os cenarios de teste incluem perfis de usuarios vulneraveis ou com necessidades especiais?", Set.of(r(ANALISTA_QUALIDADE), r(DESIGNER)), "Testes", stgs));
         qs.add(q("Os resultados dos testes eticos sao compartilhados com os stakeholders para validacao?", Set.of(r(ANALISTA_QUALIDADE), r(GERENTE_PROJETO), r(STAKEHOLDER)), "Testes", stgs));
+        qs.add(q("Artefatos de teste gerados com apoio de IA foram revisados e validados antes do uso na verificacao do software?", Set.of(r(ANALISTA_QUALIDADE), r(DESENVOLVEDOR)), "Testes", stgs));
+        qs.add(q("Codigo, documentacao ou cenarios produzidos com IA foram submetidos aos mesmos testes e criterios de aceite aplicados ao restante do software?", Set.of(r(ANALISTA_QUALIDADE), r(DESENVOLVEDOR), r(GERENTE_PROJETO)), "Testes", stgs));
+        qs.add(q("Falhas, alucinacoes ou sugestoes inseguras geradas por IA foram registradas para prevencao em ciclos futuros?", Set.of(r(ANALISTA_QUALIDADE), r(LIDER_EQUIPE), r(SUPORTE)), "Testes", stgs));
+        return qs;
+    }
+
+    private List<TemplateQuestionDTO> buildIterativeAiGovernanceQuestions() {
+        List<TemplateQuestionDTO> qs = new ArrayList<>();
+        List<StageSummaryResponseDTO> reqStages = List.of(stageSummary(1, "Requisitos"));
+        List<StageSummaryResponseDTO> projStages = List.of(stageSummary(2, "Projeto"));
+        List<StageSummaryResponseDTO> testStages = List.of(stageSummary(4, "Testes"));
+
+        qs.add(q("Na sprint atual, itens do backlog produzidos ou refinados com apoio de IA foram identificados para manter rastreabilidade?", Set.of(r(GERENTE_PROJETO), r(ANALISTA_REQUISITOS), r(LIDER_EQUIPE), r(DESENVOLVEDOR)), "Requisitos", reqStages));
+        qs.add(q("Na sprint atual, a equipe revisou se o uso de IA alterou estimativas, riscos ou criterios de aceite antes de iniciar a implementacao?", Set.of(r(GERENTE_PROJETO), r(LIDER_EQUIPE), r(ANALISTA_QUALIDADE)), "Projeto", projStages));
+        qs.add(q("Ao final da sprint, a equipe registrou aprendizados, falhas ou restricoes sobre o uso de IA para orientar a proxima iteracao?", Set.of(r(LIDER_EQUIPE), r(ANALISTA_QUALIDADE), r(GERENTE_PROJETO), r(DESENVOLVEDOR)), "Testes", testStages));
         return qs;
     }
 
