@@ -53,7 +53,7 @@ public class ProjectTemplateInitializer {
     private ProjectTemplate buildCascataTemplate() {
         ProjectTemplate template = new ProjectTemplate();
         template.setId(CASCATA_TEMPLATE_ID);
-        template.setName("Template Cascata Padrão (SISP)");
+        template.setName("Padrão Cascata");
         template.setType(ProjectTypeEnum.CASCATA);
         template.setDescription("Modelo base para projetos em cascata, focado nas 5 etapas do SISP.");
         template.setVisibility(TemplateVisibilityEnum.PUBLIC);
@@ -111,7 +111,7 @@ public class ProjectTemplateInitializer {
     private ProjectTemplate buildIterativeTemplate() {
         ProjectTemplate template = new ProjectTemplate();
         template.setId(ITERATIVE_TEMPLATE_ID);
-        template.setName("Meu Template Ágil Pessoal");
+        template.setName("Padrão Ágil Iterativo");
         template.setType(ProjectTypeEnum.ITERATIVO);
         template.setDescription("Meu template privado para projetos ágeis com 4 Sprints de 2 semanas.");
         template.setVisibility(TemplateVisibilityEnum.PUBLIC);
