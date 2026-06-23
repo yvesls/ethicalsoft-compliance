@@ -57,24 +57,23 @@ public class AddRepresentativeUseCase {
 
     private Set<Representative> doExecute(Project project, Set<RepresentativeDTO> repDTOs, boolean draft) {
         try {
+            Project targetProject = java.util.Objects.requireNonNull(project);
+            Set<RepresentativeDTO> safeRepDTOs = Optional.ofNullable(repDTOs).orElse(Set.of());
             log.info("[usecase-add-representative] Adicionando representantes para projeto id={} quantidade={} draft={}",
-                    project != null ? project.getId() : null, repDTOs != null ? repDTOs.size() : 0, draft);
+                targetProject.getId(), safeRepDTOs.size(), draft);
 
-            if (ObjectUtils.isNullOrEmpty(repDTOs)) {
+            if (ObjectUtils.isNullOrEmpty(safeRepDTOs)) {
                 return new HashSet<>();
             }
-            if (ObjectUtils.isNullOrEmpty(project)) {
-                throw new BusinessException("Projeto inválido para criação de representantes.");
-            }
 
-            Map<Long, Role> resolvedRoles = resolveRoles(repDTOs);
+            Map<Long, Role> resolvedRoles = resolveRoles(safeRepDTOs);
             User currentAdmin = currentUserPort.getCurrentUser();
 
-            Set<Representative> representatives = repDTOs.stream()
-                    .map(dto -> processRepresentative(dto, project, resolvedRoles, currentAdmin, draft))
+            Set<Representative> representatives = safeRepDTOs.stream()
+                .map(dto -> processRepresentative(dto, targetProject, resolvedRoles, currentAdmin, draft))
                     .collect(Collectors.toSet());
 
-            log.info("[usecase-add-representative] {} representantes vinculados ao projeto id={}", representatives.size(), project.getId());
+            log.info("[usecase-add-representative] {} representantes vinculados ao projeto id={}", representatives.size(), targetProject.getId());
             return representatives;
         } catch (Exception ex) {
             log.error("[usecase-add-representative] Falha ao criar representantes para projeto id={}",
@@ -92,7 +91,7 @@ public class AddRepresentativeUseCase {
         if (requestedRoleIds.isEmpty()) return Map.of();
 
         Map<Long, Role> roles = roleRepository.findAllById(requestedRoleIds).stream()
-                .collect(Collectors.toMap(Role::getId, Function.identity()));
+            .collect(Collectors.toMap(role -> role.getId(), Function.identity()));
 
         if (roles.size() != requestedRoleIds.size()) {
             throw new EntityNotFoundException("Um ou mais papéis (Roles) não foram encontrados.");
@@ -113,58 +112,102 @@ public class AddRepresentativeUseCase {
 
         representativeRepository.save(rep);
 
-        if (!draft) {
-            notifyUser(resolution, rep, project, currentAdmin);
-        }
+        notifyRepresentative(resolution, rep, project, currentAdmin, draft);
 
         return rep;
     }
 
-    private void notifyUser(UserResolutionPolicy.UserResolutionResult resolution, Representative rep, Project project, User currentAdmin) {
+    public void notifyProjectAssignmentsAfterPublish(Project project, Set<Representative> representatives) {
+        if (project == null || representatives == null || representatives.isEmpty()) {
+            return;
+        }
+
+        User currentAdmin = currentUserPort.getCurrentUser();
+        runAfterCommit(() -> representatives.forEach(rep -> sendProjectAssignmentNotification(rep, project, currentAdmin)));
+    }
+
+    private void notifyRepresentative(UserResolutionPolicy.UserResolutionResult resolution,
+                                      Representative rep,
+                                      Project project,
+                                      User currentAdmin,
+                                      boolean draft) {
         Runnable sendNotifications = () -> {
-            resolution.temporaryPassword().ifPresent(tempPassword -> {
-                Map<String, Object> ctx = new java.util.HashMap<>();
-                ctx.put("to", rep.getUser().getEmail());
-                ctx.put("firstName", Optional.ofNullable(rep.getUser().getFirstName()).orElse(""));
-                ctx.put("tempPassword", Optional.of(tempPassword).orElse(""));
-                ctx.put("projectName", Optional.ofNullable(rep.getProject()).map(Project::getName).orElse(""));
-                ctx.put("adminName", Optional.ofNullable(currentAdmin.getFirstName()).orElse("") + " " + Optional.ofNullable(currentAdmin.getLastName()).orElse(""));
-                ctx.put("projectId", Optional.ofNullable(rep.getProject()).map(Project::getId).orElse(null));
+            sendNewUserCredentialsNotification(resolution, rep, currentAdmin);
+            if (!draft) {
+                sendProjectAssignmentNotification(rep, project, currentAdmin);
+            }
+        };
 
-                sendNotificationUseCase.execute(new SendNotificationCommand(
-                        NotificationType.NEW_USER_CREDENTIALS,
-                        ctx
-                ));
-            });
+        runAfterCommit(sendNotifications);
+    }
 
+    private void sendNewUserCredentialsNotification(UserResolutionPolicy.UserResolutionResult resolution,
+                                                    Representative rep,
+                                                    User currentAdmin) {
+        resolution.temporaryPassword().ifPresent(tempPassword -> {
             Map<String, Object> ctx = new java.util.HashMap<>();
             ctx.put("to", rep.getUser().getEmail());
             ctx.put("firstName", Optional.ofNullable(rep.getUser().getFirstName()).orElse(""));
-            ctx.put("projectName", Optional.ofNullable(project.getName()).orElse(""));
-            ctx.put("projectId", project.getId());
-            ctx.put("adminName", Optional.ofNullable(currentAdmin.getFirstName()).orElse("") + " " + Optional.ofNullable(currentAdmin.getLastName()).orElse(""));
-            ctx.put("adminEmail", Optional.ofNullable(currentAdmin.getEmail()).orElse(""));
-            ctx.put("roles", Optional.ofNullable(rep.getRoles()).orElse(Set.of()).stream().map(Role::getName).toList());
-            ctx.put("timelineSummary", Optional.ofNullable(project.getCurrentSituation()).orElse(""));
-            ctx.put("startDate", project.getStartDate());
-            ctx.put("deadline", project.getDeadline());
-            ctx.put("nextQuestionnaireDate", projectCurrentStagePolicy.findNextQuestionnaireDate(project));
+            ctx.put("tempPassword", tempPassword);
+            ctx.put("projectName", rep.getProject() != null ? rep.getProject().getName() : "");
+            ctx.put("adminName", buildAdminName(currentAdmin));
+            ctx.put("projectId", rep.getProject() != null ? rep.getProject().getId() : null);
+            ctx.put("systemTriggered", true);
 
             sendNotificationUseCase.execute(new SendNotificationCommand(
-                    NotificationType.PROJECT_ASSIGNMENT,
+                    NotificationType.NEW_USER_CREDENTIALS,
                     ctx
             ));
+        });
+    }
+
+    private void sendProjectAssignmentNotification(Representative rep, Project project, User currentAdmin) {
+        Map<String, Object> ctx = new java.util.HashMap<>();
+        ctx.put("to", rep.getUser().getEmail());
+        ctx.put("firstName", Optional.ofNullable(rep.getUser().getFirstName()).orElse(""));
+        ctx.put("projectName", Optional.ofNullable(project.getName()).orElse(""));
+        ctx.put("projectId", project.getId());
+        ctx.put("adminName", buildAdminName(currentAdmin));
+        ctx.put("adminEmail", currentAdmin != null ? currentAdmin.getEmail() : "");
+        ctx.put("roles", Optional.ofNullable(rep.getRoles()).orElse(Set.of()).stream().map(role -> role.getName()).toList());
+        ctx.put("timelineSummary", Optional.ofNullable(project.getCurrentSituation()).orElse(""));
+        ctx.put("startDate", project.getStartDate());
+        ctx.put("deadline", project.getDeadline());
+        ctx.put("nextQuestionnaireDate", projectCurrentStagePolicy.findNextQuestionnaireDate(project));
+        ctx.put("systemTriggered", true);
+
+        sendNotificationUseCase.execute(new SendNotificationCommand(
+                NotificationType.PROJECT_ASSIGNMENT,
+                ctx
+        ));
+    }
+
+    private void runAfterCommit(Runnable action) {
+        Runnable safeAction = () -> {
+            try {
+                action.run();
+            } catch (Exception ex) {
+                log.warn("[usecase-add-representative] Falha ao enviar notificações pós-commit", ex);
+            }
         };
 
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    sendNotifications.run();
+                    safeAction.run();
                 }
             });
         } else {
-            sendNotifications.run();
+            safeAction.run();
         }
+    }
+
+    private String buildAdminName(User currentAdmin) {
+        if (currentAdmin == null) {
+            return "Sistema";
+        }
+        return Optional.ofNullable(currentAdmin.getFirstName()).orElse("") + " "
+                + Optional.ofNullable(currentAdmin.getLastName()).orElse("");
     }
 }

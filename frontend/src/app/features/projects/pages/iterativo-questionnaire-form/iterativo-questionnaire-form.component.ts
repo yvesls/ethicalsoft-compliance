@@ -431,7 +431,7 @@ export class IterativoQuestionnaireFormComponent
 		if (modalInstance) {
 			this.questionModalSubscription = modalInstance.questionCreated.subscribe((questionData: QuestionData) => {
 				const currentQuestions = this.questions()
-				questionData.id = Date.now().toString()
+				questionData.id = 'temp_' + Date.now().toString()
 				const enriched = this.enrichQuestionStageMetadata({ ...questionData })
 				this.questions.set([...currentQuestions, enriched])
 				this.cdr.detectChanges()
@@ -643,8 +643,8 @@ export class IterativoQuestionnaireFormComponent
 			options,
 			required: true,
 			allowMultiple: true,
-			placeholder: this.translate.instant('projects.questionnaire_form.stage_selection_placeholder'),
-			label: this.translate.instant('projects.questionnaire_form.stage_selection_label'),
+			placeholder: this.translate.instant('notifications.questionnaire_form.stage_selection_placeholder'),
+			label: this.translate.instant('notifications.questionnaire_form.stage_selection_label'),
 		} satisfies QuestionStageConfig
 	}
 

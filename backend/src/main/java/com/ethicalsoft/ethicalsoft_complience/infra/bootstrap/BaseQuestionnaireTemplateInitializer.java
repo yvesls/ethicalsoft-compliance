@@ -24,6 +24,11 @@ public class BaseQuestionnaireTemplateInitializer {
 
     private static final String CASCATA_BASE_ID = "680205b7036c4f4afca55001";
     private static final String ITERATIVO_BASE_ID = "680205b7036c4f4afca55002";
+    private static final String SELECIA_RH_BASE_ID = "6a39dfed3e2a434d0040f341";
+    private static final List<String> LEGACY_TEMPLATE_IDS = List.of(
+            "693605b7036c4f4afca55d5c",
+            "69631cccbdd14322645548c8"
+    );
 
     private static final long DESENVOLVEDOR = 1L;
     private static final long GERENTE_PROJETO = 2L;
@@ -42,11 +47,23 @@ public class BaseQuestionnaireTemplateInitializer {
     @PostConstruct
     public void seed() {
         try {
+            removeLegacyTemplates();
             upsertBaseTemplate(buildCascataBase());
             upsertBaseTemplate(buildIterativoBase());
+            upsertBaseTemplate(buildSelecIaRhTemplate());
         } catch (Exception e) {
-            log.warn("[template-init] Não foi possível inicializar templates base no MongoDB. " +
-                    "A aplicação continuará normalmente. Erro: {}", e.getMessage());
+            log.warn("[template-init] Não foi possível inicializar templates base no MongoDB. A aplicação continuará normalmente. Erro: {}", e.getMessage());
+        }
+    }
+
+    private void removeLegacyTemplates() {
+        for (String legacyTemplateId : LEGACY_TEMPLATE_IDS) {
+            String templateId = java.util.Objects.requireNonNull(legacyTemplateId);
+            if (!repository.existsById(templateId)) {
+                continue;
+            }
+            repository.deleteById(templateId);
+            log.info("[template-init] Template legado '{}' removido por ter versão base mais completa.", templateId);
         }
     }
 
@@ -57,17 +74,15 @@ public class BaseQuestionnaireTemplateInitializer {
         String templateId = java.util.Objects.requireNonNull(t.getId());
         boolean existed = repository.existsById(templateId);
         repository.save(t);
-        log.info("[template-init] Template base '{}' {}.",
-                t.getName(), existed ? "reconciliado" : "inserido");
+        log.info("[template-init] Template base '{}' {}.", t.getName(), existed ? "reconciliado" : "inserido");
     }
 
     private ProjectTemplate buildCascataBase() {
         ProjectTemplate t = new ProjectTemplate();
         t.setId(CASCATA_BASE_ID);
-        t.setName("Template Base Governança Ética - Cascata");
+        t.setName("Base Cascata");
         t.setType(ProjectTypeEnum.CASCATA);
-        t.setDescription("Template completo de maturidade ética para projetos em cascata (5 etapas SISP). "
-                + "Cobre todas as roles e fases: Iniciação, Requisitos, Projeto, Desenvolvimento e Testes.");
+        t.setDescription("Template completo de maturidade ética para projetos em cascata (5 etapas SISP). Cobre todas as roles e fases: Iniciação, Requisitos, Projeto, Desenvolvimento e Testes.");
         t.setVisibility(TemplateVisibilityEnum.PUBLIC);
         t.setStages(List.of(
                 stage("Iniciação", "2.00", 0),
@@ -77,21 +92,21 @@ public class BaseQuestionnaireTemplateInitializer {
                 stage("Testes", "1.50", 4)
         ));
         t.setQuestionnaires(List.of(
-                cascataQuestionnaire("Iniciação", buildIniciacao(null)),
-                cascataQuestionnaire("Requisitos", buildRequisitos(null)),
-                cascataQuestionnaire("Projeto", buildProjeto(null)),
-                cascataQuestionnaire("Desenvolvimento", buildDesenvolvimento(null)),
-                cascataQuestionnaire("Testes", buildTestes(null))
+            cascataQuestionnaire("Iniciação", 1, buildIniciacao(null)),
+            cascataQuestionnaire("Requisitos", 1, buildRequisitos(null)),
+            cascataQuestionnaire("Projeto", 1, buildProjeto(null)),
+            cascataQuestionnaire("Desenvolvimento", 1, buildDesenvolvimento(null)),
+            cascataQuestionnaire("Testes", 1, buildTestes(null))
         ));
         t.setIterations(List.of());
         t.setRepresentatives(buildBaseRepresentatives());
         return t;
     }
 
-
-    private TemplateQuestionnaireDTO cascataQuestionnaire(String stageName, List<TemplateQuestionDTO> questions) {
+    private TemplateQuestionnaireDTO cascataQuestionnaire(String stageName, int weight, List<TemplateQuestionDTO> questions) {
         TemplateQuestionnaireDTO q = new TemplateQuestionnaireDTO();
         q.setName(stageName);
+        q.setWeight(weight);
         q.setStageName(stageName);
         q.setQuestions(questions);
         return q;
@@ -100,10 +115,9 @@ public class BaseQuestionnaireTemplateInitializer {
     private ProjectTemplate buildIterativoBase() {
         ProjectTemplate t = new ProjectTemplate();
         t.setId(ITERATIVO_BASE_ID);
-        t.setName("Template Base Governança Ética - Iterativo");
+        t.setName("Base Ágil Iterativo");
         t.setType(ProjectTypeEnum.ITERATIVO);
-        t.setDescription("Template completo de maturidade ética para projetos iterativos (4 Sprints). "
-                + "Cada sprint cobre as 5 etapas com perguntas distribuídas por role.");
+        t.setDescription("Template completo de maturidade ética para projetos iterativos (4 Sprints). Cada sprint cobre as 5 etapas com perguntas distribuídas por role.");
         t.setVisibility(TemplateVisibilityEnum.PUBLIC);
         t.setDefaultIterationCount(4);
         t.setDefaultIterationDuration(14);
@@ -126,10 +140,10 @@ public class BaseQuestionnaireTemplateInitializer {
         );
 
         t.setQuestionnaires(List.of(
-                iterativeQuestionnaire("Sprint 1", buildAllQuestions(allStages)),
-                iterativeQuestionnaire("Sprint 2", buildAllQuestions(allStages)),
-                iterativeQuestionnaire("Sprint 3", buildAllQuestions(allStages)),
-                iterativeQuestionnaire("Sprint 4", buildAllQuestions(allStages))
+            iterativeQuestionnaire("Sprint 1", 1, buildAllQuestions(allStages)),
+            iterativeQuestionnaire("Sprint 2", 1, buildAllQuestions(allStages)),
+            iterativeQuestionnaire("Sprint 3", 1, buildAllQuestions(allStages)),
+            iterativeQuestionnaire("Sprint 4", 1, buildAllQuestions(allStages))
         ));
 
         t.setIterations(List.of(
@@ -142,10 +156,95 @@ public class BaseQuestionnaireTemplateInitializer {
         return t;
     }
 
-    private TemplateQuestionnaireDTO iterativeQuestionnaire(String sprintName, List<TemplateQuestionDTO> questions) {
+    private ProjectTemplate buildSelecIaRhTemplate() {
+        ProjectTemplate t = new ProjectTemplate();
+        t.setId(SELECIA_RH_BASE_ID);
+        t.setName("SelecIA RH");
+        t.setType(ProjectTypeEnum.ITERATIVO);
+        t.setDescription("Template completo de maturidade ética para projetos iterativos (4 Sprints). Cada sprint cobre as 5 etapas com perguntas distribuídas por role.");
+        t.setVisibility(TemplateVisibilityEnum.PUBLIC);
+        t.setDefaultIterationCount(4);
+        t.setDefaultIterationDuration(10);
+
+        List<TemplateStageDTO> stages = List.of(
+                stage("Requisitos", "1.00", 1),
+                stage("Desenvolvimento", "1.00", 2),
+                stage("Projeto", "1.00", 3),
+                stage("Testes", "1.00", 4),
+                stage("Iniciação", "1.00", 5)
+        );
+        t.setStages(stages);
+
+        List<StageSummaryResponseDTO> reqStages = List.of(stageSummary(16, "Requisitos"));
+        List<StageSummaryResponseDTO> devStages = List.of(stageSummary(17, "Desenvolvimento"));
+        List<StageSummaryResponseDTO> projStages = List.of(stageSummary(18, "Projeto"));
+        List<StageSummaryResponseDTO> testStages = List.of(stageSummary(19, "Testes"));
+        List<StageSummaryResponseDTO> inicStages = List.of(stageSummary(20, "Iniciação"));
+
+        List<TemplateQuestionDTO> sprint2Qs = List.of(
+            q("Há rastreabilidade entre critérios de ranking, artefatos gerados com apoio de IA e a decisão final aprovada pela equipe?", Set.of(r(DESENVOLVEDOR), r(GERENTE_PROJETO), r(ANALISTA_QUALIDADE)), "Requisitos", reqStages),
+            q("As sugestões de IA usadas para refinar critérios de ranqueamento foram avaliadas quanto a vieses, ambiguidades e impactos éticos antes de entrar no escopo?", Set.of(r(GERENTE_PROJETO), r(STAKEHOLDER), r(ANALISTA_QUALIDADE)), "Requisitos", reqStages),
+            q("O recrutador consegue discordar do ranking da IA e registrar o motivo da intervenção humana?", Set.of(r(STAKEHOLDER), r(CLIENTE), r(DESENVOLVEDOR)), "Desenvolvimento", devStages),
+            q("Código gerado com apoio de IA é identificado para revisão humana antes de merge, entrega ou publicação?", Set.of(r(DESENVOLVEDOR), r(GERENTE_PROJETO), r(ANALISTA_QUALIDADE)), "Desenvolvimento", devStages),
+            q("A justificativa resumida exibida ao recrutador informa fatores de decisão sem expor atributos sensíveis do candidato?", Set.of(r(CLIENTE), r(STAKEHOLDER), r(DESENVOLVEDOR)), "Projeto", projStages),
+            q("Foram realizados testes específicos para detectar vieses nos resultados do software?", Set.of(r(ANALISTA_QUALIDADE), r(DESENVOLVEDOR)), "Testes", testStages)
+        );
+
+        List<TemplateQuestionDTO> sprint3Qs = List.of(
+            q("Existe trilha de auditoria suficiente para reconstruir por que um candidato foi recomendado, revisado e aprovado ou rejeitado por humano?", Set.of(r(GERENTE_PROJETO), r(STAKEHOLDER), r(DESENVOLVEDOR)), "Testes", testStages),
+            q("As decisões técnicas de trade-off estão documentadas com justificativa ética e impacto de negócio?", Set.of(r(GERENTE_PROJETO), r(ANALISTA_QUALIDADE), r(DESENVOLVEDOR)), "Desenvolvimento", devStages),
+            q("O projeto possui condição mínima de governança ética para encerramento e emissão de certificado, ainda que com melhorias futuras mapeadas?", Set.of(r(GERENTE_PROJETO), r(CLIENTE), r(ANALISTA_QUALIDADE), r(STAKEHOLDER)), "Iniciação", inicStages),
+            q("Código, documentação ou cenários produzidos com IA foram submetidos aos mesmos testes e critérios de aceite aplicados ao restante do software?", Set.of(r(GERENTE_PROJETO), r(DESENVOLVEDOR), r(ANALISTA_QUALIDADE)), "Testes", testStages),
+            q("Falhas, alucinações ou sugestões inseguras geradas por IA foram registradas para prevenção em ciclos futuros?", Set.of(r(GERENTE_PROJETO), r(DESENVOLVEDOR), r(ANALISTA_QUALIDADE)), "Testes", testStages),
+            q("Os resultados dos testes éticos são compartilhados com os stakeholders para validação?", Set.of(r(GERENTE_PROJETO), r(ANALISTA_QUALIDADE), r(STAKEHOLDER)), "Testes", testStages)
+        );
+
+        List<TemplateQuestionDTO> sprint1Qs = List.of(
+            q("Foi aprovado o uso de idade, faculdade de origem ou tempo de experiência como atalho de ranqueamento inicial sem validação ética formal?", Set.of(r(CLIENTE), r(STAKEHOLDER), r(DESENVOLVEDOR)), "Requisitos", reqStages),
+            q("Existe definição explícita de que toda recomendação da IA nesta sprint será apenas sugestão e nunca decisão automática final?", Set.of(r(CLIENTE), r(GERENTE_PROJETO), r(STAKEHOLDER)), "Iniciação", inicStages),
+            q("Foram identificados critérios de triagem que podem impactar negativamente grupos vulneráveis ou minorias?", Set.of(r(STAKEHOLDER), r(CLIENTE), r(ANALISTA_QUALIDADE)), "Requisitos", reqStages),
+            q("Foram definidas diretrizes sobre quais dados, credenciais ou informações internas não podem ser enviados a ferramentas externas de IA?", Set.of(r(GERENTE_PROJETO), r(DESENVOLVEDOR), r(STAKEHOLDER)), "Iniciação", inicStages),
+            q("Os requisitos de triagem contemplam conformidade com LGPD e minimização de dados pessoais no processo seletivo?", Set.of(r(CLIENTE), r(GERENTE_PROJETO), r(STAKEHOLDER)), "Requisitos", reqStages),
+            q("Os dados utilizados no desenvolvimento respeitam as políticas de privacidade e consentimento?", Set.of(r(GERENTE_PROJETO), r(DESENVOLVEDOR)), "Desenvolvimento", devStages)
+        );
+
+        t.setQuestionnaires(List.of(
+            iterativeQuestionnaire("Política de triagem e uso de dados", 1, "Sprint 2", sprint2Qs),
+            iterativeQuestionnaire("Ranqueamento assistido por IA com explicação inicial", 2, "Sprint 3", sprint3Qs),
+            iterativeQuestionnaire("Supervisão humana, trilha de auditoria e encerramento ético", 2, "Sprint 1", sprint1Qs)
+        ));
+
+        t.setIterations(List.of(
+            iteration("Sprint 2", "1.00"),
+            iteration("Sprint 1", "2.00"),
+            iteration("Sprint 3", "2.00")
+        ));
+
+        t.setRepresentatives(List.of(
+            rep("parsivaliv@gmail.com", "Paula", "Ribeiro", "2.00", Set.of(r(GERENTE_PROJETO))),
+            rep("yveslimasilva@gmail.com", "Yves", "Silva", "2.00", Set.of(r(ANALISTA_QUALIDADE))),
+            rep("martinsalessandrro643@gmail.com", "Alessandro", "Martins", "3.00", Set.of(r(DESENVOLVEDOR))),
+            rep("darlanjanice8@gmail.com", "Janice", "Darlan", "1.00", Set.of(r(STAKEHOLDER))),
+            rep("yves.silva@edu.ufes.br", "Josias", "Pereira", "2.00", Set.of(r(CLIENTE)))
+        ));
+
+        return t;
+    }
+
+    private TemplateQuestionnaireDTO iterativeQuestionnaire(String sprintName, int weight, List<TemplateQuestionDTO> questions) {
         TemplateQuestionnaireDTO q = new TemplateQuestionnaireDTO();
         q.setName(sprintName);
+        q.setWeight(weight);
         q.setIterationRefName(sprintName);
+        q.setQuestions(questions);
+        return q;
+    }
+
+    private TemplateQuestionnaireDTO iterativeQuestionnaire(String name, int weight, String iterationRefName, List<TemplateQuestionDTO> questions) {
+        TemplateQuestionnaireDTO q = new TemplateQuestionnaireDTO();
+        q.setName(name);
+        q.setWeight(weight);
+        q.setIterationRefName(iterationRefName);
         q.setQuestions(questions);
         return q;
     }
@@ -169,7 +268,6 @@ public class BaseQuestionnaireTemplateInitializer {
 
     private List<TemplateQuestionDTO> buildIniciacao(List<StageSummaryResponseDTO> stgs) {
         List<TemplateQuestionDTO> qs = new ArrayList<>();
-        // -- CLIENTE --
         qs.add(q("Voce entendeu os objetivos do software?", Set.of(r(CLIENTE), r(STAKEHOLDER)), "Iniciação", stgs));
         qs.add(q("Voce esta ciente das politicas eticas que a equipe de desenvolvimento seguira durante todo o projeto?", Set.of(r(CLIENTE), r(STAKEHOLDER)), "Iniciação", stgs));
         qs.add(q("Voce esta ciente das possiveis implicacoes eticas do software na seguranca e privacidade dos usuarios?", Set.of(r(CLIENTE), r(STAKEHOLDER)), "Iniciação", stgs));
@@ -180,7 +278,6 @@ public class BaseQuestionnaireTemplateInitializer {
         qs.add(q("Foi determinado quem toma as decisoes em nome da sua empresa?", Set.of(r(CLIENTE), r(RESPONSAVEL_NEGOCIO)), "Iniciação", stgs));
         qs.add(q("Foi determinado quem aprova a flexibilidade orcamentaria para o gerenciamento do projeto?", Set.of(r(CLIENTE), r(RESPONSAVEL_NEGOCIO)), "Iniciação", stgs));
         qs.add(q("Foi definido quem e a autoridade que trata de anormalidades no escopo do trabalho?", Set.of(r(CLIENTE), r(GERENTE_PROJETO)), "Iniciação", stgs));
-        // -- GERENTE DE PROJETO --
         qs.add(q("Voce definiu politicas eticas claras que devem ser seguidas durante o desenvolvimento do software?", Set.of(r(GERENTE_PROJETO)), "Iniciação", stgs));
         qs.add(q("Voce identificou possiveis conflitos eticos que possam surgir durante o desenvolvimento do software?", Set.of(r(GERENTE_PROJETO)), "Iniciação", stgs));
         qs.add(q("Voce forneceu orientacoes claras para a equipe de desenvolvimento sobre como lidar com possiveis conflitos eticos?", Set.of(r(GERENTE_PROJETO)), "Iniciação", stgs));
@@ -189,13 +286,11 @@ public class BaseQuestionnaireTemplateInitializer {
         qs.add(q("Voce esta comprometido em garantir que o software seja desenvolvido de maneira etica?", Set.of(r(GERENTE_PROJETO)), "Iniciação", stgs));
         qs.add(q("Voce identificou possiveis implicacoes eticas do software na seguranca e privacidade dos usuarios?", Set.of(r(GERENTE_PROJETO)), "Iniciação", stgs));
         qs.add(q("Voce esta disposto a trabalhar com a equipe de desenvolvimento para garantir que o software seja seguro e proteja a privacidade dos usuarios?", Set.of(r(GERENTE_PROJETO)), "Iniciação", stgs));
-        // -- LIDER DE EQUIPE --
         qs.add(q("Voce definiu politicas eticas claras que devem ser seguidas durante o desenvolvimento do software?", Set.of(r(LIDER_EQUIPE)), "Iniciação", stgs));
         qs.add(q("Voce compartilhou essas politicas eticas com sua equipe de desenvolvimento?", Set.of(r(LIDER_EQUIPE)), "Iniciação", stgs));
         qs.add(q("Voce esta garantindo que a equipe esteja ciente dos possiveis conflitos eticos que possam surgir durante o desenvolvimento do software?", Set.of(r(LIDER_EQUIPE)), "Iniciação", stgs));
         qs.add(q("Voce esta ciente sobre a necessidade de incentivar sua equipe a levantar questoes eticas e a discutir possiveis solucoes para conflitos eticos?", Set.of(r(LIDER_EQUIPE)), "Iniciação", stgs));
         qs.add(q("Voce esta disposto a apoiar a equipe de desenvolvimento na resolucao de possiveis conflitos eticos?", Set.of(r(LIDER_EQUIPE)), "Iniciação", stgs));
-        // -- ARQUITETO DE SOFTWARE --
         qs.add(q("Voce esta ciente sobre a necessidade de incentivar sua equipe a levantar questoes eticas e a discutir possiveis solucoes para conflitos eticos?", Set.of(r(ARQUITETO_SOFTWARE)), "Iniciação", stgs));
         qs.add(q("Voce entendeu as politicas eticas estabelecidas pelo administrador?", Set.of(r(ARQUITETO_SOFTWARE)), "Iniciação", stgs));
         qs.add(q("Voce esta disposto a apoiar a equipe de desenvolvimento na resolucao de possiveis conflitos eticos relacionados ao design do software?", Set.of(r(ARQUITETO_SOFTWARE), r(DESIGNER)), "Iniciação", stgs));
@@ -203,7 +298,6 @@ public class BaseQuestionnaireTemplateInitializer {
         qs.add(q("Voce esta comprometido em seguir as politicas eticas estabelecidas e em desenvolver o software de maneira etica?", Set.of(r(ARQUITETO_SOFTWARE)), "Iniciação", stgs));
         qs.add(q("Voce esta disposto a reportar possiveis problemas eticos identificados durante o desenvolvimento do software?", Set.of(r(ARQUITETO_SOFTWARE)), "Iniciação", stgs));
         qs.add(q("Voce esta trabalhando com a equipe de desenvolvimento para garantir que as questoes de usabilidade e acessibilidade sejam consideradas durante o design do software?", Set.of(r(ARQUITETO_SOFTWARE), r(DESIGNER)), "Iniciação", stgs));
-        // -- DESENVOLVEDOR --
         qs.add(q("Voce entendeu as politicas eticas estabelecidas pelo administrador?", Set.of(r(DESENVOLVEDOR)), "Iniciação", stgs));
         qs.add(q("Voce entendeu os objetivos do software?", Set.of(r(DESENVOLVEDOR)), "Iniciação", stgs));
         qs.add(q("Orientacoes claras sobre como lidar com possiveis conflitos eticos foram fornecidas?", Set.of(r(DESENVOLVEDOR)), "Iniciação", stgs));
@@ -212,7 +306,6 @@ public class BaseQuestionnaireTemplateInitializer {
         qs.add(q("As possiveis implicacoes eticas do software na seguranca e privacidade dos usuarios foram consideradas?", Set.of(r(DESENVOLVEDOR)), "Iniciação", stgs));
         qs.add(q("Voce esta comprometido em seguir as politicas eticas estabelecidas e em desenvolver o software de maneira etica?", Set.of(r(DESENVOLVEDOR)), "Iniciação", stgs));
         qs.add(q("Voce esta disposto a reportar possiveis problemas eticos identificados durante o desenvolvimento do software?", Set.of(r(DESENVOLVEDOR)), "Iniciação", stgs));
-        // -- ANALISTA DE QUALIDADE --
         qs.add(q("Voce entendeu as politicas eticas estabelecidas pelo administrador?", Set.of(r(ANALISTA_QUALIDADE)), "Iniciação", stgs));
         qs.add(q("Voce entendeu os objetivos eticos do software?", Set.of(r(ANALISTA_QUALIDADE)), "Iniciação", stgs));
         qs.add(q("Foram fornecidas orientacoes claras sobre como lidar com possiveis conflitos eticos durante o processo de desenvolvimento?", Set.of(r(ANALISTA_QUALIDADE)), "Iniciação", stgs));
@@ -234,7 +327,6 @@ public class BaseQuestionnaireTemplateInitializer {
 
     private List<TemplateQuestionDTO> buildRequisitos(List<StageSummaryResponseDTO> stgs) {
         List<TemplateQuestionDTO> qs = new ArrayList<>();
-        // -- CLIENTE --
         qs.add(q("Voce esta considerando as implicacoes eticas dos requisitos que esta solicitando?", Set.of(r(CLIENTE)), "Requisitos", stgs));
         qs.add(q("Voce esta disposto a ajustar os requisitos caso haja preocupacoes eticas levantadas pela equipe de desenvolvimento?", Set.of(r(CLIENTE)), "Requisitos", stgs));
         qs.add(q("Voce esta garantindo que o software a ser desenvolvido respeite a privacidade dos usuarios finais e seus dados?", Set.of(r(CLIENTE)), "Requisitos", stgs));
@@ -243,7 +335,6 @@ public class BaseQuestionnaireTemplateInitializer {
         qs.add(q("Voce esta garantindo que os requisitos eticos estejam sendo incorporados ao processo de desenvolvimento de software?", Set.of(r(CLIENTE)), "Requisitos", stgs));
         qs.add(q("Voce esta disposto a trabalhar com a equipe de desenvolvimento para encontrar solucoes que atendam aos requisitos eticos e aos objetivos do projeto?", Set.of(r(CLIENTE)), "Requisitos", stgs));
         qs.add(q("Voce esta aberto a receber feedback sobre as implicacoes eticas dos requisitos que esta solicitando?", Set.of(r(CLIENTE)), "Requisitos", stgs));
-        // -- GERENTE DE PROJETO --
         qs.add(q("Voce esta assegurando que os requisitos estejam em conformidade com as politicas da organizacao?", Set.of(r(GERENTE_PROJETO)), "Requisitos", stgs));
         qs.add(q("Foi determinado quem define os requisitos?", Set.of(r(GERENTE_PROJETO)), "Requisitos", stgs));
         qs.add(q("Voce esta considerando a viabilidade e os recursos necessarios para implementar os requisitos solicitados?", Set.of(r(GERENTE_PROJETO)), "Requisitos", stgs));
@@ -253,7 +344,6 @@ public class BaseQuestionnaireTemplateInitializer {
         qs.add(q("Voce esta disposto a trabalhar com a equipe de desenvolvimento para encontrar solucoes que atendam aos requisitos e aos objetivos do projeto?", Set.of(r(GERENTE_PROJETO)), "Requisitos", stgs));
         qs.add(q("Voce esta disposto a reavaliar os requisitos se as preocupacoes eticas ou outras preocupacoes forem levantadas pela equipe de desenvolvimento?", Set.of(r(GERENTE_PROJETO)), "Requisitos", stgs));
         qs.add(q("Voce esta garantindo que os requisitos sejam atualizados e modificados, se necessario, a medida que o projeto evolui?", Set.of(r(GERENTE_PROJETO)), "Requisitos", stgs));
-        // -- LIDER DE EQUIPE --
         qs.add(q("O escopo do projeto esta claro e completo?", Set.of(r(LIDER_EQUIPE)), "Requisitos", stgs));
         qs.add(q("Os requisitos sao claramente definidos e verificaveis?", Set.of(r(LIDER_EQUIPE), r(ANALISTA_REQUISITOS)), "Requisitos", stgs));
         qs.add(q("O prazo para a entrega dos requisitos e razoavel e viavel?", Set.of(r(LIDER_EQUIPE)), "Requisitos", stgs));
@@ -264,7 +354,6 @@ public class BaseQuestionnaireTemplateInitializer {
         qs.add(q("O cliente esta disposto a trabalhar em conjunto para a definicao e revisao dos requisitos?", Set.of(r(LIDER_EQUIPE)), "Requisitos", stgs));
         qs.add(q("Voce esta garantindo que o software a ser desenvolvido respeite a privacidade dos usuarios finais e seus dados?", Set.of(r(LIDER_EQUIPE)), "Requisitos", stgs));
         qs.add(q("A documentacao dos requisitos e completa e precisa?", Set.of(r(LIDER_EQUIPE), r(ANALISTA_REQUISITOS)), "Requisitos", stgs));
-        // -- ARQUITETO DE SOFTWARE --
         qs.add(q("Os requisitos foram entendidos e documentados de maneira clara?", Set.of(r(ARQUITETO_SOFTWARE)), "Requisitos", stgs));
         qs.add(q("O design proposto e coerente com os requisitos do cliente?", Set.of(r(ARQUITETO_SOFTWARE)), "Requisitos", stgs));
         qs.add(q("O design considera aspectos de usabilidade e experiencia do usuario?", Set.of(r(ARQUITETO_SOFTWARE), r(DESIGNER)), "Requisitos", stgs));
@@ -273,7 +362,6 @@ public class BaseQuestionnaireTemplateInitializer {
         qs.add(q("As expectativas do cliente em relacao ao design foram claramente comunicadas e estao sendo atendidas?", Set.of(r(ARQUITETO_SOFTWARE)), "Requisitos", stgs));
         qs.add(q("O designer esta disposto a trabalhar em conjunto com outras partes interessadas para a definicao e revisao dos requisitos?", Set.of(r(ARQUITETO_SOFTWARE), r(DESIGNER)), "Requisitos", stgs));
         qs.add(q("Voce esta considerando a inclusao de recursos de acessibilidade no software para atender as necessidades de usuarios com deficiencias?", Set.of(r(ARQUITETO_SOFTWARE), r(DESIGNER)), "Requisitos", stgs));
-        // -- DESENVOLVEDOR --
         qs.add(q("Os requisitos sao claros e compreensiveis?", Set.of(r(DESENVOLVEDOR)), "Requisitos", stgs));
         qs.add(q("A documentacao dos requisitos e completa e precisa?", Set.of(r(DESENVOLVEDOR)), "Requisitos", stgs));
         qs.add(q("Os requisitos sao viaveis tecnicamente?", Set.of(r(DESENVOLVEDOR)), "Requisitos", stgs));
@@ -283,7 +371,6 @@ public class BaseQuestionnaireTemplateInitializer {
         qs.add(q("O prazo para a conclusao dos requisitos e realista?", Set.of(r(DESENVOLVEDOR)), "Requisitos", stgs));
         qs.add(q("Os requisitos estao alinhados com as expectativas do cliente?", Set.of(r(DESENVOLVEDOR)), "Requisitos", stgs));
         qs.add(q("Voce esta garantindo que o software a ser desenvolvido respeite a privacidade dos usuarios finais e seus dados?", Set.of(r(DESENVOLVEDOR)), "Requisitos", stgs));
-        // -- ANALISTA DE QUALIDADE --
         qs.add(q("Os requisitos do projeto sao claros e precisos?", Set.of(r(ANALISTA_QUALIDADE)), "Requisitos", stgs));
         qs.add(q("Os requisitos estao documentados?", Set.of(r(ANALISTA_QUALIDADE)), "Requisitos", stgs));
         qs.add(q("Os requisitos sao verificaveis e mensuraveis?", Set.of(r(ANALISTA_QUALIDADE), r(ANALISTA_REQUISITOS)), "Requisitos", stgs));
@@ -302,7 +389,6 @@ public class BaseQuestionnaireTemplateInitializer {
         qs.add(q("O cliente esta disposto a trabalhar em conjunto para a definicao e revisao dos requisitos?", Set.of(r(ANALISTA_QUALIDADE)), "Requisitos", stgs));
         qs.add(q("O orcamento para a implementacao dos requisitos e adequado e realista?", Set.of(r(ANALISTA_QUALIDADE)), "Requisitos", stgs));
         qs.add(q("A documentacao dos requisitos e completa e precisa?", Set.of(r(ANALISTA_QUALIDADE)), "Requisitos", stgs));
-
         qs.add(q("Foram identificados requisitos que possam impactar negativamente grupos vulneraveis ou minorias?", Set.of(r(ANALISTA_REQUISITOS), r(CLIENTE), r(STAKEHOLDER)), "Requisitos", stgs));
         qs.add(q("Os requisitos contemplam conformidade com legislacao de protecao de dados (ex: LGPD, GDPR)?", Set.of(r(GERENTE_PROJETO), r(ANALISTA_REQUISITOS), r(RESPONSAVEL_NEGOCIO)), "Requisitos", stgs));
         qs.add(q("Requisitos, historias ou criterios de aceite sugeridos por IA sao identificados e revisados por um responsavel humano antes da aprovacao?", Set.of(r(ANALISTA_REQUISITOS), r(GERENTE_PROJETO), r(CLIENTE)), "Requisitos", stgs));
@@ -313,14 +399,12 @@ public class BaseQuestionnaireTemplateInitializer {
 
     private List<TemplateQuestionDTO> buildProjeto(List<StageSummaryResponseDTO> stgs) {
         List<TemplateQuestionDTO> qs = new ArrayList<>();
-        // -- CLIENTE --
         qs.add(q("Os requisitos do software foram claramente entendidos?", Set.of(r(CLIENTE)), "Projeto", stgs));
         qs.add(q("Os requisitos estao claramente descritos na documentacao?", Set.of(r(CLIENTE)), "Projeto", stgs));
         qs.add(q("Foram definidos prazos realistas para o projeto?", Set.of(r(CLIENTE)), "Projeto", stgs));
         qs.add(q("A equipe de desenvolvimento tem conhecimento tecnico suficiente para o projeto?", Set.of(r(CLIENTE)), "Projeto", stgs));
         qs.add(q("O projeto esta alinhado com as expectativas do cliente?", Set.of(r(CLIENTE), r(STAKEHOLDER)), "Projeto", stgs));
         qs.add(q("As condicoes sao definidas para determinar o nivel de comprometimento com o desenvolvimento de uma abordagem de reuso?", Set.of(r(CLIENTE)), "Projeto", stgs));
-        // -- GERENTE DE PROJETO --
         qs.add(q("O orcamento do projeto foi definido?", Set.of(r(GERENTE_PROJETO)), "Projeto", stgs));
         qs.add(q("A equipe de desenvolvimento esta disponivel para o projeto?", Set.of(r(GERENTE_PROJETO)), "Projeto", stgs));
         qs.add(q("O cronograma do projeto e factivel?", Set.of(r(GERENTE_PROJETO)), "Projeto", stgs));
@@ -333,7 +417,6 @@ public class BaseQuestionnaireTemplateInitializer {
         qs.add(q("Os diagramas sao suficientemente claros?", Set.of(r(GERENTE_PROJETO)), "Projeto", stgs));
         qs.add(q("O nivel de detalhamento e suficiente?", Set.of(r(GERENTE_PROJETO)), "Projeto", stgs));
         qs.add(q("Seria facil se orientar nos diagramas de projeto?", Set.of(r(GERENTE_PROJETO)), "Projeto", stgs));
-        // -- LIDER DE EQUIPE --
         qs.add(q("Os membros da equipe possuem as habilidades necessarias para o projeto?", Set.of(r(LIDER_EQUIPE)), "Projeto", stgs));
         qs.add(q("A equipe tem conhecimento suficiente da tecnologia a ser utilizada no projeto?", Set.of(r(LIDER_EQUIPE)), "Projeto", stgs));
         qs.add(q("As tarefas foram distribuidas de forma equilibrada na equipe?", Set.of(r(LIDER_EQUIPE)), "Projeto", stgs));
@@ -343,7 +426,6 @@ public class BaseQuestionnaireTemplateInitializer {
         qs.add(q("As condicoes sao definidas para determinar o nivel de comprometimento com o desenvolvimento de todas as metodologias de padroes?", Set.of(r(LIDER_EQUIPE)), "Projeto", stgs));
         qs.add(q("O nivel de detalhamento e suficiente?", Set.of(r(LIDER_EQUIPE)), "Projeto", stgs));
         qs.add(q("Os diagramas sao suficientemente claros?", Set.of(r(LIDER_EQUIPE)), "Projeto", stgs));
-        // -- ARQUITETO DE SOFTWARE --
         qs.add(q("O design proposto atende as expectativas do cliente?", Set.of(r(ARQUITETO_SOFTWARE)), "Projeto", stgs));
         qs.add(q("O design e viavel do ponto de vista tecnico?", Set.of(r(ARQUITETO_SOFTWARE)), "Projeto", stgs));
         qs.add(q("O design atende aos requisitos do projeto?", Set.of(r(ARQUITETO_SOFTWARE)), "Projeto", stgs));
@@ -353,7 +435,6 @@ public class BaseQuestionnaireTemplateInitializer {
         qs.add(q("O nivel de detalhamento e suficiente?", Set.of(r(ARQUITETO_SOFTWARE)), "Projeto", stgs));
         qs.add(q("O design inclui opcoes de personalizacao para atender a diferentes perfis de usuarios?", Set.of(r(ARQUITETO_SOFTWARE), r(DESIGNER)), "Projeto", stgs));
         qs.add(q("O design inclui opcoes de feedback para que os usuarios possam fornecer suas opinioes e sugestoes?", Set.of(r(ARQUITETO_SOFTWARE), r(DESIGNER)), "Projeto", stgs));
-        // -- DESENVOLVEDOR --
         qs.add(q("Os requisitos do projeto sao claros e compreensiveis?", Set.of(r(DESENVOLVEDOR)), "Projeto", stgs));
         qs.add(q("As tecnologias utilizadas sao apropriadas para o projeto?", Set.of(r(DESENVOLVEDOR)), "Projeto", stgs));
         qs.add(q("As funcionalidades do software sao desenvolvidas seguindo as especificacoes dos requisitos?", Set.of(r(DESENVOLVEDOR)), "Projeto", stgs));
@@ -365,7 +446,6 @@ public class BaseQuestionnaireTemplateInitializer {
         qs.add(q("O nivel de detalhamento e suficiente?", Set.of(r(DESENVOLVEDOR)), "Projeto", stgs));
         qs.add(q("Os diagramas sao suficientemente claros?", Set.of(r(DESENVOLVEDOR)), "Projeto", stgs));
         qs.add(q("O desenvolvimento inclui testes unitarios e de integracao para garantir a qualidade do codigo?", Set.of(r(DESENVOLVEDOR)), "Projeto", stgs));
-        // -- ANALISTA DE QUALIDADE --
         qs.add(q("Os requisitos do projeto foram corretamente interpretados e documentados?", Set.of(r(ANALISTA_QUALIDADE)), "Projeto", stgs));
         qs.add(q("Os testes de software sao realizados de acordo com as especificacoes dos requisitos?", Set.of(r(ANALISTA_QUALIDADE)), "Projeto", stgs));
         qs.add(q("Os testes sao realizados em diferentes cenarios e condicoes para garantir a robustez do software?", Set.of(r(ANALISTA_QUALIDADE)), "Projeto", stgs));
@@ -377,7 +457,6 @@ public class BaseQuestionnaireTemplateInitializer {
         qs.add(q("Os diagramas sao suficientemente claros?", Set.of(r(ANALISTA_QUALIDADE)), "Projeto", stgs));
         qs.add(q("As metricas de qualidade, como taxa de defeitos e satisfacao do usuario, sao monitoradas e avaliadas regularmente?", Set.of(r(ANALISTA_QUALIDADE)), "Projeto", stgs));
         qs.add(q("Sao realizados testes de seguranca para detectar possiveis vulnerabilidades e prevenir ataques ciberneticos?", Set.of(r(ANALISTA_QUALIDADE)), "Projeto", stgs));
-
         qs.add(q("As decisoes arquiteturais consideram o impacto etico de longo prazo sobre usuarios e sociedade?", Set.of(r(ARQUITETO_SOFTWARE), r(GERENTE_PROJETO)), "Projeto", stgs));
         qs.add(q("Existe rastreabilidade entre decisoes de projeto e requisitos eticos documentados?", Set.of(r(ANALISTA_QUALIDADE), r(ANALISTA_REQUISITOS)), "Projeto", stgs));
         qs.add(q("Decisoes arquiteturais ou de design sugeridas por IA foram justificadas e revisadas antes da adocao no projeto?", Set.of(r(ARQUITETO_SOFTWARE), r(DESIGNER), r(GERENTE_PROJETO)), "Projeto", stgs));
@@ -387,13 +466,11 @@ public class BaseQuestionnaireTemplateInitializer {
 
     private List<TemplateQuestionDTO> buildDesenvolvimento(List<StageSummaryResponseDTO> stgs) {
         List<TemplateQuestionDTO> qs = new ArrayList<>();
-        // -- CLIENTE --
         qs.add(q("Os requisitos estao sendo atendidos?", Set.of(r(CLIENTE)), "Desenvolvimento", stgs));
         qs.add(q("O projeto esta dentro do orcamento planejado?", Set.of(r(CLIENTE)), "Desenvolvimento", stgs));
         qs.add(q("O projeto esta dentro do cronograma planejado?", Set.of(r(CLIENTE)), "Desenvolvimento", stgs));
         qs.add(q("As funcionalidades estao sendo desenvolvidas de acordo com o que foi especificado?", Set.of(r(CLIENTE)), "Desenvolvimento", stgs));
         qs.add(q("As expectativas estao sendo atendidas em relacao a qualidade do produto?", Set.of(r(CLIENTE), r(STAKEHOLDER)), "Desenvolvimento", stgs));
-        // -- GERENTE DE PROJETO --
         qs.add(q("O projeto esta seguindo o cronograma estabelecido?", Set.of(r(GERENTE_PROJETO)), "Desenvolvimento", stgs));
         qs.add(q("As tarefas dos membros da equipe estao sendo bem definidas?", Set.of(r(GERENTE_PROJETO)), "Desenvolvimento", stgs));
         qs.add(q("Os recursos necessarios para o desenvolvimento estao sendo providenciados?", Set.of(r(GERENTE_PROJETO)), "Desenvolvimento", stgs));
@@ -404,7 +481,6 @@ public class BaseQuestionnaireTemplateInitializer {
         qs.add(q("Existem condicoes para integrar os recursos avancados do gerenciamento de codigo? Horarios? Parametros ambientais?", Set.of(r(GERENTE_PROJETO)), "Desenvolvimento", stgs));
         qs.add(q("Existem condicoes para a integracao de desenvolvedores jovens e menos experientes?", Set.of(r(GERENTE_PROJETO), r(LIDER_EQUIPE)), "Desenvolvimento", stgs));
         qs.add(q("A comunicacao entre os membros da equipe esta sendo eficaz?", Set.of(r(GERENTE_PROJETO), r(LIDER_EQUIPE)), "Desenvolvimento", stgs));
-        // -- LIDER DE EQUIPE --
         qs.add(q("O cronograma de desenvolvimento esta sendo cumprido?", Set.of(r(LIDER_EQUIPE)), "Desenvolvimento", stgs));
         qs.add(q("A equipe tem recursos suficientes para desenvolver o projeto dentro do prazo e orcamento?", Set.of(r(LIDER_EQUIPE)), "Desenvolvimento", stgs));
         qs.add(q("O progresso do projeto esta sendo monitorado regularmente e comunicado a equipe e partes interessadas?", Set.of(r(LIDER_EQUIPE)), "Desenvolvimento", stgs));
@@ -414,7 +490,6 @@ public class BaseQuestionnaireTemplateInitializer {
         qs.add(q("As mudancas de requisitos sao gerenciadas e controladas adequadamente?", Set.of(r(LIDER_EQUIPE)), "Desenvolvimento", stgs));
         qs.add(q("As falhas e defeitos sao registrados e tratados corretamente?", Set.of(r(LIDER_EQUIPE)), "Desenvolvimento", stgs));
         qs.add(q("As expectativas dos stakeholders em relacao a qualidade do produto estao sendo atendidas?", Set.of(r(LIDER_EQUIPE)), "Desenvolvimento", stgs));
-        // -- ARQUITETO DE SOFTWARE --
         qs.add(q("As interfaces de usuario estao sendo desenvolvidas com base nas especificacoes de design?", Set.of(r(ARQUITETO_SOFTWARE), r(DESIGNER)), "Desenvolvimento", stgs));
         qs.add(q("As telas de interface estao sendo testadas e revisadas conforme o feedback dos usuarios e a conformidade com os padroes de design?", Set.of(r(ARQUITETO_SOFTWARE), r(DESIGNER)), "Desenvolvimento", stgs));
         qs.add(q("As animacoes e efeitos visuais estao sendo integrados de acordo com as diretrizes de design?", Set.of(r(ARQUITETO_SOFTWARE), r(DESIGNER)), "Desenvolvimento", stgs));
@@ -423,7 +498,6 @@ public class BaseQuestionnaireTemplateInitializer {
         qs.add(q("O design da interface esta sendo desenvolvido de forma a facilitar a usabilidade e a acessibilidade para pessoas com deficiencia?", Set.of(r(ARQUITETO_SOFTWARE), r(DESIGNER)), "Desenvolvimento", stgs));
         qs.add(q("O design da interface esta sendo desenvolvido de forma a promover a coerencia e a consistencia em todas as telas?", Set.of(r(ARQUITETO_SOFTWARE), r(DESIGNER)), "Desenvolvimento", stgs));
         qs.add(q("As animacoes e transicoes de interface estao sendo desenvolvidas de forma a proporcionar uma experiencia de usuario agradavel?", Set.of(r(ARQUITETO_SOFTWARE), r(DESIGNER)), "Desenvolvimento", stgs));
-        // -- DESENVOLVEDOR --
         qs.add(q("Os requisitos estao claramente definidos e documentados?", Set.of(r(DESENVOLVEDOR)), "Desenvolvimento", stgs));
         qs.add(q("Os casos de teste foram definidos e documentados para cada requisito?", Set.of(r(DESENVOLVEDOR)), "Desenvolvimento", stgs));
         qs.add(q("A arquitetura do software foi definida e documentada?", Set.of(r(DESENVOLVEDOR)), "Desenvolvimento", stgs));
@@ -435,14 +509,12 @@ public class BaseQuestionnaireTemplateInitializer {
         qs.add(q("O controle de versao esta sendo utilizado adequadamente?", Set.of(r(DESENVOLVEDOR)), "Desenvolvimento", stgs));
         qs.add(q("O ambiente de desenvolvimento esta configurado corretamente?", Set.of(r(DESENVOLVEDOR)), "Desenvolvimento", stgs));
         qs.add(q("Foram definidos e documentados criterios de aceitacao para a entrega do software?", Set.of(r(DESENVOLVEDOR)), "Desenvolvimento", stgs));
-        // -- ANALISTA DE QUALIDADE --
         qs.add(q("O codigo fonte esta sendo versionado adequadamente?", Set.of(r(ANALISTA_QUALIDADE)), "Desenvolvimento", stgs));
         qs.add(q("Os testes unitarios estao sendo executados e cobrindo a maioria das funcionalidades do software?", Set.of(r(ANALISTA_QUALIDADE)), "Desenvolvimento", stgs));
         qs.add(q("As correcoes de bugs estao sendo registradas e tratadas de maneira apropriada?", Set.of(r(ANALISTA_QUALIDADE)), "Desenvolvimento", stgs));
         qs.add(q("Os requisitos de desempenho estao sendo atendidos de acordo com as expectativas?", Set.of(r(ANALISTA_QUALIDADE)), "Desenvolvimento", stgs));
         qs.add(q("As metricas de qualidade do codigo (ex: analise estatica) estao sendo monitoradas e utilizadas para orientar as decisoes do time?", Set.of(r(ANALISTA_QUALIDADE)), "Desenvolvimento", stgs));
         qs.add(q("O processo de deploy esta sendo automatizado e documentado adequadamente?", Set.of(r(ANALISTA_QUALIDADE)), "Desenvolvimento", stgs));
-
         qs.add(q("Existe revisao de codigo com foco em identificar vieses algoritmicos ou praticas discriminatorias?", Set.of(r(DESENVOLVEDOR), r(ANALISTA_QUALIDADE)), "Desenvolvimento", stgs));
         qs.add(q("Os dados utilizados no desenvolvimento respeitam as politicas de privacidade e consentimento?", Set.of(r(DESENVOLVEDOR), r(GERENTE_PROJETO)), "Desenvolvimento", stgs));
         qs.add(q("As decisoes tecnicas de trade-off estao sendo documentadas com justificativa etica?", Set.of(r(DESENVOLVEDOR), r(ARQUITETO_SOFTWARE), r(LIDER_EQUIPE)), "Desenvolvimento", stgs));
@@ -454,14 +526,12 @@ public class BaseQuestionnaireTemplateInitializer {
 
     private List<TemplateQuestionDTO> buildTestes(List<StageSummaryResponseDTO> stgs) {
         List<TemplateQuestionDTO> qs = new ArrayList<>();
-        // -- CLIENTE --
         qs.add(q("Os requisitos estabelecidos foram atendidos corretamente?", Set.of(r(CLIENTE)), "Testes", stgs));
         qs.add(q("O software apresenta erros ou comportamentos inesperados?", Set.of(r(CLIENTE)), "Testes", stgs));
         qs.add(q("As funcionalidades foram testadas de maneira abrangente?", Set.of(r(CLIENTE)), "Testes", stgs));
         qs.add(q("A interface do software esta intuitiva e facil de usar?", Set.of(r(CLIENTE)), "Testes", stgs));
         qs.add(q("O desempenho do software atende as expectativas estabelecidas?", Set.of(r(CLIENTE)), "Testes", stgs));
         qs.add(q("O nivel de erros permitidos foi determinado antes do produto ir para teste de aceitacao?", Set.of(r(CLIENTE)), "Testes", stgs));
-        // -- GERENTE DE PROJETO --
         qs.add(q("O sistema foi testado em diferentes ambientes?", Set.of(r(GERENTE_PROJETO)), "Testes", stgs));
         qs.add(q("Foi verificado se o sistema e compativel com diferentes dispositivos?", Set.of(r(GERENTE_PROJETO)), "Testes", stgs));
         qs.add(q("Foram realizados testes de seguranca no sistema?", Set.of(r(GERENTE_PROJETO)), "Testes", stgs));
@@ -469,7 +539,6 @@ public class BaseQuestionnaireTemplateInitializer {
         qs.add(q("Foram realizados testes de backup e recuperacao de dados?", Set.of(r(GERENTE_PROJETO)), "Testes", stgs));
         qs.add(q("O nivel de erros permitidos foi determinado antes do produto ir para teste de aceitacao?", Set.of(r(GERENTE_PROJETO)), "Testes", stgs));
         qs.add(q("Existe um mecanismo que distingue entre um produto de qualidade versus produto correto?", Set.of(r(GERENTE_PROJETO)), "Testes", stgs));
-        // -- LIDER DE EQUIPE --
         qs.add(q("Todos os requisitos foram implementados corretamente?", Set.of(r(LIDER_EQUIPE)), "Testes", stgs));
         qs.add(q("As funcionalidades estao atendendo as expectativas?", Set.of(r(LIDER_EQUIPE)), "Testes", stgs));
         qs.add(q("Os resultados dos testes unitarios estao satisfatorios?", Set.of(r(LIDER_EQUIPE)), "Testes", stgs));
@@ -478,7 +547,6 @@ public class BaseQuestionnaireTemplateInitializer {
         qs.add(q("O sistema esta respondendo adequadamente as solicitacoes de entrada?", Set.of(r(LIDER_EQUIPE)), "Testes", stgs));
         qs.add(q("Os usuarios estao conseguindo navegar facilmente na interface?", Set.of(r(LIDER_EQUIPE)), "Testes", stgs));
         qs.add(q("O sistema esta compativel com diferentes dispositivos e navegadores?", Set.of(r(LIDER_EQUIPE)), "Testes", stgs));
-        // -- ARQUITETO DE SOFTWARE --
         qs.add(q("Todos os requisitos de design foram implementados no produto?", Set.of(r(ARQUITETO_SOFTWARE), r(DESIGNER)), "Testes", stgs));
         qs.add(q("A interface do usuario esta intuitiva e facil de usar?", Set.of(r(ARQUITETO_SOFTWARE), r(DESIGNER)), "Testes", stgs));
         qs.add(q("O design e consistente em todas as telas e funcionalidades do produto?", Set.of(r(ARQUITETO_SOFTWARE), r(DESIGNER)), "Testes", stgs));
@@ -487,7 +555,6 @@ public class BaseQuestionnaireTemplateInitializer {
         qs.add(q("O design esta em conformidade com as melhores praticas de usabilidade e acessibilidade?", Set.of(r(ARQUITETO_SOFTWARE), r(DESIGNER)), "Testes", stgs));
         qs.add(q("O design esta adequado para todas as resolucoes de tela e dispositivos?", Set.of(r(ARQUITETO_SOFTWARE), r(DESIGNER)), "Testes", stgs));
         qs.add(q("Todas as informacoes e feedbacks foram considerados e implementados no design do produto?", Set.of(r(ARQUITETO_SOFTWARE), r(DESIGNER)), "Testes", stgs));
-        // -- DESENVOLVEDOR --
         qs.add(q("Voce entende as especificacoes do teste?", Set.of(r(DESENVOLVEDOR)), "Testes", stgs));
         qs.add(q("Voce implementou todos os requisitos de teste?", Set.of(r(DESENVOLVEDOR)), "Testes", stgs));
         qs.add(q("Voce atualizou o codigo-fonte para corrigir erros encontrados nos testes?", Set.of(r(DESENVOLVEDOR)), "Testes", stgs));
@@ -496,7 +563,6 @@ public class BaseQuestionnaireTemplateInitializer {
         qs.add(q("Voce executou testes de estresse para garantir que o software possa lidar com cargas de trabalho pesadas?", Set.of(r(DESENVOLVEDOR)), "Testes", stgs));
         qs.add(q("Voce trabalhou com outros desenvolvedores para garantir que todos os modulos do software foram testados?", Set.of(r(DESENVOLVEDOR)), "Testes", stgs));
         qs.add(q("Voce realizou testes de regressao para garantir que correcoes e atualizacoes nao afetaram outras areas do software?", Set.of(r(DESENVOLVEDOR)), "Testes", stgs));
-        // -- ANALISTA DE QUALIDADE --
         qs.add(q("Todas as funcionalidades especificadas nos requisitos foram testadas?", Set.of(r(ANALISTA_QUALIDADE)), "Testes", stgs));
         qs.add(q("Todas as funcionalidades testadas passaram nos testes unitarios?", Set.of(r(ANALISTA_QUALIDADE)), "Testes", stgs));
         qs.add(q("Foram realizados testes de integracao entre as diferentes partes do sistema?", Set.of(r(ANALISTA_QUALIDADE)), "Testes", stgs));
@@ -510,7 +576,6 @@ public class BaseQuestionnaireTemplateInitializer {
         qs.add(q("O nivel de erros permitidos foi determinado antes do produto ir para teste de aceitacao?", Set.of(r(ANALISTA_QUALIDADE)), "Testes", stgs));
         qs.add(q("Existe um mecanismo que distingue entre um produto de qualidade versus produto correto?", Set.of(r(ANALISTA_QUALIDADE)), "Testes", stgs));
         qs.add(q("Foram realizados testes de usabilidade para avaliar a experiencia do usuario com o sistema?", Set.of(r(ANALISTA_QUALIDADE)), "Testes", stgs));
-
         qs.add(q("Foram realizados testes especificos para detectar vieses nos resultados do software?", Set.of(r(ANALISTA_QUALIDADE), r(DESENVOLVEDOR)), "Testes", stgs));
         qs.add(q("Os cenarios de teste incluem perfis de usuarios vulneraveis ou com necessidades especiais?", Set.of(r(ANALISTA_QUALIDADE), r(DESIGNER)), "Testes", stgs));
         qs.add(q("Os resultados dos testes eticos sao compartilhados com os stakeholders para validacao?", Set.of(r(ANALISTA_QUALIDADE), r(GERENTE_PROJETO), r(STAKEHOLDER)), "Testes", stgs));
@@ -565,7 +630,7 @@ public class BaseQuestionnaireTemplateInitializer {
     }
 
     private TemplateQuestionDTO q(String value, Set<RoleSummaryResponseDTO> roles,
-                                   String stageName, List<StageSummaryResponseDTO> stages) {
+                                String stageName, List<StageSummaryResponseDTO> stages) {
         TemplateQuestionDTO dto = new TemplateQuestionDTO();
         dto.setValue(value);
         dto.setRoles(roles);
@@ -597,7 +662,7 @@ public class BaseQuestionnaireTemplateInitializer {
     }
 
     private TemplateRepresentativeDTO rep(String email, String firstName, String lastName,
-                                           String weight, Set<RoleSummaryResponseDTO> roles) {
+                                        String weight, Set<RoleSummaryResponseDTO> roles) {
         TemplateRepresentativeDTO r = new TemplateRepresentativeDTO();
         r.setEmail(email);
         r.setFirstName(firstName);
@@ -611,4 +676,3 @@ public class BaseQuestionnaireTemplateInitializer {
         return new StageSummaryResponseDTO(id, name);
     }
 }
-

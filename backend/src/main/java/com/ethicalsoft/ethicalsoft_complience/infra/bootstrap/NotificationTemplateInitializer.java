@@ -39,7 +39,7 @@ public class NotificationTemplateInitializer {
     @PostConstruct
     public void seedTemplates() {
         try {
-            templatesToSeed().forEach(this::insertIfMissing);
+                        templatesToSeed().forEach(this::upsertTemplate);
         } catch (Exception e) {
             log.warn("[notification-template-init] Não foi possível inicializar templates de notificação no MongoDB. " +
                     "A aplicação continuará normalmente. Erro: {}", e.getMessage());
@@ -70,8 +70,8 @@ public class NotificationTemplateInitializer {
                         .key(NEW_USER_CREDENTIALS)
                         .whoCanSend(List.of(UserRoleEnum.ADMIN.name()))
                         .recipients(List.of())
-                        .title("")
-                        .body("")
+                        .title("Suas credenciais de acesso ao projeto {projectName}")
+                        .body("Olá {firstName}, sua conta foi criada para o projeto {projectName}. Use a senha temporária enviada neste email para realizar o primeiro acesso.")
                         .templateLink("users/new-user-credentials.ftl")
                         .channels(List.of(NotificationChannel.EMAIL.name()))
                         .build(),
@@ -169,7 +169,7 @@ public class NotificationTemplateInitializer {
                         .key(PROJECT_DEADLINE_EXCEEDED_WARNING)
                         .whoCanSend(List.of(UserRoleEnum.ADMIN.name(), "SYSTEM"))
                         .recipients(List.of())
-                        .title("⚠️ Prazo do projeto excedido: {projectName}")
+                        .title("Prazo do projeto excedido: {projectName}")
                         .body("O reagendamento do questionário {questionnaireName} faz com que a data de término ({newEndDate}) ultrapasse o prazo do projeto ({deadline}). Considere estender o prazo do projeto ou reduzir a duração das próximas etapas/iterações.")
                         .templateLink("")
                         .channels(List.of(NotificationChannel.INTERNAL.name(), NotificationChannel.EMAIL.name()))
@@ -186,13 +186,22 @@ public class NotificationTemplateInitializer {
         );
     }
 
-    private void insertIfMissing(NotificationTemplateDocument template) {
+        private void upsertTemplate(NotificationTemplateDocument template) {
         if (template == null || template.getKey() == null || template.getKey().isBlank()) {
             return;
         }
-        if (repository.findByKey(template.getKey()).isPresent()) {
-            return;
-        }
-        repository.save(template);
+                NotificationTemplateDocument existing = repository.findByKey(template.getKey()).orElse(null);
+                NotificationTemplateDocument reconciled = NotificationTemplateDocument.builder()
+                                .id(existing != null ? existing.getId() : null)
+                                .key(template.getKey())
+                                .whoCanSend(template.getWhoCanSend())
+                                .recipients(template.getRecipients())
+                                .title(template.getTitle())
+                                .body(template.getBody())
+                                .templateLink(template.getTemplateLink())
+                                .channels(template.getChannels())
+                                .build();
+                repository.save(java.util.Objects.requireNonNull(reconciled));
+                log.info("[notification-template-init] Template '{}' {}.", template.getKey(), existing == null ? "inserido" : "reconciliado");
     }
 }

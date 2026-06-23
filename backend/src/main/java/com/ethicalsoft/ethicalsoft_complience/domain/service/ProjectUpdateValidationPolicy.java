@@ -24,8 +24,8 @@ public class ProjectUpdateValidationPolicy {
         List<String> blocked = new ArrayList<>();
         List<String> warnings = new ArrayList<>();
 
-        if (project.getStatus() != ProjectStatusEnum.ABERTO) {
-            blocked.add("Somente projetos com status ABERTO podem ser atualizados. Status atual: " + project.getStatus());
+        if (project.getStatus() != ProjectStatusEnum.ABERTO && project.getStatus() != ProjectStatusEnum.RASCUNHO) {
+            blocked.add("Somente projetos com status ABERTO ou RASCUNHO podem ser atualizados. Status atual: " + project.getStatus());
         }
 
         if (hasProjectIsepResult) {

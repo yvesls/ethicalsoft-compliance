@@ -27,28 +27,31 @@ public class ProjectAssignmentNotificationStrategy implements NotificationTypeSt
     @Override
     public void send(SendNotificationCommand command) {
         NotificationTemplate template = sendSupport.loadTemplate(type());
-        sendSupport.validateCanSend(template);
+        boolean systemTriggered = Boolean.TRUE.equals(command.context().get("systemTriggered"));
+        if (!systemTriggered) {
+            sendSupport.validateCanSend(template);
+        }
 
         Long projectId = (Long) command.context().get("projectId");
-        String firstName = Optional.ofNullable(command.context().get("firstName")).map(Object::toString).orElse("");
-        String projectName = Optional.ofNullable(command.context().get("projectName")).map(Object::toString).orElse("");
-        String adminName = Optional.ofNullable(command.context().get("adminName")).map(Object::toString).orElse("");
-        String adminEmail = Optional.ofNullable(command.context().get("adminEmail")).map(Object::toString).orElse("");
-        String timelineSummary = Optional.ofNullable(command.context().get("timelineSummary")).map(Object::toString).orElse("");
+        String firstName = Optional.ofNullable(command.context().get("firstName")).map(value -> value.toString()).orElse("");
+        String projectName = Optional.ofNullable(command.context().get("projectName")).map(value -> value.toString()).orElse("");
+        String adminName = Optional.ofNullable(command.context().get("adminName")).map(value -> value.toString()).orElse("");
+        String adminEmail = Optional.ofNullable(command.context().get("adminEmail")).map(value -> value.toString()).orElse("");
+        String timelineSummary = Optional.ofNullable(command.context().get("timelineSummary")).map(value -> value.toString()).orElse("");
         LocalDate startDate = (LocalDate) command.context().get("startDate");
         LocalDate deadline = (LocalDate) command.context().get("deadline");
         LocalDate nextQuestionnaireDate = (LocalDate) command.context().get("nextQuestionnaireDate");
         Object rolesObj = command.context().get("roles");
-        List<String> rolesList = rolesObj instanceof List<?> list ? list.stream().map(Object::toString).toList() : List.of();
+        List<String> rolesList = rolesObj instanceof List<?> list ? list.stream().map(value -> value.toString()).toList() : List.of();
         String roles = String.join(", ", rolesList);
         String projectLink = Optional.ofNullable(command.context().get("projectLink"))
-                .map(Object::toString)
+            .map(value -> value.toString())
                 .orElseGet(() -> projectId != null ? "/projects/" + projectId : "");
         String environment = Optional.ofNullable(command.context().get("environment"))
-                .map(Object::toString)
+            .map(value -> value.toString())
                 .orElse("");
         String supportEmail = Optional.ofNullable(command.context().get("supportEmail"))
-                .map(Object::toString)
+            .map(value -> value.toString())
                 .orElse("");
 
         Map<String, String> placeholders = Map.ofEntries(

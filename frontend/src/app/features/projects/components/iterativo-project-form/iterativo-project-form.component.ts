@@ -1651,6 +1651,7 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
 				this.getTemplateIterationName(index) ??
 				this.translate.instant('projects.form.iteration_fallback', { n: index + 1 })
 			const iterationName = iterationControl.get('name')?.value || defaultIterationName
+			const templateQuestionnaire = this.getTemplateQuestionnaireForIteration(iterationName)
 			const iterationStartValue = iterationControl.get('applicationStartDate')?.value
 			const iterationEndValue = iterationControl.get('applicationEndDate')?.value
 
@@ -1669,16 +1670,23 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
 			const questionnaireEndDate = FormUtils.addBusinessDays(new Date(iterationStart), closingOffset)
 
 			const dateRange = `${FormUtils.formatDateBR(FormUtils.formatDateISO(questionnaireStartDate))} - ${FormUtils.formatDateBR(FormUtils.formatDateISO(questionnaireEndDate))}`
-			const cached = cacheByIteration.get(iterationName)
+			const templateQuestionnaireName = this.getTemplateQuestionnaireName(templateQuestionnaire, iterationName)
+			const cached =
+				cacheByIteration.get(iterationName) ??
+				cacheByIteration.get(templateQuestionnaireName)
 			const initialQuestions = cached?.questions?.length
 				? this.cloneQuestions(cached.questions, iterationName)
 				: this.getTemplateQuestionsForIteration(iterationName)
+			const templateWeight = Number(templateQuestionnaire?.weight)
 
 			questionnairesArray.push(
 				this.fb.group({
-					name: [iterationName, [Validators.required]],
+					name: [templateQuestionnaireName, [Validators.required]],
 					iteration: [iterationName, [Validators.required]],
-					weight: [cached?.weight ?? 1, [Validators.required, Validators.min(0)]],
+					weight: [
+						cached?.weight ?? (Number.isFinite(templateWeight) ? templateWeight : 1),
+						[Validators.required, Validators.min(0)],
+					],
 					dateRange: [cached?.dateRange || dateRange],
 					questions: [initialQuestions],
 				})
@@ -1754,22 +1762,34 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
 		return trimmedName?.length ? trimmedName : null
 	}
 
-	private getTemplateQuestionsForIteration(iterationName?: string | null): QuestionData[] {
+	private getTemplateQuestionnaireForIteration(iterationName?: string | null): TemplateQuestionnaireDTO | undefined {
 		if (!iterationName || !this.selectedTemplateData?.questionnaires?.length) {
-			return []
+			return undefined
 		}
 
-		const templateQuestionnaire = this.selectedTemplateData.questionnaires.find(
+		return this.selectedTemplateData.questionnaires.find(
 			(questionnaire: TemplateQuestionnaireDTO) =>
 				questionnaire.iterationRefName === iterationName || questionnaire.name === iterationName
 		)
+	}
+
+	private getTemplateQuestionnaireName(
+		templateQuestionnaire: TemplateQuestionnaireDTO | undefined,
+		fallbackIterationName: string
+	): string {
+		const trimmedName = templateQuestionnaire?.name?.trim()
+		return trimmedName?.length ? trimmedName : fallbackIterationName
+	}
+
+	private getTemplateQuestionsForIteration(iterationName?: string | null): QuestionData[] {
+		const templateQuestionnaire = this.getTemplateQuestionnaireForIteration(iterationName)
 
 		if (!templateQuestionnaire?.questions?.length) {
 			return []
 		}
 
 		return templateQuestionnaire.questions.map((question: TemplateQuestionDTO, index: number) => ({
-			id: this.generateQuestionId(iterationName, index),
+			id: this.generateQuestionId(iterationName ?? undefined, index),
 			value: question.value,
 			roleIds: this.extractRoleIds(question.roles, question.roleNames),
 			roleNames: this.extractRoleNames(question.roles, question.roleNames),

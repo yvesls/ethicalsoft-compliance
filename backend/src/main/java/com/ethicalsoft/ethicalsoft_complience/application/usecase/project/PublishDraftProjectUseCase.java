@@ -35,12 +35,13 @@ public class PublishDraftProjectUseCase {
     private final ProjectTimelineStatusPolicy projectTimelineStatusPolicy;
     private final RepresentativeQuestionnaireResponseCommandPort representativeQuestionnaireResponseCommandPort;
     private final SendNotificationUseCase sendNotificationUseCase;
+    private final AddRepresentativeUseCase addRepresentativeUseCase;
 
     @Transactional
     public ProjectResponseDTO execute(Long projectId) {
         log.info("[publish-draft] Publicando projeto rascunho id={}", projectId);
 
-        Project project = projectRepository.findById(projectId)
+        Project project = projectRepository.findById(java.util.Objects.requireNonNull(projectId))
                 .orElseThrow(() -> new ResourceNotFoundException("Projeto não encontrado id=" + projectId));
 
         if (project.getStatus() != ProjectStatusEnum.RASCUNHO) {
@@ -61,7 +62,8 @@ public class PublishDraftProjectUseCase {
 
         validateRepresentativesRoles(project, representatives);
         createResponsesForRepresentatives(project, representatives);
-        triggerInitialQuestionnaireReminders(project);
+        addRepresentativeUseCase.notifyProjectAssignmentsAfterPublish(project, representatives);
+        triggerInitialQuestionnaireRemindersAfterCommit(project);
 
         log.info("[publish-draft] Projeto id={} publicado com sucesso. Status=ABERTO", projectId);
 
@@ -90,7 +92,7 @@ public class PublishDraftProjectUseCase {
             Set<Long> representativeRoleIds = Optional.ofNullable(rep.getRoles())
                     .orElseGet(Set::of)
                     .stream()
-                    .map(Role::getId)
+                    .map(role -> role.getId())
                     .filter(Objects::nonNull)
                     .collect(Collectors.toSet());
             for (var questionnaire : project.getQuestionnaires()) {
@@ -98,7 +100,7 @@ public class PublishDraftProjectUseCase {
                         .orElseGet(Set::of)
                         .stream()
                         .flatMap(question -> Optional.ofNullable(question.getRoles()).orElseGet(Set::of).stream())
-                        .map(Role::getId)
+                        .map(role -> role.getId())
                         .filter(Objects::nonNull)
                         .anyMatch(representativeRoleIds::contains);
                 if (!hasMatchingRole) {
@@ -116,15 +118,16 @@ public class PublishDraftProjectUseCase {
                 representativeQuestionnaireResponseCommandPort.createResponsesForRepresentative(project, rep));
     }
 
-    private void triggerInitialQuestionnaireReminders(Project project) {
+    private void triggerInitialQuestionnaireRemindersAfterCommit(Project project) {
         if (project.getQuestionnaires() == null) return;
-        project.getQuestionnaires().forEach(q -> {
+        Runnable action = () -> project.getQuestionnaires().forEach(q -> {
             try {
                 sendNotificationUseCase.execute(new SendNotificationCommand(
                         NotificationType.QUESTIONNAIRE_REMINDER,
                         Map.ofEntries(
                                 Map.entry("projectId", project.getId()),
-                                Map.entry("questionnaireId", q.getId())
+                                Map.entry("questionnaireId", q.getId()),
+                                Map.entry("systemTriggered", true)
                         )
                 ));
             } catch (Exception ex) {
@@ -132,6 +135,15 @@ public class PublishDraftProjectUseCase {
                         project.getId(), q.getId(), ex);
             }
         });
+
+        org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+                new org.springframework.transaction.support.TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        action.run();
+                    }
+                }
+        );
     }
 }
 
