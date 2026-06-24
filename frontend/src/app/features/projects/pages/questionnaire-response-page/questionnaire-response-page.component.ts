@@ -102,7 +102,7 @@ export class QuestionnaireResponsePageComponent implements OnInit {
   ngOnInit(): void {
     this.listenToAuthState();
     this.listenToRoute();
-
+    console.log("response page init");
     this.sessionExpirationService.registerDraftSaver(() => this.saveDraftLocally());
     this.destroyRef.onDestroy(() => this.sessionExpirationService.unregisterDraftSaver());
   }

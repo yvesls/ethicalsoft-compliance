@@ -1,4 +1,4 @@
-import { Component, inject, Input, OnInit, signal, ChangeDetectionStrategy } from '@angular/core'
+import { Component, inject, Input, OnInit, signal, ChangeDetectionStrategy, computed } from '@angular/core'
 import { CommonModule, DatePipe } from '@angular/common'
 import { DashboardService } from '../../services/dashboard.service'
 import { RepresentativeResponseDTO } from '../../interfaces/dashboard.interface'
@@ -24,6 +24,13 @@ export class ResponseDetailModalComponent implements OnInit {
 	private readonly modalService = inject(ModalService)
 	private readonly notificationService = inject(NotificationService)
 	private readonly translate = inject(TranslateService)
+
+  readonly filteredAnswers = computed(() => {
+    const responseData = this.data();
+    if (!responseData || !responseData.answers) return [];
+    console.log('Filtering answers for representativeId:', responseData.answers);
+    return responseData.answers.filter(answer => answer.response !== null);
+  });
 
 	data = signal<RepresentativeResponseDTO | null>(null)
 	loading = signal(true)
