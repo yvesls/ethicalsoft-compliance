@@ -166,12 +166,12 @@ export class ProjectListPageComponent implements OnInit {
 
 					return filters
 				}),
+				debounceTime(300),
+				distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)),
 				tap(() => {
 					this.state.update((s) => ({ ...s, status: 'loading' }))
 					this.spinner.show()
 				}),
-				debounceTime(300),
-				distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)),
 				switchMap((filters) =>
 					this.projectStore.getProjects(filters).pipe(
 						catchError((err) => {

@@ -25,6 +25,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -650,19 +652,15 @@ public class UpdateProjectUseCase {
 
                     resolution.temporaryPassword().ifPresent(tempPwd -> {
                         try {
-                            sendNotificationUseCase.execute(new SendNotificationCommand(
-                                    NotificationType.NEW_USER_CREDENTIALS,
-                                    Map.of(
-                                            "to", dto.getEmail(),
-                                            "firstName", repDTO.getFirstName(),
-                                            "tempPassword", tempPwd,
-                                            "projectName", project.getName(),
-                                            "adminName", currentAdmin.getFirstName() + " " + currentAdmin.getLastName(),
-                                            "projectId", project.getId()
-                                    )
-                            ));
+                            sendNewUserCredentialsAfterCommit(
+                                    dto.getEmail(),
+                                    repDTO.getFirstName(),
+                                    tempPwd,
+                                    project,
+                                    currentAdmin
+                            );
                         } catch (Exception e) {
-                            log.warn("[update-project] Falha ao enviar credenciais para {}", dto.getEmail(), e);
+                            log.warn("[update-project] Falha ao agendar credenciais para {}", dto.getEmail(), e);
                         }
                     });
                 }
@@ -751,19 +749,15 @@ public class UpdateProjectUseCase {
 
         resolution.temporaryPassword().ifPresent(tempPwd -> {
             try {
-                sendNotificationUseCase.execute(new SendNotificationCommand(
-                        NotificationType.NEW_USER_CREDENTIALS,
-                        Map.of(
-                                "to", dto.getEmail(),
-                                "firstName", dto.getFirstName() != null ? dto.getFirstName() : "",
-                                "tempPassword", tempPwd,
-                                "projectName", project.getName(),
-                                "adminName", currentAdmin.getFirstName() + " " + currentAdmin.getLastName(),
-                                "projectId", project.getId()
-                        )
-                ));
+            sendNewUserCredentialsAfterCommit(
+                dto.getEmail(),
+                dto.getFirstName() != null ? dto.getFirstName() : "",
+                tempPwd,
+                project,
+                currentAdmin
+            );
             } catch (Exception e) {
-                log.warn("[update-project] Falha ao enviar credenciais para {}", dto.getEmail(), e);
+            log.warn("[update-project] Falha ao agendar credenciais para {}", dto.getEmail(), e);
             }
         });
 
@@ -845,6 +839,51 @@ public class UpdateProjectUseCase {
         } catch (Exception e) {
             log.warn("[update-project] Falha ao enviar notificação de mudança de email {} -> {}", oldEmail, newEmail, e);
         }
+    }
+
+    private void sendNewUserCredentialsAfterCommit(String email,
+                                                   String firstName,
+                                                   String tempPassword,
+                                                   Project project,
+                                                   User currentAdmin) {
+        Runnable action = () -> {
+            try {
+                Map<String, Object> context = new HashMap<>();
+                context.put("to", email);
+                context.put("firstName", firstName != null ? firstName : "");
+                context.put("tempPassword", tempPassword);
+                context.put("projectName", project != null ? project.getName() : "");
+                context.put("adminName", buildAdminName(currentAdmin));
+                context.put("projectId", project != null ? project.getId() : null);
+                context.put("systemTriggered", true);
+
+                sendNotificationUseCase.execute(new SendNotificationCommand(
+                        NotificationType.NEW_USER_CREDENTIALS,
+                        context
+                ));
+            } catch (Exception ex) {
+                log.warn("[update-project] Falha ao enviar credenciais para {}", email, ex);
+            }
+        };
+
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    action.run();
+                }
+            });
+        } else {
+            action.run();
+        }
+    }
+
+    private String buildAdminName(User currentAdmin) {
+        if (currentAdmin == null) {
+            return "Sistema";
+        }
+        return Optional.ofNullable(currentAdmin.getFirstName()).orElse("") + " "
+                + Optional.ofNullable(currentAdmin.getLastName()).orElse("");
     }
 
     private Map<Integer, Boolean> buildQuestionnaireResultMap(Long projectId) {

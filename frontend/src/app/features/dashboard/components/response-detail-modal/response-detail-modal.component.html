@@ -53,7 +53,7 @@
                 </tr>
               </thead>
               <tbody>
-                @for (a of d.answers; track a.questionId) {
+                @for (a of filteredAnswers(); track a.questionId) {
                   <tr>
                     <td class="response-modal__question-text">{{ a.questionText }}</td>
                     <td class="text-center">

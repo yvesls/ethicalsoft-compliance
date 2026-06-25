@@ -47,27 +47,35 @@ public class QuestionnaireReminderNotificationStrategy implements NotificationTy
     @Override
     public void send(SendNotificationCommand command) {
         Long projectId = (Long) command.context().get("projectId");
-        var project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new EntityNotFoundException("Projeto não encontrado: " + projectId));
+        boolean systemTriggered = Boolean.TRUE.equals(command.context().get("systemTriggered"));
+        var project = projectId == null ? null : projectRepository.findById(projectId).orElse(null);
+        if (project == null) {
+            throw new EntityNotFoundException("Projeto não encontrado: " + projectId);
+        }
 
         var template = notificationTemplatePort.findByKey(type().templateKey())
                 .orElseThrow(() -> new EntityNotFoundException("Template não encontrado: " + type().templateKey()));
 
-        var currentUser = currentUserPort.getCurrentUser();
-        if (currentUser == null) {
-            log.warn("[notification] Usuário atual não encontrado para enviar lembrete interno projeto={}", projectId);
-            return;
+        NotificationParty sender;
+        if (systemTriggered) {
+            sender = new NotificationParty(null, "Sistema", null, List.of("SYSTEM"));
+        } else {
+            var currentUser = currentUserPort.getCurrentUser();
+            if (currentUser == null) {
+                log.warn("[notification] Usuário atual não encontrado para enviar lembrete interno projeto={}", projectId);
+                return;
+            }
+
+            authorizationPolicy.validateCanSend(template.whoCanSend(), currentUser.getRole(), List.of(currentUser.getRole().name()));
+
+            var senderRoles = notificationRoleResolver.resolveRoles(currentUser.getEmail(), projectId);
+            sender = new NotificationParty(
+                    currentUser.getId(),
+                    currentUser.getFirstName() + " " + currentUser.getLastName(),
+                    currentUser.getEmail(),
+                    senderRoles
+            );
         }
-
-        authorizationPolicy.validateCanSend(template.whoCanSend(), currentUser.getRole(), List.of(currentUser.getRole().name()));
-
-        var senderRoles = notificationRoleResolver.resolveRoles(currentUser.getEmail(), projectId);
-        var sender = new NotificationParty(
-                currentUser.getId(),
-                currentUser.getFirstName() + " " + currentUser.getLastName(),
-                currentUser.getEmail(),
-                senderRoles
-        );
 
         Integer questionnaireId = null;
         Object qIdObj = command.context().get("questionnaireId");
@@ -110,11 +118,11 @@ public class QuestionnaireReminderNotificationStrategy implements NotificationTy
 
         QuestionnaireReminderContext context = QuestionnaireReminderContext.from(questionnaire);
         for (String email : emails) {
-            Long recipientUserId = userRepository.findByEmail(email).map(User::getId).orElse(null);
+            Long recipientUserId = userRepository.findByEmail(email).map(user -> user.getId()).orElse(null);
             List<String> recipientRoles = notificationRoleResolver.resolveRoles(email, projectId);
 
-            String recipientName = userRepository.findByEmail(email)
-                    .map(User::getFirstName)
+                String recipientName = userRepository.findByEmail(email)
+                    .map(user -> user.getFirstName())
                     .filter(name -> name != null && !name.isBlank())
                     .orElse("participante");
 
@@ -143,7 +151,7 @@ public class QuestionnaireReminderNotificationStrategy implements NotificationTy
     private List<String> resolveRecipientsFromContext(SendNotificationCommand command, NotificationTemplate template) {
         Object provided = command.context().get("recipients");
         if (provided instanceof List<?> list) {
-            return list.stream().map(Object::toString).toList();
+            return list.stream().map(value -> value.toString()).toList();
         }
         if (template != null && template.recipients() != null) {
             return template.recipients();
@@ -154,10 +162,13 @@ public class QuestionnaireReminderNotificationStrategy implements NotificationTy
     private Set<String> resolveEmailsForReminder(Long projectId, Integer questionnaireId) {
         List<QuestionnaireResponse> pendingResponses = questionnaireResponseRepository.findPendingResponses(projectId, questionnaireId);
         Set<Long> pendingRepresentativeIds = pendingResponses.stream()
-                .map(QuestionnaireResponse::getRepresentativeId)
+            .map(response -> response.getRepresentativeId())
                 .collect(Collectors.toSet());
 
-        return Optional.ofNullable(projectRepository.findById(projectId).orElseThrow().getRepresentatives()).orElse(Set.of())
+        return Optional.ofNullable(projectId)
+            .flatMap(projectRepository::findById)
+            .map(project -> Optional.ofNullable(project.getRepresentatives()).orElse(Set.of()))
+            .orElse(Set.of())
                 .stream()
                 .filter(rep -> rep.getDeletionDate() == null)
                 .filter(rep -> pendingRepresentativeIds.contains(rep.getId()))

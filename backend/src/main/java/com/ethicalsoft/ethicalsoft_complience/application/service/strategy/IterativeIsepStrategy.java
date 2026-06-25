@@ -45,20 +45,33 @@ public class IterativeIsepStrategy implements IsepCalculationStrategy {
         Map<Long, BigDecimal> memberIcp = new LinkedHashMap<>();
         List<String> justifications = new ArrayList<>();
 
+        
         for (QuestionnaireResponse response : responses) {
             Long repId = response.getRepresentativeId();
             if (repId == null || response.getAnswers() == null) continue;
-
-            Map<Integer, List<QuestionnaireResponse.AnswerDocument>> answersByStage = groupAnswersByStage(response.getAnswers());
+            Map<Integer, List<QuestionnaireResponse.AnswerDocument>> allAnswersByStage = groupAnswersByStage(response.getAnswers());
             Map<Integer, BigDecimal> iemByStage = new LinkedHashMap<>();
-
-            for (Map.Entry<Integer, List<QuestionnaireResponse.AnswerDocument>> entry : answersByStage.entrySet()) {
+            for (Map.Entry<Integer, List<QuestionnaireResponse.AnswerDocument>> entry : allAnswersByStage.entrySet()) {
                 Integer stageId = entry.getKey();
                 List<QuestionnaireResponse.AnswerDocument> stageAnswers = entry.getValue();
-                long simCount = stageAnswers.stream().filter(a -> Boolean.TRUE.equals(a.getResponse())).count();
-                BigDecimal iem = IsepMath.ratio(simCount, stageAnswers.size());
+
+                List<QuestionnaireResponse.AnswerDocument> answeredOnly = stageAnswers.stream()
+                    .filter(a -> a.getResponse() != null)
+                    .toList();
+
+                int totalQuestionsForStage = answeredOnly.size();
+
+                if (totalQuestionsForStage == 0) {
+                    iemByStage.put(stageId, BigDecimal.ZERO);
+                    continue;
+                }
+                
+                long positiveCount = answeredOnly.stream()
+                    .filter(a -> Boolean.TRUE.equals(a.getResponse()))
+                    .count();
+                
+                BigDecimal iem = IsepMath.ratio(positiveCount, totalQuestionsForStage);
                 iemByStage.put(stageId, iem);
-                log.debug("[isep-iterative] rep={} stage={} IEM={}", repId, stageId, iem);
             }
 
             memberStageIem.put(repId, iemByStage);

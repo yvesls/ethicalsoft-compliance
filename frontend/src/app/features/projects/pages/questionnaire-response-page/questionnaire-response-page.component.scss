@@ -125,6 +125,12 @@
     color: $text-color;
   }
 
+  &__hint {
+    font-size: $text-xsm;
+    color: $gray-secundary;
+    line-height: 1.4;
+  }
+
   &--progress {
     .progress-track {
       width: 100%;

@@ -38,7 +38,7 @@ public class TemplateMongoAdapter implements TemplateQueryPort, TemplateCommandP
         try {
             Long currentUserId = currentUserPort.getCurrentUser().getId();
             log.info("[template] Buscando template completo id={} para usuário {}", templateMongoId, currentUserId);
-            ProjectTemplate template = projectTemplateRepository.findById(templateMongoId)
+                ProjectTemplate template = projectTemplateRepository.findById(Objects.requireNonNull(templateMongoId))
                     .orElseThrow(() -> new EntityNotFoundException("Template não encontrado: " + templateMongoId));
             checkAccess(template, currentUserId);
             log.info("[template] Template {} carregado", templateMongoId);
@@ -71,7 +71,7 @@ public class TemplateMongoAdapter implements TemplateQueryPort, TemplateCommandP
             Long currentUserId = currentUserPort.getCurrentUser().getId();
             log.info("[template] Criando template a partir do projeto {} para usuário {}", projectId, currentUserId);
 
-            Project project = projectRepository.findById(projectId)
+                Project project = projectRepository.findById(Objects.requireNonNull(projectId))
                     .orElseThrow(() -> new EntityNotFoundException("Projeto não encontrado: " + projectId));
 
             ProjectTemplate template = new ProjectTemplate();
@@ -112,6 +112,9 @@ public class TemplateMongoAdapter implements TemplateQueryPort, TemplateCommandP
             dto.setName(stage.getName());
             dto.setWeight(stage.getWeight());
             dto.setSequence(stage.getSequence());
+            dto.setDurationDays(stage.getDurationDays());
+            dto.setApplicationStartDate(stage.getApplicationStartDate());
+            dto.setApplicationEndDate(stage.getApplicationEndDate());
             return dto;
         }).toList();
     }
@@ -122,6 +125,8 @@ public class TemplateMongoAdapter implements TemplateQueryPort, TemplateCommandP
             TemplateIterationDTO dto = new TemplateIterationDTO();
             dto.setName(iter.getName());
             dto.setWeight(iter.getWeight());
+            dto.setApplicationStartDate(iter.getApplicationStartDate());
+            dto.setApplicationEndDate(iter.getApplicationEndDate());
             return dto;
         }).toList();
     }
@@ -152,12 +157,17 @@ public class TemplateMongoAdapter implements TemplateQueryPort, TemplateCommandP
         return questionnaires.stream().map(q -> {
             TemplateQuestionnaireDTO qDto = new TemplateQuestionnaireDTO();
             qDto.setName(q.getName());
+            qDto.setWeight(q.getWeight());
             if (q.getStage() != null) {
                 qDto.setStageName(q.getStage().getName());
             }
             if (q.getIterationRef() != null) {
                 qDto.setIterationRefName(q.getIterationRef().getName());
             }
+            qDto.setApplicationStartDate(q.getApplicationStartDate());
+            qDto.setApplicationEndDate(q.getApplicationEndDate());
+            qDto.setDomain(q.getDomain());
+            qDto.setDescription(q.getDescription());
             qDto.setQuestions(mapQuestions(q.getQuestions()));
             return qDto;
         }).toList();
@@ -178,7 +188,7 @@ public class TemplateMongoAdapter implements TemplateQueryPort, TemplateCommandP
                 pDto.setStageName(question.getStages().stream()
                         .filter(Objects::nonNull)
                         .findFirst()
-                        .map(Stage::getName)
+                    .map(stage -> stage.getName())
                         .orElse(null));
             }
 

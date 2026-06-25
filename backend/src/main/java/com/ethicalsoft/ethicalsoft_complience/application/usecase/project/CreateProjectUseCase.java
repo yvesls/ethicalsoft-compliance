@@ -23,6 +23,8 @@ import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -134,7 +136,7 @@ public class CreateProjectUseCase implements ProjectCommandPort {
 
         validateRepresentativesRoles(project, representatives);
         createResponsesForRepresentatives(project, representatives);
-        triggerInitialQuestionnaireReminders(project);
+        triggerInitialQuestionnaireRemindersAfterCommit(project);
 
         return buildResponse(project, representatives, request);
     }
@@ -152,7 +154,7 @@ public class CreateProjectUseCase implements ProjectCommandPort {
         project.setTimelineStatus(TimelineStatusEnum.PENDENTE);
         project.setCurrentSituation(null);
 
-        return projectRepository.save(project);
+        return projectRepository.save(java.util.Objects.requireNonNull(project));
     }
 
     private void applyCreationStrategy(Project project, ProjectCreationRequestDTO request) {
@@ -183,20 +185,36 @@ public class CreateProjectUseCase implements ProjectCommandPort {
                 .build();
     }
 
-    private void triggerInitialQuestionnaireReminders(Project project) {
-        project.getQuestionnaires().forEach(q -> {
+    private void triggerInitialQuestionnaireRemindersAfterCommit(Project project) {
+        if (project.getQuestionnaires() == null || project.getQuestionnaires().isEmpty()) {
+            return;
+        }
+
+        Runnable action = () -> project.getQuestionnaires().forEach(q -> {
             try {
                 sendNotificationUseCase.execute(new SendNotificationCommand(
                         NotificationType.QUESTIONNAIRE_REMINDER,
-                            java.util.Map.ofEntries(
+                        java.util.Map.ofEntries(
                                 java.util.Map.entry("projectId", project.getId()),
-                                java.util.Map.entry("questionnaireId", q.getId())
+                                java.util.Map.entry("questionnaireId", q.getId()),
+                                java.util.Map.entry("systemTriggered", true)
                         )
                 ));
             } catch (Exception ex) {
                 log.warn("[usecase-create-project] Falha ao disparar lembrete inicial projectId={} questionnaireId={}", project.getId(), q.getId(), ex);
             }
         });
+
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    action.run();
+                }
+            });
+        } else {
+            action.run();
+        }
     }
 
     private void createResponsesForRepresentatives(Project project, Set<Representative> representatives) {
@@ -217,7 +235,7 @@ public class CreateProjectUseCase implements ProjectCommandPort {
             Set<Long> representativeRoleIds = Optional.ofNullable(rep.getRoles())
                     .orElseGet(Set::of)
                     .stream()
-                    .map(Role::getId)
+                    .map(role -> role.getId())
                     .filter(Objects::nonNull)
                     .collect(Collectors.toSet());
             for (var questionnaire : project.getQuestionnaires()) {
@@ -225,7 +243,7 @@ public class CreateProjectUseCase implements ProjectCommandPort {
                         .orElseGet(Set::of)
                         .stream()
                         .flatMap(question -> Optional.ofNullable(question.getRoles()).orElseGet(Set::of).stream())
-                        .map(Role::getId)
+                        .map(role -> role.getId())
                         .filter(Objects::nonNull)
                         .anyMatch(representativeRoleIds::contains);
                 if (!hasMatchingRole) {

@@ -1,0 +1,7 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "./mvnw": true,
+        "mvn -q -DskipTests compile": true
+    },
+    "java.debug.settings.onBuildFailureProceed": true
+}

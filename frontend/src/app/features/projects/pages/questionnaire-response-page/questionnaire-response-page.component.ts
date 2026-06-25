@@ -86,6 +86,8 @@ export class QuestionnaireResponsePageComponent implements OnInit {
   readonly questionnaire = computed(() => this.state().data?.questionnaire ?? null);
   readonly answers = computed(() => this.state().data?.response.answers ?? []);
   readonly totalQuestions = computed(() => this.answers().length);
+  readonly estimatedResponseTime = computed(() => this.formatEstimatedResponseTime(this.totalQuestions()));
+  readonly responseDeadline = computed(() => this.formatResponseDeadline());
   readonly answeredCount = computed(() =>
     this.answers().filter((answer) => answer.response !== null).length
   );
@@ -100,7 +102,7 @@ export class QuestionnaireResponsePageComponent implements OnInit {
   ngOnInit(): void {
     this.listenToAuthState();
     this.listenToRoute();
-
+    console.log("response page init");
     this.sessionExpirationService.registerDraftSaver(() => this.saveDraftLocally());
     this.destroyRef.onDestroy(() => this.sessionExpirationService.unregisterDraftSaver());
   }
@@ -377,6 +379,40 @@ export class QuestionnaireResponsePageComponent implements OnInit {
 
   get isReadOnly(): boolean {
     return this.pageMode() === 'view';
+  }
+
+  private formatEstimatedResponseTime(totalQuestions: number): string {
+    const totalMinutes = totalQuestions * 3;
+
+    if (totalMinutes < 60) {
+      return this.translate.instant('questionnaire.response.estimated_time_minutes', {
+        value: totalMinutes,
+      });
+    }
+
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    if (minutes === 0) {
+      return this.translate.instant('questionnaire.response.estimated_time_hours', {
+        value: hours,
+      });
+    }
+
+    return this.translate.instant('questionnaire.response.estimated_time_hours_minutes', {
+      hours,
+      minutes,
+    });
+  }
+
+  private formatResponseDeadline(): string {
+    const endDate = this.questionnaire()?.applicationEndDate;
+
+    if (!endDate) {
+      return this.translate.instant('questionnaire.response.no_end_date');
+    }
+
+    return new Date(endDate).toLocaleDateString('pt-BR');
   }
 
   private listenToAuthState(): void {

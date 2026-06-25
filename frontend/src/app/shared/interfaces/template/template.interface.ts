@@ -39,6 +39,7 @@ export interface TemplateQuestionDTO {
 
 export interface TemplateQuestionnaireDTO {
   name: string;
+  weight?: number;
   stageName?: string;
   iterationRefName?: string;
   questions: TemplateQuestionDTO[];
