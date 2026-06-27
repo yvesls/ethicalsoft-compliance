@@ -105,7 +105,7 @@ public class ExportIsepDataUseCase {
                 questionnaire.getName(),
                 iterationOrStageName,
                 result.getCalculatedAt(),
-                IsepMath.toPercent(result.getIsep()),
+                IsepMath.toPercent(result.getIseq()),
                 result.getBand(),
                 IsepMath.toPercent(result.getTeamSimpleAverage()),
                 IsepMath.toPercent(result.getTeamStandardDeviation()),

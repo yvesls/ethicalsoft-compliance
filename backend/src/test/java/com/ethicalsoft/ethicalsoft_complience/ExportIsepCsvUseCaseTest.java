@@ -84,7 +84,7 @@ class ExportIsepCsvUseCaseTest {
         questionnaireResult = new QuestionnaireResult();
         questionnaireResult.setQuestionnaireId(10);
         questionnaireResult.setProjectId(1L);
-        questionnaireResult.setIsep(BigDecimal.valueOf(0.85));
+        questionnaireResult.setIseq(BigDecimal.valueOf(0.85));
         questionnaireResult.setBand(EthicalComplianceBand.B.name());
         questionnaireResult.setTeamSimpleAverage(BigDecimal.valueOf(0.80));
         questionnaireResult.setTeamStandardDeviation(BigDecimal.valueOf(0.05));

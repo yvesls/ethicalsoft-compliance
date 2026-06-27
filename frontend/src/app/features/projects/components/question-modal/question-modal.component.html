@@ -3,13 +3,18 @@
 
   <form [formGroup]="form" (ngSubmit)="onSubmit()">
     <div class="form-group">
-      <app-input
-        [label]="('questionnaire.question_modal.question_label' | translate) + ('questionnaire.question_modal.required_suffix' | translate)"
-        type="text"
-        formControlName="value"
-        [placeholder]="'questionnaire.question_modal.question_placeholder' | translate"
-        [control]="form.get('value')"
-      ></app-input>
+      @if (textReadOnly) {
+        <p class="question-readonly-hint">{{ 'questionnaire.question_modal.value_readonly_hint' | translate }}</p>
+        <p class="question-readonly-value">{{ editData?.value }}</p>
+      } @else {
+        <app-input
+          [label]="('questionnaire.question_modal.question_label' | translate) + ('questionnaire.question_modal.required_suffix' | translate)"
+          type="text"
+          formControlName="value"
+          [placeholder]="'questionnaire.question_modal.question_placeholder' | translate"
+          [control]="form.get('value')"
+        ></app-input>
+      }
     </div>
 
     <div class="form-group">

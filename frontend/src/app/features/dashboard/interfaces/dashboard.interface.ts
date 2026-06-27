@@ -3,8 +3,8 @@ export interface IsepHistoryEntry {
   questionnaireName: string;
   stageName: string;
   iterationName: string | null;
-  isep: number;
-  isepPercent: number;
+  iseq: number;
+  iseqPercent: number;
   band: Band;
   calculatedAt: string;
   ethicsDebtPercent: number | null;
@@ -53,8 +53,8 @@ export interface QuestionnaireIsepDashboardDTO {
   questionnaireName: string;
   stageName: string;
   iterationName: string | null;
-  isep: number;
-  isepPercent: number;
+  iseq: number;
+  iseqPercent: number;
   band: Band;
   teamSimpleAverage: number;
   teamSimpleAveragePercent: number;

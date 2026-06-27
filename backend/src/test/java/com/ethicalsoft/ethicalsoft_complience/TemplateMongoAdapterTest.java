@@ -25,6 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Optional;
@@ -70,16 +71,16 @@ class TemplateMongoAdapterTest {
         stage.setWeight(new BigDecimal("3.00"));
         stage.setSequence(1);
         stage.setDurationDays(12);
-        stage.setApplicationStartDate(LocalDate.of(2025, 1, 10));
-        stage.setApplicationEndDate(LocalDate.of(2025, 1, 21));
+        stage.setApplicationStartDate(LocalDate.of(2025, Month.JANUARY, 10));
+        stage.setApplicationEndDate(LocalDate.of(2025, Month.JANUARY, 21));
         project.setStages(new LinkedHashSet<>(Set.of(stage)));
 
         Questionnaire questionnaire = new Questionnaire();
         questionnaire.setName("Questionario de Requisitos");
         questionnaire.setWeight(7);
         questionnaire.setStage(stage);
-        questionnaire.setApplicationStartDate(LocalDate.of(2025, 1, 11));
-        questionnaire.setApplicationEndDate(LocalDate.of(2025, 1, 18));
+        questionnaire.setApplicationStartDate(LocalDate.of(2025, Month.JANUARY, 11));
+        questionnaire.setApplicationEndDate(LocalDate.of(2025, Month.JANUARY, 18));
         questionnaire.setDomain("PROCESS");
         questionnaire.setDescription("Avalia rastreabilidade e governanca.");
 
@@ -106,15 +107,15 @@ class TemplateMongoAdapterTest {
             assertThat(savedStage.getWeight()).isEqualByComparingTo("3.00");
             assertThat(savedStage.getSequence()).isEqualTo(1);
             assertThat(savedStage.getDurationDays()).isEqualTo(12);
-            assertThat(savedStage.getApplicationStartDate()).isEqualTo(LocalDate.of(2025, 1, 10));
-            assertThat(savedStage.getApplicationEndDate()).isEqualTo(LocalDate.of(2025, 1, 21));
+            assertThat(savedStage.getApplicationStartDate()).isEqualTo(LocalDate.of(2025, Month.JANUARY, 10));
+            assertThat(savedStage.getApplicationEndDate()).isEqualTo(LocalDate.of(2025, Month.JANUARY, 21));
         });
         assertThat(saved.getQuestionnaires()).singleElement().satisfies(savedQuestionnaire -> {
             assertThat(savedQuestionnaire.getName()).isEqualTo("Questionario de Requisitos");
             assertThat(savedQuestionnaire.getWeight()).isEqualTo(7);
             assertThat(savedQuestionnaire.getStageName()).isEqualTo("Requisitos");
-            assertThat(savedQuestionnaire.getApplicationStartDate()).isEqualTo(LocalDate.of(2025, 1, 11));
-            assertThat(savedQuestionnaire.getApplicationEndDate()).isEqualTo(LocalDate.of(2025, 1, 18));
+            assertThat(savedQuestionnaire.getApplicationStartDate()).isEqualTo(LocalDate.of(2025, Month.JANUARY, 11));
+            assertThat(savedQuestionnaire.getApplicationEndDate()).isEqualTo(LocalDate.of(2025, Month.JANUARY, 18));
             assertThat(savedQuestionnaire.getDomain()).isEqualTo("PROCESS");
             assertThat(savedQuestionnaire.getDescription()).isEqualTo("Avalia rastreabilidade e governanca.");
         });
@@ -132,16 +133,16 @@ class TemplateMongoAdapterTest {
         Iteration iteration = new Iteration();
         iteration.setName("Sprint 2");
         iteration.setWeight(new BigDecimal("1.50"));
-        iteration.setApplicationStartDate(LocalDate.of(2025, 2, 1));
-        iteration.setApplicationEndDate(LocalDate.of(2025, 2, 14));
+        iteration.setApplicationStartDate(LocalDate.of(2025, Month.FEBRUARY, 1));
+        iteration.setApplicationEndDate(LocalDate.of(2025, Month.FEBRUARY, 14));
         project.setIterations(new LinkedHashSet<>(Set.of(iteration)));
 
         Questionnaire questionnaire = new Questionnaire();
         questionnaire.setName("Questionario Sprint 2");
         questionnaire.setWeight(5);
         questionnaire.setIterationRef(iteration);
-        questionnaire.setApplicationStartDate(LocalDate.of(2025, 2, 2));
-        questionnaire.setApplicationEndDate(LocalDate.of(2025, 2, 10));
+        questionnaire.setApplicationStartDate(LocalDate.of(2025, Month.FEBRUARY, 2));
+        questionnaire.setApplicationEndDate(LocalDate.of(2025, Month.FEBRUARY, 10));
         questionnaire.setQuestions(new LinkedHashSet<>());
         project.setQuestionnaires(new LinkedHashSet<>(Set.of(questionnaire)));
 
@@ -165,8 +166,8 @@ class TemplateMongoAdapterTest {
         assertThat(saved.getIterations()).singleElement().satisfies(savedIteration -> {
             assertThat(savedIteration.getName()).isEqualTo("Sprint 2");
             assertThat(savedIteration.getWeight()).isEqualByComparingTo("1.50");
-            assertThat(savedIteration.getApplicationStartDate()).isEqualTo(LocalDate.of(2025, 2, 1));
-            assertThat(savedIteration.getApplicationEndDate()).isEqualTo(LocalDate.of(2025, 2, 14));
+            assertThat(savedIteration.getApplicationStartDate()).isEqualTo(LocalDate.of(2025, Month.FEBRUARY, 1));
+            assertThat(savedIteration.getApplicationEndDate()).isEqualTo(LocalDate.of(2025, Month.FEBRUARY, 14));
         });
         assertThat(saved.getQuestionnaires()).singleElement().satisfies(savedQuestionnaire -> {
             assertThat(savedQuestionnaire.getWeight()).isEqualTo(5);

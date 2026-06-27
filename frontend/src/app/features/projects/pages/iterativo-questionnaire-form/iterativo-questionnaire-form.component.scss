@@ -34,6 +34,34 @@
 
 }
 
+.badge-base {
+  margin-left: 0.5rem;
+  background-color: $green-primary;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.badge-type-a {
+  margin-left: 0.5rem;
+  background-color: $semantic-orange;
+  color: $white;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.base-lock {
+  display: inline-flex;
+  align-items: center;
+  opacity: 0.55;
+  cursor: default;
+
+  .lock-icon {
+    width: 1.1rem;
+    height: 1.1rem;
+    filter: brightness(0);
+  }
+}
+
 .custom-table {
   width: 100%;
   border-collapse: collapse;

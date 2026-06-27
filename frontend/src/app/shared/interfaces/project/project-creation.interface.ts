@@ -1,4 +1,6 @@
 import { ProjectType } from '../../enums/project-type.enum';
+import { QuestionClassificationType } from '../../enums/question-classification-type.enum';
+import { QuestionType } from '../../enums/question-type.enum';
 
 export type ProjectStatusCode = 'ABERTO' | 'RASCUNHO' | 'CONCLUIDO' | 'ARQUIVADO' | 'EXCLUIDO';
 
@@ -26,6 +28,8 @@ export interface QuestionPayload {
 	stageNames?: string[];
 	stageName?: string | null;
 	categoryStageName?: string | null;
+	type?: QuestionType;
+	classification?: QuestionClassificationType | null;
 }
 
 export interface QuestionnairePayload {

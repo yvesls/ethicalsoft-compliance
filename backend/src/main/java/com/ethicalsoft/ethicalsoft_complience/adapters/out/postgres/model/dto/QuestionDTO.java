@@ -1,5 +1,7 @@
 package com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto;
 
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.QuestionClassificationEnum;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.QuestionTypeEnum;
 import lombok.Data;
 
 import java.util.List;
@@ -8,6 +10,8 @@ import java.util.Set;
 @Data
 public class QuestionDTO {
 	private String value;
+	private QuestionTypeEnum type;
+	private QuestionClassificationEnum classification;
 	private Set<Long> roleIds;
 	private StageDTO stage;
 	private String categoryStageName;

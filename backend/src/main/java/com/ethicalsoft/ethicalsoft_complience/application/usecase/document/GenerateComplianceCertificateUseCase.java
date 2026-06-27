@@ -19,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -37,6 +39,31 @@ public class GenerateComplianceCertificateUseCase {
     public record GeneratedCertificate(byte[] content, String certificateCode, String fileName,
                                        String projectName, BigDecimal isepValue,
                                        String isepPercent, String band) {
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof GeneratedCertificate other)) return false;
+            return Arrays.equals(content, other.content)
+                    && java.util.Objects.equals(certificateCode, other.certificateCode)
+                    && java.util.Objects.equals(fileName, other.fileName)
+                    && java.util.Objects.equals(projectName, other.projectName)
+                    && java.util.Objects.equals(isepValue, other.isepValue)
+                    && java.util.Objects.equals(isepPercent, other.isepPercent)
+                    && java.util.Objects.equals(band, other.band);
+        }
+
+        @Override
+        public int hashCode() {
+            return 31 * Arrays.hashCode(content)
+                    + java.util.Objects.hash(certificateCode, fileName, projectName, isepValue, isepPercent, band);
+        }
+
+        @Override
+        public String toString() {
+            return "GeneratedCertificate[certificateCode=" + certificateCode + ", fileName=" + fileName
+                    + ", projectName=" + projectName + ", isepValue=" + isepValue
+                    + ", isepPercent=" + isepPercent + ", band=" + band + "]";
+        }
     }
 
     public record CertificateMetadata(String certificateCode, String projectName,
@@ -170,7 +197,7 @@ public class GenerateComplianceCertificateUseCase {
         if (config != null && config.getValidationUrl() != null) {
             model.put("validationUrl", config.getValidationUrl());
         }
-        model.put("issuedAtFormatted", DocumentFormatUtil.dateTime(LocalDateTime.now()));
+        model.put("issuedAtFormatted", DocumentFormatUtil.dateTime(LocalDateTime.now(ZoneOffset.UTC)));
         model.put("issuedBy", configValue(issuedBy, "Analista de Qualidade"));
 
         return model;
@@ -187,7 +214,7 @@ public class GenerateComplianceCertificateUseCase {
             name = item.questionnaireName();
         }
         row.put("name", name);
-        row.put("isepPercent", DocumentFormatUtil.percent(item.isepPercent()));
+        row.put("isepPercent", DocumentFormatUtil.percent(item.iseqPercent()));
         row.put("band", item.band());
         row.put("bandLabel", DocumentFormatUtil.bandLabel(item.band()));
         return row;

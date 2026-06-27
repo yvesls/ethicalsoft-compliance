@@ -97,7 +97,7 @@ public class ExportIsepCsvUseCase {
                 row.append(escapeCsv(memberName)).append(DELIMITER);
                 row.append(IsepMath.toPercent(mcr.getIcp()).toPlainString()).append(DELIMITER);
                 row.append(escapeCsv(mcr.getBand())).append(DELIMITER);
-                row.append(IsepMath.toPercent(result.getIsep()).toPlainString()).append(DELIMITER);
+                row.append(IsepMath.toPercent(result.getIseq()).toPlainString()).append(DELIMITER);
                 row.append(escapeCsv(result.getBand())).append(DELIMITER);
                 row.append(percentOrEmpty(result.getEthicsScore())).append(DELIMITER);
                 row.append(percentOrEmpty(result.getProcessScore())).append(DELIMITER);
@@ -181,7 +181,7 @@ public class ExportIsepCsvUseCase {
             row.append(escapeCsv(memberName)).append(DELIMITER);
             row.append(IsepMath.toPercent(mcr.getIcp()).toPlainString()).append(DELIMITER);
             row.append(escapeCsv(mcr.getBand())).append(DELIMITER);
-            row.append(IsepMath.toPercent(result.getIsep()).toPlainString()).append(DELIMITER);
+            row.append(IsepMath.toPercent(result.getIseq()).toPlainString()).append(DELIMITER);
             row.append(escapeCsv(result.getBand())).append(DELIMITER);
             row.append(percentOrEmpty(result.getEthicsScore())).append(DELIMITER);
             row.append(percentOrEmpty(result.getProcessScore())).append(DELIMITER);

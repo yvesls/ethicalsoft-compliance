@@ -41,6 +41,8 @@ import {
 	TemplateRepresentativeDTO,
 	TemplateStageDTO,
 } from '../../../../shared/interfaces/template/template.interface'
+import { QuestionClassificationType } from '../../../../shared/enums/question-classification-type.enum'
+import { QuestionType } from '../../../../shared/enums/question-type.enum'
 import { finalize, switchMap, take } from 'rxjs/operators'
 import { RoleService } from '../../../../core/services/role.service'
 import { RoleSummary } from '../../../../shared/interfaces/role/role-summary.interface'
@@ -803,7 +805,7 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
 			return
 		}
 		const projectName = this.projectForm.get('name')?.value || this.translate.instant('common.new_project')
-		const questions = this.getQuestionsForQuestionnaire(questionnaire)
+		const questions = this.getQuestionsForQuestionnaire(questionnaire, index)
 		const representativeRoleIds = Array.from(
 			new Set(
 				this.representativesFormArray.controls
@@ -837,7 +839,7 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
 		})
 	}
 
-	private getQuestionsForQuestionnaire(questionnaire: Questionnaire | undefined): QuestionData[] {
+	private getQuestionsForQuestionnaire(questionnaire: Questionnaire | undefined, questionnaireIndex = 0): QuestionData[] {
 		if (!questionnaire) {
 			return []
 		}
@@ -846,19 +848,26 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
 			return questionnaire.questions
 		}
 
-		if (!this.selectedTemplateData?.questionnaires) {
+		if (!this.selectedTemplateData?.questionnaires?.length) {
 			return []
 		}
 
-		const templateQuestionnaire = this.selectedTemplateData.questionnaires.find(
-			(tq: TemplateQuestionnaireDTO) => tq.stageName === questionnaire.stageName || tq.name === questionnaire.name
+		const allEntries = this.selectedTemplateData.questionnaires.flatMap(
+			(tq: TemplateQuestionnaireDTO) => (tq.questions ?? []).map((q: TemplateQuestionDTO) => ({ question: q, questionnaire: tq }))
 		)
 
-		if (!templateQuestionnaire?.questions) {
-			return []
-		}
+		const filtered = allEntries.filter(({ question, questionnaire: tq }) => {
+			const classification = question.classification ?? QuestionClassificationType.Rotativa
+			if (classification === QuestionClassificationType.ProjetoInteiro) {
+				return questionnaireIndex === 0
+			}
+			if (classification === QuestionClassificationType.BaseIteracao) {
+				return true
+			}
+			return tq.stageName === questionnaire.stageName || tq.name === questionnaire.name
+		})
 
-		return templateQuestionnaire.questions.map((question: TemplateQuestionDTO, index: number) => {
+		return filtered.map(({ question }, index) => {
 			const stageNames = this.getTemplateQuestionStageNames(question)
 			return {
 				id: `${Date.now()}-${index}`,
@@ -868,6 +877,8 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
 				stageNames,
 				stageName: stageNames[0] ?? questionnaire.stageName ?? null,
 				categoryStageName: stageNames[0] ?? questionnaire.stageName ?? null,
+				type: question.type ?? QuestionType.Custom,
+				classification: question.classification ?? null,
 			} satisfies QuestionData
 		})
 	}
@@ -1632,6 +1643,8 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
 				stageNames: stageNames.length ? stageNames : undefined,
 				stageName: stageNames[0] ?? null,
 				categoryStageName: this.resolveCategoryStageName(question, stageNames),
+				type: question.type ?? QuestionType.Custom,
+				classification: question.classification,
 			} satisfies QuestionPayload
 		})
 	}
@@ -1732,6 +1745,7 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
 			stageNames: this.getTemplateQuestionStageNames(question),
 			stageName: question.stageName ?? stageName ?? null,
 			categoryStageName: question.stageName ?? stageName ?? null,
+			type: question.type ?? QuestionType.Custom,
 		}))
 	}
 

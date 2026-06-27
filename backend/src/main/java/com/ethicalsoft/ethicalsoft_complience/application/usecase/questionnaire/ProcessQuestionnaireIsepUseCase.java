@@ -11,9 +11,9 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.P
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.QuestionnaireRepository;
 import com.ethicalsoft.ethicalsoft_complience.application.port.questionnaire.IsepResultCommandPort;
 import com.ethicalsoft.ethicalsoft_complience.application.port.questionnaire.IsepResultQueryPort;
+import com.ethicalsoft.ethicalsoft_complience.application.service.IseqCalculationService;
 import com.ethicalsoft.ethicalsoft_complience.domain.isep.EthicalComplianceBand;
-import com.ethicalsoft.ethicalsoft_complience.domain.isep.IsepCalculationResult;
-import com.ethicalsoft.ethicalsoft_complience.domain.isep.IsepCalculationStrategy;
+import com.ethicalsoft.ethicalsoft_complience.domain.isep.IseqCalculationResult;
 import com.ethicalsoft.ethicalsoft_complience.domain.isep.IsepMath;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +34,7 @@ public class ProcessQuestionnaireIsepUseCase {
     private final ProjectRepository projectRepository;
     private final QuestionnaireRepository questionnaireRepository;
     private final QuestionnaireResponseRepository responseRepository;
-    private final List<IsepCalculationStrategy> strategies;
+    private final IseqCalculationService iseqCalculationService;
     private final IsepResultCommandPort isepResultCommandPort;
     private final IsepResultQueryPort isepResultQueryPort;
 
@@ -92,12 +92,6 @@ public class ProcessQuestionnaireIsepUseCase {
     }
 
     private boolean calculate(Project project, Questionnaire questionnaire, List<QuestionnaireResponse> responses) {
-        IsepCalculationStrategy strategy = resolveStrategy(project);
-        if (strategy == null) {
-            log.error("[isep-orchestrator] Nenhuma estratégia encontrada para tipo={}", project.getType());
-            return false;
-        }
-
         List<Representative> representatives = new ArrayList<>(
                 project.getRepresentatives() != null ? project.getRepresentatives() : Set.of());
 
@@ -110,13 +104,13 @@ public class ProcessQuestionnaireIsepUseCase {
             return false;
         }
 
-        IsepCalculationResult result = strategy.calculate(project, questionnaire, completed, representatives);
+        IseqCalculationResult result = iseqCalculationService.calculate(project, questionnaire, completed, representatives);
         isepResultCommandPort.save(result);
 
-        log.info("[isep-orchestrator] ISEP calculado: questionário={} ISEP={}% faixa={}",
+        log.info("[isep-orchestrator] ISEQ calculado: questionário={} ISEQ={}% faixa={}",
                 questionnaire.getId(),
-                IsepMath.toPercent(result.questionnaireIsep()),
-                result.questionnaireBand());
+                IsepMath.toPercent(result.iseq()),
+                result.iseqBand());
 
         return true;
     }
@@ -142,13 +136,6 @@ public class ProcessQuestionnaireIsepUseCase {
         return allCompleted;
     }
 
-    private IsepCalculationStrategy resolveStrategy(Project project) {
-        return strategies.stream()
-                .filter(s -> s.supportedType().equals(project.getType()))
-                .findFirst()
-                .orElse(null);
-    }
-
     @Transactional(readOnly = true)
     public java.util.Optional<BigDecimal> calculateProjectIsep(Long projectId) {
         List<QuestionnaireResult> results = isepResultQueryPort.findByProjectId(projectId);
@@ -160,7 +147,7 @@ public class ProcessQuestionnaireIsepUseCase {
                     BigDecimal weight = (q != null && q.getWeight() != null)
                             ? BigDecimal.valueOf(q.getWeight())
                             : BigDecimal.ONE;
-                    return new IsepMath.WeightedValue(r.getIsep(), weight);
+                    return new IsepMath.WeightedValue(r.getIseq(), weight);
                 })
                 .collect(Collectors.toList());
 

@@ -46,6 +46,8 @@ import {
   TemplateRepresentativeDTO,
   TemplateStageDTO,
 } from '../../../../shared/interfaces/template/template.interface'
+import { QuestionClassificationType } from '../../../../shared/enums/question-classification-type.enum'
+import { QuestionType } from '../../../../shared/enums/question-type.enum'
 import { finalize, switchMap, take } from 'rxjs/operators'
 import { RoleService } from '../../../../core/services/role.service'
 import { RoleSummary } from '../../../../shared/interfaces/role/role-summary.interface'
@@ -812,7 +814,7 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
       return
     }
     const projectName = this.projectForm.get('name')?.value || this.translate.instant('common.new_project')
-    const questions = this.getQuestionsForQuestionnaire(questionnaire)
+    const questions = this.getQuestionsForQuestionnaire(questionnaire, index)
     const representativeRoleIds = Array.from(
       new Set(
         this.representativesFormArray.controls
@@ -841,7 +843,7 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
     })
   }
 
-  private getQuestionsForQuestionnaire(questionnaire: Questionnaire | undefined): QuestionData[] {
+  private getQuestionsForQuestionnaire(questionnaire: Questionnaire | undefined, questionnaireIndex = 0): QuestionData[] {
     if (!questionnaire) {
       return []
     }
@@ -850,27 +852,7 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
       return questionnaire.questions
     }
 
-    const templateQuestionnaire = this.selectedTemplateData?.questionnaires?.find(
-      (tq: TemplateQuestionnaireDTO) =>
-        tq.iterationRefName === questionnaire.iteration || tq.name === questionnaire.name
-    )
-
-    if (!templateQuestionnaire?.questions) {
-      return []
-    }
-
-    return templateQuestionnaire.questions.map((question: TemplateQuestionDTO, index: number) => {
-      const stageNames = this.getTemplateQuestionStageNames(question)
-      return {
-        id: `${Date.now()}-${index}`,
-        value: question.value,
-        roleIds: this.extractRoleIds(question.roles, question.roleNames),
-        roleNames: this.extractRoleNames(question.roles, question.roleNames),
-        stageNames,
-        stageName: stageNames[0] ?? null,
-        categoryStageName: stageNames[0] ?? null,
-      } satisfies QuestionData
-    })
+    return this.getTemplateQuestionsForIteration(questionnaire.iteration, questionnaireIndex)
   }
 
   private applyQuestionnaireUpdate(update: QuestionnaireUpdatePayload | undefined): void {
@@ -1378,6 +1360,8 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
         stageNames: stageNames.length ? stageNames : undefined,
         stageName: stageNames[0] ?? null,
         categoryStageName: this.resolveCategoryStageName(question, stageNames),
+        type: question.type ?? QuestionType.Custom,
+        classification: question.classification,
       } satisfies QuestionPayload
     })
   }
@@ -1684,7 +1668,7 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
         cacheByIteration.get(templateQuestionnaireName)
       const initialQuestions = cached?.questions?.length
         ? this.cloneQuestions(cached.questions, iterationName)
-        : this.getTemplateQuestionsForIteration(iterationName)
+        : this.getTemplateQuestionsForIteration(iterationName, index)
       const templateWeight = Number(templateQuestionnaire?.weight)
 
       questionnairesArray.push(
@@ -1789,14 +1773,27 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
     return trimmedName?.length ? trimmedName : fallbackIterationName
   }
 
-  private getTemplateQuestionsForIteration(iterationName?: string | null): QuestionData[] {
-    const templateQuestionnaire = this.getTemplateQuestionnaireForIteration(iterationName)
-
-    if (!templateQuestionnaire?.questions?.length) {
+  private getTemplateQuestionsForIteration(iterationName?: string | null, iterationIndex = 0): QuestionData[] {
+    if (!this.selectedTemplateData?.questionnaires?.length) {
       return []
     }
 
-    return templateQuestionnaire.questions.map((question: TemplateQuestionDTO, index: number) => ({
+    const allEntries = this.selectedTemplateData.questionnaires.flatMap(
+      (tq: TemplateQuestionnaireDTO) => (tq.questions ?? []).map((q: TemplateQuestionDTO) => ({ question: q, questionnaire: tq }))
+    )
+
+    const filtered = allEntries.filter(({ question, questionnaire }) => {
+      const classification = question.classification ?? QuestionClassificationType.Rotativa
+      if (classification === QuestionClassificationType.ProjetoInteiro) {
+        return iterationIndex === 0
+      }
+      if (classification === QuestionClassificationType.BaseIteracao) {
+        return true
+      }
+      return questionnaire.iterationRefName === iterationName || questionnaire.name === iterationName
+    })
+
+    return filtered.map(({ question }, index) => ({
       id: this.generateQuestionId(iterationName ?? undefined, index),
       value: question.value,
       roleIds: this.extractRoleIds(question.roles, question.roleNames),
@@ -1804,6 +1801,8 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
       stageNames: this.getTemplateQuestionStageNames(question),
       stageName: question.stageName ?? null,
       categoryStageName: question.stageName ?? null,
+      type: question.type ?? QuestionType.Custom,
+      classification: question.classification ?? null,
     }))
   }
 

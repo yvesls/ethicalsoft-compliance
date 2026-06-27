@@ -104,7 +104,7 @@ class ProcessExpiredQuestionnairesIsepUseCaseTest {
 
         QuestionnaireResult mockResult = new QuestionnaireResult();
         mockResult.setQuestionnaireId(20);
-        mockResult.setIsep(BigDecimal.valueOf(0.85));
+        mockResult.setIseq(BigDecimal.valueOf(0.85));
         mockResult.setBand(EthicalComplianceBand.B.name());
         mockResult.setCalculatedAt(LocalDateTime.now());
         when(isepResultQueryPort.findByQuestionnaireId(20)).thenReturn(Optional.of(mockResult));

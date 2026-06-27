@@ -91,7 +91,7 @@ public class DashboardSnapshotAssembler {
                 .questionnaireName(dashboard.questionnaireName())
                 .stageName(dashboard.stageName())
                 .iterationName(dashboard.iterationName())
-                .isepPercent(dashboard.isepPercent())
+                .isepPercent(dashboard.iseqPercent())
                 .band(dashboard.band())
                 .bandLabel(bandLabel)
                 .teamAveragePercent(dashboard.teamSimpleAveragePercent())

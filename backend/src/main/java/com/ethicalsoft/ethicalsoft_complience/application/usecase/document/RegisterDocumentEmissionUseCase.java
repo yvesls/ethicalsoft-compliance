@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Optional;
@@ -69,7 +70,7 @@ public class RegisterDocumentEmissionUseCase {
                 .iterationId(request.iterationId())
                 .iterationName(request.iterationName())
                 .scopeLabel(request.scopeLabel())
-                .emittedAt(LocalDateTime.now())
+                .emittedAt(LocalDateTime.now(ZoneOffset.UTC))
                 .emittedByUserId(request.emittedByUserId())
                 .emittedByName(request.emittedByName())
                 .isepPercent(request.isepPercent())

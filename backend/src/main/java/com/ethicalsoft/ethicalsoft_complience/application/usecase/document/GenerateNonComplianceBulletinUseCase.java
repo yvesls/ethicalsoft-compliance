@@ -30,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -50,6 +51,32 @@ public class GenerateNonComplianceBulletinUseCase {
     public record GeneratedBulletin(byte[] content, String documentCode, String fileName,
                                     String questionnaireName, String projectName,
                                     BigDecimal isepValue, String isepPercent, String band) {
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof GeneratedBulletin other)) return false;
+            return Arrays.equals(content, other.content)
+                    && Objects.equals(documentCode, other.documentCode)
+                    && Objects.equals(fileName, other.fileName)
+                    && Objects.equals(questionnaireName, other.questionnaireName)
+                    && Objects.equals(projectName, other.projectName)
+                    && Objects.equals(isepValue, other.isepValue)
+                    && Objects.equals(isepPercent, other.isepPercent)
+                    && Objects.equals(band, other.band);
+        }
+
+        @Override
+        public int hashCode() {
+            return 31 * Arrays.hashCode(content)
+                    + Objects.hash(documentCode, fileName, questionnaireName, projectName, isepValue, isepPercent, band);
+        }
+
+        @Override
+        public String toString() {
+            return "GeneratedBulletin[documentCode=" + documentCode + ", fileName=" + fileName
+                    + ", questionnaireName=" + questionnaireName + ", projectName=" + projectName
+                    + ", isepValue=" + isepValue + ", isepPercent=" + isepPercent + ", band=" + band + "]";
+        }
     }
 
     public record BulletinMetadata(String documentCode, String questionnaireName, String projectName,
@@ -77,10 +104,10 @@ public class GenerateNonComplianceBulletinUseCase {
 
         String documentCode = DocumentFormatUtil.authenticityCode("BNC",
                 project.getId(), questionnaire.getId(), dashboard.band(),
-                dashboard.isepPercent(), dashboard.calculatedAt());
+                dashboard.iseqPercent(), dashboard.calculatedAt());
 
         return new BulletinMetadata(documentCode, questionnaire.getName(), project.getName(),
-                dashboard.isepPercent(), DocumentFormatUtil.percent(dashboard.isepPercent()),
+                dashboard.iseqPercent(), DocumentFormatUtil.percent(dashboard.iseqPercent()),
                 dashboard.band());
     }
 
@@ -122,7 +149,7 @@ public class GenerateNonComplianceBulletinUseCase {
 
         return new GeneratedBulletin(pdf, documentCode, fileName,
                 questionnaire.getName(), project.getName(),
-                dashboard.isepPercent(), DocumentFormatUtil.percent(dashboard.isepPercent()),
+                dashboard.iseqPercent(), DocumentFormatUtil.percent(dashboard.iseqPercent()),
                 dashboard.band());
     }
 
@@ -142,12 +169,18 @@ public class GenerateNonComplianceBulletinUseCase {
         List<Map<String, Object>> nonCompliantQuestions =
                 loadNonCompliantQuestions(project.getId(), questionnaire.getId());
 
-        String scopeLabel = dashboard.iterationName() != null ? "Iteração"
-                : (dashboard.stageName() != null ? "Etapa" : "Questionário");
+        String scopeLabel;
+        if (dashboard.iterationName() != null) {
+            scopeLabel = "Iteração";
+        } else if (dashboard.stageName() != null) {
+            scopeLabel = "Etapa";
+        } else {
+            scopeLabel = "Questionário";
+        }
 
         String documentCode = DocumentFormatUtil.authenticityCode("BNC",
                 project.getId(), questionnaire.getId(), dashboard.band(),
-                dashboard.isepPercent(), dashboard.calculatedAt());
+                dashboard.iseqPercent(), dashboard.calculatedAt());
 
         Map<String, Object> model = new HashMap<>();
         model.put("documentTitle", configValue(config != null ? config.getDocumentTitle() : null,
@@ -155,7 +188,7 @@ public class GenerateNonComplianceBulletinUseCase {
         model.put("systemName", configValue(config != null ? config.getSystemName() : null,
                 "EthicalSoft Compliance"));
         model.put("documentCode", documentCode);
-        model.put("generatedAtFormatted", DocumentFormatUtil.dateTime(LocalDateTime.now()));
+        model.put("generatedAtFormatted", DocumentFormatUtil.dateTime(LocalDateTime.now(ZoneOffset.UTC)));
         model.put("generatedBy", configValue(generatedBy, "Analista de Qualidade"));
 
         model.put("projectName", project.getName());
@@ -167,7 +200,7 @@ public class GenerateNonComplianceBulletinUseCase {
                 questionnaire.getApplicationStartDate(), questionnaire.getApplicationEndDate()));
         model.put("calculatedAtFormatted", DocumentFormatUtil.dateTime(dashboard.calculatedAt()));
 
-        model.put("isepPercent", DocumentFormatUtil.percent(dashboard.isepPercent()));
+        model.put("isepPercent", DocumentFormatUtil.percent(dashboard.iseqPercent()));
         model.put("band", dashboard.band());
         model.put("bandLabel", DocumentFormatUtil.bandLabel(dashboard.band()));
         model.put("minimumBand", EthicalComplianceBand.MINIMUM_ACCEPTABLE.name());
@@ -233,6 +266,8 @@ public class GenerateNonComplianceBulletinUseCase {
                 .collect(Collectors.joining(", "));
     }
 
+    private record QuestionRow(String domain, String text, long yes, long no, BigDecimal compliance) {}
+
     private List<Map<String, Object>> loadNonCompliantQuestions(Long projectId, Integer questionnaireId) {
         List<QuestionnaireResponse> responses = responseRepository
                 .findByProjectIdAndQuestionnaireIdExcludingTemplates(projectId, questionnaireId)
@@ -256,29 +291,36 @@ public class GenerateNonComplianceBulletinUseCase {
 
         Map<Long, long[]> counts = new LinkedHashMap<>();
         Map<Long, String> textByQuestion = new HashMap<>();
-        for (QuestionnaireResponse response : responses) {
-            if (response.getAnswers() == null) {
-                continue;
-            }
-            for (QuestionnaireResponse.AnswerDocument answer : response.getAnswers()) {
-                Long questionId = answer.getQuestionId();
-                if (questionId == null || answer.getResponse() == null) {
-                    continue;
-                }
-                counts.computeIfAbsent(questionId, k -> new long[2]);
-                if (Boolean.TRUE.equals(answer.getResponse())) {
-                    counts.get(questionId)[0]++;
-                } else {
-                    counts.get(questionId)[1]++;
-                }
-                textByQuestion.putIfAbsent(questionId, answer.getQuestionText());
-            }
-        }
-
-        record QuestionRow(String domain, String text, long yes, long no, BigDecimal compliance) {
-        }
+        responses.forEach(response -> tabulateAnswers(response, counts, textByQuestion));
 
         BigDecimal threshold = EthicalComplianceBand.MINIMUM_ACCEPTABLE.getMinInclusive();
+        List<QuestionRow> rows = buildNonCompliantRows(counts, domainByQuestion, textByQuestion, threshold);
+
+        rows.sort(Comparator.comparing(QuestionRow::compliance));
+        return rows.stream().map(this::toQuestionRowMap).toList();
+    }
+
+    private void tabulateAnswers(QuestionnaireResponse response,
+                                  Map<Long, long[]> counts,
+                                  Map<Long, String> textByQuestion) {
+        if (response.getAnswers() == null) return;
+        for (QuestionnaireResponse.AnswerDocument answer : response.getAnswers()) {
+            Long questionId = answer.getQuestionId();
+            if (questionId == null || answer.getResponse() == null) continue;
+            counts.computeIfAbsent(questionId, k -> new long[2]);
+            if (Boolean.TRUE.equals(answer.getResponse())) {
+                counts.get(questionId)[0]++;
+            } else {
+                counts.get(questionId)[1]++;
+            }
+            textByQuestion.putIfAbsent(questionId, answer.getQuestionText());
+        }
+    }
+
+    private List<QuestionRow> buildNonCompliantRows(Map<Long, long[]> counts,
+                                                    Map<Long, String> domainByQuestion,
+                                                    Map<Long, String> textByQuestion,
+                                                    BigDecimal threshold) {
         List<QuestionRow> rows = new ArrayList<>();
         for (Map.Entry<Long, long[]> entry : counts.entrySet()) {
             long yes = entry.getValue()[0];
@@ -287,27 +329,24 @@ public class GenerateNonComplianceBulletinUseCase {
             BigDecimal compliance = total > 0
                     ? BigDecimal.valueOf(yes * 100).divide(BigDecimal.valueOf(total), 2, RoundingMode.HALF_UP)
                     : BigDecimal.ZERO;
-            if (compliance.compareTo(threshold) >= 0) {
-                continue;
+            if (compliance.compareTo(threshold) < 0) {
+                rows.add(new QuestionRow(
+                        domainByQuestion.getOrDefault(entry.getKey(), "N/D"),
+                        textByQuestion.getOrDefault(entry.getKey(), "Questão " + entry.getKey()),
+                        yes, no, compliance));
             }
-            rows.add(new QuestionRow(
-                    domainByQuestion.getOrDefault(entry.getKey(), "N/D"),
-                    textByQuestion.getOrDefault(entry.getKey(), "Questão " + entry.getKey()),
-                    yes, no, compliance));
         }
+        return rows;
+    }
 
-        rows.sort(Comparator.comparing(QuestionRow::compliance));
-        return rows.stream()
-                .map(r -> {
-                    Map<String, Object> row = new LinkedHashMap<>();
-                    row.put("domain", r.domain());
-                    row.put("questionText", r.text());
-                    row.put("yesCount", r.yes());
-                    row.put("noCount", r.no());
-                    row.put("compliancePercent", DocumentFormatUtil.percent(r.compliance()));
-                    return row;
-                })
-                .toList();
+    private Map<String, Object> toQuestionRowMap(QuestionRow r) {
+        Map<String, Object> row = new LinkedHashMap<>();
+        row.put("domain", r.domain());
+        row.put("questionText", r.text());
+        row.put("yesCount", r.yes());
+        row.put("noCount", r.no());
+        row.put("compliancePercent", DocumentFormatUtil.percent(r.compliance()));
+        return row;
     }
 
     private String configValue(String value, String fallback) {

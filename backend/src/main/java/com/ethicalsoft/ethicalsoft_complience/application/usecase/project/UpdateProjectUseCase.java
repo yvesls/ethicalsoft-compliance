@@ -38,6 +38,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UpdateProjectUseCase {
 
+    private static final String PARAM_FIRST_NAME = "firstName";
+    private static final String PARAM_PROJECT_ID = "projectId";
+
     private final ProjectRepository projectRepository;
     private final StageRepository stageRepository;
     private final IterationRepository iterationRepository;
@@ -783,9 +786,9 @@ public class UpdateProjectUseCase {
                     NotificationType.PROJECT_ASSIGNMENT,
                     Map.of(
                             "to", rep.getUser().getEmail(),
-                            "firstName", Optional.ofNullable(rep.getUser().getFirstName()).orElse(""),
+                            PARAM_FIRST_NAME, Optional.ofNullable(rep.getUser().getFirstName()).orElse(""),
                             "projectName", project.getName(),
-                            "projectId", project.getId(),
+                            PARAM_PROJECT_ID, project.getId(),
                             "adminName", admin.getFirstName() + " " + Optional.ofNullable(admin.getLastName()).orElse(""),
                             "adminEmail", Optional.ofNullable(admin.getEmail()).orElse(""),
                             "roles", rep.getRoles().stream().map(Role::getName).toList(),
@@ -804,9 +807,9 @@ public class UpdateProjectUseCase {
                     NotificationType.PROJECT_UNASSIGNMENT,
                     Map.of(
                             "to", rep.getUser().getEmail(),
-                            "firstName", Optional.ofNullable(rep.getUser().getFirstName()).orElse(""),
+                            PARAM_FIRST_NAME, Optional.ofNullable(rep.getUser().getFirstName()).orElse(""),
                             "projectName", project.getName(),
-                            "projectId", project.getId()
+                            PARAM_PROJECT_ID, project.getId()
                     )
             ));
         } catch (Exception e) {
@@ -823,7 +826,7 @@ public class UpdateProjectUseCase {
                             "oldEmail", oldEmail,
                             "newEmail", newEmail,
                             "projectName", project.getName(),
-                            "projectId", project.getId()
+                            PARAM_PROJECT_ID, project.getId()
                     )
             ));
             sendNotificationUseCase.execute(new SendNotificationCommand(
@@ -833,7 +836,7 @@ public class UpdateProjectUseCase {
                             "oldEmail", oldEmail,
                             "newEmail", newEmail,
                             "projectName", project.getName(),
-                            "projectId", project.getId()
+                            PARAM_PROJECT_ID, project.getId()
                     )
             ));
         } catch (Exception e) {
@@ -850,11 +853,11 @@ public class UpdateProjectUseCase {
             try {
                 Map<String, Object> context = new HashMap<>();
                 context.put("to", email);
-                context.put("firstName", firstName != null ? firstName : "");
+                context.put(PARAM_FIRST_NAME, firstName != null ? firstName : "");
                 context.put("tempPassword", tempPassword);
                 context.put("projectName", project != null ? project.getName() : "");
                 context.put("adminName", buildAdminName(currentAdmin));
-                context.put("projectId", project != null ? project.getId() : null);
+                context.put(PARAM_PROJECT_ID, project != null ? project.getId() : null);
                 context.put("systemTriggered", true);
 
                 sendNotificationUseCase.execute(new SendNotificationCommand(

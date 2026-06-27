@@ -178,6 +178,8 @@ public class TemplateMongoAdapter implements TemplateQueryPort, TemplateCommandP
         return questions.stream().map(question -> {
             TemplateQuestionDTO pDto = new TemplateQuestionDTO();
             pDto.setValue(question.getValue());
+            pDto.setType(question.getType());
+            pDto.setClassification(question.getClassification());
 
             if (question.getStages() != null) {
                 pDto.setStages(question.getStages().stream()

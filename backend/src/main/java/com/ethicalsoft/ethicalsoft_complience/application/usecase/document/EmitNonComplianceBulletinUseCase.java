@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -59,7 +60,7 @@ public class EmitNonComplianceBulletinUseCase {
                 ? template.getTemplateLink()
                 : "users/non-compliance-bulletin-emitted.ftl";
         String subject = resolveSubject(template, bulletin);
-        String emittedAtFormatted = DocumentFormatUtil.dateTime(LocalDateTime.now());
+        String emittedAtFormatted = DocumentFormatUtil.dateTime(LocalDateTime.now(ZoneOffset.UTC));
 
         int sent = 0;
         int skipped = 0;

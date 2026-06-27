@@ -12,6 +12,8 @@ import {
 import { ActionType } from '../../../../shared/enums/action-type.enum'
 import { RoleService } from '../../../../core/services/role.service'
 import { RoleSummary } from '../../../../shared/interfaces/role/role-summary.interface'
+import { QuestionClassificationType } from '../../../../shared/enums/question-classification-type.enum'
+import { QuestionType } from '../../../../shared/enums/question-type.enum'
 import { take } from 'rxjs/operators'
 
 export interface QuestionData {
@@ -22,6 +24,8 @@ export interface QuestionData {
 	stageNames?: string[]
 	stageName?: string | null
 	categoryStageName?: string | null
+	type?: QuestionType
+	classification?: QuestionClassificationType | null
 }
 
 export interface QuestionStageConfig {
@@ -49,6 +53,7 @@ export class QuestionModalComponent implements OnInit {
 	@Input() mode: ActionType = ActionType.CREATE
 	@Input() stageConfig?: QuestionStageConfig
 	@Input() allowedRoleIds?: number[]
+	@Input() textReadOnly = false
 	@Output() questionCreated = new EventEmitter<QuestionData>()
 	@Output() questionUpdated = new EventEmitter<QuestionData>()
 
@@ -80,8 +85,13 @@ export class QuestionModalComponent implements OnInit {
 
 		if (this.editData && this.mode === ActionType.EDIT) {
 			this.actionType = ActionType.EDIT
-			this.modalTitle = this.translate.instant('questionnaire.question_modal.edit_title')
+			this.modalTitle = this.textReadOnly
+				? this.translate.instant('questionnaire.question_modal.edit_links_title')
+				: this.translate.instant('questionnaire.question_modal.edit_title')
 			this.populateForm(this.editData)
+			if (this.textReadOnly) {
+				this.form.get('value')?.disable({ emitEvent: false })
+			}
 		} else {
 			this.actionType = ActionType.CREATE
 			this.modalTitle = this.translate.instant('questionnaire.question_modal.create_title')
@@ -271,18 +281,20 @@ export class QuestionModalComponent implements OnInit {
 
 	onSubmit(): void {
 		if (this.form.valid) {
-			const formValue = this.form.value
-			const roleIds = formValue.roleIds ?? []
-			const stageNames = this.normalizeStageNames(formValue.stageNames)
+			const rawValue = this.form.getRawValue()
+			const roleIds = rawValue.roleIds ?? []
+			const stageNames = this.normalizeStageNames(rawValue.stageNames)
 			const categoryStageName = this.resolveCategoryStageName(stageNames)
 			const questionData: QuestionData = {
 				id: this.editData?.id,
-				value: formValue.value,
+				value: this.textReadOnly ? (this.editData?.value ?? rawValue.value) : rawValue.value,
 				roleIds,
 				roleNames: this.mapRoleIdsToNames(roleIds),
 				stageNames,
 				stageName: stageNames[0] ?? null,
 				categoryStageName,
+				type: this.editData?.type,
+				classification: this.editData?.classification,
 			}
 
 			if (this.actionType === ActionType.EDIT) {

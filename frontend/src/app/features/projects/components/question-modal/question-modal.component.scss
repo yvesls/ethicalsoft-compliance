@@ -11,4 +11,22 @@
   .form-group {
     margin-bottom: 1.5rem;
   }
+
+  .question-readonly-hint {
+    font-size: 0.8rem;
+    color: $neutral-text-light;
+    margin-bottom: 0.5rem;
+    font-style: italic;
+  }
+
+  .question-readonly-value {
+    background: $gray-quaternary;
+    border: 1px solid $gray-border;
+    border-radius: $radius-sm;
+    padding: 0.65rem 0.85rem;
+    font-size: 0.9rem;
+    color: $gray-secundary;
+    margin: 0;
+    line-height: 1.5;
+  }
 }

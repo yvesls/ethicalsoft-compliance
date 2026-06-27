@@ -86,7 +86,7 @@ class ProcessExpiredProjectIsepUseCaseTest {
         result1.setId(1L);
         result1.setProjectId(100L);
         result1.setQuestionnaireId(10);
-        result1.setIsep(BigDecimal.valueOf(0.90));
+        result1.setIseq(BigDecimal.valueOf(0.90));
         result1.setBand(EthicalComplianceBand.A.name());
         result1.setCalculatedAt(LocalDateTime.now().minusDays(1));
 
@@ -94,7 +94,7 @@ class ProcessExpiredProjectIsepUseCaseTest {
         result2.setId(2L);
         result2.setProjectId(100L);
         result2.setQuestionnaireId(11);
-        result2.setIsep(BigDecimal.valueOf(0.75));
+        result2.setIseq(BigDecimal.valueOf(0.75));
         result2.setBand(EthicalComplianceBand.B.name());
         result2.setCalculatedAt(LocalDateTime.now().minusDays(1));
     }

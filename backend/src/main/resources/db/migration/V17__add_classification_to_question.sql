@@ -1,0 +1,1 @@
+ALTER TABLE question ADD COLUMN IF NOT EXISTS classification VARCHAR(30);

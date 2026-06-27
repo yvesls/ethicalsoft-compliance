@@ -30,8 +30,8 @@ public class QuestionnaireResult {
     @Column(name = "questionnaire_id", nullable = false)
     private Integer questionnaireId;
 
-    @Column(name = "isep", nullable = false, precision = 7, scale = 4)
-    private BigDecimal isep;
+    @Column(name = "iseq", nullable = false, precision = 7, scale = 4)
+    private BigDecimal iseq;
 
     @Column(name = "band", nullable = false, length = 1)
     private String band;

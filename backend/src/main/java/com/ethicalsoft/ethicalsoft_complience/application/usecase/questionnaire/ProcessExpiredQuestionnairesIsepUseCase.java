@@ -211,7 +211,7 @@ public class ProcessExpiredQuestionnairesIsepUseCase {
                     ? project.getOwner().getEmail()
                     : null;
 
-            String isepPercent = IsepMath.toPercent(result.getIsep()).toPlainString();
+            String isepPercent = IsepMath.toPercent(result.getIseq()).toPlainString();
             String band = result.getBand() != null ? result.getBand() : "";
 
             Map<String, Object> context = new HashMap<>();

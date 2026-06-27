@@ -24,7 +24,7 @@ export class IsepEvolutionChartComponent implements OnChanges {
 
 	private buildChart(): void {
 		const labels = this.entries.map((e) => e.iterationName ?? e.stageName ?? e.questionnaireName)
-		const values = this.entries.map((e) => e.isepPercent)
+		const values = this.entries.map((e) => ('iseqPercent' in e ? e.iseqPercent : e.isepPercent))
 		const colors = this.entries.map((e) => BAND_META[e.band]?.cssColor ?? '#6b7280')
 
 		this.chartOptions = {

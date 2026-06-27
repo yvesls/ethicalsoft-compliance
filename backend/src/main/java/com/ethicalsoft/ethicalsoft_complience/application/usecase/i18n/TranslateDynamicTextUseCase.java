@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.HexFormat;
 import java.util.Optional;
 
@@ -56,7 +57,7 @@ public class TranslateDynamicTextUseCase {
                 .language(target.code())
                 .original(text)
                 .translated(translated)
-                .createdAt(LocalDateTime.now())
+                .createdAt(LocalDateTime.now(ZoneOffset.UTC))
                 .build());
 
         return translated;

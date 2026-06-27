@@ -2,8 +2,8 @@
 	<header class="home__header">
 		<h1>Bem-vindo ao EthicalSoft Compliance</h1>
 		<p>
-			A plataforma definitiva para garantir a conformidade e integridade ética no ciclo de vida do desenvolvimento
-			de software.
+			A plataforma que mede, acompanha e certifica a conformidade ética ao longo de todo o ciclo de
+			desenvolvimento de software — do planejamento à entrega.
 		</p>
 	</header>
 
@@ -11,10 +11,11 @@
 		<div class="home__card-content">
 			<h2>Para que serve o sistema?</h2>
 			<p>
-				O sistema atua como uma ferramenta de apoio na identificação e aplicação de diretrizes éticas em
-				metodologias de desenvolvimento ágeis e tradicionais (cascata). Ele assegura, de forma contínua, a
-				transparência dos princípios éticos em todas as fases do projeto, alinhando as decisões técnicas aos
-				padrões éticos e sociais estabelecidos por organizações como a ACM e IEEE-CS.
+				O sistema apoia equipes na identificação e aplicação de diretrizes éticas em projetos de software,
+				tanto em metodologias ágeis (<strong>Iterativo Incremental</strong>) quanto tradicionais
+				(<strong>Cascata</strong>). Por meio de questionários direcionados aos papéis de cada participante, ele
+				transforma decisões técnicas e princípios éticos em indicadores objetivos, mensuráveis e auditáveis,
+				alinhados a padrões de organizações como ACM e IEEE-CS.
 			</p>
 		</div>
 	</div>
@@ -23,33 +24,66 @@
 		<div class="home__card-content">
 			<h2>Qual o objetivo final?</h2>
 			<p>
-				Nosso objetivo é mitigar impactos negativos decorrentes de decisões técnicas inadequadas, promover a
-				responsabilidade na engenharia de software e fornecer a base para a emissão de um
-				<strong>Selo de Conformidade Ética</strong>. Com isso, os projetos fortalecem a confiança do público e
-				atraem clientes e parceiros que valorizam práticas transparentes.
+				Mitigar impactos negativos de decisões técnicas inadequadas e promover a responsabilidade na engenharia
+				de software, consolidando a maturidade ética do projeto em um único indicador final — o
+				<strong>ISEP (Indicador Sistêmico Ético do Projeto)</strong>. Com base nele e nos critérios mínimos de
+				cobertura, a plataforma emite o <strong>Certificado de Conformidade Ética</strong>, fortalecendo a
+				confiança do público e atraindo clientes e parceiros que valorizam práticas transparentes.
+			</p>
+		</div>
+	</div>
+
+	<header class="home__header home__header--sub">
+		<h1>Como a ética é medida?</h1>
+		<p>A avaliação é construída em três níveis, do participante até o projeto consolidado.</p>
+	</header>
+
+	<div class="home__indicators">
+		<div class="indicator-card">
+			<span class="indicator-card__tag">ICP</span>
+			<h3>Conformidade do Participante</h3>
+			<p>
+				Resultado individual de cada representante em um questionário: a proporção de respostas conformes entre
+				as perguntas elegíveis aos seus papéis. Perguntas não aplicáveis ao papel não pesam no cálculo.
+			</p>
+		</div>
+		<div class="indicator-card">
+			<span class="indicator-card__tag">ISEQ</span>
+			<h3>Sistêmico Ético do Questionário</h3>
+			<p>
+				Resultado consolidado de um questionário: a média dos ICPs dos representantes, ponderada pelo peso de
+				cada um no projeto. Vale tanto para questionários de iteração quanto de etapa.
+			</p>
+		</div>
+		<div class="indicator-card indicator-card--highlight">
+			<span class="indicator-card__tag">ISEP</span>
+			<h3>Sistêmico Ético do Projeto</h3>
+			<p>
+				Resultado final do projeto: a média dos ISEQs de todos os questionários, ponderada pelo peso de cada
+				questionário. É o indicador que sustenta a certificação ética.
 			</p>
 		</div>
 	</div>
 
 	<div class="home__card">
 		<div class="home__card-content">
-			<h2>O que você pode tirar de recurso?</h2>
+			<h2>O que você pode extrair da plataforma?</h2>
 			<ul>
 				<li>
-					<strong>Certificado de Conformidade Ética:</strong> Validação oficial de que seu projeto atende às
-					faixas mínimas de aprovação de requisitos éticos.
+					<strong>Certificado de Conformidade Ética:</strong> validação oficial de que o projeto atingiu a
+					faixa mínima de ISEP e os critérios de cobertura exigidos.
 				</li>
 				<li>
-					<strong>Relatórios e Dashboards (Classificação Ética):</strong> Visualização gráfica do nível de
-					ética atingido em cada iteração por cada membro da equipe.
+					<strong>Dashboards de classificação ética:</strong> visualização do ISEP do projeto, dos ISEQs por
+					questionário e do ICP de cada membro, com faixas (A–E) e evolução ao longo do tempo.
 				</li>
 				<li>
-					<strong>Boletins de Não Conformidade:</strong> Identificação rápida de pontos críticos, permitindo
-					reavaliação de ações antes do fechamento da iteração.
+					<strong>Boletins de Não Conformidade:</strong> emitidos quando a faixa mínima não é alcançada,
+					apontando os pontos críticos antes do fechamento do recorte avaliado.
 				</li>
 				<li>
-					<strong>Questionários Adaptáveis:</strong> Avaliações direcionadas a cada papel durante as fases do
-					ciclo de desenvolvimento, mantendo a equipe alinhada.
+					<strong>Exportações e rastreabilidade:</strong> dados em CSV/JSON e o vínculo completo entre
+					questionário, pergunta, etapa, papel, representante e resposta para auditoria.
 				</li>
 			</ul>
 		</div>
@@ -57,59 +91,82 @@
 
 	<header class="home__header home__header--sub">
 		<h1>Como cadastrar um projeto?</h1>
-		<p>Acompanhe o passo a passo para iniciar e gerenciar a conformidade ética da sua equipe.</p>
+		<p>Siga o passo a passo para configurar a avaliação e acompanhar a conformidade ética da sua equipe.</p>
 	</header>
 
-	<div class="home__card">
-		<div class="home__card-content">
-			<h2>1. Criação e Modelo de Gestão</h2>
-			<p>
-				O <strong>Administrador</strong> inicia o cadastro definindo o nome do projeto e seu modelo
-				(Cascata ou Iterativo). No modelo Iterativo, estipula-se a quantidade de iterações; no modelo Cascata, o
-				sistema assume por padrão 5 fases (Iniciação, Requisitos, Projeto, Desenvolvimento e Testes).
-			</p>
-		</div>
-	</div>
+	<ol class="home__steps">
+		<li class="step-card">
+			<span class="step-card__number">1</span>
+			<div class="step-card__content">
+				<h2>Dados do projeto</h2>
+				<p>
+					Informe o nome e escolha o <strong>tipo</strong>: Iterativo Incremental (organizado por iterações)
+					ou Cascata (organizado por etapas). É possível partir de um <strong>template</strong>. No tipo
+					iterativo, a partir das datas e da duração informada, o sistema calcula automaticamente o número de
+					iterações.
+				</p>
+			</div>
+		</li>
 
-	<div class="home__card">
-		<div class="home__card-content">
-			<h2>2. Metas e Prazos</h2>
-			<p>
-				Configura-se a faixa mínima aceitável de conformidade para a iteração, os pesos atribuídos às respostas
-				de cada membro e as datas de aplicação, considerando os dias úteis.
-			</p>
-		</div>
-	</div>
+		<li class="step-card">
+			<span class="step-card__number">2</span>
+			<div class="step-card__content">
+				<h2>Etapas do ciclo</h2>
+				<p>
+					Cadastre ou reutilize as etapas do projeto. Na <strong>Cascata</strong>, a etapa também organiza o
+					questionário. No <strong>Iterativo</strong>, a etapa é uma dimensão analítica que identifica a qual
+					parte do processo cada pergunta se relaciona — sem impor sequência dentro da sprint.
+				</p>
+			</div>
+		</li>
 
-	<div class="home__card">
-		<div class="home__card-content">
-			<h2>3. Composição da Equipe</h2>
-			<p>
-				Cadastram-se 6 papéis fundamentais: Cliente, Gerente de Projeto, Líder de Equipe, Arquiteto de Software,
-				Desenvolvedor e Analista de Qualidade. Todos recebem acessos para os questionários.
-			</p>
-		</div>
-	</div>
+		<li class="step-card">
+			<span class="step-card__number">3</span>
+			<div class="step-card__content">
+				<h2>Representantes e papéis</h2>
+				<p>
+					Adicione os representantes com nome, e-mail, <strong>peso</strong> e um ou mais
+					<strong>papéis</strong> (encargos). O peso define a influência da pessoa no resultado, e os papéis
+					determinam quais perguntas serão elegíveis para ela responder.
+				</p>
+			</div>
+		</li>
 
-	<div class="home__card">
-		<div class="home__card-content">
-			<h2>4. Atribuição de Questionários</h2>
-			<p>
-				Os questionários (criados pelo Analista de Qualidade) são configurados para cada fase. Eles englobam as
-				implicações éticas de cada papel. Os membros acessam o sistema, leem e aceitam os termos de ciência, e
-				iniciam as respostas.
-			</p>
-		</div>
-	</div>
+		<li class="step-card">
+			<span class="step-card__number">4</span>
+			<div class="step-card__content">
+				<h2>Questionários e perguntas</h2>
+				<p>
+					Crie os questionários — vinculados à iteração ou à etapa — definindo <strong>peso</strong>, faixa
+					mínima de aplicação e período. Cada pergunta é associada a papéis e etapas, montando o conjunto
+					elegível de cada representante sem contar perguntas repetidas.
+				</p>
+			</div>
+		</li>
 
-	<div class="home__card">
-		<div class="home__card-content">
-			<h2>5. Execução, Avaliação e Certificação</h2>
-			<p>
-				A equipe responde aos questionários com evidências. O sistema calcula e exibe os resultados no
-				<em>Dashboard</em>. Caso a pontuação mínima não seja atingida, um <em>Boletim de Não Conformidade</em> é
-				emitido. Ao final, se o projeto for aprovado, gera-se o <em>Certificado de Conformidade Ética</em>.
-			</p>
-		</div>
-	</div>
+		<li class="step-card">
+			<span class="step-card__number">5</span>
+			<div class="step-card__content">
+				<h2>Aplicação e respostas</h2>
+				<p>
+					Os representantes acessam o sistema, aceitam o termo de ciência e respondem apenas as perguntas
+					elegíveis aos seus papéis, registrando justificativas e evidências. Somente respostas válidas entram
+					no cálculo.
+				</p>
+			</div>
+		</li>
+
+		<li class="step-card">
+			<span class="step-card__number">6</span>
+			<div class="step-card__content">
+				<h2>Cálculo, dashboard e certificação</h2>
+				<p>
+					O sistema apura o ICP de cada participante, o ISEQ de cada questionário e o ISEP consolidado do
+					projeto, exibindo tudo nos dashboards. Se a faixa mínima e a cobertura forem atingidas, gera-se o
+					<strong>Certificado de Conformidade Ética</strong>; caso contrário, um
+					<strong>Boletim de Não Conformidade</strong>.
+				</p>
+			</div>
+		</li>
+	</ol>
 </section>
