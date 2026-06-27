@@ -30,6 +30,12 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class BaseQuestionnaireTemplateInitializer {
 
+    private static final String STAGE_INICIACAO = "Iniciação";
+    private static final String STAGE_REQUISITOS = "Requisitos";
+    private static final String STAGE_PROJETO = "Projeto";
+    private static final String STAGE_DESENVOLVIMENTO = "Desenvolvimento";
+    private static final String STAGE_TESTES = "Testes";
+
     private static final String SPRINT_1 = "Sprint 1";
     private static final String SPRINT_2 = "Sprint 2";
     private static final String SPRINT_3 = "Sprint 3";
@@ -104,18 +110,18 @@ public class BaseQuestionnaireTemplateInitializer {
         t.setDescription("Template completo de maturidade ética para projetos em cascata. Cobre todas as roles e fases.");
         t.setVisibility(TemplateVisibilityEnum.PUBLIC);
         t.setStages(List.of(
-                stage("Iniciação", new BigDecimal("2.00"), 0),
-                stage("Requisitos", new BigDecimal("3.00"), 1),
-                stage("Projeto", new BigDecimal("2.00"), 2),
-                stage("Desenvolvimento", new BigDecimal("2.50"), 3),
-                stage("Testes", new BigDecimal("1.50"), 4)
+                stage(STAGE_INICIACAO, new BigDecimal("2.00"), 0),
+                stage(STAGE_REQUISITOS, new BigDecimal("3.00"), 1),
+                stage(STAGE_PROJETO, new BigDecimal("2.00"), 2),
+                stage(STAGE_DESENVOLVIMENTO, new BigDecimal("2.50"), 3),
+                stage(STAGE_TESTES, new BigDecimal("1.50"), 4)
         ));
         t.setQuestionnaires(List.of(
-                cascataQuestionnaire("Iniciação", 1, buildCascataIniciacaoQuestions(null)),
-                cascataQuestionnaire("Requisitos", 1, buildCascataRequisitosQuestions(null)),
-                cascataQuestionnaire("Projeto", 1, buildCascataProjetoQuestions(null)),
-                cascataQuestionnaire("Desenvolvimento", 1, buildCascataDesenvolvimentoQuestions(null)),
-                cascataQuestionnaire("Testes", 1, buildCascataTestesQuestions(null))
+                cascataQuestionnaire(STAGE_INICIACAO, 1, buildCascataIniciacaoQuestions(null)),
+                cascataQuestionnaire(STAGE_REQUISITOS, 1, buildCascataRequisitosQuestions(null)),
+                cascataQuestionnaire(STAGE_PROJETO, 1, buildCascataProjetoQuestions(null)),
+                cascataQuestionnaire(STAGE_DESENVOLVIMENTO, 1, buildCascataDesenvolvimentoQuestions(null)),
+                cascataQuestionnaire(STAGE_TESTES, 1, buildCascataTestesQuestions(null))
         ));
         t.setIterations(List.of());
         t.setRepresentatives(buildBaseRepresentatives());
@@ -133,25 +139,25 @@ public class BaseQuestionnaireTemplateInitializer {
         t.setDefaultIterationDuration(10);
 
         List<TemplateStageDTO> stages = List.of(
-                stage("Iniciação", new BigDecimal("2.00"), 0),
-                stage("Requisitos", new BigDecimal("3.00"), 1),
-                stage("Projeto", new BigDecimal("2.00"), 2),
-                stage("Desenvolvimento", new BigDecimal("2.50"), 3),
-                stage("Testes", new BigDecimal("1.50"), 4)
+                stage(STAGE_INICIACAO, new BigDecimal("2.00"), 0),
+                stage(STAGE_REQUISITOS, new BigDecimal("3.00"), 1),
+                stage(STAGE_PROJETO, new BigDecimal("2.00"), 2),
+                stage(STAGE_DESENVOLVIMENTO, new BigDecimal("2.50"), 3),
+                stage(STAGE_TESTES, new BigDecimal("1.50"), 4)
         );
         t.setStages(stages);
 
-        List<StageSummaryResponseDTO> initiacaoStages = List.of(stageSummary(0, "Iniciação"));
-        List<StageSummaryResponseDTO> requisitosStages = List.of(stageSummary(1, "Requisitos"));
-        List<StageSummaryResponseDTO> projetoStages = List.of(stageSummary(2, "Projeto"));
-        List<StageSummaryResponseDTO> desenvolvimentoStages = List.of(stageSummary(3, "Desenvolvimento"));
-        List<StageSummaryResponseDTO> testesStages = List.of(stageSummary(4, "Testes"));
+        List<StageSummaryResponseDTO> initiacaoStages = List.of(stageSummary(0, STAGE_INICIACAO));
+        List<StageSummaryResponseDTO> requisitosStages = List.of(stageSummary(1, STAGE_REQUISITOS));
+        List<StageSummaryResponseDTO> projetoStages = List.of(stageSummary(2, STAGE_PROJETO));
+        List<StageSummaryResponseDTO> desenvolvimentoStages = List.of(stageSummary(3, STAGE_DESENVOLVIMENTO));
+        List<StageSummaryResponseDTO> testesStages = List.of(stageSummary(4, STAGE_TESTES));
         List<StageSummaryResponseDTO> allStages = List.of(
-                stageSummary(0, "Iniciação"),
-                stageSummary(1, "Requisitos"),
-                stageSummary(2, "Projeto"),
-                stageSummary(3, "Desenvolvimento"),
-                stageSummary(4, "Testes")
+                stageSummary(0, STAGE_INICIACAO),
+                stageSummary(1, STAGE_REQUISITOS),
+                stageSummary(2, STAGE_PROJETO),
+                stageSummary(3, STAGE_DESENVOLVIMENTO),
+                stageSummary(4, STAGE_TESTES)
         );
 
         List<TemplateQuestionDTO> sprint1 = new ArrayList<>();
@@ -198,30 +204,30 @@ public class BaseQuestionnaireTemplateInitializer {
         t.setDefaultIterationDuration(10);
 
         List<TemplateStageDTO> stages = List.of(
-                stage("Requisitos", new BigDecimal("1.00"), 1),
-                stage("Desenvolvimento", new BigDecimal("1.00"), 2),
-                stage("Projeto", new BigDecimal("1.00"), 3),
-                stage("Testes", new BigDecimal("1.00"), 4),
-                stage("Iniciação", new BigDecimal("1.00"), 5)
+                stage(STAGE_REQUISITOS, new BigDecimal("1.00"), 1),
+                stage(STAGE_DESENVOLVIMENTO, new BigDecimal("1.00"), 2),
+                stage(STAGE_PROJETO, new BigDecimal("1.00"), 3),
+                stage(STAGE_TESTES, new BigDecimal("1.00"), 4),
+                stage(STAGE_INICIACAO, new BigDecimal("1.00"), 5)
         );
         t.setStages(stages);
 
-        List<StageSummaryResponseDTO> reqStages = List.of(stageSummary(16, "Requisitos"));
-        List<StageSummaryResponseDTO> devStages = List.of(stageSummary(17, "Desenvolvimento"));
-        List<StageSummaryResponseDTO> projStages = List.of(stageSummary(18, "Projeto"));
-        List<StageSummaryResponseDTO> testStages = List.of(stageSummary(19, "Testes"));
-        List<StageSummaryResponseDTO> inicStages = List.of(stageSummary(20, "Iniciação"));
+        List<StageSummaryResponseDTO> reqStages = List.of(stageSummary(16, STAGE_REQUISITOS));
+        List<StageSummaryResponseDTO> devStages = List.of(stageSummary(17, STAGE_DESENVOLVIMENTO));
+        List<StageSummaryResponseDTO> projStages = List.of(stageSummary(18, STAGE_PROJETO));
+        List<StageSummaryResponseDTO> testStages = List.of(stageSummary(19, STAGE_TESTES));
+        List<StageSummaryResponseDTO> inicStages = List.of(stageSummary(20, STAGE_INICIACAO));
 
         List<TemplateQuestionDTO> sprint1Governanca = new ArrayList<>();
-        sprint1Governanca.add(question("Existe definição explícita de que toda recomendação da IA nesta sprint será apenas sugestão e nunca decisão automática final?", Set.of(2L, 3L, 9L), "Iniciação", inicStages));
-        sprint1Governanca.add(question("Foram definidas diretrizes sobre quais dados, credenciais ou informações internas não podem ser enviados para ferramentas externas de IA?", Set.of(2L, 1L, 9L), "Iniciação", inicStages));
+        sprint1Governanca.add(question("Existe definição explícita de que toda recomendação da IA nesta sprint será apenas sugestão e nunca decisão automática final?", Set.of(2L, 3L, 9L), STAGE_INICIACAO, inicStages));
+        sprint1Governanca.add(question("Foram definidas diretrizes sobre quais dados, credenciais ou informações internas não podem ser enviados para ferramentas externas de IA?", Set.of(2L, 1L, 9L), STAGE_INICIACAO, inicStages));
         classify(sprint1Governanca, QuestionClassificationEnum.PROJETO_INTEIRO);
 
         List<TemplateQuestionDTO> sprint1Dominio = new ArrayList<>();
-        sprint1Dominio.add(question("Os requisitos de triagem contemplam conformidade com LGPD e minimização de dados pessoais no processo seletivo?", Set.of(3L, 2L, 9L), "Requisitos", reqStages));
-        sprint1Dominio.add(question("Foram identificados critérios de triagem que podem impactar negativamente grupos vulneráveis ou minorias?", Set.of(9L, 3L, 4L), "Requisitos", reqStages));
-        sprint1Dominio.add(question("Foi aprovado o uso de idade, faculdade de origem ou tempo de experiência como atalho de ranqueamento inicial sem validação ética formal?", Set.of(3L, 9L, 1L), "Requisitos", reqStages));
-        sprint1Dominio.add(question("Os dados utilizados no desenvolvimento respeitam as políticas de privacidade e consentimento?", Set.of(2L, 1L), "Desenvolvimento", devStages));
+        sprint1Dominio.add(question("Os requisitos de triagem contemplam conformidade com LGPD e minimização de dados pessoais no processo seletivo?", Set.of(3L, 2L, 9L), STAGE_REQUISITOS, reqStages));
+        sprint1Dominio.add(question("Foram identificados critérios de triagem que podem impactar negativamente grupos vulneráveis ou minorias?", Set.of(9L, 3L, 4L), STAGE_REQUISITOS, reqStages));
+        sprint1Dominio.add(question("Foi aprovado o uso de idade, faculdade de origem ou tempo de experiência como atalho de ranqueamento inicial sem validação ética formal?", Set.of(3L, 9L, 1L), STAGE_REQUISITOS, reqStages));
+        sprint1Dominio.add(question("Os dados utilizados no desenvolvimento respeitam as políticas de privacidade e consentimento?", Set.of(2L, 1L), STAGE_DESENVOLVIMENTO, devStages));
         classify(sprint1Dominio, QuestionClassificationEnum.ROTATIVA);
 
         List<TemplateQuestionDTO> sprint1Qs = new ArrayList<>();
@@ -229,25 +235,25 @@ public class BaseQuestionnaireTemplateInitializer {
         sprint1Qs.addAll(sprint1Dominio);
 
         List<TemplateQuestionDTO> sprint2Qs = new ArrayList<>(List.of(
-                question("Há rastreabilidade entre critérios de ranking, artefatos gerados com apoio de IA e a decisão final aprovada pela equipe?", Set.of(1L, 2L, 4L), "Requisitos", reqStages),
-                question("As sugestões de IA usadas para refinar critérios de ranqueamento foram avaliadas quanto a vieses, ambiguidades e impactos éticos antes de entrar no escopo?", Set.of(2L, 9L, 4L), "Requisitos", reqStages),
-                question("O recrutador consegue discordar do ranking da IA e registrar o motivo da intervenção humana?", Set.of(9L, 3L, 1L), "Desenvolvimento", devStages),
-                question("A justificativa resumida exibida ao recrutador informa fatores de decisão sem expor atributos sensíveis do candidato?", Set.of(3L, 9L, 1L), "Projeto", projStages)
+                question("Há rastreabilidade entre critérios de ranking, artefatos gerados com apoio de IA e a decisão final aprovada pela equipe?", Set.of(1L, 2L, 4L), STAGE_REQUISITOS, reqStages),
+                question("As sugestões de IA usadas para refinar critérios de ranqueamento foram avaliadas quanto a vieses, ambiguidades e impactos éticos antes de entrar no escopo?", Set.of(2L, 9L, 4L), STAGE_REQUISITOS, reqStages),
+                question("O recrutador consegue discordar do ranking da IA e registrar o motivo da intervenção humana?", Set.of(9L, 3L, 1L), STAGE_DESENVOLVIMENTO, devStages),
+                question("A justificativa resumida exibida ao recrutador informa fatores de decisão sem expor atributos sensíveis do candidato?", Set.of(3L, 9L, 1L), STAGE_PROJETO, projStages)
         ));
         classify(sprint2Qs, QuestionClassificationEnum.ROTATIVA);
 
         List<TemplateQuestionDTO> sprint3Qs = new ArrayList<>(List.of(
-                question("Código gerado com apoio de IA identificado para revisão humana antes de merge, entrega ou publicação?", Set.of(1L, 2L, 4L), "Desenvolvimento", devStages),
-                question("As decisões técnicas de trade-off estão documentadas com justificativa ética e impacto de negócio?", Set.of(2L, 1L, 4L), "Desenvolvimento", devStages),
-                question("O projeto possui condição mínima de governança ética para encerramento e emissão de certificado, ainda que com melhorias futuras mapeadas?", Set.of(2L, 3L, 4L, 9L), "Iniciação", inicStages)
+                question("Código gerado com apoio de IA identificado para revisão humana antes de merge, entrega ou publicação?", Set.of(1L, 2L, 4L), STAGE_DESENVOLVIMENTO, devStages),
+                question("As decisões técnicas de trade-off estão documentadas com justificativa ética e impacto de negócio?", Set.of(2L, 1L, 4L), STAGE_DESENVOLVIMENTO, devStages),
+                question("O projeto possui condição mínima de governança ética para encerramento e emissão de certificado, ainda que com melhorias futuras mapeadas?", Set.of(2L, 3L, 4L, 9L), STAGE_INICIACAO, inicStages)
         ));
         classify(sprint3Qs, QuestionClassificationEnum.ROTATIVA);
 
         List<TemplateQuestionDTO> sprint4Qs = new ArrayList<>(List.of(
-                question("Código, documentação ou cenários produzidos com IA foram submetidos aos mesmos testes e critérios de aceite aplicados ao restante do software?", Set.of(2L, 1L, 4L), "Testes", testStages),
-                question("Foram realizados testes específicos para detectar vieses nos resultados do software?", Set.of(4L, 1L), "Testes", testStages),
-                question("Os resultados dos testes éticos são compartilhados com os stakeholders para validação?", Set.of(2L, 4L, 9L), "Testes", testStages),
-                question("Falhas, alucinações ou sugestões inseguras geradas por IA foram registradas para prevenção em ciclos futuros?", Set.of(2L, 1L, 4L), "Testes", testStages)
+                question("Código, documentação ou cenários produzidos com IA foram submetidos aos mesmos testes e critérios de aceite aplicados ao restante do software?", Set.of(2L, 1L, 4L), STAGE_TESTES, testStages),
+                question("Foram realizados testes específicos para detectar vieses nos resultados do software?", Set.of(4L, 1L), STAGE_TESTES, testStages),
+                question("Os resultados dos testes éticos são compartilhados com os stakeholders para validação?", Set.of(2L, 4L, 9L), STAGE_TESTES, testStages),
+                question("Falhas, alucinações ou sugestões inseguras geradas por IA foram registradas para prevenção em ciclos futuros?", Set.of(2L, 1L, 4L), STAGE_TESTES, testStages)
         ));
         classify(sprint4Qs, QuestionClassificationEnum.ROTATIVA);
 
@@ -278,32 +284,32 @@ public class BaseQuestionnaireTemplateInitializer {
                                                                          List<StageSummaryResponseDTO> requisitosStages,
                                                                          List<StageSummaryResponseDTO> desenvolvimentoStages) {
         List<TemplateQuestionDTO> qs = new ArrayList<>();
-        qs.add(question("Foi aprovado o uso de IA e definido em quais atividades ela será empregada?", Set.of(GERENTEPROJETO, CLIENTE, STAKEHOLDER), "Iniciação", initiacaoStages));
-        qs.add(question("Foram definidas diretrizes sobre quais dados, credenciais ou informações internas não podem ser enviados a ferramentas externas de IA?", Set.of(GERENTEPROJETO, DESENVOLVEDOR, LIDEREQUIPE, ARQUITETOSOFTWARE), "Iniciação", initiacaoStages));
-        qs.add(question("Foi definido quem realiza a revisão humana e a aprovação final de artefatos produzidos com apoio de IA?", Set.of(GERENTEPROJETO, LIDEREQUIPE, ANALISTAQUALIDADE), "Iniciação", initiacaoStages));
-        qs.add(question("Os valores éticos do projeto estão explicitamente documentados e acessíveis?", Set.of(GERENTEPROJETO, LIDEREQUIPE, CLIENTE), "Iniciação", initiacaoStages));
-        qs.add(question("Os riscos éticos do projeto foram documentados e comunicados aos envolvidos?", Set.of(GERENTEPROJETO, ANALISTAQUALIDADE, RESPONSAVELNEGOCIO), "Iniciação", initiacaoStages));
-        qs.add(question("Existe um canal definido para reportar preocupações éticas de forma anônima e segura?", Set.of(GERENTEPROJETO, LIDEREQUIPE, SUPORTE), "Iniciação", initiacaoStages));
-        qs.add(question("Foi definido quem toma decisões em nome da organização?", Set.of(CLIENTE, RESPONSAVELNEGOCIO), "Iniciação", initiacaoStages));
-        qs.add(question("Foi definido quem aprova a flexibilidade orçamentária e as anormalidades de escopo?", Set.of(CLIENTE, RESPONSAVELNEGOCIO, GERENTEPROJETO), "Iniciação", initiacaoStages));
-        qs.add(question("O projeto possui condição mínima de governança ética para avançar?", Set.of(GERENTEPROJETO, CLIENTE, ANALISTAQUALIDADE, STAKEHOLDER), "Iniciação", initiacaoStages));
+        qs.add(question("Foi aprovado o uso de IA e definido em quais atividades ela será empregada?", Set.of(GERENTEPROJETO, CLIENTE, STAKEHOLDER), STAGE_INICIACAO, initiacaoStages));
+        qs.add(question("Foram definidas diretrizes sobre quais dados, credenciais ou informações internas não podem ser enviados a ferramentas externas de IA?", Set.of(GERENTEPROJETO, DESENVOLVEDOR, LIDEREQUIPE, ARQUITETOSOFTWARE), STAGE_INICIACAO, initiacaoStages));
+        qs.add(question("Foi definido quem realiza a revisão humana e a aprovação final de artefatos produzidos com apoio de IA?", Set.of(GERENTEPROJETO, LIDEREQUIPE, ANALISTAQUALIDADE), STAGE_INICIACAO, initiacaoStages));
+        qs.add(question("Os valores éticos do projeto estão explicitamente documentados e acessíveis?", Set.of(GERENTEPROJETO, LIDEREQUIPE, CLIENTE), STAGE_INICIACAO, initiacaoStages));
+        qs.add(question("Os riscos éticos do projeto foram documentados e comunicados aos envolvidos?", Set.of(GERENTEPROJETO, ANALISTAQUALIDADE, RESPONSAVELNEGOCIO), STAGE_INICIACAO, initiacaoStages));
+        qs.add(question("Existe um canal definido para reportar preocupações éticas de forma anônima e segura?", Set.of(GERENTEPROJETO, LIDEREQUIPE, SUPORTE), STAGE_INICIACAO, initiacaoStages));
+        qs.add(question("Foi definido quem toma decisões em nome da organização?", Set.of(CLIENTE, RESPONSAVELNEGOCIO), STAGE_INICIACAO, initiacaoStages));
+        qs.add(question("Foi definido quem aprova a flexibilidade orçamentária e as anormalidades de escopo?", Set.of(CLIENTE, RESPONSAVELNEGOCIO, GERENTEPROJETO), STAGE_INICIACAO, initiacaoStages));
+        qs.add(question("O projeto possui condição mínima de governança ética para avançar?", Set.of(GERENTEPROJETO, CLIENTE, ANALISTAQUALIDADE, STAKEHOLDER), STAGE_INICIACAO, initiacaoStages));
         classify(qs, QuestionClassificationEnum.PROJETO_INTEIRO);
         return qs;
     }
 
     private List<TemplateQuestionDTO> buildIterativePerIterationQuestions(List<StageSummaryResponseDTO> allStages) {
         List<StageSummaryResponseDTO> todas = allStages;
-        List<StageSummaryResponseDTO> reqProjDevTest = pick(allStages, "Requisitos", "Projeto", "Desenvolvimento", "Testes");
-        List<StageSummaryResponseDTO> reqProjDev = pick(allStages, "Requisitos", "Projeto", "Desenvolvimento");
-        List<StageSummaryResponseDTO> devTest = pick(allStages, "Desenvolvimento", "Testes");
+        List<StageSummaryResponseDTO> reqProjDevTest = pick(allStages, STAGE_REQUISITOS, STAGE_PROJETO, STAGE_DESENVOLVIMENTO, STAGE_TESTES);
+        List<StageSummaryResponseDTO> reqProjDev = pick(allStages, STAGE_REQUISITOS, STAGE_PROJETO, STAGE_DESENVOLVIMENTO);
+        List<StageSummaryResponseDTO> devTest = pick(allStages, STAGE_DESENVOLVIMENTO, STAGE_TESTES);
 
         List<TemplateQuestionDTO> qs = new ArrayList<>();
-        qs.add(question("A sprint atual está alinhada aos limites éticos e operacionais definidos para o projeto?", Set.of(GERENTEPROJETO, LIDEREQUIPE, ANALISTAQUALIDADE), "Iniciação", todas));
-        qs.add(question("A equipe revisou riscos, dependências e impactos antes de iniciar a sprint?", Set.of(GERENTEPROJETO, ANALISTAQUALIDADE, LIDEREQUIPE), "Iniciação", todas));
-        qs.add(question("Artefatos ou decisões apoiados por IA passaram por revisão humana antes de serem aceitos nesta sprint?", Set.of(GERENTEPROJETO, DESENVOLVEDOR, ANALISTAQUALIDADE), "Requisitos", reqProjDevTest));
-        qs.add(question("As decisões tomadas nesta sprint mantêm rastreabilidade com os requisitos éticos do projeto?", Set.of(GERENTEPROJETO, ANALISTAREQUISITOS, ANALISTAQUALIDADE), "Requisitos", reqProjDevTest));
-        qs.add(question("Foram registrados aprendizados, falhas ou riscos para orientar a próxima sprint?", Set.of(GERENTEPROJETO, DESENVOLVEDOR), "Desenvolvimento", devTest));
-        qs.add(question("A equipe confirmou que não há uso indevido de dados, credenciais ou informações sensíveis nesta sprint?", Set.of(GERENTEPROJETO, DESENVOLVEDOR, LIDEREQUIPE, ARQUITETOSOFTWARE), "Requisitos", reqProjDev));
+        qs.add(question("A sprint atual está alinhada aos limites éticos e operacionais definidos para o projeto?", Set.of(GERENTEPROJETO, LIDEREQUIPE, ANALISTAQUALIDADE), STAGE_INICIACAO, todas));
+        qs.add(question("A equipe revisou riscos, dependências e impactos antes de iniciar a sprint?", Set.of(GERENTEPROJETO, ANALISTAQUALIDADE, LIDEREQUIPE), STAGE_INICIACAO, todas));
+        qs.add(question("Artefatos ou decisões apoiados por IA passaram por revisão humana antes de serem aceitos nesta sprint?", Set.of(GERENTEPROJETO, DESENVOLVEDOR, ANALISTAQUALIDADE), STAGE_REQUISITOS, reqProjDevTest));
+        qs.add(question("As decisões tomadas nesta sprint mantêm rastreabilidade com os requisitos éticos do projeto?", Set.of(GERENTEPROJETO, ANALISTAREQUISITOS, ANALISTAQUALIDADE), STAGE_REQUISITOS, reqProjDevTest));
+        qs.add(question("Foram registrados aprendizados, falhas ou riscos para orientar a próxima sprint?", Set.of(GERENTEPROJETO, DESENVOLVEDOR), STAGE_DESENVOLVIMENTO, devTest));
+        qs.add(question("A equipe confirmou que não há uso indevido de dados, credenciais ou informações sensíveis nesta sprint?", Set.of(GERENTEPROJETO, DESENVOLVEDOR, LIDEREQUIPE, ARQUITETOSOFTWARE), STAGE_REQUISITOS, reqProjDev));
         classify(qs, QuestionClassificationEnum.BASE_ITERACAO);
         return qs;
     }
@@ -311,9 +317,9 @@ public class BaseQuestionnaireTemplateInitializer {
     private List<TemplateQuestionDTO> buildIterativeSprint1Questions(List<StageSummaryResponseDTO> initiacaoStages,
                                                                       List<StageSummaryResponseDTO> requisitosStages) {
         List<TemplateQuestionDTO> qs = new ArrayList<>();
-        qs.add(question("Os requisitos iniciais contemplam conformidade com LGPD e minimização de dados pessoais?", Set.of(CLIENTE, GERENTEPROJETO, STAKEHOLDER), "Requisitos", requisitosStages));
-        qs.add(question("Foram identificados critérios de triagem que podem impactar negativamente grupos vulneráveis ou minorias?", Set.of(ANALISTAREQUISITOS, CLIENTE, STAKEHOLDER), "Requisitos", requisitosStages));
-        qs.add(question("As sugestões de IA usadas na etapa de requisitos foram avaliadas quanto a vieses e ambiguidades antes de entrar no escopo?", Set.of(ANALISTAREQUISITOS, ANALISTAQUALIDADE), "Requisitos", requisitosStages));
+        qs.add(question("Os requisitos iniciais contemplam conformidade com LGPD e minimização de dados pessoais?", Set.of(CLIENTE, GERENTEPROJETO, STAKEHOLDER), STAGE_REQUISITOS, requisitosStages));
+        qs.add(question("Foram identificados critérios de triagem que podem impactar negativamente grupos vulneráveis ou minorias?", Set.of(ANALISTAREQUISITOS, CLIENTE, STAKEHOLDER), STAGE_REQUISITOS, requisitosStages));
+        qs.add(question("As sugestões de IA usadas na etapa de requisitos foram avaliadas quanto a vieses e ambiguidades antes de entrar no escopo?", Set.of(ANALISTAREQUISITOS, ANALISTAQUALIDADE), STAGE_REQUISITOS, requisitosStages));
         classify(qs, QuestionClassificationEnum.ROTATIVA);
         return qs;
     }
@@ -323,9 +329,9 @@ public class BaseQuestionnaireTemplateInitializer {
                                                                       List<StageSummaryResponseDTO> projetoStages) {
         List<StageSummaryResponseDTO> reqDev = concat(requisitosStages, desenvolvimentoStages);
         List<TemplateQuestionDTO> qs = new ArrayList<>();
-        qs.add(question("O recrutador consegue discordar do ranking da IA e registrar o motivo da intervenção humana?", Set.of(CLIENTE, STAKEHOLDER, DESENVOLVEDOR), "Desenvolvimento", desenvolvimentoStages));
-        qs.add(question("Há rastreabilidade entre critérios de ranking, artefatos gerados com apoio de IA e a decisão final aprovada pela equipe?", Set.of(DESENVOLVEDOR, GERENTEPROJETO, ANALISTAQUALIDADE), "Requisitos", reqDev));
-        qs.add(question("A justificativa resumida exibida ao recrutador informa fatores de decisão sem expor atributos sensíveis do candidato?", Set.of(CLIENTE, STAKEHOLDER), "Projeto", projetoStages));
+        qs.add(question("O recrutador consegue discordar do ranking da IA e registrar o motivo da intervenção humana?", Set.of(CLIENTE, STAKEHOLDER, DESENVOLVEDOR), STAGE_DESENVOLVIMENTO, desenvolvimentoStages));
+        qs.add(question("Há rastreabilidade entre critérios de ranking, artefatos gerados com apoio de IA e a decisão final aprovada pela equipe?", Set.of(DESENVOLVEDOR, GERENTEPROJETO, ANALISTAQUALIDADE), STAGE_REQUISITOS, reqDev));
+        qs.add(question("A justificativa resumida exibida ao recrutador informa fatores de decisão sem expor atributos sensíveis do candidato?", Set.of(CLIENTE, STAKEHOLDER), STAGE_PROJETO, projetoStages));
         classify(qs, QuestionClassificationEnum.ROTATIVA);
         return qs;
     }
@@ -334,9 +340,9 @@ public class BaseQuestionnaireTemplateInitializer {
                                                                       List<StageSummaryResponseDTO> testesStages,
                                                                       List<StageSummaryResponseDTO> initiacaoStages) {
         List<TemplateQuestionDTO> qs = new ArrayList<>();
-        qs.add(question("Código gerado com apoio de IA é identificado para revisão humana antes de merge, entrega ou publicação?", Set.of(DESENVOLVEDOR, GERENTEPROJETO, ANALISTAQUALIDADE), "Desenvolvimento", desenvolvimentoStages));
-        qs.add(question("Decisões técnicas de trade-off estão documentadas com justificativa ética e impacto de negócio?", Set.of(GERENTEPROJETO, DESENVOLVEDOR, ANALISTAQUALIDADE), "Desenvolvimento", desenvolvimentoStages));
-        qs.add(question("Os dados utilizados no desenvolvimento respeitam as políticas de privacidade e consentimento?", Set.of(GERENTEPROJETO, DESENVOLVEDOR), "Desenvolvimento", desenvolvimentoStages));
+        qs.add(question("Código gerado com apoio de IA é identificado para revisão humana antes de merge, entrega ou publicação?", Set.of(DESENVOLVEDOR, GERENTEPROJETO, ANALISTAQUALIDADE), STAGE_DESENVOLVIMENTO, desenvolvimentoStages));
+        qs.add(question("Decisões técnicas de trade-off estão documentadas com justificativa ética e impacto de negócio?", Set.of(GERENTEPROJETO, DESENVOLVEDOR, ANALISTAQUALIDADE), STAGE_DESENVOLVIMENTO, desenvolvimentoStages));
+        qs.add(question("Os dados utilizados no desenvolvimento respeitam as políticas de privacidade e consentimento?", Set.of(GERENTEPROJETO, DESENVOLVEDOR), STAGE_DESENVOLVIMENTO, desenvolvimentoStages));
         classify(qs, QuestionClassificationEnum.ROTATIVA);
         return qs;
     }
@@ -346,11 +352,11 @@ public class BaseQuestionnaireTemplateInitializer {
                                                                       List<StageSummaryResponseDTO> initiacaoStages) {
         List<StageSummaryResponseDTO> inicTest = concat(initiacaoStages, testesStages);
         List<TemplateQuestionDTO> qs = new ArrayList<>();
-        qs.add(question("Código, documentação ou cenários produzidos com IA foram submetidos aos mesmos testes e critérios de aceite aplicados ao restante do software?", Set.of(GERENTEPROJETO, DESENVOLVEDOR), "Testes", testesStages));
-        qs.add(question("Foram realizados testes específicos para detectar vieses nos resultados do software?", Set.of(ANALISTAQUALIDADE, DESENVOLVEDOR), "Testes", testesStages));
-        qs.add(question("Os resultados dos testes éticos são compartilhados com os stakeholders para validação?", Set.of(GERENTEPROJETO, ANALISTAQUALIDADE, STAKEHOLDER), "Testes", testesStages));
-        qs.add(question("Falhas, alucinações ou sugestões inseguras geradas por IA foram registradas para prevenção em ciclos futuros?", Set.of(GERENTEPROJETO, DESENVOLVEDOR, ANALISTAQUALIDADE), "Testes", testesStages));
-        qs.add(question("O projeto possui condição mínima de encerramento ético, ainda que com melhorias futuras mapeadas?", Set.of(GERENTEPROJETO, CLIENTE, ANALISTAQUALIDADE, STAKEHOLDER), "Iniciação", inicTest));
+        qs.add(question("Código, documentação ou cenários produzidos com IA foram submetidos aos mesmos testes e critérios de aceite aplicados ao restante do software?", Set.of(GERENTEPROJETO, DESENVOLVEDOR), STAGE_TESTES, testesStages));
+        qs.add(question("Foram realizados testes específicos para detectar vieses nos resultados do software?", Set.of(ANALISTAQUALIDADE, DESENVOLVEDOR), STAGE_TESTES, testesStages));
+        qs.add(question("Os resultados dos testes éticos são compartilhados com os stakeholders para validação?", Set.of(GERENTEPROJETO, ANALISTAQUALIDADE, STAKEHOLDER), STAGE_TESTES, testesStages));
+        qs.add(question("Falhas, alucinações ou sugestões inseguras geradas por IA foram registradas para prevenção em ciclos futuros?", Set.of(GERENTEPROJETO, DESENVOLVEDOR, ANALISTAQUALIDADE), STAGE_TESTES, testesStages));
+        qs.add(question("O projeto possui condição mínima de encerramento ético, ainda que com melhorias futuras mapeadas?", Set.of(GERENTEPROJETO, CLIENTE, ANALISTAQUALIDADE, STAKEHOLDER), STAGE_INICIACAO, inicTest));
         classify(qs, QuestionClassificationEnum.ROTATIVA);
         return qs;
     }
@@ -372,324 +378,324 @@ public class BaseQuestionnaireTemplateInitializer {
 
     private List<TemplateQuestionDTO> buildCascataIniciacaoQuestions(List<StageSummaryResponseDTO> stgs) {
         List<TemplateQuestionDTO> qs = new ArrayList<>();
-        qs.add(q("Voce entendeu os objetivos do software?", Set.of(CLIENTE, STAKEHOLDER), "Iniciação", stgs));
-        qs.add(q("Voce esta ciente das politicas eticas que a equipe de desenvolvimento seguira durante todo o projeto?", Set.of(CLIENTE, STAKEHOLDER), "Iniciação", stgs));
-        qs.add(q("Voce esta ciente das possiveis implicacoes eticas do software na seguranca e privacidade dos usuarios?", Set.of(CLIENTE, STAKEHOLDER), "Iniciação", stgs));
-        qs.add(q("Voce esta disposto a fornecer feedback para a equipe de desenvolvimento durante todo o processo?", Set.of(CLIENTE), "Iniciação", stgs));
-        qs.add(q("Voce tem alguma preocupacao com relacao ao desenvolvimento etico do software?", Set.of(CLIENTE, STAKEHOLDER), "Iniciação", stgs));
-        qs.add(q("Voce esta ciente de quaisquer requisitos legais ou regulatorios relacionados ao desenvolvimento do software?", Set.of(CLIENTE, RESPONSAVELNEGOCIO), "Iniciação", stgs));
-        qs.add(q("Voce esta disposto a trabalhar em colaboracao com a equipe de desenvolvimento para garantir o desenvolvimento etico do software?", Set.of(CLIENTE), "Iniciação", stgs));
-        qs.add(q("Foi determinado quem toma as decisoes em nome da sua empresa?", Set.of(CLIENTE, RESPONSAVELNEGOCIO), "Iniciação", stgs));
-        qs.add(q("Foi determinado quem aprova a flexibilidade orcamentaria para o gerenciamento do projeto?", Set.of(CLIENTE, RESPONSAVELNEGOCIO), "Iniciação", stgs));
-        qs.add(q("Foi definido quem e a autoridade que trata de anormalidades no escopo do trabalho?", Set.of(CLIENTE, GERENTEPROJETO), "Iniciação", stgs));
-        qs.add(q("Voce definiu politicas eticas claras que devem ser seguidas durante o desenvolvimento do software?", Set.of(GERENTEPROJETO), "Iniciação", stgs));
-        qs.add(q("Voce identificou possiveis conflitos eticos que possam surgir durante o desenvolvimento do software?", Set.of(GERENTEPROJETO), "Iniciação", stgs));
-        qs.add(q("Voce forneceu orientacoes claras para a equipe de desenvolvimento sobre como lidar com possiveis conflitos eticos?", Set.of(GERENTEPROJETO), "Iniciação", stgs));
-        qs.add(q("Voce esta disposto a apoiar a equipe de desenvolvimento na resolucao de possiveis conflitos eticos?", Set.of(GERENTEPROJETO), "Iniciação", stgs));
-        qs.add(q("Voce esta disposto a fornecer recursos adicionais para garantir que o software seja desenvolvido de maneira etica?", Set.of(GERENTEPROJETO, RESPONSAVELNEGOCIO), "Iniciação", stgs));
-        qs.add(q("Voce esta comprometido em garantir que o software seja desenvolvido de maneira etica?", Set.of(GERENTEPROJETO), "Iniciação", stgs));
-        qs.add(q("Voce identificou possiveis implicacoes eticas do software na seguranca e privacidade dos usuarios?", Set.of(GERENTEPROJETO), "Iniciação", stgs));
-        qs.add(q("Voce esta disposto a trabalhar com a equipe de desenvolvimento para garantir que o software seja seguro e proteja a privacidade dos usuarios?", Set.of(GERENTEPROJETO), "Iniciação", stgs));
-        qs.add(q("Voce definiu politicas eticas claras que devem ser seguidas durante o desenvolvimento do software?", Set.of(LIDEREQUIPE), "Iniciação", stgs));
-        qs.add(q("Voce compartilhou essas politicas eticas com sua equipe de desenvolvimento?", Set.of(LIDEREQUIPE), "Iniciação", stgs));
-        qs.add(q("Voce esta garantindo que a equipe esteja ciente dos possiveis conflitos eticos que possam surgir durante o desenvolvimento do software?", Set.of(LIDEREQUIPE), "Iniciação", stgs));
-        qs.add(q("Voce esta ciente sobre a necessidade de incentivar sua equipe a levantar questoes eticas e a discutir possiveis solucoes para conflitos eticos?", Set.of(LIDEREQUIPE), "Iniciação", stgs));
-        qs.add(q("Voce esta disposto a apoiar a equipe de desenvolvimento na resolucao de possiveis conflitos eticos?", Set.of(LIDEREQUIPE), "Iniciação", stgs));
-        qs.add(q("Voce esta ciente sobre a necessidade de incentivar sua equipe a levantar questoes eticas e a discutir possiveis solucoes para conflitos eticos?", Set.of(ARQUITETOSOFTWARE), "Iniciação", stgs));
-        qs.add(q("Voce entendeu as politicas eticas estabelecidas pelo administrador?", Set.of(ARQUITETOSOFTWARE), "Iniciação", stgs));
-        qs.add(q("Voce esta disposto a apoiar a equipe de desenvolvimento na resolucao de possiveis conflitos eticos relacionados ao design do software?", Set.of(ARQUITETOSOFTWARE, DESIGNER), "Iniciação", stgs));
-        qs.add(q("Voce compartilhou as politicas eticas com sua equipe de desenvolvimento?", Set.of(ARQUITETOSOFTWARE), "Iniciação", stgs));
-        qs.add(q("Voce esta comprometido em seguir as politicas eticas estabelecidas e em desenvolver o software de maneira etica?", Set.of(ARQUITETOSOFTWARE), "Iniciação", stgs));
-        qs.add(q("Voce esta disposto a reportar possiveis problemas eticos identificados durante o desenvolvimento do software?", Set.of(ARQUITETOSOFTWARE), "Iniciação", stgs));
-        qs.add(q("Voce esta trabalhando com a equipe de desenvolvimento para garantir que as questoes de usabilidade e acessibilidade sejam consideradas durante o design do software?", Set.of(ARQUITETOSOFTWARE, DESIGNER), "Iniciação", stgs));
-        qs.add(q("Voce entendeu as politicas eticas estabelecidas pelo administrador?", Set.of(DESENVOLVEDOR), "Iniciação", stgs));
-        qs.add(q("Voce entendeu os objetivos do software?", Set.of(DESENVOLVEDOR), "Iniciação", stgs));
-        qs.add(q("Orientacoes claras sobre como lidar com possiveis conflitos eticos foram fornecidas?", Set.of(DESENVOLVEDOR), "Iniciação", stgs));
-        qs.add(q("Voce tem as habilidades tecnicas e o conhecimento adequado para implementar o software de maneira etica?", Set.of(DESENVOLVEDOR), "Iniciação", stgs));
-        qs.add(q("O codigo fonte do software esta livre de quaisquer tipos de vies ou discriminacao?", Set.of(DESENVOLVEDOR), "Iniciação", stgs));
-        qs.add(q("As possiveis implicacoes eticas do software na seguranca e privacidade dos usuarios foram consideradas?", Set.of(DESENVOLVEDOR), "Iniciação", stgs));
-        qs.add(q("Voce esta comprometido em seguir as politicas eticas estabelecidas e em desenvolver o software de maneira etica?", Set.of(DESENVOLVEDOR), "Iniciação", stgs));
-        qs.add(q("Voce esta disposto a reportar possiveis problemas eticos identificados durante o desenvolvimento do software?", Set.of(DESENVOLVEDOR), "Iniciação", stgs));
-        qs.add(q("Voce entendeu as politicas eticas estabelecidas pelo administrador?", Set.of(ANALISTAQUALIDADE), "Iniciação", stgs));
-        qs.add(q("Voce entendeu os objetivos eticos do software?", Set.of(ANALISTAQUALIDADE), "Iniciação", stgs));
-        qs.add(q("Foram fornecidas orientacoes claras sobre como lidar com possiveis conflitos eticos durante o processo de desenvolvimento?", Set.of(ANALISTAQUALIDADE), "Iniciação", stgs));
-        qs.add(q("Voce tem as habilidades tecnicas e o conhecimento adequado para avaliar se o software esta sendo desenvolvido de maneira etica?", Set.of(ANALISTAQUALIDADE), "Iniciação", stgs));
-        qs.add(q("Voce esta ciente das possiveis implicacoes eticas do software na seguranca e privacidade dos usuarios?", Set.of(ANALISTAQUALIDADE), "Iniciação", stgs));
-        qs.add(q("O plano de qualidade inclui criterios eticos para avaliar o software?", Set.of(ANALISTAQUALIDADE), "Iniciação", stgs));
-        qs.add(q("Voce esta disposto a reportar possiveis problemas eticos identificados durante o desenvolvimento do software?", Set.of(ANALISTAQUALIDADE), "Iniciação", stgs));
-        qs.add(q("Voce esta comprometido em garantir que o software seja desenvolvido de maneira etica?", Set.of(ANALISTAQUALIDADE), "Iniciação", stgs));
-        qs.add(q("Existem criterios para aprovacao de iniciacao de produto, que devem ser particularmente exigentes para areas nas quais a organizacao ou desenvolvedor nao e especialista?", Set.of(ANALISTAQUALIDADE), "Iniciação", stgs));
-        qs.add(q("Foi determinado quem aprova a flexibilidade orcamentaria para o gerenciamento projeto?", Set.of(ANALISTAQUALIDADE), "Iniciação", stgs));
-        qs.add(q("Os riscos eticos do projeto foram documentados e comunicados a todos os envolvidos?", Set.of(GERENTEPROJETO, ANALISTAQUALIDADE, RESPONSAVELNEGOCIO), "Iniciação", stgs));
-        qs.add(q("Existe um canal definido para reportar preocupacoes eticas de forma anonima e segura?", Set.of(GERENTEPROJETO, LIDEREQUIPE, SUPORTE), "Iniciação", stgs));
-        qs.add(q("Os valores eticos do projeto estao explicitamente documentados e acessiveis a todos?", Set.of(GERENTEPROJETO, LIDEREQUIPE, CLIENTE), "Iniciação", stgs));
-        qs.add(q("O projeto declarou se utiliza desenvolvimento assistido por IA e em quais atividades esse apoio sera empregado?", Set.of(GERENTEPROJETO, RESPONSAVELNEGOCIO, CLIENTE), "Iniciação", stgs));
-        qs.add(q("Foram definidas diretrizes sobre quais dados, credenciais ou informacoes internas nao podem ser enviados para ferramentas externas de IA?", Set.of(GERENTEPROJETO, LIDEREQUIPE, ARQUITETOSOFTWARE, DESENVOLVEDOR), "Iniciação", stgs));
-        qs.add(q("Foi definido quem realiza a revisao humana e a aprovacao final de artefatos produzidos com apoio de IA antes do uso no projeto?", Set.of(GERENTEPROJETO, LIDEREQUIPE, ANALISTAQUALIDADE), "Iniciação", stgs));
+        qs.add(q("Voce entendeu os objetivos do software?", Set.of(CLIENTE, STAKEHOLDER), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce esta ciente das politicas eticas que a equipe de desenvolvimento seguira durante todo o projeto?", Set.of(CLIENTE, STAKEHOLDER), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce esta ciente das possiveis implicacoes eticas do software na seguranca e privacidade dos usuarios?", Set.of(CLIENTE, STAKEHOLDER), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce esta disposto a fornecer feedback para a equipe de desenvolvimento durante todo o processo?", Set.of(CLIENTE), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce tem alguma preocupacao com relacao ao desenvolvimento etico do software?", Set.of(CLIENTE, STAKEHOLDER), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce esta ciente de quaisquer requisitos legais ou regulatorios relacionados ao desenvolvimento do software?", Set.of(CLIENTE, RESPONSAVELNEGOCIO), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce esta disposto a trabalhar em colaboracao com a equipe de desenvolvimento para garantir o desenvolvimento etico do software?", Set.of(CLIENTE), STAGE_INICIACAO, stgs));
+        qs.add(q("Foi determinado quem toma as decisoes em nome da sua empresa?", Set.of(CLIENTE, RESPONSAVELNEGOCIO), STAGE_INICIACAO, stgs));
+        qs.add(q("Foi determinado quem aprova a flexibilidade orcamentaria para o gerenciamento do projeto?", Set.of(CLIENTE, RESPONSAVELNEGOCIO), STAGE_INICIACAO, stgs));
+        qs.add(q("Foi definido quem e a autoridade que trata de anormalidades no escopo do trabalho?", Set.of(CLIENTE, GERENTEPROJETO), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce definiu politicas eticas claras que devem ser seguidas durante o desenvolvimento do software?", Set.of(GERENTEPROJETO), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce identificou possiveis conflitos eticos que possam surgir durante o desenvolvimento do software?", Set.of(GERENTEPROJETO), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce forneceu orientacoes claras para a equipe de desenvolvimento sobre como lidar com possiveis conflitos eticos?", Set.of(GERENTEPROJETO), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce esta disposto a apoiar a equipe de desenvolvimento na resolucao de possiveis conflitos eticos?", Set.of(GERENTEPROJETO), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce esta disposto a fornecer recursos adicionais para garantir que o software seja desenvolvido de maneira etica?", Set.of(GERENTEPROJETO, RESPONSAVELNEGOCIO), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce esta comprometido em garantir que o software seja desenvolvido de maneira etica?", Set.of(GERENTEPROJETO), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce identificou possiveis implicacoes eticas do software na seguranca e privacidade dos usuarios?", Set.of(GERENTEPROJETO), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce esta disposto a trabalhar com a equipe de desenvolvimento para garantir que o software seja seguro e proteja a privacidade dos usuarios?", Set.of(GERENTEPROJETO), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce definiu politicas eticas claras que devem ser seguidas durante o desenvolvimento do software?", Set.of(LIDEREQUIPE), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce compartilhou essas politicas eticas com sua equipe de desenvolvimento?", Set.of(LIDEREQUIPE), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce esta garantindo que a equipe esteja ciente dos possiveis conflitos eticos que possam surgir durante o desenvolvimento do software?", Set.of(LIDEREQUIPE), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce esta ciente sobre a necessidade de incentivar sua equipe a levantar questoes eticas e a discutir possiveis solucoes para conflitos eticos?", Set.of(LIDEREQUIPE), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce esta disposto a apoiar a equipe de desenvolvimento na resolucao de possiveis conflitos eticos?", Set.of(LIDEREQUIPE), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce esta ciente sobre a necessidade de incentivar sua equipe a levantar questoes eticas e a discutir possiveis solucoes para conflitos eticos?", Set.of(ARQUITETOSOFTWARE), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce entendeu as politicas eticas estabelecidas pelo administrador?", Set.of(ARQUITETOSOFTWARE), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce esta disposto a apoiar a equipe de desenvolvimento na resolucao de possiveis conflitos eticos relacionados ao design do software?", Set.of(ARQUITETOSOFTWARE, DESIGNER), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce compartilhou as politicas eticas com sua equipe de desenvolvimento?", Set.of(ARQUITETOSOFTWARE), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce esta comprometido em seguir as politicas eticas estabelecidas e em desenvolver o software de maneira etica?", Set.of(ARQUITETOSOFTWARE), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce esta disposto a reportar possiveis problemas eticos identificados durante o desenvolvimento do software?", Set.of(ARQUITETOSOFTWARE), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce esta trabalhando com a equipe de desenvolvimento para garantir que as questoes de usabilidade e acessibilidade sejam consideradas durante o design do software?", Set.of(ARQUITETOSOFTWARE, DESIGNER), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce entendeu as politicas eticas estabelecidas pelo administrador?", Set.of(DESENVOLVEDOR), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce entendeu os objetivos do software?", Set.of(DESENVOLVEDOR), STAGE_INICIACAO, stgs));
+        qs.add(q("Orientacoes claras sobre como lidar com possiveis conflitos eticos foram fornecidas?", Set.of(DESENVOLVEDOR), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce tem as habilidades tecnicas e o conhecimento adequado para implementar o software de maneira etica?", Set.of(DESENVOLVEDOR), STAGE_INICIACAO, stgs));
+        qs.add(q("O codigo fonte do software esta livre de quaisquer tipos de vies ou discriminacao?", Set.of(DESENVOLVEDOR), STAGE_INICIACAO, stgs));
+        qs.add(q("As possiveis implicacoes eticas do software na seguranca e privacidade dos usuarios foram consideradas?", Set.of(DESENVOLVEDOR), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce esta comprometido em seguir as politicas eticas estabelecidas e em desenvolver o software de maneira etica?", Set.of(DESENVOLVEDOR), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce esta disposto a reportar possiveis problemas eticos identificados durante o desenvolvimento do software?", Set.of(DESENVOLVEDOR), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce entendeu as politicas eticas estabelecidas pelo administrador?", Set.of(ANALISTAQUALIDADE), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce entendeu os objetivos eticos do software?", Set.of(ANALISTAQUALIDADE), STAGE_INICIACAO, stgs));
+        qs.add(q("Foram fornecidas orientacoes claras sobre como lidar com possiveis conflitos eticos durante o processo de desenvolvimento?", Set.of(ANALISTAQUALIDADE), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce tem as habilidades tecnicas e o conhecimento adequado para avaliar se o software esta sendo desenvolvido de maneira etica?", Set.of(ANALISTAQUALIDADE), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce esta ciente das possiveis implicacoes eticas do software na seguranca e privacidade dos usuarios?", Set.of(ANALISTAQUALIDADE), STAGE_INICIACAO, stgs));
+        qs.add(q("O plano de qualidade inclui criterios eticos para avaliar o software?", Set.of(ANALISTAQUALIDADE), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce esta disposto a reportar possiveis problemas eticos identificados durante o desenvolvimento do software?", Set.of(ANALISTAQUALIDADE), STAGE_INICIACAO, stgs));
+        qs.add(q("Voce esta comprometido em garantir que o software seja desenvolvido de maneira etica?", Set.of(ANALISTAQUALIDADE), STAGE_INICIACAO, stgs));
+        qs.add(q("Existem criterios para aprovacao de iniciacao de produto, que devem ser particularmente exigentes para areas nas quais a organizacao ou desenvolvedor nao e especialista?", Set.of(ANALISTAQUALIDADE), STAGE_INICIACAO, stgs));
+        qs.add(q("Foi determinado quem aprova a flexibilidade orcamentaria para o gerenciamento projeto?", Set.of(ANALISTAQUALIDADE), STAGE_INICIACAO, stgs));
+        qs.add(q("Os riscos eticos do projeto foram documentados e comunicados a todos os envolvidos?", Set.of(GERENTEPROJETO, ANALISTAQUALIDADE, RESPONSAVELNEGOCIO), STAGE_INICIACAO, stgs));
+        qs.add(q("Existe um canal definido para reportar preocupacoes eticas de forma anonima e segura?", Set.of(GERENTEPROJETO, LIDEREQUIPE, SUPORTE), STAGE_INICIACAO, stgs));
+        qs.add(q("Os valores eticos do projeto estao explicitamente documentados e acessiveis a todos?", Set.of(GERENTEPROJETO, LIDEREQUIPE, CLIENTE), STAGE_INICIACAO, stgs));
+        qs.add(q("O projeto declarou se utiliza desenvolvimento assistido por IA e em quais atividades esse apoio sera empregado?", Set.of(GERENTEPROJETO, RESPONSAVELNEGOCIO, CLIENTE), STAGE_INICIACAO, stgs));
+        qs.add(q("Foram definidas diretrizes sobre quais dados, credenciais ou informacoes internas nao podem ser enviados para ferramentas externas de IA?", Set.of(GERENTEPROJETO, LIDEREQUIPE, ARQUITETOSOFTWARE, DESENVOLVEDOR), STAGE_INICIACAO, stgs));
+        qs.add(q("Foi definido quem realiza a revisao humana e a aprovacao final de artefatos produzidos com apoio de IA antes do uso no projeto?", Set.of(GERENTEPROJETO, LIDEREQUIPE, ANALISTAQUALIDADE), STAGE_INICIACAO, stgs));
         classify(qs, QuestionClassificationEnum.ROTATIVA);
         return qs;
     }
 
     private List<TemplateQuestionDTO> buildCascataRequisitosQuestions(List<StageSummaryResponseDTO> stgs) {
         List<TemplateQuestionDTO> qs = new ArrayList<>();
-        qs.add(q("Voce esta considerando as implicacoes eticas dos requisitos que esta solicitando?", Set.of(CLIENTE), "Requisitos", stgs));
-        qs.add(q("Voce esta disposto a ajustar os requisitos caso haja preocupacoes eticas levantadas pela equipe de desenvolvimento?", Set.of(CLIENTE), "Requisitos", stgs));
-        qs.add(q("Voce esta garantindo que o software a ser desenvolvido respeite a privacidade dos usuarios finais e seus dados?", Set.of(CLIENTE), "Requisitos", stgs));
-        qs.add(q("Voce esta considerando a inclusao de recursos de acessibilidade no software para atender as necessidades de usuarios com deficiencias?", Set.of(CLIENTE), "Requisitos", stgs));
-        qs.add(q("Voce esta considerando as implicacoes de longo prazo do software para as pessoas e a sociedade como um todo?", Set.of(CLIENTE, STAKEHOLDER), "Requisitos", stgs));
-        qs.add(q("Voce esta garantindo que os requisitos eticos estejam sendo incorporados ao processo de desenvolvimento de software?", Set.of(CLIENTE), "Requisitos", stgs));
-        qs.add(q("Voce esta disposto a trabalhar com a equipe de desenvolvimento para encontrar solucoes que atendam aos requisitos eticos e aos objetivos do projeto?", Set.of(CLIENTE), "Requisitos", stgs));
-        qs.add(q("Voce esta aberto a receber feedback sobre as implicacoes eticas dos requisitos que esta solicitando?", Set.of(CLIENTE), "Requisitos", stgs));
-        qs.add(q("Voce esta assegurando que os requisitos estejam em conformidade com as politicas da organizacao?", Set.of(GERENTEPROJETO), "Requisitos", stgs));
-        qs.add(q("Foi determinado quem define os requisitos?", Set.of(GERENTEPROJETO), "Requisitos", stgs));
-        qs.add(q("Voce esta considerando a viabilidade e os recursos necessarios para implementar os requisitos solicitados?", Set.of(GERENTEPROJETO), "Requisitos", stgs));
-        qs.add(q("Voce esta garantindo que os requisitos possam ser medidos e testados para verificacao de conformidade?", Set.of(GERENTEPROJETO), "Requisitos", stgs));
-        qs.add(q("Voce esta considerando a seguranca cibernetica como parte dos requisitos do software a ser desenvolvido?", Set.of(GERENTEPROJETO), "Requisitos", stgs));
-        qs.add(q("Voce esta assegurando que as especificacoes de requisitos sejam claras e precisas para evitar mal-entendidos?", Set.of(GERENTEPROJETO), "Requisitos", stgs));
-        qs.add(q("Voce esta disposto a trabalhar com a equipe de desenvolvimento para encontrar solucoes que atendam aos requisitos e aos objetivos do projeto?", Set.of(GERENTEPROJETO), "Requisitos", stgs));
-        qs.add(q("Voce esta disposto a reavaliar os requisitos se as preocupacoes eticas ou outras preocupacoes forem levantadas pela equipe de desenvolvimento?", Set.of(GERENTEPROJETO), "Requisitos", stgs));
-        qs.add(q("Voce esta garantindo que os requisitos sejam atualizados e modificados, se necessario, a medida que o projeto evolui?", Set.of(GERENTEPROJETO), "Requisitos", stgs));
-        qs.add(q("O escopo do projeto esta claro e completo?", Set.of(LIDEREQUIPE), "Requisitos", stgs));
-        qs.add(q("Os requisitos sao claramente definidos e verificaveis?", Set.of(LIDEREQUIPE, ANALISTAREQUISITOS), "Requisitos", stgs));
-        qs.add(q("O prazo para a entrega dos requisitos e razoavel e viavel?", Set.of(LIDEREQUIPE), "Requisitos", stgs));
-        qs.add(q("O orcamento para a implementacao dos requisitos e adequado e realista?", Set.of(LIDEREQUIPE), "Requisitos", stgs));
-        qs.add(q("Os requisitos estao alinhados com as necessidades do cliente?", Set.of(LIDEREQUIPE), "Requisitos", stgs));
-        qs.add(q("O cliente forneceu feedback sobre os requisitos propostos?", Set.of(LIDEREQUIPE), "Requisitos", stgs));
-        qs.add(q("Existem requisitos de seguranca, privacidade e protecao de dados que precisam ser considerados?", Set.of(LIDEREQUIPE), "Requisitos", stgs));
-        qs.add(q("O cliente esta disposto a trabalhar em conjunto para a definicao e revisao dos requisitos?", Set.of(LIDEREQUIPE), "Requisitos", stgs));
-        qs.add(q("Voce esta garantindo que o software a ser desenvolvido respeite a privacidade dos usuarios finais e seus dados?", Set.of(LIDEREQUIPE), "Requisitos", stgs));
-        qs.add(q("A documentacao dos requisitos e completa e precisa?", Set.of(LIDEREQUIPE, ANALISTAREQUISITOS), "Requisitos", stgs));
-        qs.add(q("Os requisitos foram entendidos e documentados de maneira clara?", Set.of(ARQUITETOSOFTWARE), "Requisitos", stgs));
-        qs.add(q("O design proposto e coerente com os requisitos do cliente?", Set.of(ARQUITETOSOFTWARE), "Requisitos", stgs));
-        qs.add(q("O design considera aspectos de usabilidade e experiencia do usuario?", Set.of(ARQUITETOSOFTWARE, DESIGNER), "Requisitos", stgs));
-        qs.add(q("O design proposto e viavel em termos de implementacao tecnica?", Set.of(ARQUITETOSOFTWARE), "Requisitos", stgs));
-        qs.add(q("O design considera aspectos de escalabilidade e manutenibilidade?", Set.of(ARQUITETOSOFTWARE), "Requisitos", stgs));
-        qs.add(q("As expectativas do cliente em relacao ao design foram claramente comunicadas e estao sendo atendidas?", Set.of(ARQUITETOSOFTWARE), "Requisitos", stgs));
-        qs.add(q("O designer esta disposto a trabalhar em conjunto com outras partes interessadas para a definicao e revisao dos requisitos?", Set.of(ARQUITETOSOFTWARE, DESIGNER), "Requisitos", stgs));
-        qs.add(q("Voce esta considerando a inclusao de recursos de acessibilidade no software para atender as necessidades de usuarios com deficiencias?", Set.of(ARQUITETOSOFTWARE, DESIGNER), "Requisitos", stgs));
-        qs.add(q("Os requisitos sao claros e compreensiveis?", Set.of(DESENVOLVEDOR), "Requisitos", stgs));
-        qs.add(q("A documentacao dos requisitos e completa e precisa?", Set.of(DESENVOLVEDOR), "Requisitos", stgs));
-        qs.add(q("Os requisitos sao viaveis tecnicamente?", Set.of(DESENVOLVEDOR), "Requisitos", stgs));
-        qs.add(q("Os requisitos atendem as necessidades do usuario?", Set.of(DESENVOLVEDOR), "Requisitos", stgs));
-        qs.add(q("Existe um processo de revisao e aprovacao dos requisitos?", Set.of(DESENVOLVEDOR), "Requisitos", stgs));
-        qs.add(q("Ha um processo formal de mudanca de requisitos em vigor?", Set.of(DESENVOLVEDOR), "Requisitos", stgs));
-        qs.add(q("O prazo para a conclusao dos requisitos e realista?", Set.of(DESENVOLVEDOR), "Requisitos", stgs));
-        qs.add(q("Os requisitos estao alinhados com as expectativas do cliente?", Set.of(DESENVOLVEDOR), "Requisitos", stgs));
-        qs.add(q("Voce esta garantindo que o software a ser desenvolvido respeite a privacidade dos usuarios finais e seus dados?", Set.of(DESENVOLVEDOR), "Requisitos", stgs));
-        qs.add(q("Os requisitos do projeto sao claros e precisos?", Set.of(ANALISTAQUALIDADE), "Requisitos", stgs));
-        qs.add(q("Os requisitos estao documentados?", Set.of(ANALISTAQUALIDADE), "Requisitos", stgs));
-        qs.add(q("Os requisitos sao verificaveis e mensuraveis?", Set.of(ANALISTAQUALIDADE, ANALISTAREQUISITOS), "Requisitos", stgs));
-        qs.add(q("As necessidades dos usuarios foram levantadas e consideradas nos requisitos?", Set.of(ANALISTAQUALIDADE), "Requisitos", stgs));
-        qs.add(q("Os requisitos estao alinhados com as expectativas do cliente?", Set.of(ANALISTAQUALIDADE), "Requisitos", stgs));
-        qs.add(q("Os requisitos sao factiveis dentro do cronograma e do orcamento estabelecidos?", Set.of(ANALISTAQUALIDADE), "Requisitos", stgs));
-        qs.add(q("Os requisitos foram validados com todas as partes interessadas?", Set.of(ANALISTAQUALIDADE), "Requisitos", stgs));
-        qs.add(q("Existem mecanismos para determinar o caminho a seguir quando se descobre que um ou mais requisitos funcionais nao podem ser alcancados?", Set.of(ANALISTAQUALIDADE), "Requisitos", stgs));
-        qs.add(q("Existem mecanismos para determinar o caminho da acao quando o cliente insiste?", Set.of(ANALISTAQUALIDADE), "Requisitos", stgs));
-        qs.add(q("Existe um procedimento para definir o curso de acao se, durante as fases de planejamento dos requisitos, for descoberto que o atendimento a demanda do cliente levara a consequencias negativas e possivelmente resultados contraditorios e ilegais?", Set.of(ANALISTAQUALIDADE), "Requisitos", stgs));
-        qs.add(q("O processo de requisitos esta de acordo com as politicas e normas da organizacao?", Set.of(ANALISTAQUALIDADE), "Requisitos", stgs));
-        qs.add(q("Existe um mecanismo para priorizar os requisitos?", Set.of(ANALISTAQUALIDADE, ANALISTAREQUISITOS), "Requisitos", stgs));
-        qs.add(q("O prazo para a conclusao dos requisitos e realista?", Set.of(ANALISTAQUALIDADE), "Requisitos", stgs));
-        qs.add(q("O cliente forneceu feedback sobre os requisitos propostos?", Set.of(ANALISTAQUALIDADE), "Requisitos", stgs));
-        qs.add(q("Os requisitos estao alinhados com as necessidades do cliente?", Set.of(ANALISTAQUALIDADE), "Requisitos", stgs));
-        qs.add(q("O cliente esta disposto a trabalhar em conjunto para a definicao e revisao dos requisitos?", Set.of(ANALISTAQUALIDADE), "Requisitos", stgs));
-        qs.add(q("O orcamento para a implementacao dos requisitos e adequado e realista?", Set.of(ANALISTAQUALIDADE), "Requisitos", stgs));
-        qs.add(q("A documentacao dos requisitos e completa e precisa?", Set.of(ANALISTAQUALIDADE), "Requisitos", stgs));
-        qs.add(q("Foram identificados requisitos que possam impactar negativamente grupos vulneraveis ou minorias?", Set.of(ANALISTAREQUISITOS, CLIENTE, STAKEHOLDER), "Requisitos", stgs));
-        qs.add(q("Os requisitos contemplam conformidade com legislacao de protecao de dados (ex: LGPD, GDPR)?", Set.of(GERENTEPROJETO, ANALISTAREQUISITOS, RESPONSAVELNEGOCIO), "Requisitos", stgs));
-        qs.add(q("Requisitos, historias ou criterios de aceite sugeridos por IA sao identificados e revisados por um responsavel humano antes da aprovacao?", Set.of(ANALISTAREQUISITOS, GERENTEPROJETO, CLIENTE), "Requisitos", stgs));
-        qs.add(q("As sugestoes de IA usadas na etapa de requisitos foram avaliadas quanto a vieses, ambiguidades e impactos eticos antes de entrar no escopo?", Set.of(ANALISTAREQUISITOS, ANALISTAQUALIDADE, STAKEHOLDER), "Requisitos", stgs));
-        qs.add(q("Ha rastreabilidade entre o artefato de requisitos produzido com apoio de IA e a decisao final aprovada pela equipe?", Set.of(ANALISTAREQUISITOS, GERENTEPROJETO, LIDEREQUIPE), "Requisitos", stgs));
+        qs.add(q("Voce esta considerando as implicacoes eticas dos requisitos que esta solicitando?", Set.of(CLIENTE), STAGE_REQUISITOS, stgs));
+        qs.add(q("Voce esta disposto a ajustar os requisitos caso haja preocupacoes eticas levantadas pela equipe de desenvolvimento?", Set.of(CLIENTE), STAGE_REQUISITOS, stgs));
+        qs.add(q("Voce esta garantindo que o software a ser desenvolvido respeite a privacidade dos usuarios finais e seus dados?", Set.of(CLIENTE), STAGE_REQUISITOS, stgs));
+        qs.add(q("Voce esta considerando a inclusao de recursos de acessibilidade no software para atender as necessidades de usuarios com deficiencias?", Set.of(CLIENTE), STAGE_REQUISITOS, stgs));
+        qs.add(q("Voce esta considerando as implicacoes de longo prazo do software para as pessoas e a sociedade como um todo?", Set.of(CLIENTE, STAKEHOLDER), STAGE_REQUISITOS, stgs));
+        qs.add(q("Voce esta garantindo que os requisitos eticos estejam sendo incorporados ao processo de desenvolvimento de software?", Set.of(CLIENTE), STAGE_REQUISITOS, stgs));
+        qs.add(q("Voce esta disposto a trabalhar com a equipe de desenvolvimento para encontrar solucoes que atendam aos requisitos eticos e aos objetivos do projeto?", Set.of(CLIENTE), STAGE_REQUISITOS, stgs));
+        qs.add(q("Voce esta aberto a receber feedback sobre as implicacoes eticas dos requisitos que esta solicitando?", Set.of(CLIENTE), STAGE_REQUISITOS, stgs));
+        qs.add(q("Voce esta assegurando que os requisitos estejam em conformidade com as politicas da organizacao?", Set.of(GERENTEPROJETO), STAGE_REQUISITOS, stgs));
+        qs.add(q("Foi determinado quem define os requisitos?", Set.of(GERENTEPROJETO), STAGE_REQUISITOS, stgs));
+        qs.add(q("Voce esta considerando a viabilidade e os recursos necessarios para implementar os requisitos solicitados?", Set.of(GERENTEPROJETO), STAGE_REQUISITOS, stgs));
+        qs.add(q("Voce esta garantindo que os requisitos possam ser medidos e testados para verificacao de conformidade?", Set.of(GERENTEPROJETO), STAGE_REQUISITOS, stgs));
+        qs.add(q("Voce esta considerando a seguranca cibernetica como parte dos requisitos do software a ser desenvolvido?", Set.of(GERENTEPROJETO), STAGE_REQUISITOS, stgs));
+        qs.add(q("Voce esta assegurando que as especificacoes de requisitos sejam claras e precisas para evitar mal-entendidos?", Set.of(GERENTEPROJETO), STAGE_REQUISITOS, stgs));
+        qs.add(q("Voce esta disposto a trabalhar com a equipe de desenvolvimento para encontrar solucoes que atendam aos requisitos e aos objetivos do projeto?", Set.of(GERENTEPROJETO), STAGE_REQUISITOS, stgs));
+        qs.add(q("Voce esta disposto a reavaliar os requisitos se as preocupacoes eticas ou outras preocupacoes forem levantadas pela equipe de desenvolvimento?", Set.of(GERENTEPROJETO), STAGE_REQUISITOS, stgs));
+        qs.add(q("Voce esta garantindo que os requisitos sejam atualizados e modificados, se necessario, a medida que o projeto evolui?", Set.of(GERENTEPROJETO), STAGE_REQUISITOS, stgs));
+        qs.add(q("O escopo do projeto esta claro e completo?", Set.of(LIDEREQUIPE), STAGE_REQUISITOS, stgs));
+        qs.add(q("Os requisitos sao claramente definidos e verificaveis?", Set.of(LIDEREQUIPE, ANALISTAREQUISITOS), STAGE_REQUISITOS, stgs));
+        qs.add(q("O prazo para a entrega dos requisitos e razoavel e viavel?", Set.of(LIDEREQUIPE), STAGE_REQUISITOS, stgs));
+        qs.add(q("O orcamento para a implementacao dos requisitos e adequado e realista?", Set.of(LIDEREQUIPE), STAGE_REQUISITOS, stgs));
+        qs.add(q("Os requisitos estao alinhados com as necessidades do cliente?", Set.of(LIDEREQUIPE), STAGE_REQUISITOS, stgs));
+        qs.add(q("O cliente forneceu feedback sobre os requisitos propostos?", Set.of(LIDEREQUIPE), STAGE_REQUISITOS, stgs));
+        qs.add(q("Existem requisitos de seguranca, privacidade e protecao de dados que precisam ser considerados?", Set.of(LIDEREQUIPE), STAGE_REQUISITOS, stgs));
+        qs.add(q("O cliente esta disposto a trabalhar em conjunto para a definicao e revisao dos requisitos?", Set.of(LIDEREQUIPE), STAGE_REQUISITOS, stgs));
+        qs.add(q("Voce esta garantindo que o software a ser desenvolvido respeite a privacidade dos usuarios finais e seus dados?", Set.of(LIDEREQUIPE), STAGE_REQUISITOS, stgs));
+        qs.add(q("A documentacao dos requisitos e completa e precisa?", Set.of(LIDEREQUIPE, ANALISTAREQUISITOS), STAGE_REQUISITOS, stgs));
+        qs.add(q("Os requisitos foram entendidos e documentados de maneira clara?", Set.of(ARQUITETOSOFTWARE), STAGE_REQUISITOS, stgs));
+        qs.add(q("O design proposto e coerente com os requisitos do cliente?", Set.of(ARQUITETOSOFTWARE), STAGE_REQUISITOS, stgs));
+        qs.add(q("O design considera aspectos de usabilidade e experiencia do usuario?", Set.of(ARQUITETOSOFTWARE, DESIGNER), STAGE_REQUISITOS, stgs));
+        qs.add(q("O design proposto e viavel em termos de implementacao tecnica?", Set.of(ARQUITETOSOFTWARE), STAGE_REQUISITOS, stgs));
+        qs.add(q("O design considera aspectos de escalabilidade e manutenibilidade?", Set.of(ARQUITETOSOFTWARE), STAGE_REQUISITOS, stgs));
+        qs.add(q("As expectativas do cliente em relacao ao design foram claramente comunicadas e estao sendo atendidas?", Set.of(ARQUITETOSOFTWARE), STAGE_REQUISITOS, stgs));
+        qs.add(q("O designer esta disposto a trabalhar em conjunto com outras partes interessadas para a definicao e revisao dos requisitos?", Set.of(ARQUITETOSOFTWARE, DESIGNER), STAGE_REQUISITOS, stgs));
+        qs.add(q("Voce esta considerando a inclusao de recursos de acessibilidade no software para atender as necessidades de usuarios com deficiencias?", Set.of(ARQUITETOSOFTWARE, DESIGNER), STAGE_REQUISITOS, stgs));
+        qs.add(q("Os requisitos sao claros e compreensiveis?", Set.of(DESENVOLVEDOR), STAGE_REQUISITOS, stgs));
+        qs.add(q("A documentacao dos requisitos e completa e precisa?", Set.of(DESENVOLVEDOR), STAGE_REQUISITOS, stgs));
+        qs.add(q("Os requisitos sao viaveis tecnicamente?", Set.of(DESENVOLVEDOR), STAGE_REQUISITOS, stgs));
+        qs.add(q("Os requisitos atendem as necessidades do usuario?", Set.of(DESENVOLVEDOR), STAGE_REQUISITOS, stgs));
+        qs.add(q("Existe um processo de revisao e aprovacao dos requisitos?", Set.of(DESENVOLVEDOR), STAGE_REQUISITOS, stgs));
+        qs.add(q("Ha um processo formal de mudanca de requisitos em vigor?", Set.of(DESENVOLVEDOR), STAGE_REQUISITOS, stgs));
+        qs.add(q("O prazo para a conclusao dos requisitos e realista?", Set.of(DESENVOLVEDOR), STAGE_REQUISITOS, stgs));
+        qs.add(q("Os requisitos estao alinhados com as expectativas do cliente?", Set.of(DESENVOLVEDOR), STAGE_REQUISITOS, stgs));
+        qs.add(q("Voce esta garantindo que o software a ser desenvolvido respeite a privacidade dos usuarios finais e seus dados?", Set.of(DESENVOLVEDOR), STAGE_REQUISITOS, stgs));
+        qs.add(q("Os requisitos do projeto sao claros e precisos?", Set.of(ANALISTAQUALIDADE), STAGE_REQUISITOS, stgs));
+        qs.add(q("Os requisitos estao documentados?", Set.of(ANALISTAQUALIDADE), STAGE_REQUISITOS, stgs));
+        qs.add(q("Os requisitos sao verificaveis e mensuraveis?", Set.of(ANALISTAQUALIDADE, ANALISTAREQUISITOS), STAGE_REQUISITOS, stgs));
+        qs.add(q("As necessidades dos usuarios foram levantadas e consideradas nos requisitos?", Set.of(ANALISTAQUALIDADE), STAGE_REQUISITOS, stgs));
+        qs.add(q("Os requisitos estao alinhados com as expectativas do cliente?", Set.of(ANALISTAQUALIDADE), STAGE_REQUISITOS, stgs));
+        qs.add(q("Os requisitos sao factiveis dentro do cronograma e do orcamento estabelecidos?", Set.of(ANALISTAQUALIDADE), STAGE_REQUISITOS, stgs));
+        qs.add(q("Os requisitos foram validados com todas as partes interessadas?", Set.of(ANALISTAQUALIDADE), STAGE_REQUISITOS, stgs));
+        qs.add(q("Existem mecanismos para determinar o caminho a seguir quando se descobre que um ou mais requisitos funcionais nao podem ser alcancados?", Set.of(ANALISTAQUALIDADE), STAGE_REQUISITOS, stgs));
+        qs.add(q("Existem mecanismos para determinar o caminho da acao quando o cliente insiste?", Set.of(ANALISTAQUALIDADE), STAGE_REQUISITOS, stgs));
+        qs.add(q("Existe um procedimento para definir o curso de acao se, durante as fases de planejamento dos requisitos, for descoberto que o atendimento a demanda do cliente levara a consequencias negativas e possivelmente resultados contraditorios e ilegais?", Set.of(ANALISTAQUALIDADE), STAGE_REQUISITOS, stgs));
+        qs.add(q("O processo de requisitos esta de acordo com as politicas e normas da organizacao?", Set.of(ANALISTAQUALIDADE), STAGE_REQUISITOS, stgs));
+        qs.add(q("Existe um mecanismo para priorizar os requisitos?", Set.of(ANALISTAQUALIDADE, ANALISTAREQUISITOS), STAGE_REQUISITOS, stgs));
+        qs.add(q("O prazo para a conclusao dos requisitos e realista?", Set.of(ANALISTAQUALIDADE), STAGE_REQUISITOS, stgs));
+        qs.add(q("O cliente forneceu feedback sobre os requisitos propostos?", Set.of(ANALISTAQUALIDADE), STAGE_REQUISITOS, stgs));
+        qs.add(q("Os requisitos estao alinhados com as necessidades do cliente?", Set.of(ANALISTAQUALIDADE), STAGE_REQUISITOS, stgs));
+        qs.add(q("O cliente esta disposto a trabalhar em conjunto para a definicao e revisao dos requisitos?", Set.of(ANALISTAQUALIDADE), STAGE_REQUISITOS, stgs));
+        qs.add(q("O orcamento para a implementacao dos requisitos e adequado e realista?", Set.of(ANALISTAQUALIDADE), STAGE_REQUISITOS, stgs));
+        qs.add(q("A documentacao dos requisitos e completa e precisa?", Set.of(ANALISTAQUALIDADE), STAGE_REQUISITOS, stgs));
+        qs.add(q("Foram identificados requisitos que possam impactar negativamente grupos vulneraveis ou minorias?", Set.of(ANALISTAREQUISITOS, CLIENTE, STAKEHOLDER), STAGE_REQUISITOS, stgs));
+        qs.add(q("Os requisitos contemplam conformidade com legislacao de protecao de dados (ex: LGPD, GDPR)?", Set.of(GERENTEPROJETO, ANALISTAREQUISITOS, RESPONSAVELNEGOCIO), STAGE_REQUISITOS, stgs));
+        qs.add(q("Requisitos, historias ou criterios de aceite sugeridos por IA sao identificados e revisados por um responsavel humano antes da aprovacao?", Set.of(ANALISTAREQUISITOS, GERENTEPROJETO, CLIENTE), STAGE_REQUISITOS, stgs));
+        qs.add(q("As sugestoes de IA usadas na etapa de requisitos foram avaliadas quanto a vieses, ambiguidades e impactos eticos antes de entrar no escopo?", Set.of(ANALISTAREQUISITOS, ANALISTAQUALIDADE, STAKEHOLDER), STAGE_REQUISITOS, stgs));
+        qs.add(q("Ha rastreabilidade entre o artefato de requisitos produzido com apoio de IA e a decisao final aprovada pela equipe?", Set.of(ANALISTAREQUISITOS, GERENTEPROJETO, LIDEREQUIPE), STAGE_REQUISITOS, stgs));
         classify(qs, QuestionClassificationEnum.ROTATIVA);
         return qs;
     }
 
     private List<TemplateQuestionDTO> buildCascataProjetoQuestions(List<StageSummaryResponseDTO> stgs) {
         List<TemplateQuestionDTO> qs = new ArrayList<>();
-        qs.add(q("Os requisitos do software foram claramente entendidos?", Set.of(CLIENTE), "Projeto", stgs));
-        qs.add(q("Os requisitos estao claramente descritos na documentacao?", Set.of(CLIENTE), "Projeto", stgs));
-        qs.add(q("Foram definidos prazos realistas para o projeto?", Set.of(CLIENTE), "Projeto", stgs));
-        qs.add(q("A equipe de desenvolvimento tem conhecimento tecnico suficiente para o projeto?", Set.of(CLIENTE), "Projeto", stgs));
-        qs.add(q("O projeto esta alinhado com as expectativas do cliente?", Set.of(CLIENTE, STAKEHOLDER), "Projeto", stgs));
-        qs.add(q("As condicoes sao definidas para determinar o nivel de comprometimento com o desenvolvimento de uma abordagem de reuso?", Set.of(CLIENTE), "Projeto", stgs));
-        qs.add(q("O orcamento do projeto foi definido?", Set.of(GERENTEPROJETO), "Projeto", stgs));
-        qs.add(q("A equipe de desenvolvimento esta disponivel para o projeto?", Set.of(GERENTEPROJETO), "Projeto", stgs));
-        qs.add(q("O cronograma do projeto e factivel?", Set.of(GERENTEPROJETO), "Projeto", stgs));
-        qs.add(q("O escopo do projeto esta claramente definido?", Set.of(GERENTEPROJETO), "Projeto", stgs));
-        qs.add(q("Os recursos necessarios para o projeto foram identificados?", Set.of(GERENTEPROJETO), "Projeto", stgs));
-        qs.add(q("As condicoes sao definidas para determinar o nivel de comprometimento com o desenvolvimento de uma abordagem de reuso?", Set.of(GERENTEPROJETO), "Projeto", stgs));
-        qs.add(q("As condicoes sao definidas para determinar o nivel de comprometimento com o desenvolvimento de todas as metodologias de padroes?", Set.of(GERENTEPROJETO), "Projeto", stgs));
-        qs.add(q("Alguem que nao seja especialista pode orientar os diagramas?", Set.of(GERENTEPROJETO), "Projeto", stgs));
-        qs.add(q("Voce acha que deveria usar mais diagramas de projeto?", Set.of(GERENTEPROJETO), "Projeto", stgs));
-        qs.add(q("Os diagramas sao suficientemente claros?", Set.of(GERENTEPROJETO), "Projeto", stgs));
-        qs.add(q("O nivel de detalhamento e suficiente?", Set.of(GERENTEPROJETO), "Projeto", stgs));
-        qs.add(q("Seria facil se orientar nos diagramas de projeto?", Set.of(GERENTEPROJETO), "Projeto", stgs));
-        qs.add(q("Os membros da equipe possuem as habilidades necessarias para o projeto?", Set.of(LIDEREQUIPE), "Projeto", stgs));
-        qs.add(q("A equipe tem conhecimento suficiente da tecnologia a ser utilizada no projeto?", Set.of(LIDEREQUIPE), "Projeto", stgs));
-        qs.add(q("As tarefas foram distribuidas de forma equilibrada na equipe?", Set.of(LIDEREQUIPE), "Projeto", stgs));
-        qs.add(q("O plano de comunicacao da equipe foi definido?", Set.of(LIDEREQUIPE), "Projeto", stgs));
-        qs.add(q("O lider da equipe tem autoridade suficiente para tomar decisoes?", Set.of(LIDEREQUIPE), "Projeto", stgs));
-        qs.add(q("As condicoes sao definidas para determinar o nivel de comprometimento com o desenvolvimento de uma abordagem de reuso?", Set.of(LIDEREQUIPE), "Projeto", stgs));
-        qs.add(q("As condicoes sao definidas para determinar o nivel de comprometimento com o desenvolvimento de todas as metodologias de padroes?", Set.of(LIDEREQUIPE), "Projeto", stgs));
-        qs.add(q("O nivel de detalhamento e suficiente?", Set.of(LIDEREQUIPE), "Projeto", stgs));
-        qs.add(q("Os diagramas sao suficientemente claros?", Set.of(LIDEREQUIPE), "Projeto", stgs));
-        qs.add(q("O design proposto atende as expectativas do cliente?", Set.of(ARQUITETOSOFTWARE), "Projeto", stgs));
-        qs.add(q("O design e viavel do ponto de vista tecnico?", Set.of(ARQUITETOSOFTWARE), "Projeto", stgs));
-        qs.add(q("O design atende aos requisitos do projeto?", Set.of(ARQUITETOSOFTWARE), "Projeto", stgs));
-        qs.add(q("O design segue as boas praticas de usabilidade e acessibilidade?", Set.of(ARQUITETOSOFTWARE, DESIGNER), "Projeto", stgs));
-        qs.add(q("O design esta de acordo com as diretrizes de marca da empresa?", Set.of(ARQUITETOSOFTWARE, DESIGNER), "Projeto", stgs));
-        qs.add(q("O design leva em consideracao possiveis problemas eticos, como vieses ou discriminacao?", Set.of(ARQUITETOSOFTWARE, DESIGNER), "Projeto", stgs));
-        qs.add(q("O nivel de detalhamento e suficiente?", Set.of(ARQUITETOSOFTWARE), "Projeto", stgs));
-        qs.add(q("O design inclui opcoes de personalizacao para atender a diferentes perfis de usuarios?", Set.of(ARQUITETOSOFTWARE, DESIGNER), "Projeto", stgs));
-        qs.add(q("O design inclui opcoes de feedback para que os usuarios possam fornecer suas opinioes e sugestoes?", Set.of(ARQUITETOSOFTWARE, DESIGNER), "Projeto", stgs));
-        qs.add(q("Os requisitos do projeto sao claros e compreensiveis?", Set.of(DESENVOLVEDOR), "Projeto", stgs));
-        qs.add(q("As tecnologias utilizadas sao apropriadas para o projeto?", Set.of(DESENVOLVEDOR), "Projeto", stgs));
-        qs.add(q("As funcionalidades do software sao desenvolvidas seguindo as especificacoes dos requisitos?", Set.of(DESENVOLVEDOR), "Projeto", stgs));
-        qs.add(q("O codigo produzido segue as boas praticas de programacao?", Set.of(DESENVOLVEDOR), "Projeto", stgs));
-        qs.add(q("O software inclui medidas de seguranca para proteger os dados do usuario?", Set.of(DESENVOLVEDOR), "Projeto", stgs));
-        qs.add(q("As condicoes sao definidas para determinar o nivel de comprometimento com o desenvolvimento de uma abordagem de reuso?", Set.of(DESENVOLVEDOR), "Projeto", stgs));
-        qs.add(q("O software e projetado para ser escalavel e extensivel, permitindo a adicao de novas funcionalidades no futuro?", Set.of(DESENVOLVEDOR), "Projeto", stgs));
-        qs.add(q("O software e projetado para ser de facil manutencao e solucao de problemas?", Set.of(DESENVOLVEDOR), "Projeto", stgs));
-        qs.add(q("O nivel de detalhamento e suficiente?", Set.of(DESENVOLVEDOR), "Projeto", stgs));
-        qs.add(q("Os diagramas sao suficientemente claros?", Set.of(DESENVOLVEDOR), "Projeto", stgs));
-        qs.add(q("O desenvolvimento inclui testes unitarios e de integracao para garantir a qualidade do codigo?", Set.of(DESENVOLVEDOR), "Projeto", stgs));
-        qs.add(q("Os requisitos do projeto foram corretamente interpretados e documentados?", Set.of(ANALISTAQUALIDADE), "Projeto", stgs));
-        qs.add(q("Os testes de software sao realizados de acordo com as especificacoes dos requisitos?", Set.of(ANALISTAQUALIDADE), "Projeto", stgs));
-        qs.add(q("Os testes sao realizados em diferentes cenarios e condicoes para garantir a robustez do software?", Set.of(ANALISTAQUALIDADE), "Projeto", stgs));
-        qs.add(q("Os resultados dos testes sao documentados e compartilhados com a equipe para acompanhamento e correcao de problemas?", Set.of(ANALISTAQUALIDADE), "Projeto", stgs));
-        qs.add(q("O software e testado em diferentes plataformas e dispositivos para garantir sua compatibilidade?", Set.of(ANALISTAQUALIDADE), "Projeto", stgs));
-        qs.add(q("O software e testado em diferentes cenarios de uso, considerando diferentes perfis de usuario?", Set.of(ANALISTAQUALIDADE), "Projeto", stgs));
-        qs.add(q("O nivel de detalhamento e suficiente?", Set.of(ANALISTAQUALIDADE), "Projeto", stgs));
-        qs.add(q("As condicoes sao definidas para determinar o nivel de comprometimento com o desenvolvimento de uma abordagem de reuso?", Set.of(ANALISTAQUALIDADE), "Projeto", stgs));
-        qs.add(q("Os diagramas sao suficientemente claros?", Set.of(ANALISTAQUALIDADE), "Projeto", stgs));
-        qs.add(q("As metricas de qualidade, como taxa de defeitos e satisfacao do usuario, sao monitoradas e avaliadas regularmente?", Set.of(ANALISTAQUALIDADE), "Projeto", stgs));
-        qs.add(q("Sao realizados testes de seguranca para detectar possiveis vulnerabilidades e prevenir ataques ciberneticos?", Set.of(ANALISTAQUALIDADE), "Projeto", stgs));
-        qs.add(q("As decisoes arquiteturais consideram o impacto etico de longo prazo sobre usuarios e sociedade?", Set.of(ARQUITETOSOFTWARE, GERENTEPROJETO), "Projeto", stgs));
-        qs.add(q("Existe rastreabilidade entre decisoes de projeto e requisitos eticos documentados?", Set.of(ANALISTAQUALIDADE, ANALISTAREQUISITOS), "Projeto", stgs));
-        qs.add(q("Decisoes arquiteturais ou de design sugeridas por IA foram justificadas e revisadas antes da adocao no projeto?", Set.of(ARQUITETOSOFTWARE, DESIGNER, GERENTEPROJETO), "Projeto", stgs));
-        qs.add(q("O uso de IA em arquitetura ou design respeita restricoes de seguranca, licenciamento e confidencialidade definidas para o projeto?", Set.of(ARQUITETOSOFTWARE, GERENTEPROJETO, RESPONSAVELNEGOCIO), "Projeto", stgs));
+        qs.add(q("Os requisitos do software foram claramente entendidos?", Set.of(CLIENTE), STAGE_PROJETO, stgs));
+        qs.add(q("Os requisitos estao claramente descritos na documentacao?", Set.of(CLIENTE), STAGE_PROJETO, stgs));
+        qs.add(q("Foram definidos prazos realistas para o projeto?", Set.of(CLIENTE), STAGE_PROJETO, stgs));
+        qs.add(q("A equipe de desenvolvimento tem conhecimento tecnico suficiente para o projeto?", Set.of(CLIENTE), STAGE_PROJETO, stgs));
+        qs.add(q("O projeto esta alinhado com as expectativas do cliente?", Set.of(CLIENTE, STAKEHOLDER), STAGE_PROJETO, stgs));
+        qs.add(q("As condicoes sao definidas para determinar o nivel de comprometimento com o desenvolvimento de uma abordagem de reuso?", Set.of(CLIENTE), STAGE_PROJETO, stgs));
+        qs.add(q("O orcamento do projeto foi definido?", Set.of(GERENTEPROJETO), STAGE_PROJETO, stgs));
+        qs.add(q("A equipe de desenvolvimento esta disponivel para o projeto?", Set.of(GERENTEPROJETO), STAGE_PROJETO, stgs));
+        qs.add(q("O cronograma do projeto e factivel?", Set.of(GERENTEPROJETO), STAGE_PROJETO, stgs));
+        qs.add(q("O escopo do projeto esta claramente definido?", Set.of(GERENTEPROJETO), STAGE_PROJETO, stgs));
+        qs.add(q("Os recursos necessarios para o projeto foram identificados?", Set.of(GERENTEPROJETO), STAGE_PROJETO, stgs));
+        qs.add(q("As condicoes sao definidas para determinar o nivel de comprometimento com o desenvolvimento de uma abordagem de reuso?", Set.of(GERENTEPROJETO), STAGE_PROJETO, stgs));
+        qs.add(q("As condicoes sao definidas para determinar o nivel de comprometimento com o desenvolvimento de todas as metodologias de padroes?", Set.of(GERENTEPROJETO), STAGE_PROJETO, stgs));
+        qs.add(q("Alguem que nao seja especialista pode orientar os diagramas?", Set.of(GERENTEPROJETO), STAGE_PROJETO, stgs));
+        qs.add(q("Voce acha que deveria usar mais diagramas de projeto?", Set.of(GERENTEPROJETO), STAGE_PROJETO, stgs));
+        qs.add(q("Os diagramas sao suficientemente claros?", Set.of(GERENTEPROJETO), STAGE_PROJETO, stgs));
+        qs.add(q("O nivel de detalhamento e suficiente?", Set.of(GERENTEPROJETO), STAGE_PROJETO, stgs));
+        qs.add(q("Seria facil se orientar nos diagramas de projeto?", Set.of(GERENTEPROJETO), STAGE_PROJETO, stgs));
+        qs.add(q("Os membros da equipe possuem as habilidades necessarias para o projeto?", Set.of(LIDEREQUIPE), STAGE_PROJETO, stgs));
+        qs.add(q("A equipe tem conhecimento suficiente da tecnologia a ser utilizada no projeto?", Set.of(LIDEREQUIPE), STAGE_PROJETO, stgs));
+        qs.add(q("As tarefas foram distribuidas de forma equilibrada na equipe?", Set.of(LIDEREQUIPE), STAGE_PROJETO, stgs));
+        qs.add(q("O plano de comunicacao da equipe foi definido?", Set.of(LIDEREQUIPE), STAGE_PROJETO, stgs));
+        qs.add(q("O lider da equipe tem autoridade suficiente para tomar decisoes?", Set.of(LIDEREQUIPE), STAGE_PROJETO, stgs));
+        qs.add(q("As condicoes sao definidas para determinar o nivel de comprometimento com o desenvolvimento de uma abordagem de reuso?", Set.of(LIDEREQUIPE), STAGE_PROJETO, stgs));
+        qs.add(q("As condicoes sao definidas para determinar o nivel de comprometimento com o desenvolvimento de todas as metodologias de padroes?", Set.of(LIDEREQUIPE), STAGE_PROJETO, stgs));
+        qs.add(q("O nivel de detalhamento e suficiente?", Set.of(LIDEREQUIPE), STAGE_PROJETO, stgs));
+        qs.add(q("Os diagramas sao suficientemente claros?", Set.of(LIDEREQUIPE), STAGE_PROJETO, stgs));
+        qs.add(q("O design proposto atende as expectativas do cliente?", Set.of(ARQUITETOSOFTWARE), STAGE_PROJETO, stgs));
+        qs.add(q("O design e viavel do ponto de vista tecnico?", Set.of(ARQUITETOSOFTWARE), STAGE_PROJETO, stgs));
+        qs.add(q("O design atende aos requisitos do projeto?", Set.of(ARQUITETOSOFTWARE), STAGE_PROJETO, stgs));
+        qs.add(q("O design segue as boas praticas de usabilidade e acessibilidade?", Set.of(ARQUITETOSOFTWARE, DESIGNER), STAGE_PROJETO, stgs));
+        qs.add(q("O design esta de acordo com as diretrizes de marca da empresa?", Set.of(ARQUITETOSOFTWARE, DESIGNER), STAGE_PROJETO, stgs));
+        qs.add(q("O design leva em consideracao possiveis problemas eticos, como vieses ou discriminacao?", Set.of(ARQUITETOSOFTWARE, DESIGNER), STAGE_PROJETO, stgs));
+        qs.add(q("O nivel de detalhamento e suficiente?", Set.of(ARQUITETOSOFTWARE), STAGE_PROJETO, stgs));
+        qs.add(q("O design inclui opcoes de personalizacao para atender a diferentes perfis de usuarios?", Set.of(ARQUITETOSOFTWARE, DESIGNER), STAGE_PROJETO, stgs));
+        qs.add(q("O design inclui opcoes de feedback para que os usuarios possam fornecer suas opinioes e sugestoes?", Set.of(ARQUITETOSOFTWARE, DESIGNER), STAGE_PROJETO, stgs));
+        qs.add(q("Os requisitos do projeto sao claros e compreensiveis?", Set.of(DESENVOLVEDOR), STAGE_PROJETO, stgs));
+        qs.add(q("As tecnologias utilizadas sao apropriadas para o projeto?", Set.of(DESENVOLVEDOR), STAGE_PROJETO, stgs));
+        qs.add(q("As funcionalidades do software sao desenvolvidas seguindo as especificacoes dos requisitos?", Set.of(DESENVOLVEDOR), STAGE_PROJETO, stgs));
+        qs.add(q("O codigo produzido segue as boas praticas de programacao?", Set.of(DESENVOLVEDOR), STAGE_PROJETO, stgs));
+        qs.add(q("O software inclui medidas de seguranca para proteger os dados do usuario?", Set.of(DESENVOLVEDOR), STAGE_PROJETO, stgs));
+        qs.add(q("As condicoes sao definidas para determinar o nivel de comprometimento com o desenvolvimento de uma abordagem de reuso?", Set.of(DESENVOLVEDOR), STAGE_PROJETO, stgs));
+        qs.add(q("O software e projetado para ser escalavel e extensivel, permitindo a adicao de novas funcionalidades no futuro?", Set.of(DESENVOLVEDOR), STAGE_PROJETO, stgs));
+        qs.add(q("O software e projetado para ser de facil manutencao e solucao de problemas?", Set.of(DESENVOLVEDOR), STAGE_PROJETO, stgs));
+        qs.add(q("O nivel de detalhamento e suficiente?", Set.of(DESENVOLVEDOR), STAGE_PROJETO, stgs));
+        qs.add(q("Os diagramas sao suficientemente claros?", Set.of(DESENVOLVEDOR), STAGE_PROJETO, stgs));
+        qs.add(q("O desenvolvimento inclui testes unitarios e de integracao para garantir a qualidade do codigo?", Set.of(DESENVOLVEDOR), STAGE_PROJETO, stgs));
+        qs.add(q("Os requisitos do projeto foram corretamente interpretados e documentados?", Set.of(ANALISTAQUALIDADE), STAGE_PROJETO, stgs));
+        qs.add(q("Os testes de software sao realizados de acordo com as especificacoes dos requisitos?", Set.of(ANALISTAQUALIDADE), STAGE_PROJETO, stgs));
+        qs.add(q("Os testes sao realizados em diferentes cenarios e condicoes para garantir a robustez do software?", Set.of(ANALISTAQUALIDADE), STAGE_PROJETO, stgs));
+        qs.add(q("Os resultados dos testes sao documentados e compartilhados com a equipe para acompanhamento e correcao de problemas?", Set.of(ANALISTAQUALIDADE), STAGE_PROJETO, stgs));
+        qs.add(q("O software e testado em diferentes plataformas e dispositivos para garantir sua compatibilidade?", Set.of(ANALISTAQUALIDADE), STAGE_PROJETO, stgs));
+        qs.add(q("O software e testado em diferentes cenarios de uso, considerando diferentes perfis de usuario?", Set.of(ANALISTAQUALIDADE), STAGE_PROJETO, stgs));
+        qs.add(q("O nivel de detalhamento e suficiente?", Set.of(ANALISTAQUALIDADE), STAGE_PROJETO, stgs));
+        qs.add(q("As condicoes sao definidas para determinar o nivel de comprometimento com o desenvolvimento de uma abordagem de reuso?", Set.of(ANALISTAQUALIDADE), STAGE_PROJETO, stgs));
+        qs.add(q("Os diagramas sao suficientemente claros?", Set.of(ANALISTAQUALIDADE), STAGE_PROJETO, stgs));
+        qs.add(q("As metricas de qualidade, como taxa de defeitos e satisfacao do usuario, sao monitoradas e avaliadas regularmente?", Set.of(ANALISTAQUALIDADE), STAGE_PROJETO, stgs));
+        qs.add(q("Sao realizados testes de seguranca para detectar possiveis vulnerabilidades e prevenir ataques ciberneticos?", Set.of(ANALISTAQUALIDADE), STAGE_PROJETO, stgs));
+        qs.add(q("As decisoes arquiteturais consideram o impacto etico de longo prazo sobre usuarios e sociedade?", Set.of(ARQUITETOSOFTWARE, GERENTEPROJETO), STAGE_PROJETO, stgs));
+        qs.add(q("Existe rastreabilidade entre decisoes de projeto e requisitos eticos documentados?", Set.of(ANALISTAQUALIDADE, ANALISTAREQUISITOS), STAGE_PROJETO, stgs));
+        qs.add(q("Decisoes arquiteturais ou de design sugeridas por IA foram justificadas e revisadas antes da adocao no projeto?", Set.of(ARQUITETOSOFTWARE, DESIGNER, GERENTEPROJETO), STAGE_PROJETO, stgs));
+        qs.add(q("O uso de IA em arquitetura ou design respeita restricoes de seguranca, licenciamento e confidencialidade definidas para o projeto?", Set.of(ARQUITETOSOFTWARE, GERENTEPROJETO, RESPONSAVELNEGOCIO), STAGE_PROJETO, stgs));
         classify(qs, QuestionClassificationEnum.ROTATIVA);
         return qs;
     }
 
     private List<TemplateQuestionDTO> buildCascataDesenvolvimentoQuestions(List<StageSummaryResponseDTO> stgs) {
         List<TemplateQuestionDTO> qs = new ArrayList<>();
-        qs.add(q("Os requisitos estao sendo atendidos?", Set.of(CLIENTE), "Desenvolvimento", stgs));
-        qs.add(q("O projeto esta dentro do orcamento planejado?", Set.of(CLIENTE), "Desenvolvimento", stgs));
-        qs.add(q("O projeto esta dentro do cronograma planejado?", Set.of(CLIENTE), "Desenvolvimento", stgs));
-        qs.add(q("As funcionalidades estao sendo desenvolvidas de acordo com o que foi especificado?", Set.of(CLIENTE), "Desenvolvimento", stgs));
-        qs.add(q("As expectativas estao sendo atendidas em relacao a qualidade do produto?", Set.of(CLIENTE, STAKEHOLDER), "Desenvolvimento", stgs));
-        qs.add(q("O projeto esta seguindo o cronograma estabelecido?", Set.of(GERENTEPROJETO), "Desenvolvimento", stgs));
-        qs.add(q("As tarefas dos membros da equipe estao sendo bem definidas?", Set.of(GERENTEPROJETO), "Desenvolvimento", stgs));
-        qs.add(q("Os recursos necessarios para o desenvolvimento estao sendo providenciados?", Set.of(GERENTEPROJETO), "Desenvolvimento", stgs));
-        qs.add(q("O projeto esta respeitando as normas e politicas de seguranca da empresa?", Set.of(GERENTEPROJETO), "Desenvolvimento", stgs));
-        qs.add(q("As etapas de testes estao sendo bem documentadas?", Set.of(GERENTEPROJETO), "Desenvolvimento", stgs));
-        qs.add(q("O progresso do projeto esta sendo relatado de forma clara e concisa?", Set.of(GERENTEPROJETO), "Desenvolvimento", stgs));
-        qs.add(q("As alteracoes de escopo estao sendo gerenciadas adequadamente?", Set.of(GERENTEPROJETO), "Desenvolvimento", stgs));
-        qs.add(q("Existem condicoes para integrar os recursos avancados do gerenciamento de codigo? Horarios? Parametros ambientais?", Set.of(GERENTEPROJETO), "Desenvolvimento", stgs));
-        qs.add(q("Existem condicoes para a integracao de desenvolvedores jovens e menos experientes?", Set.of(GERENTEPROJETO, LIDEREQUIPE), "Desenvolvimento", stgs));
-        qs.add(q("A comunicacao entre os membros da equipe esta sendo eficaz?", Set.of(GERENTEPROJETO, LIDEREQUIPE), "Desenvolvimento", stgs));
-        qs.add(q("O cronograma de desenvolvimento esta sendo cumprido?", Set.of(LIDEREQUIPE), "Desenvolvimento", stgs));
-        qs.add(q("A equipe tem recursos suficientes para desenvolver o projeto dentro do prazo e orcamento?", Set.of(LIDEREQUIPE), "Desenvolvimento", stgs));
-        qs.add(q("O progresso do projeto esta sendo monitorado regularmente e comunicado a equipe e partes interessadas?", Set.of(LIDEREQUIPE), "Desenvolvimento", stgs));
-        qs.add(q("A equipe esta seguindo as melhores praticas de desenvolvimento de software?", Set.of(LIDEREQUIPE), "Desenvolvimento", stgs));
-        qs.add(q("A equipe esta aderindo as normas e padroes definidos para o projeto?", Set.of(LIDEREQUIPE), "Desenvolvimento", stgs));
-        qs.add(q("As condicoes foram definidas para selecionar o idioma de codificacao?", Set.of(LIDEREQUIPE), "Desenvolvimento", stgs));
-        qs.add(q("As mudancas de requisitos sao gerenciadas e controladas adequadamente?", Set.of(LIDEREQUIPE), "Desenvolvimento", stgs));
-        qs.add(q("As falhas e defeitos sao registrados e tratados corretamente?", Set.of(LIDEREQUIPE), "Desenvolvimento", stgs));
-        qs.add(q("As expectativas dos stakeholders em relacao a qualidade do produto estao sendo atendidas?", Set.of(LIDEREQUIPE), "Desenvolvimento", stgs));
-        qs.add(q("As interfaces de usuario estao sendo desenvolvidas com base nas especificacoes de design?", Set.of(ARQUITETOSOFTWARE, DESIGNER), "Desenvolvimento", stgs));
-        qs.add(q("As telas de interface estao sendo testadas e revisadas conforme o feedback dos usuarios e a conformidade com os padroes de design?", Set.of(ARQUITETOSOFTWARE, DESIGNER), "Desenvolvimento", stgs));
-        qs.add(q("As animacoes e efeitos visuais estao sendo integrados de acordo com as diretrizes de design?", Set.of(ARQUITETOSOFTWARE, DESIGNER), "Desenvolvimento", stgs));
-        qs.add(q("As fontes, cores e icones estao sendo utilizados de acordo com o manual de identidade visual da empresa?", Set.of(ARQUITETOSOFTWARE, DESIGNER), "Desenvolvimento", stgs));
-        qs.add(q("As interfaces estao sendo desenvolvidas para serem responsivas e adaptaveis a diferentes tamanhos de tela?", Set.of(ARQUITETOSOFTWARE, DESIGNER), "Desenvolvimento", stgs));
-        qs.add(q("O design da interface esta sendo desenvolvido de forma a facilitar a usabilidade e a acessibilidade para pessoas com deficiencia?", Set.of(ARQUITETOSOFTWARE, DESIGNER), "Desenvolvimento", stgs));
-        qs.add(q("O design da interface esta sendo desenvolvido de forma a promover a coerencia e a consistencia em todas as telas?", Set.of(ARQUITETOSOFTWARE, DESIGNER), "Desenvolvimento", stgs));
-        qs.add(q("As animacoes e transicoes de interface estao sendo desenvolvidas de forma a proporcionar uma experiencia de usuario agradavel?", Set.of(ARQUITETOSOFTWARE, DESIGNER), "Desenvolvimento", stgs));
-        qs.add(q("Os requisitos estao claramente definidos e documentados?", Set.of(DESENVOLVEDOR), "Desenvolvimento", stgs));
-        qs.add(q("Os casos de teste foram definidos e documentados para cada requisito?", Set.of(DESENVOLVEDOR), "Desenvolvimento", stgs));
-        qs.add(q("A arquitetura do software foi definida e documentada?", Set.of(DESENVOLVEDOR), "Desenvolvimento", stgs));
-        qs.add(q("Os padroes de codificacao foram definidos e documentados?", Set.of(DESENVOLVEDOR), "Desenvolvimento", stgs));
-        qs.add(q("Foi definido um processo de revisao de codigo?", Set.of(DESENVOLVEDOR), "Desenvolvimento", stgs));
-        qs.add(q("O codigo e compativel com os diagramas de projeto?", Set.of(DESENVOLVEDOR), "Desenvolvimento", stgs));
-        qs.add(q("Os comentarios tem clareza suficiente?", Set.of(DESENVOLVEDOR), "Desenvolvimento", stgs));
-        qs.add(q("E facil descrever para outra pessoa o codigo que voce escreveu?", Set.of(DESENVOLVEDOR), "Desenvolvimento", stgs));
-        qs.add(q("O controle de versao esta sendo utilizado adequadamente?", Set.of(DESENVOLVEDOR), "Desenvolvimento", stgs));
-        qs.add(q("O ambiente de desenvolvimento esta configurado corretamente?", Set.of(DESENVOLVEDOR), "Desenvolvimento", stgs));
-        qs.add(q("Foram definidos e documentados criterios de aceitacao para a entrega do software?", Set.of(DESENVOLVEDOR), "Desenvolvimento", stgs));
-        qs.add(q("O codigo fonte esta sendo versionado adequadamente?", Set.of(ANALISTAQUALIDADE), "Desenvolvimento", stgs));
-        qs.add(q("Os testes unitarios estao sendo executados e cobrindo a maioria das funcionalidades do software?", Set.of(ANALISTAQUALIDADE), "Desenvolvimento", stgs));
-        qs.add(q("As correcoes de bugs estao sendo registradas e tratadas de maneira apropriada?", Set.of(ANALISTAQUALIDADE), "Desenvolvimento", stgs));
-        qs.add(q("Os requisitos de desempenho estao sendo atendidos de acordo com as expectativas?", Set.of(ANALISTAQUALIDADE), "Desenvolvimento", stgs));
-        qs.add(q("As metricas de qualidade do codigo (ex: analise estatica) estao sendo monitoradas e utilizadas para orientar as decisoes do time?", Set.of(ANALISTAQUALIDADE), "Desenvolvimento", stgs));
-        qs.add(q("O processo de deploy esta sendo automatizado e documentado adequadamente?", Set.of(ANALISTAQUALIDADE), "Desenvolvimento", stgs));
-        qs.add(q("Existe revisao de codigo com foco em identificar vieses algoritmicos ou praticas discriminatorias?", Set.of(DESENVOLVEDOR, ANALISTAQUALIDADE), "Desenvolvimento", stgs));
-        qs.add(q("Os dados utilizados no desenvolvimento respeitam as politicas de privacidade e consentimento?", Set.of(DESENVOLVEDOR, GERENTEPROJETO), "Desenvolvimento", stgs));
-        qs.add(q("As decisoes tecnicas de trade-off estao sendo documentadas com justificativa etica?", Set.of(DESENVOLVEDOR, ARQUITETOSOFTWARE, LIDEREQUIPE), "Desenvolvimento", stgs));
-        qs.add(q("Codigo gerado com apoio de IA e identificado para revisao humana antes de merge, entrega ou publicacao?", Set.of(DESENVOLVEDOR, LIDEREQUIPE, ANALISTAQUALIDADE), "Desenvolvimento", stgs));
-        qs.add(q("Sugestoes de IA para codigo foram verificadas quanto a licenciamento, seguranca e aderencia aos padroes tecnicos do projeto?", Set.of(DESENVOLVEDOR, ANALISTAQUALIDADE, ARQUITETOSOFTWARE), "Desenvolvimento", stgs));
-        qs.add(q("Credenciais, dados pessoais ou informacoes internas foram excluidos de prompts enviados a ferramentas de IA durante o desenvolvimento?", Set.of(DESENVOLVEDOR, GERENTEPROJETO, ARQUITETOSOFTWARE), "Desenvolvimento", stgs));
+        qs.add(q("Os requisitos estao sendo atendidos?", Set.of(CLIENTE), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("O projeto esta dentro do orcamento planejado?", Set.of(CLIENTE), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("O projeto esta dentro do cronograma planejado?", Set.of(CLIENTE), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("As funcionalidades estao sendo desenvolvidas de acordo com o que foi especificado?", Set.of(CLIENTE), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("As expectativas estao sendo atendidas em relacao a qualidade do produto?", Set.of(CLIENTE, STAKEHOLDER), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("O projeto esta seguindo o cronograma estabelecido?", Set.of(GERENTEPROJETO), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("As tarefas dos membros da equipe estao sendo bem definidas?", Set.of(GERENTEPROJETO), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("Os recursos necessarios para o desenvolvimento estao sendo providenciados?", Set.of(GERENTEPROJETO), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("O projeto esta respeitando as normas e politicas de seguranca da empresa?", Set.of(GERENTEPROJETO), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("As etapas de testes estao sendo bem documentadas?", Set.of(GERENTEPROJETO), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("O progresso do projeto esta sendo relatado de forma clara e concisa?", Set.of(GERENTEPROJETO), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("As alteracoes de escopo estao sendo gerenciadas adequadamente?", Set.of(GERENTEPROJETO), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("Existem condicoes para integrar os recursos avancados do gerenciamento de codigo? Horarios? Parametros ambientais?", Set.of(GERENTEPROJETO), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("Existem condicoes para a integracao de desenvolvedores jovens e menos experientes?", Set.of(GERENTEPROJETO, LIDEREQUIPE), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("A comunicacao entre os membros da equipe esta sendo eficaz?", Set.of(GERENTEPROJETO, LIDEREQUIPE), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("O cronograma de desenvolvimento esta sendo cumprido?", Set.of(LIDEREQUIPE), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("A equipe tem recursos suficientes para desenvolver o projeto dentro do prazo e orcamento?", Set.of(LIDEREQUIPE), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("O progresso do projeto esta sendo monitorado regularmente e comunicado a equipe e partes interessadas?", Set.of(LIDEREQUIPE), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("A equipe esta seguindo as melhores praticas de desenvolvimento de software?", Set.of(LIDEREQUIPE), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("A equipe esta aderindo as normas e padroes definidos para o projeto?", Set.of(LIDEREQUIPE), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("As condicoes foram definidas para selecionar o idioma de codificacao?", Set.of(LIDEREQUIPE), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("As mudancas de requisitos sao gerenciadas e controladas adequadamente?", Set.of(LIDEREQUIPE), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("As falhas e defeitos sao registrados e tratados corretamente?", Set.of(LIDEREQUIPE), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("As expectativas dos stakeholders em relacao a qualidade do produto estao sendo atendidas?", Set.of(LIDEREQUIPE), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("As interfaces de usuario estao sendo desenvolvidas com base nas especificacoes de design?", Set.of(ARQUITETOSOFTWARE, DESIGNER), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("As telas de interface estao sendo testadas e revisadas conforme o feedback dos usuarios e a conformidade com os padroes de design?", Set.of(ARQUITETOSOFTWARE, DESIGNER), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("As animacoes e efeitos visuais estao sendo integrados de acordo com as diretrizes de design?", Set.of(ARQUITETOSOFTWARE, DESIGNER), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("As fontes, cores e icones estao sendo utilizados de acordo com o manual de identidade visual da empresa?", Set.of(ARQUITETOSOFTWARE, DESIGNER), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("As interfaces estao sendo desenvolvidas para serem responsivas e adaptaveis a diferentes tamanhos de tela?", Set.of(ARQUITETOSOFTWARE, DESIGNER), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("O design da interface esta sendo desenvolvido de forma a facilitar a usabilidade e a acessibilidade para pessoas com deficiencia?", Set.of(ARQUITETOSOFTWARE, DESIGNER), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("O design da interface esta sendo desenvolvido de forma a promover a coerencia e a consistencia em todas as telas?", Set.of(ARQUITETOSOFTWARE, DESIGNER), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("As animacoes e transicoes de interface estao sendo desenvolvidas de forma a proporcionar uma experiencia de usuario agradavel?", Set.of(ARQUITETOSOFTWARE, DESIGNER), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("Os requisitos estao claramente definidos e documentados?", Set.of(DESENVOLVEDOR), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("Os casos de teste foram definidos e documentados para cada requisito?", Set.of(DESENVOLVEDOR), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("A arquitetura do software foi definida e documentada?", Set.of(DESENVOLVEDOR), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("Os padroes de codificacao foram definidos e documentados?", Set.of(DESENVOLVEDOR), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("Foi definido um processo de revisao de codigo?", Set.of(DESENVOLVEDOR), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("O codigo e compativel com os diagramas de projeto?", Set.of(DESENVOLVEDOR), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("Os comentarios tem clareza suficiente?", Set.of(DESENVOLVEDOR), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("E facil descrever para outra pessoa o codigo que voce escreveu?", Set.of(DESENVOLVEDOR), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("O controle de versao esta sendo utilizado adequadamente?", Set.of(DESENVOLVEDOR), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("O ambiente de desenvolvimento esta configurado corretamente?", Set.of(DESENVOLVEDOR), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("Foram definidos e documentados criterios de aceitacao para a entrega do software?", Set.of(DESENVOLVEDOR), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("O codigo fonte esta sendo versionado adequadamente?", Set.of(ANALISTAQUALIDADE), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("Os testes unitarios estao sendo executados e cobrindo a maioria das funcionalidades do software?", Set.of(ANALISTAQUALIDADE), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("As correcoes de bugs estao sendo registradas e tratadas de maneira apropriada?", Set.of(ANALISTAQUALIDADE), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("Os requisitos de desempenho estao sendo atendidos de acordo com as expectativas?", Set.of(ANALISTAQUALIDADE), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("As metricas de qualidade do codigo (ex: analise estatica) estao sendo monitoradas e utilizadas para orientar as decisoes do time?", Set.of(ANALISTAQUALIDADE), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("O processo de deploy esta sendo automatizado e documentado adequadamente?", Set.of(ANALISTAQUALIDADE), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("Existe revisao de codigo com foco em identificar vieses algoritmicos ou praticas discriminatorias?", Set.of(DESENVOLVEDOR, ANALISTAQUALIDADE), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("Os dados utilizados no desenvolvimento respeitam as politicas de privacidade e consentimento?", Set.of(DESENVOLVEDOR, GERENTEPROJETO), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("As decisoes tecnicas de trade-off estao sendo documentadas com justificativa etica?", Set.of(DESENVOLVEDOR, ARQUITETOSOFTWARE, LIDEREQUIPE), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("Codigo gerado com apoio de IA e identificado para revisao humana antes de merge, entrega ou publicacao?", Set.of(DESENVOLVEDOR, LIDEREQUIPE, ANALISTAQUALIDADE), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("Sugestoes de IA para codigo foram verificadas quanto a licenciamento, seguranca e aderencia aos padroes tecnicos do projeto?", Set.of(DESENVOLVEDOR, ANALISTAQUALIDADE, ARQUITETOSOFTWARE), STAGE_DESENVOLVIMENTO, stgs));
+        qs.add(q("Credenciais, dados pessoais ou informacoes internas foram excluidos de prompts enviados a ferramentas de IA durante o desenvolvimento?", Set.of(DESENVOLVEDOR, GERENTEPROJETO, ARQUITETOSOFTWARE), STAGE_DESENVOLVIMENTO, stgs));
         classify(qs, QuestionClassificationEnum.ROTATIVA);
         return qs;
     }
 
     private List<TemplateQuestionDTO> buildCascataTestesQuestions(List<StageSummaryResponseDTO> stgs) {
         List<TemplateQuestionDTO> qs = new ArrayList<>();
-        qs.add(q("Os requisitos estabelecidos foram atendidos corretamente?", Set.of(CLIENTE), "Testes", stgs));
-        qs.add(q("O software apresenta erros ou comportamentos inesperados?", Set.of(CLIENTE), "Testes", stgs));
-        qs.add(q("As funcionalidades foram testadas de maneira abrangente?", Set.of(CLIENTE), "Testes", stgs));
-        qs.add(q("A interface do software esta intuitiva e facil de usar?", Set.of(CLIENTE), "Testes", stgs));
-        qs.add(q("O desempenho do software atende as expectativas estabelecidas?", Set.of(CLIENTE), "Testes", stgs));
-        qs.add(q("O nivel de erros permitidos foi determinado antes do produto ir para teste de aceitacao?", Set.of(CLIENTE), "Testes", stgs));
-        qs.add(q("O sistema foi testado em diferentes ambientes?", Set.of(GERENTEPROJETO), "Testes", stgs));
-        qs.add(q("Foi verificado se o sistema e compativel com diferentes dispositivos?", Set.of(GERENTEPROJETO), "Testes", stgs));
-        qs.add(q("Foram realizados testes de seguranca no sistema?", Set.of(GERENTEPROJETO), "Testes", stgs));
-        qs.add(q("O sistema foi testado quanto a sua capacidade de lidar com altas cargas de trafego?", Set.of(GERENTEPROJETO), "Testes", stgs));
-        qs.add(q("Foram realizados testes de backup e recuperacao de dados?", Set.of(GERENTEPROJETO), "Testes", stgs));
-        qs.add(q("O nivel de erros permitidos foi determinado antes do produto ir para teste de aceitacao?", Set.of(GERENTEPROJETO), "Testes", stgs));
-        qs.add(q("Existe um mecanismo que distingue entre um produto de qualidade versus produto correto?", Set.of(GERENTEPROJETO), "Testes", stgs));
-        qs.add(q("Todos os requisitos foram implementados corretamente?", Set.of(LIDEREQUIPE), "Testes", stgs));
-        qs.add(q("As funcionalidades estao atendendo as expectativas?", Set.of(LIDEREQUIPE), "Testes", stgs));
-        qs.add(q("Os resultados dos testes unitarios estao satisfatorios?", Set.of(LIDEREQUIPE), "Testes", stgs));
-        qs.add(q("Todos os testes foram concluidos com sucesso?", Set.of(LIDEREQUIPE), "Testes", stgs));
-        qs.add(q("Foram encontrados bugs ou problemas?", Set.of(LIDEREQUIPE), "Testes", stgs));
-        qs.add(q("O sistema esta respondendo adequadamente as solicitacoes de entrada?", Set.of(LIDEREQUIPE), "Testes", stgs));
-        qs.add(q("Os usuarios estao conseguindo navegar facilmente na interface?", Set.of(LIDEREQUIPE), "Testes", stgs));
-        qs.add(q("O sistema esta compativel com diferentes dispositivos e navegadores?", Set.of(LIDEREQUIPE), "Testes", stgs));
-        qs.add(q("Todos os requisitos de design foram implementados no produto?", Set.of(ARQUITETOSOFTWARE, DESIGNER), "Testes", stgs));
-        qs.add(q("A interface do usuario esta intuitiva e facil de usar?", Set.of(ARQUITETOSOFTWARE, DESIGNER), "Testes", stgs));
-        qs.add(q("O design e consistente em todas as telas e funcionalidades do produto?", Set.of(ARQUITETOSOFTWARE, DESIGNER), "Testes", stgs));
-        qs.add(q("As cores, fontes e elementos visuais estao em conformidade com a identidade visual da empresa?", Set.of(ARQUITETOSOFTWARE, DESIGNER), "Testes", stgs));
-        qs.add(q("Todas as funcionalidades foram testadas para garantir que estejam funcionando corretamente?", Set.of(ARQUITETOSOFTWARE), "Testes", stgs));
-        qs.add(q("O design esta em conformidade com as melhores praticas de usabilidade e acessibilidade?", Set.of(ARQUITETOSOFTWARE, DESIGNER), "Testes", stgs));
-        qs.add(q("O design esta adequado para todas as resolucoes de tela e dispositivos?", Set.of(ARQUITETOSOFTWARE, DESIGNER), "Testes", stgs));
-        qs.add(q("Todas as informacoes e feedbacks foram considerados e implementados no design do produto?", Set.of(ARQUITETOSOFTWARE, DESIGNER), "Testes", stgs));
-        qs.add(q("Voce entende as especificacoes do teste?", Set.of(DESENVOLVEDOR), "Testes", stgs));
-        qs.add(q("Voce implementou todos os requisitos de teste?", Set.of(DESENVOLVEDOR), "Testes", stgs));
-        qs.add(q("Voce atualizou o codigo-fonte para corrigir erros encontrados nos testes?", Set.of(DESENVOLVEDOR), "Testes", stgs));
-        qs.add(q("Voce documentou os resultados dos testes de unidade?", Set.of(DESENVOLVEDOR), "Testes", stgs));
-        qs.add(q("Voce implementou testes de integracao para garantir que o software funcione em conjunto?", Set.of(DESENVOLVEDOR), "Testes", stgs));
-        qs.add(q("Voce executou testes de estresse para garantir que o software possa lidar com cargas de trabalho pesadas?", Set.of(DESENVOLVEDOR), "Testes", stgs));
-        qs.add(q("Voce trabalhou com outros desenvolvedores para garantir que todos os modulos do software foram testados?", Set.of(DESENVOLVEDOR), "Testes", stgs));
-        qs.add(q("Voce realizou testes de regressao para garantir que correcoes e atualizacoes nao afetaram outras areas do software?", Set.of(DESENVOLVEDOR), "Testes", stgs));
-        qs.add(q("Todas as funcionalidades especificadas nos requisitos foram testadas?", Set.of(ANALISTAQUALIDADE), "Testes", stgs));
-        qs.add(q("Todas as funcionalidades testadas passaram nos testes unitarios?", Set.of(ANALISTAQUALIDADE), "Testes", stgs));
-        qs.add(q("Foram realizados testes de integracao entre as diferentes partes do sistema?", Set.of(ANALISTAQUALIDADE), "Testes", stgs));
-        qs.add(q("As metricas para determinar o nivel de treinamento exigido do testador estao definidas?", Set.of(ANALISTAQUALIDADE), "Testes", stgs));
-        qs.add(q("Foram realizados testes de performance do sistema?", Set.of(ANALISTAQUALIDADE), "Testes", stgs));
-        qs.add(q("Existe um mecanismo que determina se os testes necessarios foram realizados?", Set.of(ANALISTAQUALIDADE), "Testes", stgs));
-        qs.add(q("Existe um conjunto de testes obrigatorios?", Set.of(ANALISTAQUALIDADE), "Testes", stgs));
-        qs.add(q("Foram identificados e corrigidos todos os bugs e erros encontrados durante os testes?", Set.of(ANALISTAQUALIDADE), "Testes", stgs));
-        qs.add(q("Foram realizados testes de seguranca para identificar possiveis vulnerabilidades no sistema?", Set.of(ANALISTAQUALIDADE), "Testes", stgs));
-        qs.add(q("Todas as funcionalidades do sistema estao em conformidade com as normas e padroes estabelecidos?", Set.of(ANALISTAQUALIDADE), "Testes", stgs));
-        qs.add(q("O nivel de erros permitidos foi determinado antes do produto ir para teste de aceitacao?", Set.of(ANALISTAQUALIDADE), "Testes", stgs));
-        qs.add(q("Existe um mecanismo que distingue entre um produto de qualidade versus produto correto?", Set.of(ANALISTAQUALIDADE), "Testes", stgs));
-        qs.add(q("Foram realizados testes de usabilidade para avaliar a experiencia do usuario com o sistema?", Set.of(ANALISTAQUALIDADE), "Testes", stgs));
-        qs.add(q("Foram realizados testes especificos para detectar vieses nos resultados do software?", Set.of(ANALISTAQUALIDADE, DESENVOLVEDOR), "Testes", stgs));
-        qs.add(q("Os cenarios de teste incluem perfis de usuarios vulneraveis ou com necessidades especiais?", Set.of(ANALISTAQUALIDADE, DESIGNER), "Testes", stgs));
-        qs.add(q("Os resultados dos testes eticos sao compartilhados com os stakeholders para validacao?", Set.of(ANALISTAQUALIDADE, GERENTEPROJETO, STAKEHOLDER), "Testes", stgs));
-        qs.add(q("Artefatos de teste gerados com apoio de IA foram revisados e validados antes do uso na verificacao do software?", Set.of(ANALISTAQUALIDADE, DESENVOLVEDOR), "Testes", stgs));
-        qs.add(q("Codigo, documentacao ou cenarios produzidos com IA foram submetidos aos mesmos testes e criterios de aceite aplicados ao restante do software?", Set.of(ANALISTAQUALIDADE, DESENVOLVEDOR, GERENTEPROJETO), "Testes", stgs));
-        qs.add(q("Falhas, alucinacoes ou sugestoes inseguras geradas por IA foram registradas para prevencao em ciclos futuros?", Set.of(ANALISTAQUALIDADE, LIDEREQUIPE, SUPORTE), "Testes", stgs));
+        qs.add(q("Os requisitos estabelecidos foram atendidos corretamente?", Set.of(CLIENTE), STAGE_TESTES, stgs));
+        qs.add(q("O software apresenta erros ou comportamentos inesperados?", Set.of(CLIENTE), STAGE_TESTES, stgs));
+        qs.add(q("As funcionalidades foram testadas de maneira abrangente?", Set.of(CLIENTE), STAGE_TESTES, stgs));
+        qs.add(q("A interface do software esta intuitiva e facil de usar?", Set.of(CLIENTE), STAGE_TESTES, stgs));
+        qs.add(q("O desempenho do software atende as expectativas estabelecidas?", Set.of(CLIENTE), STAGE_TESTES, stgs));
+        qs.add(q("O nivel de erros permitidos foi determinado antes do produto ir para teste de aceitacao?", Set.of(CLIENTE), STAGE_TESTES, stgs));
+        qs.add(q("O sistema foi testado em diferentes ambientes?", Set.of(GERENTEPROJETO), STAGE_TESTES, stgs));
+        qs.add(q("Foi verificado se o sistema e compativel com diferentes dispositivos?", Set.of(GERENTEPROJETO), STAGE_TESTES, stgs));
+        qs.add(q("Foram realizados testes de seguranca no sistema?", Set.of(GERENTEPROJETO), STAGE_TESTES, stgs));
+        qs.add(q("O sistema foi testado quanto a sua capacidade de lidar com altas cargas de trafego?", Set.of(GERENTEPROJETO), STAGE_TESTES, stgs));
+        qs.add(q("Foram realizados testes de backup e recuperacao de dados?", Set.of(GERENTEPROJETO), STAGE_TESTES, stgs));
+        qs.add(q("O nivel de erros permitidos foi determinado antes do produto ir para teste de aceitacao?", Set.of(GERENTEPROJETO), STAGE_TESTES, stgs));
+        qs.add(q("Existe um mecanismo que distingue entre um produto de qualidade versus produto correto?", Set.of(GERENTEPROJETO), STAGE_TESTES, stgs));
+        qs.add(q("Todos os requisitos foram implementados corretamente?", Set.of(LIDEREQUIPE), STAGE_TESTES, stgs));
+        qs.add(q("As funcionalidades estao atendendo as expectativas?", Set.of(LIDEREQUIPE), STAGE_TESTES, stgs));
+        qs.add(q("Os resultados dos testes unitarios estao satisfatorios?", Set.of(LIDEREQUIPE), STAGE_TESTES, stgs));
+        qs.add(q("Todos os testes foram concluidos com sucesso?", Set.of(LIDEREQUIPE), STAGE_TESTES, stgs));
+        qs.add(q("Foram encontrados bugs ou problemas?", Set.of(LIDEREQUIPE), STAGE_TESTES, stgs));
+        qs.add(q("O sistema esta respondendo adequadamente as solicitacoes de entrada?", Set.of(LIDEREQUIPE), STAGE_TESTES, stgs));
+        qs.add(q("Os usuarios estao conseguindo navegar facilmente na interface?", Set.of(LIDEREQUIPE), STAGE_TESTES, stgs));
+        qs.add(q("O sistema esta compativel com diferentes dispositivos e navegadores?", Set.of(LIDEREQUIPE), STAGE_TESTES, stgs));
+        qs.add(q("Todos os requisitos de design foram implementados no produto?", Set.of(ARQUITETOSOFTWARE, DESIGNER), STAGE_TESTES, stgs));
+        qs.add(q("A interface do usuario esta intuitiva e facil de usar?", Set.of(ARQUITETOSOFTWARE, DESIGNER), STAGE_TESTES, stgs));
+        qs.add(q("O design e consistente em todas as telas e funcionalidades do produto?", Set.of(ARQUITETOSOFTWARE, DESIGNER), STAGE_TESTES, stgs));
+        qs.add(q("As cores, fontes e elementos visuais estao em conformidade com a identidade visual da empresa?", Set.of(ARQUITETOSOFTWARE, DESIGNER), STAGE_TESTES, stgs));
+        qs.add(q("Todas as funcionalidades foram testadas para garantir que estejam funcionando corretamente?", Set.of(ARQUITETOSOFTWARE), STAGE_TESTES, stgs));
+        qs.add(q("O design esta em conformidade com as melhores praticas de usabilidade e acessibilidade?", Set.of(ARQUITETOSOFTWARE, DESIGNER), STAGE_TESTES, stgs));
+        qs.add(q("O design esta adequado para todas as resolucoes de tela e dispositivos?", Set.of(ARQUITETOSOFTWARE, DESIGNER), STAGE_TESTES, stgs));
+        qs.add(q("Todas as informacoes e feedbacks foram considerados e implementados no design do produto?", Set.of(ARQUITETOSOFTWARE, DESIGNER), STAGE_TESTES, stgs));
+        qs.add(q("Voce entende as especificacoes do teste?", Set.of(DESENVOLVEDOR), STAGE_TESTES, stgs));
+        qs.add(q("Voce implementou todos os requisitos de teste?", Set.of(DESENVOLVEDOR), STAGE_TESTES, stgs));
+        qs.add(q("Voce atualizou o codigo-fonte para corrigir erros encontrados nos testes?", Set.of(DESENVOLVEDOR), STAGE_TESTES, stgs));
+        qs.add(q("Voce documentou os resultados dos testes de unidade?", Set.of(DESENVOLVEDOR), STAGE_TESTES, stgs));
+        qs.add(q("Voce implementou testes de integracao para garantir que o software funcione em conjunto?", Set.of(DESENVOLVEDOR), STAGE_TESTES, stgs));
+        qs.add(q("Voce executou testes de estresse para garantir que o software possa lidar com cargas de trabalho pesadas?", Set.of(DESENVOLVEDOR), STAGE_TESTES, stgs));
+        qs.add(q("Voce trabalhou com outros desenvolvedores para garantir que todos os modulos do software foram testados?", Set.of(DESENVOLVEDOR), STAGE_TESTES, stgs));
+        qs.add(q("Voce realizou testes de regressao para garantir que correcoes e atualizacoes nao afetaram outras areas do software?", Set.of(DESENVOLVEDOR), STAGE_TESTES, stgs));
+        qs.add(q("Todas as funcionalidades especificadas nos requisitos foram testadas?", Set.of(ANALISTAQUALIDADE), STAGE_TESTES, stgs));
+        qs.add(q("Todas as funcionalidades testadas passaram nos testes unitarios?", Set.of(ANALISTAQUALIDADE), STAGE_TESTES, stgs));
+        qs.add(q("Foram realizados testes de integracao entre as diferentes partes do sistema?", Set.of(ANALISTAQUALIDADE), STAGE_TESTES, stgs));
+        qs.add(q("As metricas para determinar o nivel de treinamento exigido do testador estao definidas?", Set.of(ANALISTAQUALIDADE), STAGE_TESTES, stgs));
+        qs.add(q("Foram realizados testes de performance do sistema?", Set.of(ANALISTAQUALIDADE), STAGE_TESTES, stgs));
+        qs.add(q("Existe um mecanismo que determina se os testes necessarios foram realizados?", Set.of(ANALISTAQUALIDADE), STAGE_TESTES, stgs));
+        qs.add(q("Existe um conjunto de testes obrigatorios?", Set.of(ANALISTAQUALIDADE), STAGE_TESTES, stgs));
+        qs.add(q("Foram identificados e corrigidos todos os bugs e erros encontrados durante os testes?", Set.of(ANALISTAQUALIDADE), STAGE_TESTES, stgs));
+        qs.add(q("Foram realizados testes de seguranca para identificar possiveis vulnerabilidades no sistema?", Set.of(ANALISTAQUALIDADE), STAGE_TESTES, stgs));
+        qs.add(q("Todas as funcionalidades do sistema estao em conformidade com as normas e padroes estabelecidos?", Set.of(ANALISTAQUALIDADE), STAGE_TESTES, stgs));
+        qs.add(q("O nivel de erros permitidos foi determinado antes do produto ir para teste de aceitacao?", Set.of(ANALISTAQUALIDADE), STAGE_TESTES, stgs));
+        qs.add(q("Existe um mecanismo que distingue entre um produto de qualidade versus produto correto?", Set.of(ANALISTAQUALIDADE), STAGE_TESTES, stgs));
+        qs.add(q("Foram realizados testes de usabilidade para avaliar a experiencia do usuario com o sistema?", Set.of(ANALISTAQUALIDADE), STAGE_TESTES, stgs));
+        qs.add(q("Foram realizados testes especificos para detectar vieses nos resultados do software?", Set.of(ANALISTAQUALIDADE, DESENVOLVEDOR), STAGE_TESTES, stgs));
+        qs.add(q("Os cenarios de teste incluem perfis de usuarios vulneraveis ou com necessidades especiais?", Set.of(ANALISTAQUALIDADE, DESIGNER), STAGE_TESTES, stgs));
+        qs.add(q("Os resultados dos testes eticos sao compartilhados com os stakeholders para validacao?", Set.of(ANALISTAQUALIDADE, GERENTEPROJETO, STAKEHOLDER), STAGE_TESTES, stgs));
+        qs.add(q("Artefatos de teste gerados com apoio de IA foram revisados e validados antes do uso na verificacao do software?", Set.of(ANALISTAQUALIDADE, DESENVOLVEDOR), STAGE_TESTES, stgs));
+        qs.add(q("Codigo, documentacao ou cenarios produzidos com IA foram submetidos aos mesmos testes e criterios de aceite aplicados ao restante do software?", Set.of(ANALISTAQUALIDADE, DESENVOLVEDOR, GERENTEPROJETO), STAGE_TESTES, stgs));
+        qs.add(q("Falhas, alucinacoes ou sugestoes inseguras geradas por IA foram registradas para prevencao em ciclos futuros?", Set.of(ANALISTAQUALIDADE, LIDEREQUIPE, SUPORTE), STAGE_TESTES, stgs));
         classify(qs, QuestionClassificationEnum.ROTATIVA);
         return qs;
     }

@@ -55,21 +55,18 @@ public class IseqCalculationService {
             }
 
             Set<Long> repRoleIds = roleIdsOf(repById.get(repId));
-
             List<QuestionnaireResponse.AnswerDocument> eligibleAnswered = response.getAnswers().stream()
                     .filter(a -> a.getResponse() != null)
                     .filter(a -> isEligible(a, repRoleIds))
                     .toList();
 
+            collectJustifications(response.getAnswers(), justifications);
             if (eligibleAnswered.isEmpty()) {
                 log.debug("[iseq] Representante {} sem perguntas elegíveis respondidas — excluído do ISEQ (sem penalização).", repId);
-                collectJustifications(response.getAnswers(), justifications);
-                continue;
+            } else {
+                memberIcp.put(repId, computeIcp(eligibleAnswered));
+                memberStageCompliance.put(repId, computeStageCompliance(eligibleAnswered));
             }
-
-            memberIcp.put(repId, computeIcp(eligibleAnswered));
-            memberStageCompliance.put(repId, computeStageCompliance(eligibleAnswered));
-            collectJustifications(response.getAnswers(), justifications);
         }
 
         BigDecimal iseq = IsepMath.weightedAverage(buildWeightedIcps(memberIcp, repById));

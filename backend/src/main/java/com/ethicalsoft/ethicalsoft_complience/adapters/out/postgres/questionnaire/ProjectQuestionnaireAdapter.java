@@ -104,19 +104,7 @@ public class ProjectQuestionnaireAdapter implements ProjectQuestionnaireCommandP
                     : com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.QuestionTypeEnum.CUSTOM);
             question.setClassification(dto.getClassification());
 
-            boolean isWaterfall = ProjectTypeEnum.CASCATA.equals(project.getType());
-            if (isWaterfall) {
-                Stage targetStage = dto.getCategoryStageName() != null ? stageMap.get(dto.getCategoryStageName()) : questionnaire.getStage();
-                question.setStages(targetStage != null ? Collections.singleton(targetStage) : Collections.emptySet());
-            } else {
-                Set<Stage> mappedStages = Optional.ofNullable(dto.getStageNames())
-                        .orElse(Collections.emptyList())
-                        .stream()
-                        .map(stageMap::get)
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toSet());
-                question.setStages(mappedStages);
-            }
+            assignQuestionStages(question, dto, project, questionnaire, stageMap);
 
             if (ObjectUtils.isNotNullAndNotEmpty(dto.getRoleIds())) {
                 Set<Role> mappedRoles = dto.getRoleIds().stream()
@@ -128,6 +116,24 @@ public class ProjectQuestionnaireAdapter implements ProjectQuestionnaireCommandP
 
             return question;
         }).map(questionRepository::save).toList();
+    }
+
+    private void assignQuestionStages(Question question, QuestionDTO dto, Project project,
+                                       Questionnaire questionnaire, Map<String, Stage> stageMap) {
+        if (ProjectTypeEnum.CASCATA.equals(project.getType())) {
+            Stage targetStage = dto.getCategoryStageName() != null
+                    ? stageMap.get(dto.getCategoryStageName())
+                    : questionnaire.getStage();
+            question.setStages(targetStage != null ? Collections.singleton(targetStage) : Collections.emptySet());
+        } else {
+            Set<Stage> mappedStages = Optional.ofNullable(dto.getStageNames())
+                    .orElse(Collections.emptyList())
+                    .stream()
+                    .map(stageMap::get)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+            question.setStages(mappedStages);
+        }
     }
 
     private List<QuestionnaireResponse.AnswerDocument> buildAnswerTemplate(List<Question> persistedQuestions) {
