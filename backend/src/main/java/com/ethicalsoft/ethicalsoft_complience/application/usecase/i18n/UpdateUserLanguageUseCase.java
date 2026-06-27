@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 @Service
 @RequiredArgsConstructor
@@ -20,7 +21,7 @@ public class UpdateUserLanguageUseCase {
                 .orElseThrow(() -> new BusinessException(
                         "Idioma não suportado: " + languageCode));
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
         UserLanguagePreferenceDocument doc = repository.findByUserId(userId)
                 .orElseGet(() -> UserLanguagePreferenceDocument.builder()
                         .userId(userId)

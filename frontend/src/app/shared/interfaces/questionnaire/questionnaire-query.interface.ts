@@ -1,4 +1,6 @@
 import { TimelineStatus } from '../../enums/timeline-status.enum';
+import { QuestionClassificationType } from '../../enums/question-classification-type.enum';
+import { QuestionType } from '../../enums/question-type.enum';
 
 export interface QuestionnaireRawResponse {
   id: number;
@@ -20,6 +22,8 @@ export interface QuestionnaireQuestionResponse {
   stageNames: string[];
   roleIds: number[];
   order: number;
+  type?: QuestionType;
+  classification?: QuestionClassificationType | null;
 }
 
 export interface QuestionSearchFilter {

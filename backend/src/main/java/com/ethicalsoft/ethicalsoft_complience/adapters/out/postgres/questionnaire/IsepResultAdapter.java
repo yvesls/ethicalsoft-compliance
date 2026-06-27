@@ -8,7 +8,7 @@ import com.ethicalsoft.ethicalsoft_complience.application.port.questionnaire.Ise
 import com.ethicalsoft.ethicalsoft_complience.application.port.questionnaire.IsepResultQueryPort;
 import com.ethicalsoft.ethicalsoft_complience.domain.isep.DomainScores;
 import com.ethicalsoft.ethicalsoft_complience.domain.isep.EthicalComplianceBand;
-import com.ethicalsoft.ethicalsoft_complience.domain.isep.IsepCalculationResult;
+import com.ethicalsoft.ethicalsoft_complience.domain.isep.IseqCalculationResult;
 import com.ethicalsoft.ethicalsoft_complience.domain.isep.IsepMath;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,8 +31,8 @@ public class IsepResultAdapter implements IsepResultCommandPort, IsepResultQuery
 
     @Override
     @Transactional
-    public QuestionnaireResult save(IsepCalculationResult result) {
-        log.info("[isep-result-adapter] Persistindo resultado ISEP questionário={}", result.questionnaireId());
+    public QuestionnaireResult save(IseqCalculationResult result) {
+        log.info("[iseq-result-adapter] Persistindo resultado ISEQ questionário={}", result.questionnaireId());
 
         repository.findByQuestionnaireId(result.questionnaireId())
                 .ifPresent(existing -> {
@@ -43,8 +43,8 @@ public class IsepResultAdapter implements IsepResultCommandPort, IsepResultQuery
         QuestionnaireResult entity = buildEntity(result);
         QuestionnaireResult saved = repository.save(entity);
 
-        log.info("[isep-result-adapter] Resultado ISEP persistido id={} ISEP={}", saved.getId(),
-                IsepMath.toPercent(saved.getIsep()));
+        log.info("[iseq-result-adapter] Resultado ISEQ persistido id={} ISEQ={}", saved.getId(),
+                IsepMath.toPercent(saved.getIseq()));
         return saved;
     }
 
@@ -66,12 +66,12 @@ public class IsepResultAdapter implements IsepResultCommandPort, IsepResultQuery
         return repository.existsByQuestionnaireId(questionnaireId);
     }
 
-    private QuestionnaireResult buildEntity(IsepCalculationResult result) {
+    private QuestionnaireResult buildEntity(IseqCalculationResult result) {
         QuestionnaireResult entity = new QuestionnaireResult();
         entity.setProjectId(result.projectId());
         entity.setQuestionnaireId(result.questionnaireId());
-        entity.setIsep(result.questionnaireIsep());
-        entity.setBand(result.questionnaireBand().name());
+        entity.setIseq(result.iseq());
+        entity.setBand(result.iseqBand().name());
         entity.setTeamSimpleAverage(result.teamSimpleAverage());
         entity.setTeamStandardDeviation(result.teamStandardDeviation());
         entity.setCalculatedAt(LocalDateTime.now());
@@ -86,7 +86,7 @@ public class IsepResultAdapter implements IsepResultCommandPort, IsepResultQuery
             entity.setTechDebtScore(ds.techDebtScore());
         }
 
-        List<MemberComplianceResult> memberResults = buildMemberResults(entity, result.memberPersonalComplianceIndex());
+        List<MemberComplianceResult> memberResults = buildMemberResults(entity, result.memberComplianceIndex());
         entity.setMemberResults(memberResults);
 
         List<MemberStageComplianceResult> stageResults = buildStageResults(entity, result.memberStageComplianceIndex());

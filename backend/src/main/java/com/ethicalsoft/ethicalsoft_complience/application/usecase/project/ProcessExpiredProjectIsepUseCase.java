@@ -153,7 +153,7 @@ public class ProcessExpiredProjectIsepUseCase {
             BigDecimal weight = (q != null && q.getWeight() != null)
                     ? BigDecimal.valueOf(q.getWeight())
                     : BigDecimal.ONE;
-            weighted.add(new IsepMath.WeightedValue(qResult.getIsep(), weight));
+            weighted.add(new IsepMath.WeightedValue(qResult.getIseq(), weight));
         }
 
         BigDecimal consolidatedIsep = IsepMath.weightedAverage(weighted);
@@ -161,7 +161,7 @@ public class ProcessExpiredProjectIsepUseCase {
         EthicalComplianceBand band = EthicalComplianceBand.classify(isepPercent);
 
         Collection<BigDecimal> isepValues = questionnaireResults.stream()
-                .map(QuestionnaireResult::getIsep)
+                .map(QuestionnaireResult::getIseq)
                 .toList();
         BigDecimal teamAvg = IsepMath.simpleAverage(isepValues);
         BigDecimal teamStdDev = IsepMath.standardDeviation(isepValues);

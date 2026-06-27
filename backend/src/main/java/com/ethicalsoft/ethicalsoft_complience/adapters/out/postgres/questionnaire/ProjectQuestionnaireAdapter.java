@@ -99,6 +99,10 @@ public class ProjectQuestionnaireAdapter implements ProjectQuestionnaireCommandP
             Question question = new Question();
             question.setQuestionnaire(questionnaire);
             question.setValue(rawValue);
+            question.setType(dto.getType() != null
+                    ? dto.getType()
+                    : com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.QuestionTypeEnum.CUSTOM);
+            question.setClassification(dto.getClassification());
 
             boolean isWaterfall = ProjectTypeEnum.CASCATA.equals(project.getType());
             if (isWaterfall) {

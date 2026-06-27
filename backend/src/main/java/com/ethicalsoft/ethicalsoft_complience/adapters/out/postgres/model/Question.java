@@ -1,5 +1,7 @@
 package com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model;
 
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.QuestionClassificationEnum;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.QuestionTypeEnum;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -24,6 +26,14 @@ public class Question {
 
     @Column(name = "text", nullable = false, length = 500)
     private String value;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false, length = 20)
+    private QuestionTypeEnum type = QuestionTypeEnum.CUSTOM;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "classification", length = 30)
+    private QuestionClassificationEnum classification;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "questionnaire_id", nullable = false)

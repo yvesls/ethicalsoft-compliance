@@ -52,8 +52,8 @@ public class GetProjectIsepDashboardUseCase {
                             q != null ? q.getName() : "Questionário " + r.getQuestionnaireId(),
                             q != null && q.getStage() != null ? q.getStage().getName() : null,
                             q != null ? q.getIteration() : null,
-                            r.getIsep(),
-                            IsepMath.toPercent(r.getIsep()),
+                            r.getIseq(),
+                            IsepMath.toPercent(r.getIseq()),
                             r.getBand(),
                             r.getCalculatedAt(),
                             toPercent(r.getEthicsDebtScore()),
@@ -82,7 +82,7 @@ public class GetProjectIsepDashboardUseCase {
                         BigDecimal weight = (q != null && q.getWeight() != null)
                                 ? BigDecimal.valueOf(q.getWeight())
                                 : BigDecimal.ONE;
-                        return new IsepMath.WeightedValue(r.getIsep(), weight);
+                        return new IsepMath.WeightedValue(r.getIseq(), weight);
                     })
                     .collect(Collectors.toList());
 
@@ -90,11 +90,10 @@ public class GetProjectIsepDashboardUseCase {
             projectIsepPercent = IsepMath.toPercent(projectIsep);
             projectBand = EthicalComplianceBand.classify(projectIsepPercent).name();
 
-            // Estatísticas de equipe
-            Collection<BigDecimal> isepValues = completedResults.stream()
-                    .map(QuestionnaireResult::getIsep).toList();
-            teamAvgPercent = IsepMath.toPercent(IsepMath.simpleAverage(isepValues));
-            teamStdDevPercent = IsepMath.toPercent(IsepMath.standardDeviation(isepValues));
+            Collection<BigDecimal> iseqValues = completedResults.stream()
+                    .map(QuestionnaireResult::getIseq).toList();
+            teamAvgPercent = IsepMath.toPercent(IsepMath.simpleAverage(iseqValues));
+            teamStdDevPercent = IsepMath.toPercent(IsepMath.standardDeviation(iseqValues));
 
             ethicsPercent = averagePercentNonNull(completedResults.stream().map(QuestionnaireResult::getEthicsScore).toList());
             processPercent = averagePercentNonNull(completedResults.stream().map(QuestionnaireResult::getProcessScore).toList());

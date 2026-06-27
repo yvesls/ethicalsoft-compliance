@@ -21,23 +21,23 @@ public record DocumentEmissionRecordDTO(
         String dataHash,
         String templateVersion
 ) {
-    public static DocumentEmissionRecordDTO from(DocumentEmissionRecord record) {
-        if (record == null) return null;
+    public static DocumentEmissionRecordDTO from(DocumentEmissionRecord source) {
+        if (source == null) return null;
         return new DocumentEmissionRecordDTO(
-                record.getAuthenticityCode(),
-                record.getDocumentType(),
-                record.getProjectId(),
-                record.getProjectName(),
-                record.getQuestionnaireId(),
-                record.getQuestionnaireName(),
-                record.getScopeLabel(),
-                record.getEmittedAt(),
-                record.getEmittedByUserId(),
-                record.getEmittedByName(),
-                record.getIsepPercent(),
-                record.getBand(),
-                record.getDataHash(),
-                record.getTemplateVersion()
+                source.getAuthenticityCode(),
+                source.getDocumentType(),
+                source.getProjectId(),
+                source.getProjectName(),
+                source.getQuestionnaireId(),
+                source.getQuestionnaireName(),
+                source.getScopeLabel(),
+                source.getEmittedAt(),
+                source.getEmittedByUserId(),
+                source.getEmittedByName(),
+                source.getIsepPercent(),
+                source.getBand(),
+                source.getDataHash(),
+                source.getTemplateVersion()
         );
     }
 }

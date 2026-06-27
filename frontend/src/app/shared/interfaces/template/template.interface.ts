@@ -1,4 +1,6 @@
 import { ProjectType } from '../../enums/project-type.enum';
+import { QuestionClassificationType } from '../../enums/question-classification-type.enum';
+import { QuestionType } from '../../enums/question-type.enum';
 import { RoleSummary } from '../role/role-summary.interface';
 
 export interface TemplateListDTO {
@@ -35,6 +37,8 @@ export interface TemplateQuestionDTO {
   stageName?: string;
   roles?: RoleSummary[];
   roleNames?: string[];
+  type?: QuestionType;
+  classification?: QuestionClassificationType | null;
 }
 
 export interface TemplateQuestionnaireDTO {

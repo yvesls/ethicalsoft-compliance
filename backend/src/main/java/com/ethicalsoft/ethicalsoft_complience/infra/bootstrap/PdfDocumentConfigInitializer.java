@@ -67,49 +67,60 @@ public class PdfDocumentConfigInitializer {
         if (seed == null || seed.getKey() == null || seed.getKey().isBlank()) {
             return;
         }
-        repository.findByKey(seed.getKey()).ifPresentOrElse(existing -> {
-            boolean changed = false;
+        repository.findByKey(seed.getKey()).ifPresentOrElse(
+                existing -> updateExistingConfig(existing, seed),
+                () -> repository.save(seed));
+    }
 
-            if (!java.util.Objects.equals(existing.getDocumentTitle(), seed.getDocumentTitle())) {
-                existing.setDocumentTitle(seed.getDocumentTitle());
-                changed = true;
-            }
-            if (!java.util.Objects.equals(existing.getTemplateLink(), seed.getTemplateLink())) {
-                existing.setTemplateLink(seed.getTemplateLink());
-                changed = true;
-            }
-            if (!java.util.Objects.equals(existing.getFooterNote(), seed.getFooterNote())) {
-                existing.setFooterNote(seed.getFooterNote());
-                changed = true;
-            }
-            if (isBlank(existing.getSystemName()) && !isBlank(seed.getSystemName())) {
-                existing.setSystemName(seed.getSystemName());
-                changed = true;
-            }
-            if (isBlank(existing.getImpactSummary()) && !isBlank(seed.getImpactSummary())) {
-                existing.setImpactSummary(seed.getImpactSummary());
-                changed = true;
-            }
-            if (isEmpty(existing.getDefaultCorrectiveActions())
-                    && !isEmpty(seed.getDefaultCorrectiveActions())) {
-                existing.setDefaultCorrectiveActions(seed.getDefaultCorrectiveActions());
-                changed = true;
-            }
-            if (isBlank(existing.getValidationUrl()) && !isBlank(seed.getValidationUrl())) {
-                existing.setValidationUrl(seed.getValidationUrl());
-                changed = true;
-            }
-            if (isBlank(existing.getIssuerLabel()) && !isBlank(seed.getIssuerLabel())) {
-                existing.setIssuerLabel(seed.getIssuerLabel());
-                changed = true;
-            }
+    private void updateExistingConfig(PdfDocumentConfigDocument existing, PdfDocumentConfigDocument seed) {
+        boolean changed = applyMandatoryFields(existing, seed);
+        changed |= applyOptionalFields(existing, seed);
+        if (changed) {
+            repository.save(existing);
+            log.info("[pdf-config-init] Configuração '{}' reconciliada com os valores canônicos.", seed.getKey());
+        }
+    }
 
-            if (changed) {
-                repository.save(existing);
-                log.info("[pdf-config-init] Configuração '{}' reconciliada com os valores canônicos.",
-                        seed.getKey());
-            }
-        }, () -> repository.save(seed));
+    private boolean applyMandatoryFields(PdfDocumentConfigDocument existing, PdfDocumentConfigDocument seed) {
+        boolean changed = false;
+        if (!java.util.Objects.equals(existing.getDocumentTitle(), seed.getDocumentTitle())) {
+            existing.setDocumentTitle(seed.getDocumentTitle());
+            changed = true;
+        }
+        if (!java.util.Objects.equals(existing.getTemplateLink(), seed.getTemplateLink())) {
+            existing.setTemplateLink(seed.getTemplateLink());
+            changed = true;
+        }
+        if (!java.util.Objects.equals(existing.getFooterNote(), seed.getFooterNote())) {
+            existing.setFooterNote(seed.getFooterNote());
+            changed = true;
+        }
+        return changed;
+    }
+
+    private boolean applyOptionalFields(PdfDocumentConfigDocument existing, PdfDocumentConfigDocument seed) {
+        boolean changed = false;
+        if (isBlank(existing.getSystemName()) && !isBlank(seed.getSystemName())) {
+            existing.setSystemName(seed.getSystemName());
+            changed = true;
+        }
+        if (isBlank(existing.getImpactSummary()) && !isBlank(seed.getImpactSummary())) {
+            existing.setImpactSummary(seed.getImpactSummary());
+            changed = true;
+        }
+        if (isEmpty(existing.getDefaultCorrectiveActions()) && !isEmpty(seed.getDefaultCorrectiveActions())) {
+            existing.setDefaultCorrectiveActions(seed.getDefaultCorrectiveActions());
+            changed = true;
+        }
+        if (isBlank(existing.getValidationUrl()) && !isBlank(seed.getValidationUrl())) {
+            existing.setValidationUrl(seed.getValidationUrl());
+            changed = true;
+        }
+        if (isBlank(existing.getIssuerLabel()) && !isBlank(seed.getIssuerLabel())) {
+            existing.setIssuerLabel(seed.getIssuerLabel());
+            changed = true;
+        }
+        return changed;
     }
 
     private boolean isBlank(String value) {

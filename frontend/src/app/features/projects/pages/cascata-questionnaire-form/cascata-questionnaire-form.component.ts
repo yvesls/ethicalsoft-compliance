@@ -18,6 +18,8 @@ import { LoggerService } from '../../../../core/services/logger.service'
 import { ModalService } from '../../../../core/services/modal.service'
 import { NotificationService } from '../../../../core/services/notification.service'
 import { ActionType } from '../../../../shared/enums/action-type.enum'
+import { QuestionClassificationType } from '../../../../shared/enums/question-classification-type.enum'
+import { QuestionType } from '../../../../shared/enums/question-type.enum'
 import { QuestionModalComponent, QuestionData } from '../../components/question-modal/question-modal.component'
 import { AccordionPanelComponent } from '../../../../shared/components/accordion-panel/accordion-panel.component'
 import { InputComponent } from '../../../../shared/components/input/input.component'
@@ -331,6 +333,7 @@ export class CascataQuestionnaireFormComponent
 							roleIds: q.roleIds ?? [],
 							roleNames: this.mapRoleIdsToNames(q.roleIds ?? []),
 							stageNames: q.stageNames ?? [],
+							type: q.type ?? QuestionType.Custom,
 						} as unknown as QuestionData)
 					})
 					this.questions.set(questions)
@@ -414,6 +417,14 @@ export class CascataQuestionnaireFormComponent
 		}
 	}
 
+	isBaseQuestion(question: QuestionData): boolean {
+		return question.type === QuestionType.Base
+	}
+
+	isTypeAQuestion(question: QuestionData): boolean {
+		return question.classification === QuestionClassificationType.ProjetoInteiro
+	}
+
 	openEditQuestionModal(question: QuestionData): void {
 		if (this.isViewMode()) {
 			return
@@ -422,6 +433,7 @@ export class CascataQuestionnaireFormComponent
 			mode: ActionType.EDIT,
 			editData: question,
 			allowedRoleIds: this.allowedRoleIds.length ? this.allowedRoleIds : undefined,
+			textReadOnly: this.isBaseQuestion(question),
 		})
 
 		const modalInstance = this.modalService.getActiveInstance<QuestionModalComponent>()
@@ -436,7 +448,7 @@ export class CascataQuestionnaireFormComponent
 	}
 
 	deleteQuestion(question: QuestionData): void {
-		if (this.isViewMode()) {
+		if (this.isViewMode() || this.isBaseQuestion(question)) {
 			return
 		}
 		this.notificationService.showConfirm(`Tem certeza que deseja excluir a pergunta: "${question.value}"?`, () => {
@@ -447,6 +459,10 @@ export class CascataQuestionnaireFormComponent
 	}
 
 	toggleQuestionSelection(questionId: string): void {
+		const target = this.questions().find((q) => q.id === questionId)
+		if (target && this.isBaseQuestion(target)) {
+			return
+		}
 		const current = new Set(this.selectedQuestionIds())
 		if (current.has(questionId)) {
 			current.delete(questionId)
@@ -461,8 +477,8 @@ export class CascataQuestionnaireFormComponent
 	}
 
 	get isAllSelected(): boolean {
-		const visible = this.filteredQuestions
-		return visible.length > 0 && visible.every((q) => this.selectedQuestionIds().has(q.id!))
+		const selectable = this.filteredQuestions.filter((q) => !this.isBaseQuestion(q))
+		return selectable.length > 0 && selectable.every((q) => this.selectedQuestionIds().has(q.id!))
 	}
 
 	get hasSelectedQuestions(): boolean {
@@ -474,11 +490,11 @@ export class CascataQuestionnaireFormComponent
 	}
 
 	toggleSelectAll(): void {
-		const visible = this.filteredQuestions
+		const selectable = this.filteredQuestions.filter((q) => !this.isBaseQuestion(q))
 		if (this.isAllSelected) {
 			this.selectedQuestionIds.set(new Set())
 		} else {
-			this.selectedQuestionIds.set(new Set(visible.map((q) => q.id!)))
+			this.selectedQuestionIds.set(new Set(selectable.map((q) => q.id!)))
 		}
 	}
 

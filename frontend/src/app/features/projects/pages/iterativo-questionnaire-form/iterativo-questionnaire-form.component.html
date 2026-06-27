@@ -108,6 +108,7 @@
                       <input
                         type="checkbox"
                         [checked]="isQuestionSelected(question.id!)"
+                        [disabled]="isBaseQuestion(question)"
                         (change)="toggleQuestionSelection(question.id!)"
                       />
                     </td>
@@ -118,7 +119,16 @@
                       <span class="orphan-indicator" title="{{ 'projects.alerts.panel_orphaned_roles_label' | translate }}">⚠</span>
                     }
                   </td>
-                  <td class="text-start">{{ question.value }}</td>
+                  <td class="text-start">
+                    {{ question.value }}
+                    @if (isBaseQuestion(question)) {
+                      @if (isTypeAQuestion(question)) {
+                        <span class="badge badge-type-a" [title]="'questionnaire.form.type_a_locked' | translate">{{ 'questionnaire.form.type_a_badge' | translate }}</span>
+                      } @else {
+                        <span class="badge badge-base" [title]="'questionnaire.form.base_locked' | translate">{{ 'questionnaire.form.base_badge' | translate }}</span>
+                      }
+                    }
+                  </td>
                   <td>
                     @let stageLabels = getStageLabels(question);
                     <div class="d-flex flex-wrap gap-1">
@@ -141,22 +151,28 @@
                   <td class="text-center">
                     <div class="d-flex justify-content-center gap-2">
                       @if (!isViewMode()) {
-                      <button
-                        type="button"
-                        class="btn-icon"
-                        (click)="openEditQuestionModal(question)"
-                        [title]="'common.edit' | translate"
-                      >
-                        <img src="assets/icons/pen-edit.svg" [alt]="'common.edit' | translate" />
-                      </button>
-                      <button
-                        type="button"
-                        class="btn-icon"
-                        (click)="deleteQuestion(question)"
-                        [title]="'common.delete' | translate"
-                      >
-                        <img src="assets/icons/trash.svg" [alt]="'common.delete' | translate" />
-                      </button>
+                        <button
+                          type="button"
+                          class="btn-icon"
+                          (click)="openEditQuestionModal(question)"
+                          [title]="isBaseQuestion(question) ? ('questionnaire.form.edit_links_btn' | translate) : ('common.edit' | translate)"
+                        >
+                          <img src="assets/icons/pen-edit.svg" [alt]="'common.edit' | translate" />
+                        </button>
+                        @if (!isBaseQuestion(question)) {
+                          <button
+                            type="button"
+                            class="btn-icon"
+                            (click)="deleteQuestion(question)"
+                            [title]="'common.delete' | translate"
+                          >
+                            <img src="assets/icons/trash.svg" [alt]="'common.delete' | translate" />
+                          </button>
+                        } @else {
+                          <span class="base-lock" [title]="(isTypeAQuestion(question) ? 'questionnaire.form.type_a_locked' : 'questionnaire.form.base_locked') | translate">
+                            <img src="assets/icons/lock.svg" class="lock-icon" [alt]="'questionnaire.form.base_locked' | translate" />
+                          </span>
+                        }
                       } @else {
                         <span class="text-muted">-</span>
                       }

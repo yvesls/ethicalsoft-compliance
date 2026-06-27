@@ -147,7 +147,7 @@
                 <tr>
                   <td>{{ e.questionnaireName }}</td>
                   <td>{{ e.iterationName ?? e.stageName }}</td>
-                  <td>{{ e.isepPercent | number:'1.2-2' }}%</td>
+                  <td>{{ e.iseqPercent | number:'1.2-2' }}%</td>
                   <td><app-band-badge [band]="e.band" /></td>
                   <td>{{ e.calculatedAt | date: 'dd/MM/yyyy HH:mm' }}</td>
                   <td>

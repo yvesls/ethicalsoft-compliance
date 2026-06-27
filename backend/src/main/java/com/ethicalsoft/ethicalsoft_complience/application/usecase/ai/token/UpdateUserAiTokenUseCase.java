@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Optional;
 
 @Service
@@ -28,7 +29,7 @@ public class UpdateUserAiTokenUseCase {
 
         String encrypted = encryption.encrypt(token);
         String hint = encryption.maskToken(token);
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
 
         Optional<UserAiTokenDocument> existing = repository.findByUserId(userId);
         UserAiTokenDocument doc = existing.orElseGet(() ->

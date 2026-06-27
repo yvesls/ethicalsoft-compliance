@@ -23,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Optional;
@@ -184,7 +185,7 @@ public class GroqLlmAdapter implements LlmAnalysisPort {
                     .projectId(snapshot.getProjectId())
                     .questionnaireId(snapshot.getQuestionnaireId())
                     .content(content)
-                    .createdAt(LocalDateTime.now())
+                    .createdAt(LocalDateTime.now(ZoneOffset.UTC))
                     .build());
         }
 
