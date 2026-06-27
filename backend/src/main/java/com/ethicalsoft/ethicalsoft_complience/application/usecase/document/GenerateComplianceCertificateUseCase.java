@@ -42,14 +42,14 @@ public class GenerateComplianceCertificateUseCase {
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (!(o instanceof GeneratedCertificate other)) return false;
-            return Arrays.equals(content, other.content)
-                    && java.util.Objects.equals(certificateCode, other.certificateCode)
-                    && java.util.Objects.equals(fileName, other.fileName)
-                    && java.util.Objects.equals(projectName, other.projectName)
-                    && java.util.Objects.equals(isepValue, other.isepValue)
-                    && java.util.Objects.equals(isepPercent, other.isepPercent)
-                    && java.util.Objects.equals(band, other.band);
+            if (!(o instanceof GeneratedCertificate(var c, var cc, var fn, var pn, var iv, var ip, var b))) return false;
+            return Arrays.equals(content, c)
+                    && java.util.Objects.equals(certificateCode, cc)
+                    && java.util.Objects.equals(fileName, fn)
+                    && java.util.Objects.equals(projectName, pn)
+                    && java.util.Objects.equals(isepValue, iv)
+                    && java.util.Objects.equals(isepPercent, ip)
+                    && java.util.Objects.equals(band, b);
         }
 
         @Override

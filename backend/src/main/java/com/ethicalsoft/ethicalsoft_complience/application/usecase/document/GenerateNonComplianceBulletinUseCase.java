@@ -54,15 +54,15 @@ public class GenerateNonComplianceBulletinUseCase {
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (!(o instanceof GeneratedBulletin other)) return false;
-            return Arrays.equals(content, other.content)
-                    && Objects.equals(documentCode, other.documentCode)
-                    && Objects.equals(fileName, other.fileName)
-                    && Objects.equals(questionnaireName, other.questionnaireName)
-                    && Objects.equals(projectName, other.projectName)
-                    && Objects.equals(isepValue, other.isepValue)
-                    && Objects.equals(isepPercent, other.isepPercent)
-                    && Objects.equals(band, other.band);
+            if (!(o instanceof GeneratedBulletin(var c, var dc, var fn, var qn, var pn, var iv, var ip, var b))) return false;
+            return Arrays.equals(content, c)
+                    && Objects.equals(documentCode, dc)
+                    && Objects.equals(fileName, fn)
+                    && Objects.equals(questionnaireName, qn)
+                    && Objects.equals(projectName, pn)
+                    && Objects.equals(isepValue, iv)
+                    && Objects.equals(isepPercent, ip)
+                    && Objects.equals(band, b);
         }
 
         @Override
