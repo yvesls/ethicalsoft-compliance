@@ -628,11 +628,16 @@
       "roles_col": "Papeles",
       "action_col": "Acción",
       "no_stage": "Sin etapa",
-      "base_badge": "Base",
-      "base_locked": "Pregunta base del framework — aplicada en cada iteración. El texto no puede modificarse, pero los vínculos de papel y etapa sí pueden ajustarse.",
-      "type_a_badge": "Proyecto",
-      "type_a_locked": "Pregunta estructural del proyecto — aplicada solo en la primera iteración. El texto no puede modificarse, pero los vínculos de papel y etapa sí pueden ajustarse.",
+      "base_locked": "Pregunta base del framework — el texto no puede modificarse, pero los vínculos de papel y etapa sí pueden ajustarse.",
       "edit_links_btn": "Editar vínculos (papel/etapa)",
+      "classification": {
+        "whole_project": "Proyecto completo",
+        "whole_project_hint": "Pregunta estructural del proyecto — se muestra solo en la primera sprint/fase.",
+        "recurring": "Recurrente",
+        "recurring_hint": "Checkpoint obligatorio — aparece en todas las sprints/fases.",
+        "current_stage": "Etapa actual",
+        "current_stage_hint": "Específica de esta sprint/etapa."
+      },
       "select_all": "Seleccionar todas",
       "delete_selected": "Eliminar seleccionados ({{count}})",
       "questions_title": "Preguntas ({{count}})",
@@ -663,7 +668,13 @@
       "edit_links_title": "Editar vínculos de la pregunta",
       "value_readonly_hint": "El texto de esta pregunta forma parte del framework y no puede modificarse.",
       "stage_label": "Etapas relacionadas",
-      "stage_placeholder": "Seleccione las etapas"
+      "stage_placeholder": "Seleccione las etapas",
+      "classification_label": "Alcance de la pregunta",
+      "classification_none": "Ninguno / predeterminado",
+      "classification_whole_project": "Proyecto completo (respondida una vez, en la primera sprint)",
+      "classification_recurring": "Recurrente (añadida a todas las sprints)",
+      "classification_current_stage": "Etapa actual (solo en esta sprint/fase)",
+      "recurring_hint": "Esta pregunta se añadirá a todas las iteraciones existentes y futuras."
     }
   },
   "dashboard": {

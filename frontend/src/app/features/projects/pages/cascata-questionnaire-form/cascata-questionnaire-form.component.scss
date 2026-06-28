@@ -34,14 +34,21 @@
 
 }
 
-.badge-base {
+.badge-whole-project {
+  margin-left: 0.5rem;
+  background-color: $blue-primary;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.badge-recurring {
   margin-left: 0.5rem;
   background-color: $green-primary;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
-.badge-type-a {
+.badge-current-stage {
   margin-left: 0.5rem;
   background-color: $semantic-orange;
   color: $white;

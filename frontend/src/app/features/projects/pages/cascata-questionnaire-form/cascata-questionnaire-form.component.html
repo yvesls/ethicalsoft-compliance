@@ -119,12 +119,12 @@
                   </td>
                   <td class="text-start">
                     {{ question.value }}
-                    @if (isBaseQuestion(question)) {
-                      @if (isTypeAQuestion(question)) {
-                        <span class="badge badge-type-a" [title]="'questionnaire.form.type_a_locked' | translate">{{ 'questionnaire.form.type_a_badge' | translate }}</span>
-                      } @else {
-                        <span class="badge badge-base" [title]="'questionnaire.form.base_locked' | translate">{{ 'questionnaire.form.base_badge' | translate }}</span>
-                      }
+                    @if (question.classification === QuestionClassificationType.WholeProject) {
+                      <span class="badge badge-whole-project" [title]="'questionnaire.form.classification.whole_project_hint' | translate">{{ 'questionnaire.form.classification.whole_project' | translate }}</span>
+                    } @else if (question.classification === QuestionClassificationType.Recurring) {
+                      <span class="badge badge-recurring" [title]="'questionnaire.form.classification.recurring_hint' | translate">{{ 'questionnaire.form.classification.recurring' | translate }}</span>
+                    } @else if (question.classification === QuestionClassificationType.CurrentStage) {
+                      <span class="badge badge-current-stage" [title]="'questionnaire.form.classification.current_stage_hint' | translate">{{ 'questionnaire.form.classification.current_stage' | translate }}</span>
                     }
                   </td>
                   <td>
@@ -167,7 +167,7 @@
                             <img src="assets/icons/trash.svg" [alt]="'common.delete' | translate" />
                           </button>
                         } @else {
-                          <span class="base-lock" [title]="(isTypeAQuestion(question) ? 'questionnaire.form.type_a_locked' : 'questionnaire.form.base_locked') | translate">
+                          <span class="base-lock" [title]="'questionnaire.form.base_locked' | translate">
                             <img src="assets/icons/lock.svg" class="lock-icon" [alt]="'questionnaire.form.base_locked' | translate" />
                           </span>
                         }

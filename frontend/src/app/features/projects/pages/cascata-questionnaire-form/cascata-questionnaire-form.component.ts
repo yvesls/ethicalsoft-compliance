@@ -421,8 +421,10 @@ export class CascataQuestionnaireFormComponent
 		return question.type === QuestionType.Base
 	}
 
+	readonly QuestionClassificationType = QuestionClassificationType
+
 	isTypeAQuestion(question: QuestionData): boolean {
-		return question.classification === QuestionClassificationType.ProjetoInteiro
+		return question.classification === QuestionClassificationType.WholeProject
 	}
 
 	openEditQuestionModal(question: QuestionData): void {

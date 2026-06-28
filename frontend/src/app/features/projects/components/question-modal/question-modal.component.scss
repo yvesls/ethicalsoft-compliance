@@ -19,6 +19,43 @@
     font-style: italic;
   }
 
+  .classification-label {
+    font-size: 0.9rem;
+    color: $text-color;
+  }
+
+  .classification-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .classification-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+
+    input[type='radio'] {
+      accent-color: $blue-primary;
+      width: 1rem;
+      height: 1rem;
+      flex-shrink: 0;
+    }
+  }
+
+  .classification-hint {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    color: $neutral-text-light;
+    font-style: italic;
+    padding: 0.4rem 0.6rem;
+    background: rgba($blue-primary, 0.06);
+    border-left: 3px solid $blue-primary;
+    border-radius: 0 $radius-sm $radius-sm 0;
+  }
+
   .question-readonly-value {
     background: $gray-quaternary;
     border: 1px solid $gray-border;

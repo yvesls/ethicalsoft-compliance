@@ -1782,12 +1782,15 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
       (tq: TemplateQuestionnaireDTO) => (tq.questions ?? []).map((q: TemplateQuestionDTO) => ({ question: q, questionnaire: tq }))
     )
 
+    const seenRecurring = new Set<string>()
     const filtered = allEntries.filter(({ question, questionnaire }) => {
-      const classification = question.classification ?? QuestionClassificationType.Rotativa
-      if (classification === QuestionClassificationType.ProjetoInteiro) {
+      const classification = question.classification
+      if (classification === QuestionClassificationType.WholeProject) {
         return iterationIndex === 0
       }
-      if (classification === QuestionClassificationType.BaseIteracao) {
+      if (classification === QuestionClassificationType.Recurring) {
+        if (seenRecurring.has(question.value)) return false
+        seenRecurring.add(question.value)
         return true
       }
       return questionnaire.iterationRefName === iterationName || questionnaire.name === iterationName

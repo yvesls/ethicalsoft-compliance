@@ -57,6 +57,15 @@ export class QuestionModalComponent implements OnInit {
 	@Output() questionCreated = new EventEmitter<QuestionData>()
 	@Output() questionUpdated = new EventEmitter<QuestionData>()
 
+	readonly QuestionClassificationType = QuestionClassificationType
+
+	readonly classificationOptions: { value: QuestionClassificationType | null; labelKey: string }[] = [
+		{ value: null, labelKey: 'questionnaire.question_modal.classification_none' },
+		{ value: QuestionClassificationType.WholeProject, labelKey: 'questionnaire.question_modal.classification_whole_project' },
+		{ value: QuestionClassificationType.Recurring, labelKey: 'questionnaire.question_modal.classification_recurring' },
+		{ value: QuestionClassificationType.CurrentStage, labelKey: 'questionnaire.question_modal.classification_current_stage' },
+	]
+
 	private modalService = inject(ModalService)
 	private fb = inject(FormBuilder)
 	private roleService = inject(RoleService)
@@ -104,6 +113,7 @@ export class QuestionModalComponent implements OnInit {
 			value: ['', [Validators.required, Validators.minLength(10)]],
 			roleIds: [[], [Validators.required, Validators.minLength(1)]],
 			stageNames: [[]],
+			classification: [null as QuestionClassificationType | null],
 		})
 	}
 
@@ -140,6 +150,7 @@ export class QuestionModalComponent implements OnInit {
 			value: data.value,
 			roleIds,
 			stageNames: this.ensureStageNames(data),
+			classification: data.classification ?? null,
 		})
 	}
 
@@ -294,7 +305,9 @@ export class QuestionModalComponent implements OnInit {
 				stageName: stageNames[0] ?? null,
 				categoryStageName,
 				type: this.editData?.type,
-				classification: this.editData?.classification,
+				classification: this.textReadOnly
+					? this.editData?.classification
+					: (rawValue.classification ?? null),
 			}
 
 			if (this.actionType === ActionType.EDIT) {

@@ -82,6 +82,7 @@ type IterativoQuestionnaireRestoreParams = RestoreParams<IterativoQuestionnaireR
 		InfoExplainerComponent,
 	],
 	templateUrl: './iterativo-questionnaire-form.component.html',
+	// eslint-disable-next-line @angular-eslint/prefer-on-push-component-change-detection
 	changeDetection: ChangeDetectionStrategy.Eager,
 	styleUrls: ['./iterativo-questionnaire-form.component.scss'],
 })
@@ -446,8 +447,10 @@ export class IterativoQuestionnaireFormComponent
 		return question.type === QuestionType.Base
 	}
 
+	readonly QuestionClassificationType = QuestionClassificationType
+
 	isTypeAQuestion(question: QuestionData): boolean {
-		return question.classification === QuestionClassificationType.ProjetoInteiro
+		return question.classification === QuestionClassificationType.WholeProject
 	}
 
 	openEditQuestionModal(question: QuestionData): void {
