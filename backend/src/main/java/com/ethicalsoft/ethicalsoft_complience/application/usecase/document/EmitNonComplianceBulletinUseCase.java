@@ -38,7 +38,7 @@ public class EmitNonComplianceBulletinUseCase {
                                          int sent, int skipped) {
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public BulletinEmissionResult execute(Long projectId, Integer questionnaireId,
                                           String emittedBy, Long emittedByUserId) {
         log.info("[boletim-emit] Emitindo boletim projeto={} questionário={}", projectId, questionnaireId);
@@ -46,7 +46,10 @@ public class EmitNonComplianceBulletinUseCase {
         GenerateNonComplianceBulletinUseCase.GeneratedBulletin bulletin =
                 generateBulletinUseCase.execute(projectId, questionnaireId, emittedBy);
 
-        List<Representative> representatives = representativeRepository.findByProjectId(projectId);
+        List<Representative> representatives = representativeRepository.findByProjectId(projectId)
+                .stream()
+                .filter(r -> r.getDeletionDate() == null)
+                .toList();
         if (representatives.isEmpty()) {
             throw new BusinessException(
                     "O projeto não possui representantes cadastrados para receber o boletim.");
@@ -94,7 +97,7 @@ public class EmitNonComplianceBulletinUseCase {
                 emittedBy,
                 bulletin.isepValue(),
                 bulletin.band(),
-                Arrays.asList(projectId, questionnaireId, bulletin.band(), bulletin.isepPercent())));
+                Arrays.asList(projectId, questionnaireId, bulletin.band(), bulletin.isepValue())));
 
         log.info("[boletim-emit] Boletim {} emitido: {}/{} enviados (userId={})",
                 bulletin.documentCode(), sent, representatives.size(), emittedByUserId);

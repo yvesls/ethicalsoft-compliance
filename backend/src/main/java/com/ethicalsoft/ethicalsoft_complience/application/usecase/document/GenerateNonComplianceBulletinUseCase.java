@@ -12,6 +12,7 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Questi
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Representative;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Role;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.AiUsageScopeEnum;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.ProjectStatusEnum;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.QuestionnaireResponseStatus;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.ProjectRepository;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.QuestionnaireRepository;
@@ -85,8 +86,19 @@ public class GenerateNonComplianceBulletinUseCase {
 
     @Transactional(readOnly = true)
     public BulletinMetadata prepareMetadata(Long projectId, Integer questionnaireId) {
+        return prepareMetadata(projectId, questionnaireId, null);
+    }
+
+    @Transactional(readOnly = true)
+    public BulletinMetadata prepareMetadata(Long projectId, Integer questionnaireId,
+                                            String overrideDocumentCode) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Projeto não encontrado: " + projectId));
+
+        if (project.getStatus() == ProjectStatusEnum.CONCLUIDO) {
+            throw new BusinessException(
+                    "O projeto já foi encerrado. O boletim de não conformidade não pode ser emitido após o encerramento.");
+        }
 
         Questionnaire questionnaire = questionnaireRepository
                 .findByIdAndProjectId(questionnaireId, projectId)
@@ -102,9 +114,10 @@ public class GenerateNonComplianceBulletinUseCase {
                             + "). O boletim de não conformidade não se aplica a resultados conformes.");
         }
 
-        String documentCode = DocumentFormatUtil.authenticityCode("BNC",
-                project.getId(), questionnaire.getId(), dashboard.band(),
-                dashboard.iseqPercent(), dashboard.calculatedAt());
+        String documentCode = overrideDocumentCode != null ? overrideDocumentCode
+                : DocumentFormatUtil.authenticityCode("BNC",
+                        project.getId(), questionnaire.getId(), dashboard.band(),
+                        dashboard.iseqPercent(), dashboard.calculatedAt());
 
         return new BulletinMetadata(documentCode, questionnaire.getName(), project.getName(),
                 dashboard.iseqPercent(), DocumentFormatUtil.percent(dashboard.iseqPercent()),
@@ -118,6 +131,11 @@ public class GenerateNonComplianceBulletinUseCase {
 
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Projeto não encontrado: " + projectId));
+
+        if (project.getStatus() == ProjectStatusEnum.CONCLUIDO) {
+            throw new BusinessException(
+                    "O projeto já foi encerrado. O boletim de não conformidade não pode ser emitido após o encerramento.");
+        }
 
         Questionnaire questionnaire = questionnaireRepository
                 .findByIdAndProjectId(questionnaireId, projectId)

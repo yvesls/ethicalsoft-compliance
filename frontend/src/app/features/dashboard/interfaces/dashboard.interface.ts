@@ -15,6 +15,7 @@ export interface ProjectIsepDashboardDTO {
   projectId: number;
   projectName: string;
   projectType: 'ITERATIVO' | 'CASCATA';
+  projectStatus?: string;
   projectIsep: number | null;
   projectIsepPercent: number | null;
   projectBand: Band | null;

@@ -19,7 +19,7 @@
           >
             <i class="bi bi-list-check"></i> {{ 'dashboard.all_responses' | translate }}
           </button>
-          @if (d.projectIsep !== null) {
+          @if (d.projectIsep !== null && d.projectStatus === 'CONCLUIDO') {
             <button
               class="dash-btn dash-btn--neutral"
               [disabled]="downloadingCertPdf()"
@@ -40,7 +40,7 @@
           @if (isAdmin) {
             <button
               class="dash-btn dash-btn--danger"
-              [disabled]="closing() || d.projectIsep !== null"
+              [disabled]="closing() || d.projectStatus === 'CONCLUIDO'"
               (click)="closeProject()"
             >
               <i class="bi bi-lock"></i>

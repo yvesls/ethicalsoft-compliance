@@ -123,7 +123,8 @@ public class GetProjectIsepDashboardUseCase {
                 fairnessPercent,
                 esgPercent,
                 ethicsDebtPercent,
-                techDebtPercent
+                techDebtPercent,
+                project.getStatus() != null ? project.getStatus().name() : null
         );
     }
 

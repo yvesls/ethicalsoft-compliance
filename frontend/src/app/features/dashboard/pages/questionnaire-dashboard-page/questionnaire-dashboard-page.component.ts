@@ -8,6 +8,7 @@ import {
 	QuestionnaireIsepDashboardDTO,
 	RoleStageComplianceDTO,
 	WordCloudDTO,
+	Band,
 } from '../../interfaces/dashboard.interface'
 import { BandBadgeComponent } from '../../components/band-badge/band-badge.component'
 import { IsepKpiCardComponent } from '../../components/isep-kpi-card/isep-kpi-card.component'
@@ -94,6 +95,10 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
 
 	get bandDistribution() {
 		return this.dashboard()?.bandDistribution ?? { A: 0, B: 0, C: 0, D: 0, E: 0 }
+	}
+
+	meetsMinimumBand(band: Band): boolean {
+		return band === 'A' || band === 'B' || band === 'C'
 	}
 
 	readonly objectKeys = Object.keys
@@ -260,8 +265,8 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
 				next: (result: BulletinEmissionResult) => {
 					this.notificationService.showSuccess(
 						this.translate.instant('dashboard.bulletin.emit_success', {
-							count: result.emittedCount,
-							code: result.authenticityCode,
+							count: result.sent,
+							code: result.documentCode,
 						})
 					)
 					this.emittingBulletin.set(false)
