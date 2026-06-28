@@ -1,0 +1,1 @@
+ALTER TABLE questionnaire ALTER COLUMN weight TYPE NUMERIC(10,2) USING weight::NUMERIC(10,2);

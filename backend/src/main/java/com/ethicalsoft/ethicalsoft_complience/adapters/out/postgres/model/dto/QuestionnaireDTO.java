@@ -2,6 +2,7 @@ package com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
@@ -10,7 +11,7 @@ import java.util.Set;
 public class QuestionnaireDTO {
 	private String name;
 	private String iteration;
-	private Integer weight;
+	private BigDecimal weight;
 	private String stageName;
 	private String iterationName;
 	private List<String> stageNames;

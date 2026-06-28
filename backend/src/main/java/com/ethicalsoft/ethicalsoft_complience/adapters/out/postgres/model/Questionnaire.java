@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Set;
 
@@ -29,8 +30,8 @@ public class Questionnaire {
 	@Column(name = "iteration", length = 50)
 	private String iteration;
 
-	@Column(name = "weight", nullable = false)
-	private Integer weight;
+	@Column(name = "weight", nullable = false, precision = 10, scale = 2)
+	private BigDecimal weight;
 
 	@Column(name = "application_start_date")
 	@Temporal(TemporalType.DATE)

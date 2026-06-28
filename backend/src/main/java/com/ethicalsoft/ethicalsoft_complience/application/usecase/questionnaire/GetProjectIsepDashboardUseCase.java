@@ -80,7 +80,7 @@ public class GetProjectIsepDashboardUseCase {
                     .map(r -> {
                         Questionnaire q = questionnaireMap.get(r.getQuestionnaireId());
                         BigDecimal weight = (q != null && q.getWeight() != null)
-                                ? BigDecimal.valueOf(q.getWeight())
+                                ? q.getWeight()
                                 : BigDecimal.ONE;
                         return new IsepMath.WeightedValue(r.getIseq(), weight);
                     })

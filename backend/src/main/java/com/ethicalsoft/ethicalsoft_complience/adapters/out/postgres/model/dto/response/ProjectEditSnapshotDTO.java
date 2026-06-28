@@ -29,7 +29,7 @@ public record ProjectEditSnapshotDTO(Long id, String name, String type, LocalDat
     }
 
     @Builder
-        public record QuestionnaireSnapshot(Integer id, String name, Integer weight, String stageName, Integer stageId,
+        public record QuestionnaireSnapshot(Integer id, String name, BigDecimal weight, String stageName, Integer stageId,
                                             String iterationName, Integer iterationId, LocalDate applicationStartDate,
                                             LocalDate applicationEndDate, TimelineStatusEnum status, String domain,
                                             String description, boolean hasIsepResult, boolean locked, String lockReason,
