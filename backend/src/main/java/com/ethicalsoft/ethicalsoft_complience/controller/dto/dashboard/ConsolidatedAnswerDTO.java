@@ -11,6 +11,7 @@ public record ConsolidatedAnswerDTO(
         String representativeName,
         List<String> roles,
         Integer questionnaireId,
+        String questionnaireName,
         QuestionnaireResponseStatus responseStatus,
         LocalDateTime submissionDate,
         Long questionId,

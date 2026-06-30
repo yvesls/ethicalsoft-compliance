@@ -856,6 +856,11 @@ export class ProjectDetailPageComponent implements OnInit {
       return '---';
     }
 
+    const statusStr = project.status as string;
+    if (statusStr === ProjectStatus.Concluido || statusStr === 'CONCLUIDO') {
+      return this.translate.instant('projects.status.concluido');
+    }
+
     if (project.type === ProjectType.Iterativo) {
       const totalIterations = project.iterationCount ?? project.configuredIterationCount;
       if (project.currentIteration && totalIterations) {

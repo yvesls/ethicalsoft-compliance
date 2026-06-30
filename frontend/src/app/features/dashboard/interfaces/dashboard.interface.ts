@@ -199,6 +199,7 @@ export interface ConsolidatedAnswerDTO {
   representativeName: string;
   roles: string[];
   questionnaireId: number;
+  questionnaireName: string | null;
   responseStatus: string;
   submissionDate: string;
   questionId: number;

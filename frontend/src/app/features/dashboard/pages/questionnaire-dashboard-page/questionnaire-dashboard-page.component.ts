@@ -164,8 +164,17 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
 	}
 
 	downloadCsv(): void {
-		const url = this.dashboardService.getQuestionnaireCsvUrl(this.projectId, this.questionnaireId)
-		window.open(url, '_blank')
+		this.dashboardService.exportQuestionnaireCsv(this.projectId, this.questionnaireId).subscribe({
+			next: (blob) => {
+				const url = URL.createObjectURL(blob)
+				const a = document.createElement('a')
+				a.href = url
+				a.download = `isep-questionario-${this.questionnaireId}.csv`
+				a.click()
+				URL.revokeObjectURL(url)
+			},
+			error: () => this.notificationService.showError(this.translate.instant('dashboard.errors.export_csv')),
+		})
 	}
 
 	downloadJson(): void {

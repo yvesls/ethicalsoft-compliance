@@ -124,7 +124,7 @@
                     }
                   </td>
                   @if (mode === 'project') {
-                    <td>#{{ row.questionnaireId }}</td>
+                    <td>{{ row.questionnaireName || '#' + row.questionnaireId }}</td>
                   }
                   <td class="consolidated__question-text">{{ row.questionText }}</td>
                   <td class="text-center">
