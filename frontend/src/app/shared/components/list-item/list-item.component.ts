@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, Input, Output, EventEmitter, HostBinding, HostListener, inject } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Project } from '../../interfaces/project/project.interface';
 import { ProjectStatus } from '../../enums/project-status.enum';
 import { ProjectType } from '../../enums/project-type.enum';
@@ -20,6 +20,7 @@ export class ListItemComponent {
   @Input() showDeleteButton = false;
   @Output() deleteClicked = new EventEmitter<Project>();
   private readonly router = inject(Router);
+  private readonly translate = inject(TranslateService);
 
   public ProjectType = ProjectType;
 
@@ -61,6 +62,11 @@ export class ListItemComponent {
 
   get formattedSituation(): string {
     if (!this.item) return '---';
+
+    const statusStr = this.item.status as string;
+    if (statusStr === ProjectStatus.Concluido || statusStr === 'CONCLUIDO') {
+      return this.translate.instant('projects.status.concluido');
+    }
 
     if (this.item.type === ProjectType.Iterativo) {
       const totalIterations = this.item.iterationCount ?? this.item.configuredIterationCount;

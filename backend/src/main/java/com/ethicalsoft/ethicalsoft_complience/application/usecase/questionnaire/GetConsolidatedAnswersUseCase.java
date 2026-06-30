@@ -1,9 +1,11 @@
 package com.ethicalsoft.ethicalsoft_complience.application.usecase.questionnaire;
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.QuestionnaireResponse;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Questionnaire;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Representative;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Role;
 import com.ethicalsoft.ethicalsoft_complience.controller.dto.dashboard.ConsolidatedAnswerDTO;
+import com.ethicalsoft.ethicalsoft_complience.domain.repository.QuestionnaireRepositoryPort;
 import com.ethicalsoft.ethicalsoft_complience.domain.repository.QuestionnaireResponseRepositoryPort;
 import com.ethicalsoft.ethicalsoft_complience.domain.repository.RepresentativeRepositoryPort;
 import com.ethicalsoft.ethicalsoft_complience.domain.service.LinkMapper;
@@ -24,6 +26,7 @@ import java.util.stream.Collectors;
 public class GetConsolidatedAnswersUseCase {
 
     private final QuestionnaireResponseRepositoryPort questionnaireResponseRepository;
+    private final QuestionnaireRepositoryPort questionnaireRepository;
     private final RepresentativeRepositoryPort representativeRepository;
     private final LinkMapper linkMapper;
 
@@ -80,6 +83,12 @@ public class GetConsolidatedAnswersUseCase {
         Map<Long, Representative> representativeMap = representativeRepository.findByProjectId(projectId).stream()
                 .collect(Collectors.toMap(Representative::getId, Function.identity()));
 
+        Map<Integer, String> questionnaireNameMap = questionnaireRepository.findByProjectId(projectId).stream()
+                .collect(Collectors.toMap(Questionnaire::getId, q ->
+                        q.getIteration() != null && !q.getIteration().isBlank()
+                                ? q.getIteration()
+                                : q.getName()));
+
         Set<Long> representativesWithRole = null;
 
         if (roleIdFilter != null) {
@@ -130,7 +139,13 @@ public class GetConsolidatedAnswersUseCase {
             List<QuestionnaireResponse.AnswerDocument> answers = Optional.ofNullable(response.getAnswers())
                     .orElse(Collections.emptyList());
 
+            String questionnaireName = questionnaireNameMap.getOrDefault(response.getQuestionnaireId(), "#" + response.getQuestionnaireId());
+
             for (QuestionnaireResponse.AnswerDocument ans : answers) {
+                if (ans.getResponse() == null) {
+                    continue;
+                }
+
                 if (questionIdFilter != null && !questionIdFilter.equals(ans.getQuestionId())) {
                     continue;
                 }
@@ -151,6 +166,7 @@ public class GetConsolidatedAnswersUseCase {
                         repName,
                         roles,
                         response.getQuestionnaireId(),
+                        questionnaireName,
                         response.getStatus(),
                         response.getSubmissionDate(),
                         ans.getQuestionId(),

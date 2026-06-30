@@ -1,5 +1,5 @@
 export enum QuestionClassificationType {
-  ProjetoInteiro = 'PROJETO_INTEIRO',
-  BaseIteracao = 'BASE_ITERACAO',
-  Rotativa = 'ROTATIVA',
+  WholeProject = 'WHOLE_PROJECT',
+  Recurring = 'RECURRING',
+  CurrentStage = 'CURRENT_STAGE',
 }

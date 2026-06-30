@@ -145,7 +145,7 @@ public class ProcessQuestionnaireIsepUseCase {
                 .map(r -> {
                     Questionnaire q = questionnaireRepository.findById(r.getQuestionnaireId()).orElse(null);
                     BigDecimal weight = (q != null && q.getWeight() != null)
-                            ? BigDecimal.valueOf(q.getWeight())
+                            ? q.getWeight()
                             : BigDecimal.ONE;
                     return new IsepMath.WeightedValue(r.getIseq(), weight);
                 })

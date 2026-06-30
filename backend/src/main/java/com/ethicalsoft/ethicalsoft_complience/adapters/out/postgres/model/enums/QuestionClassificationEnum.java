@@ -5,9 +5,9 @@ import lombok.Getter;
 @Getter
 public enum QuestionClassificationEnum {
 
-    PROJETO_INTEIRO("Projeto inteiro"),
-    BASE_ITERACAO("Base por iteração"),
-    ROTATIVA("Rotativa por sprint");
+    WHOLE_PROJECT("Projeto inteiro"),
+    RECURRING("Recorrente"),
+    CURRENT_STAGE("Etapa atual");
 
     private final String label;
 
@@ -15,4 +15,3 @@ public enum QuestionClassificationEnum {
         this.label = label;
     }
 }
-

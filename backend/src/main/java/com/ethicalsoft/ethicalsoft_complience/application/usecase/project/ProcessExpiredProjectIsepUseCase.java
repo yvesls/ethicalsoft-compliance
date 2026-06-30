@@ -151,7 +151,7 @@ public class ProcessExpiredProjectIsepUseCase {
                             .filter(qt -> qt.getId().equals(qResult.getQuestionnaireId()))
                             .findFirst().orElse(null);
             BigDecimal weight = (q != null && q.getWeight() != null)
-                    ? BigDecimal.valueOf(q.getWeight())
+                    ? q.getWeight()
                     : BigDecimal.ONE;
             weighted.add(new IsepMath.WeightedValue(qResult.getIseq(), weight));
         }

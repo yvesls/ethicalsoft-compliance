@@ -80,7 +80,7 @@ public class GetProjectIsepDashboardUseCase {
                     .map(r -> {
                         Questionnaire q = questionnaireMap.get(r.getQuestionnaireId());
                         BigDecimal weight = (q != null && q.getWeight() != null)
-                                ? BigDecimal.valueOf(q.getWeight())
+                                ? q.getWeight()
                                 : BigDecimal.ONE;
                         return new IsepMath.WeightedValue(r.getIseq(), weight);
                     })
@@ -123,7 +123,8 @@ public class GetProjectIsepDashboardUseCase {
                 fairnessPercent,
                 esgPercent,
                 ethicsDebtPercent,
-                techDebtPercent
+                techDebtPercent,
+                project.getStatus() != null ? project.getStatus().name() : null
         );
     }
 

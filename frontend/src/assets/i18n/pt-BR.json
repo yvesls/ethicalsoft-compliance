@@ -628,11 +628,16 @@
       "roles_col": "Papéis",
       "action_col": "Ação",
       "no_stage": "Sem etapa",
-      "base_badge": "Base",
-      "base_locked": "Pergunta base do framework — aplicada em toda iteração. O texto não pode ser alterado, mas os vínculos de papel e etapa podem ser ajustados.",
-      "type_a_badge": "Projeto",
-      "type_a_locked": "Pergunta estrutural do projeto — aplicada apenas na primeira iteração. O texto não pode ser alterado, mas os vínculos de papel e etapa podem ser ajustados.",
+      "base_locked": "Pergunta do template base — o texto não pode ser alterado, mas os vínculos de papel e etapa podem ser ajustados.",
       "edit_links_btn": "Editar vínculos (papel/etapa)",
+      "classification": {
+        "whole_project": "Projeto inteiro",
+        "whole_project_hint": "Pergunta estrutural do projeto — exibida apenas na primeira sprint/fase.",
+        "recurring": "Recorrente",
+        "recurring_hint": "Checkpoint obrigatório — aparece em todas as sprints/fases.",
+        "current_stage": "Etapa atual",
+        "current_stage_hint": "Pergunta específica desta sprint/etapa."
+      },
       "select_all": "Selecionar todas",
       "delete_selected": "Excluir selecionados ({{count}})",
       "questions_title": "Perguntas ({{count}})",
@@ -663,7 +668,13 @@
       "edit_links_title": "Editar vínculos da pergunta",
       "value_readonly_hint": "O texto desta pergunta faz parte do framework e não pode ser alterado.",
       "stage_label": "Etapas relacionadas",
-      "stage_placeholder": "Selecione as etapas"
+      "stage_placeholder": "Selecione as etapas",
+      "classification_label": "Escopo da pergunta",
+      "classification_none": "Nenhum / padrão",
+      "classification_whole_project": "Projeto inteiro (respondida uma vez, na primeira sprint)",
+      "classification_recurring": "Recorrente (adicionada a todas as sprints)",
+      "classification_current_stage": "Etapa atual (apenas nesta sprint/fase)",
+      "recurring_hint": "Esta pergunta será adicionada a todas as iterações existentes e futuras."
     }
   },
   "dashboard": {

@@ -6,6 +6,7 @@ import com.ethicalsoft.ethicalsoft_complience.application.usecase.document.Gener
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.document.GenerateNonComplianceBulletinUseCase;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.document.RegisterDocumentEmissionUseCase;
 import com.ethicalsoft.ethicalsoft_complience.controller.dto.DocumentEmissionRecordDTO;
+import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -63,12 +64,13 @@ public class ComplianceDocumentController {
     public ResponseEntity<DocumentEmissionRecordDTO> registerBulletinEmission(
             @PathVariable Long projectId,
             @PathVariable Integer questionnaireId,
+            @RequestParam(required = false) String documentCode,
             @AuthenticationPrincipal User currentUser) {
         GenerateNonComplianceBulletinUseCase.BulletinMetadata meta =
-                generateBulletinUseCase.prepareMetadata(projectId, questionnaireId);
+                generateBulletinUseCase.prepareMetadata(projectId, questionnaireId, documentCode);
         Long userId = currentUser != null ? currentUser.getId() : null;
 
-        var emission = registerEmissionUseCase.execute(new RegisterDocumentEmissionUseCase.EmissionRequest(
+        var result = registerEmissionUseCase.execute(new RegisterDocumentEmissionUseCase.EmissionRequest(
                 RegisterDocumentEmissionUseCase.TYPE_BULLETIN,
                 meta.documentCode(),
                 projectId,
@@ -81,21 +83,26 @@ public class ComplianceDocumentController {
                 actorName(currentUser),
                 meta.isepValue(),
                 meta.band(),
-                Arrays.asList(projectId, questionnaireId, meta.band(), meta.isepPercent())));
+                Arrays.asList(projectId, questionnaireId, meta.band(), meta.isepValue())));
 
-        return ResponseEntity.ok(DocumentEmissionRecordDTO.from(emission));
+        if (!result.persisted()) {
+            throw new BusinessException(
+                    "Falha ao persistir o registro de emissão do boletim. Tente novamente.");
+        }
+        return ResponseEntity.ok(DocumentEmissionRecordDTO.from(result.record()));
     }
 
     @PostMapping("/certificate/register-emission")
     @PreAuthorize("@projectAccessAuthorizationEvaluator.canAccess(authentication)")
     public ResponseEntity<DocumentEmissionRecordDTO> registerCertificateEmission(
             @PathVariable Long projectId,
+            @RequestParam(required = false) String certificateCode,
             @AuthenticationPrincipal User currentUser) {
         GenerateComplianceCertificateUseCase.CertificateMetadata meta =
-                generateCertificateUseCase.prepareMetadata(projectId);
+                generateCertificateUseCase.prepareMetadata(projectId, certificateCode);
         Long userId = currentUser != null ? currentUser.getId() : null;
 
-        var emission = registerEmissionUseCase.execute(new RegisterDocumentEmissionUseCase.EmissionRequest(
+        var result = registerEmissionUseCase.execute(new RegisterDocumentEmissionUseCase.EmissionRequest(
                 RegisterDocumentEmissionUseCase.TYPE_CERTIFICATE,
                 meta.certificateCode(),
                 projectId,
@@ -106,9 +113,13 @@ public class ComplianceDocumentController {
                 actorName(currentUser),
                 meta.isepValue(),
                 meta.band(),
-                Arrays.asList(projectId, meta.band(), meta.isepPercent())));
+                Arrays.asList(projectId, meta.band(), meta.isepValue())));
 
-        return ResponseEntity.ok(DocumentEmissionRecordDTO.from(emission));
+        if (!result.persisted()) {
+            throw new BusinessException(
+                    "Falha ao persistir o registro de emissão do certificado. Tente novamente.");
+        }
+        return ResponseEntity.ok(DocumentEmissionRecordDTO.from(result.record()));
     }
 
     @GetMapping("/documents/emissions")

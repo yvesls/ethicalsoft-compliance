@@ -46,7 +46,9 @@ public class RegisterDocumentEmissionUseCase {
             List<Object> hashSourceParts) {
     }
 
-    public DocumentEmissionRecord execute(EmissionRequest request) {
+    public record SaveResult(DocumentEmissionRecord record, boolean persisted) {}
+
+    public SaveResult execute(EmissionRequest request) {
         if (request == null || request.authenticityCode() == null || request.documentType() == null) {
             throw new IllegalArgumentException("Dados insuficientes para registrar a emissão do documento.");
         }
@@ -55,7 +57,7 @@ public class RegisterDocumentEmissionUseCase {
         if (existing.isPresent()) {
             log.info("[doc-emission] Registro já existente para código {}, retornando o existente.",
                     request.authenticityCode());
-            return existing.get();
+            return new SaveResult(existing.get(), true);
         }
 
         DocumentEmissionRecord doc = DocumentEmissionRecord.builder()
@@ -80,11 +82,11 @@ public class RegisterDocumentEmissionUseCase {
                 .build();
 
         try {
-            return repository.save(doc);
+            return new SaveResult(repository.save(doc), true);
         } catch (RuntimeException ex) {
             log.warn("[doc-emission] Falha ao salvar registro de emissão (code={}): {}",
                     request.authenticityCode(), ex.getMessage());
-            return doc;
+            return new SaveResult(doc, false);
         }
     }
 

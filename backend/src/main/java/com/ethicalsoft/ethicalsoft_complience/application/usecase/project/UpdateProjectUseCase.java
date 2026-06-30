@@ -432,7 +432,7 @@ public class UpdateProjectUseCase {
                         qChanged = true;
                     }
                     if (hasWeightChange) {
-                        existing.setWeight(dto.getWeight());
+                        existing.setWeight(dto.getWeight() != null ? java.math.BigDecimal.valueOf(dto.getWeight()) : java.math.BigDecimal.ONE);
                         qChanged = true;
                     }
                     if (hasDomainChange) {
@@ -682,7 +682,7 @@ public class UpdateProjectUseCase {
     private Questionnaire createQuestionnaireFromDTO(Project project, UpdateQuestionnaireDTO dto) {
         Questionnaire q = new Questionnaire();
         q.setName(dto.getName());
-        q.setWeight(dto.getWeight() != null ? dto.getWeight() : 1);
+        q.setWeight(dto.getWeight() != null ? java.math.BigDecimal.valueOf(dto.getWeight()) : java.math.BigDecimal.ONE);
         q.setProject(project);
         q.setApplicationStartDate(dto.getApplicationStartDate());
         q.setApplicationEndDate(dto.getApplicationEndDate());

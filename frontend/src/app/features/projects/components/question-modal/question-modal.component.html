@@ -57,6 +57,28 @@
       </div>
     }
 
+    @if (!textReadOnly) {
+      <div class="form-group">
+        <p class="classification-label fw-medium mb-2">{{ 'questionnaire.question_modal.classification_label' | translate }}</p>
+        <div class="classification-options">
+          @for (option of classificationOptions; track option.value) {
+            <label class="classification-option">
+              <input
+                type="radio"
+                name="classification"
+                [value]="option.value"
+                formControlName="classification"
+              />
+              <span>{{ option.labelKey | translate }}</span>
+            </label>
+          }
+        </div>
+        @if (form.get('classification')?.value === QuestionClassificationType.Recurring) {
+          <p class="classification-hint">{{ 'questionnaire.question_modal.recurring_hint' | translate }}</p>
+        }
+      </div>
+    }
+
     <div class="panel-actions mt-4 d-flex justify-content-end gap-2">
       <button type="button" class="btn btn-secondary" (click)="close()">
         {{ 'questionnaire.question_modal.cancel_btn' | translate }}

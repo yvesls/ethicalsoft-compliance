@@ -22,30 +22,32 @@
           <button class="dash-btn dash-btn--neutral" (click)="downloadJson()">
             <i class="bi bi-filetype-json"></i> {{ 'dashboard.export_json' | translate }}
           </button>
-          <button
-            class="dash-btn dash-btn--neutral"
-            [disabled]="downloadingBulletinPdf()"
-            (click)="downloadBulletinPdf()"
-          >
-            <i class="bi bi-file-earmark-pdf"></i>
-            {{ downloadingBulletinPdf() ? ('common.downloading' | translate) : ('dashboard.bulletin.download_pdf' | translate) }}
-          </button>
-          <button
-            class="dash-btn dash-btn--primary"
-            [disabled]="emittingBulletin()"
-            (click)="emitBulletinToRepresentatives()"
-          >
-            <i class="bi bi-send"></i>
-            {{ emittingBulletin() ? ('dashboard.bulletin.emitting' | translate) : ('dashboard.bulletin.emit_representatives' | translate) }}
-          </button>
-          <button
-            class="dash-btn dash-btn--neutral"
-            [disabled]="registeringBulletinEmission()"
-            (click)="registerBulletinEmission()"
-          >
-            <i class="bi bi-clipboard-check"></i>
-            {{ registeringBulletinEmission() ? ('common.registering' | translate) : ('dashboard.bulletin.register_emission' | translate) }}
-          </button>
+          @if (!meetsMinimumBand(d.band)) {
+            <button
+              class="dash-btn dash-btn--neutral"
+              [disabled]="downloadingBulletinPdf()"
+              (click)="downloadBulletinPdf()"
+            >
+              <i class="bi bi-file-earmark-pdf"></i>
+              {{ downloadingBulletinPdf() ? ('common.downloading' | translate) : ('dashboard.bulletin.download_pdf' | translate) }}
+            </button>
+            <button
+              class="dash-btn dash-btn--primary"
+              [disabled]="emittingBulletin()"
+              (click)="emitBulletinToRepresentatives()"
+            >
+              <i class="bi bi-send"></i>
+              {{ emittingBulletin() ? ('dashboard.bulletin.emitting' | translate) : ('dashboard.bulletin.emit_representatives' | translate) }}
+            </button>
+            <button
+              class="dash-btn dash-btn--neutral"
+              [disabled]="registeringBulletinEmission()"
+              (click)="registerBulletinEmission()"
+            >
+              <i class="bi bi-clipboard-check"></i>
+              {{ registeringBulletinEmission() ? ('common.registering' | translate) : ('dashboard.bulletin.register_emission' | translate) }}
+            </button>
+          }
           @if (isAdmin) {
             <button
               class="dash-btn dash-btn--danger"

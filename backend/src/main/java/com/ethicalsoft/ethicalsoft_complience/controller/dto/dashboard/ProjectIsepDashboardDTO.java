@@ -20,6 +20,7 @@ public record ProjectIsepDashboardDTO(
         BigDecimal fairnessScorePercent,
         BigDecimal esgScorePercent,
         BigDecimal ethicsDebtPercent,
-        BigDecimal techDebtPercent
+        BigDecimal techDebtPercent,
+        String projectStatus
 ) {}
 

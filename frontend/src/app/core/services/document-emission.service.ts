@@ -21,11 +21,10 @@ export interface DocumentEmissionRecordDTO {
 }
 
 export interface BulletinEmissionResult {
-  emittedCount: number;
-  questionnaireId: number;
-  questionnaireName: string | null;
-  authenticityCode: string;
-  emittedAt: string;
+  documentCode: string;
+  totalRecipients: number;
+  sent: number;
+  skipped: number;
 }
 
 @Injectable({ providedIn: 'root' })

@@ -8,6 +8,7 @@ import {
 	QuestionnaireIsepDashboardDTO,
 	RoleStageComplianceDTO,
 	WordCloudDTO,
+	Band,
 } from '../../interfaces/dashboard.interface'
 import { BandBadgeComponent } from '../../components/band-badge/band-badge.component'
 import { IsepKpiCardComponent } from '../../components/isep-kpi-card/isep-kpi-card.component'
@@ -96,6 +97,10 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
 		return this.dashboard()?.bandDistribution ?? { A: 0, B: 0, C: 0, D: 0, E: 0 }
 	}
 
+	meetsMinimumBand(band: Band): boolean {
+		return band === 'A' || band === 'B' || band === 'C'
+	}
+
 	readonly objectKeys = Object.keys
 
 	ngOnInit(): void {
@@ -159,8 +164,17 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
 	}
 
 	downloadCsv(): void {
-		const url = this.dashboardService.getQuestionnaireCsvUrl(this.projectId, this.questionnaireId)
-		window.open(url, '_blank')
+		this.dashboardService.exportQuestionnaireCsv(this.projectId, this.questionnaireId).subscribe({
+			next: (blob) => {
+				const url = URL.createObjectURL(blob)
+				const a = document.createElement('a')
+				a.href = url
+				a.download = `isep-questionario-${this.questionnaireId}.csv`
+				a.click()
+				URL.revokeObjectURL(url)
+			},
+			error: () => this.notificationService.showError(this.translate.instant('dashboard.errors.export_csv')),
+		})
 	}
 
 	downloadJson(): void {
@@ -260,8 +274,8 @@ export class QuestionnaireDashboardPageComponent implements OnInit {
 				next: (result: BulletinEmissionResult) => {
 					this.notificationService.showSuccess(
 						this.translate.instant('dashboard.bulletin.emit_success', {
-							count: result.emittedCount,
-							code: result.authenticityCode,
+							count: result.sent,
+							code: result.documentCode,
 						})
 					)
 					this.emittingBulletin.set(false)

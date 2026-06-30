@@ -72,6 +72,11 @@ public class GenerateComplianceCertificateUseCase {
 
     @Transactional(readOnly = true)
     public CertificateMetadata prepareMetadata(Long projectId) {
+        return prepareMetadata(projectId, null);
+    }
+
+    @Transactional(readOnly = true)
+    public CertificateMetadata prepareMetadata(Long projectId, String overrideCertificateCode) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Projeto não encontrado: " + projectId));
 
@@ -92,9 +97,10 @@ public class GenerateComplianceCertificateUseCase {
                             + "). Em caso de não conformidade, emita o Boletim de Não Conformidade Ética.");
         }
 
-        String certificateCode = DocumentFormatUtil.authenticityCode("ESC",
-                project.getId(), dashboard.projectBand(),
-                dashboard.projectIsepPercent(), project.getClosingDate());
+        String certificateCode = overrideCertificateCode != null ? overrideCertificateCode
+                : DocumentFormatUtil.authenticityCode("ESC",
+                        project.getId(), dashboard.projectBand(),
+                        dashboard.projectIsepPercent(), project.getClosingDate());
 
         return new CertificateMetadata(certificateCode, project.getName(),
                 dashboard.projectIsepPercent(),

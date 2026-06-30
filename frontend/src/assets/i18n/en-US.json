@@ -628,11 +628,16 @@
       "roles_col": "Roles",
       "action_col": "Action",
       "no_stage": "No stage",
-      "base_badge": "Base",
-      "base_locked": "Framework base question — applied on every iteration. Text cannot be changed, but role and stage links can be adjusted.",
-      "type_a_badge": "Project",
-      "type_a_locked": "Project-wide structural question — applied only on the first iteration. Text cannot be changed, but role and stage links can be adjusted.",
+      "base_locked": "Framework base question — text cannot be changed, but role and stage links can be adjusted.",
       "edit_links_btn": "Edit links (role/stage)",
+      "classification": {
+        "whole_project": "Whole project",
+        "whole_project_hint": "Structural project question — shown only on the first sprint/phase.",
+        "recurring": "Recurring",
+        "recurring_hint": "Mandatory checkpoint — appears in every sprint/phase.",
+        "current_stage": "Current stage",
+        "current_stage_hint": "Specific to this sprint/stage."
+      },
       "select_all": "Select all",
       "delete_selected": "Delete selected ({{count}})",
       "questions_title": "Questions ({{count}})",
@@ -663,7 +668,13 @@
       "edit_links_title": "Edit question links",
       "value_readonly_hint": "This question is part of the framework and its text cannot be changed.",
       "stage_label": "Related stages",
-      "stage_placeholder": "Select stages"
+      "stage_placeholder": "Select stages",
+      "classification_label": "Question scope",
+      "classification_none": "None / default",
+      "classification_whole_project": "Whole project (answered once, in the first sprint)",
+      "classification_recurring": "Recurring (added to all sprints)",
+      "classification_current_stage": "Current stage (only in this sprint/phase)",
+      "recurring_hint": "This question will be added to all existing and future iterations."
     }
   },
   "dashboard": {

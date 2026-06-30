@@ -15,6 +15,7 @@ export interface ProjectIsepDashboardDTO {
   projectId: number;
   projectName: string;
   projectType: 'ITERATIVO' | 'CASCATA';
+  projectStatus?: string;
   projectIsep: number | null;
   projectIsepPercent: number | null;
   projectBand: Band | null;
@@ -198,6 +199,7 @@ export interface ConsolidatedAnswerDTO {
   representativeName: string;
   roles: string[];
   questionnaireId: number;
+  questionnaireName: string | null;
   responseStatus: string;
   submissionDate: string;
   questionId: number;

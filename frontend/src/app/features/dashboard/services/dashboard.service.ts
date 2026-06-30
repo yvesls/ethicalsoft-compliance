@@ -32,7 +32,7 @@ export class DashboardService {
   downloadCertificatePdf(projectId: number): Observable<Blob> {
     const token = this.authService.getToken();
     const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
-    return this.http.get(`${environment.apiBaseUrl}/projects/${projectId}/certificate`, {
+    return this.http.get(`${environment.apiBaseUrl}/api/projects/${projectId}/certificate`, {
       headers,
       responseType: 'blob',
     });
@@ -42,7 +42,7 @@ export class DashboardService {
     const token = this.authService.getToken();
     const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
     return this.http.get(
-      `${environment.apiBaseUrl}/projects/${projectId}/questionnaires/${questionnaireId}/bulletin`,
+      `${environment.apiBaseUrl}/api/projects/${projectId}/questionnaires/${questionnaireId}/bulletin`,
       { headers, responseType: 'blob' }
     );
   }
@@ -119,16 +119,26 @@ export class DashboardService {
     );
   }
 
-  getProjectCsvUrl(projectId: number, anonymize = true): string {
-    return `${environment.apiBaseUrl}/api/projects/${projectId}/dashboard/export/csv?anonymize=${anonymize}`;
+  exportProjectCsv(projectId: number, anonymize = true): Observable<Blob> {
+    const token = this.authService.getToken();
+    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+    return this.http.get(
+      `${environment.apiBaseUrl}/api/projects/${projectId}/dashboard/export/csv?anonymize=${anonymize}`,
+      { headers, responseType: 'blob' }
+    );
   }
 
-  getQuestionnaireCsvUrl(
+  exportQuestionnaireCsv(
     projectId: number,
     questionnaireId: number,
     anonymize = true
-  ): string {
-    return `${environment.apiBaseUrl}/api/projects/${projectId}/questionnaires/${questionnaireId}/dashboard/export/csv?anonymize=${anonymize}`;
+  ): Observable<Blob> {
+    const token = this.authService.getToken();
+    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+    return this.http.get(
+      `${environment.apiBaseUrl}/api/projects/${projectId}/questionnaires/${questionnaireId}/dashboard/export/csv?anonymize=${anonymize}`,
+      { headers, responseType: 'blob' }
+    );
   }
 
   forceCloseQuestionnaire(

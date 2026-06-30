@@ -81,8 +81,16 @@ public class BaseQuestionnaireTemplateInitializer {
         template.getQuestionnaires().stream()
                 .filter(q -> q.getQuestions() != null)
                 .flatMap(q -> q.getQuestions().stream())
+                .filter(question -> question.getType() != QuestionTypeEnum.CUSTOM)
                 .forEach(question -> question.setType(QuestionTypeEnum.BASE));
         return template;
+    }
+
+    private void classifyCustomCurrentStage(List<TemplateQuestionDTO> questions) {
+        questions.forEach(q -> {
+            q.setType(QuestionTypeEnum.CUSTOM);
+            q.setClassification(QuestionClassificationEnum.CURRENT_STAGE);
+        });
     }
 
     private void removeLegacyTemplates() {
@@ -162,6 +170,7 @@ public class BaseQuestionnaireTemplateInitializer {
 
         List<TemplateQuestionDTO> sprint1 = new ArrayList<>();
         sprint1.addAll(buildIterativeProjectWideQuestions(initiacaoStages, requisitosStages, desenvolvimentoStages));
+        sprint1.addAll(buildIterativePerIterationQuestions(allStages));
         sprint1.addAll(buildIterativeSprint1Questions(initiacaoStages, requisitosStages));
 
         List<TemplateQuestionDTO> sprint2 = new ArrayList<>();
@@ -177,10 +186,10 @@ public class BaseQuestionnaireTemplateInitializer {
         sprint4.addAll(buildIterativeSprint4Questions(testesStages, desenvolvimentoStages, initiacaoStages));
 
         t.setQuestionnaires(List.of(
-                iterativeQuestionnaire(SPRINT_1, 1, SPRINT_1, sprint1),
-                iterativeQuestionnaire(SPRINT_2, 1, SPRINT_2, sprint2),
-                iterativeQuestionnaire(SPRINT_3, 1, SPRINT_3, sprint3),
-                iterativeQuestionnaire(SPRINT_4, 1, SPRINT_4, sprint4)
+                iterativeQuestionnaire(SPRINT_1, 1.0, SPRINT_1, sprint1),
+                iterativeQuestionnaire(SPRINT_2, 1.0, SPRINT_2, sprint2),
+                iterativeQuestionnaire(SPRINT_3, 1.5, SPRINT_3, sprint3),
+                iterativeQuestionnaire(SPRINT_4, 2.0, SPRINT_4, sprint4)
         ));
 
         t.setIterations(List.of(
@@ -221,14 +230,14 @@ public class BaseQuestionnaireTemplateInitializer {
         List<TemplateQuestionDTO> sprint1Governanca = new ArrayList<>();
         sprint1Governanca.add(question("Existe definição explícita de que toda recomendação da IA nesta sprint será apenas sugestão e nunca decisão automática final?", Set.of(2L, 3L, 9L), STAGE_INICIACAO, inicStages));
         sprint1Governanca.add(question("Foram definidas diretrizes sobre quais dados, credenciais ou informações internas não podem ser enviados para ferramentas externas de IA?", Set.of(2L, 1L, 9L), STAGE_INICIACAO, inicStages));
-        classify(sprint1Governanca, QuestionClassificationEnum.PROJETO_INTEIRO);
+        classify(sprint1Governanca, QuestionClassificationEnum.WHOLE_PROJECT);
 
         List<TemplateQuestionDTO> sprint1Dominio = new ArrayList<>();
         sprint1Dominio.add(question("Os requisitos de triagem contemplam conformidade com LGPD e minimização de dados pessoais no processo seletivo?", Set.of(3L, 2L, 9L), STAGE_REQUISITOS, reqStages));
         sprint1Dominio.add(question("Foram identificados critérios de triagem que podem impactar negativamente grupos vulneráveis ou minorias?", Set.of(9L, 3L, 4L), STAGE_REQUISITOS, reqStages));
         sprint1Dominio.add(question("Foi aprovado o uso de idade, faculdade de origem ou tempo de experiência como atalho de ranqueamento inicial sem validação ética formal?", Set.of(3L, 9L, 1L), STAGE_REQUISITOS, reqStages));
         sprint1Dominio.add(question("Os dados utilizados no desenvolvimento respeitam as políticas de privacidade e consentimento?", Set.of(2L, 1L), STAGE_DESENVOLVIMENTO, devStages));
-        classify(sprint1Dominio, QuestionClassificationEnum.ROTATIVA);
+        classifyCustomCurrentStage(sprint1Dominio);
 
         List<TemplateQuestionDTO> sprint1Qs = new ArrayList<>();
         sprint1Qs.addAll(sprint1Governanca);
@@ -240,14 +249,14 @@ public class BaseQuestionnaireTemplateInitializer {
                 question("O recrutador consegue discordar do ranking da IA e registrar o motivo da intervenção humana?", Set.of(9L, 3L, 1L), STAGE_DESENVOLVIMENTO, devStages),
                 question("A justificativa resumida exibida ao recrutador informa fatores de decisão sem expor atributos sensíveis do candidato?", Set.of(3L, 9L, 1L), STAGE_PROJETO, projStages)
         ));
-        classify(sprint2Qs, QuestionClassificationEnum.ROTATIVA);
+        classifyCustomCurrentStage(sprint2Qs);
 
         List<TemplateQuestionDTO> sprint3Qs = new ArrayList<>(List.of(
                 question("Código gerado com apoio de IA identificado para revisão humana antes de merge, entrega ou publicação?", Set.of(1L, 2L, 4L), STAGE_DESENVOLVIMENTO, devStages),
                 question("As decisões técnicas de trade-off estão documentadas com justificativa ética e impacto de negócio?", Set.of(2L, 1L, 4L), STAGE_DESENVOLVIMENTO, devStages),
                 question("O projeto possui condição mínima de governança ética para encerramento e emissão de certificado, ainda que com melhorias futuras mapeadas?", Set.of(2L, 3L, 4L, 9L), STAGE_INICIACAO, inicStages)
         ));
-        classify(sprint3Qs, QuestionClassificationEnum.ROTATIVA);
+        classifyCustomCurrentStage(sprint3Qs);
 
         List<TemplateQuestionDTO> sprint4Qs = new ArrayList<>(List.of(
                 question("Código, documentação ou cenários produzidos com IA foram submetidos aos mesmos testes e critérios de aceite aplicados ao restante do software?", Set.of(2L, 1L, 4L), STAGE_TESTES, testStages),
@@ -255,7 +264,7 @@ public class BaseQuestionnaireTemplateInitializer {
                 question("Os resultados dos testes éticos são compartilhados com os stakeholders para validação?", Set.of(2L, 4L, 9L), STAGE_TESTES, testStages),
                 question("Falhas, alucinações ou sugestões inseguras geradas por IA foram registradas para prevenção em ciclos futuros?", Set.of(2L, 1L, 4L), STAGE_TESTES, testStages)
         ));
-        classify(sprint4Qs, QuestionClassificationEnum.ROTATIVA);
+        classifyCustomCurrentStage(sprint4Qs);
 
         t.setQuestionnaires(List.of(
                 iterativeQuestionnaire("Política de triagem e uso de dados", 1, SPRINT_1, sprint1Qs),
@@ -285,84 +294,85 @@ public class BaseQuestionnaireTemplateInitializer {
                                                                          List<StageSummaryResponseDTO> desenvolvimentoStages) {
         List<TemplateQuestionDTO> qs = new ArrayList<>();
         qs.add(question("Foi aprovado o uso de IA e definido em quais atividades ela será empregada?", Set.of(GERENTEPROJETO, CLIENTE, STAKEHOLDER), STAGE_INICIACAO, initiacaoStages));
-        qs.add(question("Foram definidas diretrizes sobre quais dados, credenciais ou informações internas não podem ser enviados a ferramentas externas de IA?", Set.of(GERENTEPROJETO, DESENVOLVEDOR, LIDEREQUIPE, ARQUITETOSOFTWARE), STAGE_INICIACAO, initiacaoStages));
-        qs.add(question("Foi definido quem realiza a revisão humana e a aprovação final de artefatos produzidos com apoio de IA?", Set.of(GERENTEPROJETO, LIDEREQUIPE, ANALISTAQUALIDADE), STAGE_INICIACAO, initiacaoStages));
-        qs.add(question("Os valores éticos do projeto estão explicitamente documentados e acessíveis?", Set.of(GERENTEPROJETO, LIDEREQUIPE, CLIENTE), STAGE_INICIACAO, initiacaoStages));
-        qs.add(question("Os riscos éticos do projeto foram documentados e comunicados aos envolvidos?", Set.of(GERENTEPROJETO, ANALISTAQUALIDADE, RESPONSAVELNEGOCIO), STAGE_INICIACAO, initiacaoStages));
-        qs.add(question("Existe um canal definido para reportar preocupações éticas de forma anônima e segura?", Set.of(GERENTEPROJETO, LIDEREQUIPE, SUPORTE), STAGE_INICIACAO, initiacaoStages));
-        qs.add(question("Foi definido quem toma decisões em nome da organização?", Set.of(CLIENTE, RESPONSAVELNEGOCIO), STAGE_INICIACAO, initiacaoStages));
-        qs.add(question("Foi definido quem aprova a flexibilidade orçamentária e as anormalidades de escopo?", Set.of(CLIENTE, RESPONSAVELNEGOCIO, GERENTEPROJETO), STAGE_INICIACAO, initiacaoStages));
+        qs.add(question("Foram definidas diretrizes sobre quais dados, credenciais ou informações internas não podem ser enviados a ferramentas externas de IA?", Set.of(GERENTEPROJETO, DESENVOLVEDOR), STAGE_INICIACAO, initiacaoStages));
+        qs.add(question("Foi definido quem realiza a revisão humana e a aprovação final de artefatos produzidos com apoio de IA?", Set.of(GERENTEPROJETO, ANALISTAQUALIDADE), STAGE_INICIACAO, initiacaoStages));
+        qs.add(question("Os valores éticos do projeto estão explicitamente documentados e acessíveis?", Set.of(GERENTEPROJETO, CLIENTE), STAGE_INICIACAO, initiacaoStages));
+        qs.add(question("Os riscos éticos do projeto foram documentados e comunicados aos envolvidos?", Set.of(GERENTEPROJETO, ANALISTAQUALIDADE), STAGE_INICIACAO, initiacaoStages));
+        qs.add(question("Existe um canal definido para reportar preocupações éticas de forma anônima e segura?", Set.of(GERENTEPROJETO), STAGE_INICIACAO, initiacaoStages));
+        qs.add(question("Foi definido quem toma decisões em nome da organização?", Set.of(CLIENTE), STAGE_INICIACAO, initiacaoStages));
+        qs.add(question("Foi definido quem aprova a flexibilidade orçamentária e as anormalidades de escopo?", Set.of(GERENTEPROJETO, CLIENTE), STAGE_INICIACAO, initiacaoStages));
         qs.add(question("O projeto possui condição mínima de governança ética para avançar?", Set.of(GERENTEPROJETO, CLIENTE, ANALISTAQUALIDADE, STAKEHOLDER), STAGE_INICIACAO, initiacaoStages));
-        classify(qs, QuestionClassificationEnum.PROJETO_INTEIRO);
+        classify(qs, QuestionClassificationEnum.WHOLE_PROJECT);
         return qs;
     }
 
     private List<TemplateQuestionDTO> buildIterativePerIterationQuestions(List<StageSummaryResponseDTO> allStages) {
-        List<StageSummaryResponseDTO> todas = allStages;
-        List<StageSummaryResponseDTO> reqProjDevTest = pick(allStages, STAGE_REQUISITOS, STAGE_PROJETO, STAGE_DESENVOLVIMENTO, STAGE_TESTES);
-        List<StageSummaryResponseDTO> reqProjDev = pick(allStages, STAGE_REQUISITOS, STAGE_PROJETO, STAGE_DESENVOLVIMENTO);
-        List<StageSummaryResponseDTO> devTest = pick(allStages, STAGE_DESENVOLVIMENTO, STAGE_TESTES);
+        List<StageSummaryResponseDTO> iniciacaoOnly = pick(allStages, STAGE_INICIACAO);
+        List<StageSummaryResponseDTO> requisitosOnly = pick(allStages, STAGE_REQUISITOS);
+        List<StageSummaryResponseDTO> desenvolvimentoOnly = pick(allStages, STAGE_DESENVOLVIMENTO);
 
         List<TemplateQuestionDTO> qs = new ArrayList<>();
-        qs.add(question("A sprint atual está alinhada aos limites éticos e operacionais definidos para o projeto?", Set.of(GERENTEPROJETO, LIDEREQUIPE, ANALISTAQUALIDADE), STAGE_INICIACAO, todas));
-        qs.add(question("A equipe revisou riscos, dependências e impactos antes de iniciar a sprint?", Set.of(GERENTEPROJETO, ANALISTAQUALIDADE, LIDEREQUIPE), STAGE_INICIACAO, todas));
-        qs.add(question("Artefatos ou decisões apoiados por IA passaram por revisão humana antes de serem aceitos nesta sprint?", Set.of(GERENTEPROJETO, DESENVOLVEDOR, ANALISTAQUALIDADE), STAGE_REQUISITOS, reqProjDevTest));
-        qs.add(question("As decisões tomadas nesta sprint mantêm rastreabilidade com os requisitos éticos do projeto?", Set.of(GERENTEPROJETO, ANALISTAREQUISITOS, ANALISTAQUALIDADE), STAGE_REQUISITOS, reqProjDevTest));
-        qs.add(question("Foram registrados aprendizados, falhas ou riscos para orientar a próxima sprint?", Set.of(GERENTEPROJETO, DESENVOLVEDOR), STAGE_DESENVOLVIMENTO, devTest));
-        qs.add(question("A equipe confirmou que não há uso indevido de dados, credenciais ou informações sensíveis nesta sprint?", Set.of(GERENTEPROJETO, DESENVOLVEDOR, LIDEREQUIPE, ARQUITETOSOFTWARE), STAGE_REQUISITOS, reqProjDev));
-        classify(qs, QuestionClassificationEnum.BASE_ITERACAO);
+        qs.add(question("A sprint atual está alinhada aos limites éticos e operacionais definidos para o projeto?", Set.of(GERENTEPROJETO, ANALISTAQUALIDADE), STAGE_INICIACAO, iniciacaoOnly));
+        qs.add(question("A equipe revisou riscos, dependências e impactos antes de iniciar a sprint?", Set.of(GERENTEPROJETO, ANALISTAQUALIDADE), STAGE_INICIACAO, iniciacaoOnly));
+        qs.add(question("Artefatos ou decisões apoiados por IA passaram por revisão humana antes de serem aceitos nesta sprint?", Set.of(GERENTEPROJETO, DESENVOLVEDOR, ANALISTAQUALIDADE), STAGE_REQUISITOS, requisitosOnly));
+        qs.add(question("As decisões tomadas nesta sprint mantêm rastreabilidade com os requisitos éticos do projeto?", Set.of(GERENTEPROJETO, ANALISTAQUALIDADE), STAGE_REQUISITOS, requisitosOnly));
+        qs.add(question("Foram registrados aprendizados, falhas ou riscos para orientar a próxima sprint?", Set.of(GERENTEPROJETO, DESENVOLVEDOR), STAGE_DESENVOLVIMENTO, desenvolvimentoOnly));
+        qs.add(question("A equipe confirmou que não há uso indevido de dados, credenciais ou informações sensíveis nesta sprint?", Set.of(GERENTEPROJETO, DESENVOLVEDOR), STAGE_REQUISITOS, requisitosOnly));
+        classify(qs, QuestionClassificationEnum.RECURRING);
         return qs;
     }
 
     private List<TemplateQuestionDTO> buildIterativeSprint1Questions(List<StageSummaryResponseDTO> initiacaoStages,
                                                                       List<StageSummaryResponseDTO> requisitosStages) {
         List<TemplateQuestionDTO> qs = new ArrayList<>();
-        qs.add(question("Os requisitos iniciais contemplam conformidade com LGPD e minimização de dados pessoais?", Set.of(CLIENTE, GERENTEPROJETO, STAKEHOLDER), STAGE_REQUISITOS, requisitosStages));
-        qs.add(question("Foram identificados critérios de triagem que podem impactar negativamente grupos vulneráveis ou minorias?", Set.of(ANALISTAREQUISITOS, CLIENTE, STAKEHOLDER), STAGE_REQUISITOS, requisitosStages));
-        qs.add(question("As sugestões de IA usadas na etapa de requisitos foram avaliadas quanto a vieses e ambiguidades antes de entrar no escopo?", Set.of(ANALISTAREQUISITOS, ANALISTAQUALIDADE), STAGE_REQUISITOS, requisitosStages));
-        classify(qs, QuestionClassificationEnum.ROTATIVA);
+        qs.add(question("Os requisitos iniciais contemplam conformidade com LGPD e minimização de dados pessoais?", Set.of(GERENTEPROJETO, CLIENTE, STAKEHOLDER), STAGE_REQUISITOS, requisitosStages));
+        qs.add(question("Foram identificados critérios de triagem que podem impactar negativamente grupos vulneráveis ou minorias?", Set.of(CLIENTE, STAKEHOLDER), STAGE_REQUISITOS, requisitosStages));
+        qs.add(question("As sugestões de IA usadas na etapa de requisitos foram avaliadas quanto a vieses e ambiguidades antes de entrar no escopo?", Set.of(ANALISTAQUALIDADE), STAGE_REQUISITOS, requisitosStages));
+        classifyCustomCurrentStage(qs);
         return qs;
     }
 
     private List<TemplateQuestionDTO> buildIterativeSprint2Questions(List<StageSummaryResponseDTO> requisitosStages,
                                                                       List<StageSummaryResponseDTO> desenvolvimentoStages,
                                                                       List<StageSummaryResponseDTO> projetoStages) {
-        List<StageSummaryResponseDTO> reqDev = concat(requisitosStages, desenvolvimentoStages);
         List<TemplateQuestionDTO> qs = new ArrayList<>();
         qs.add(question("O recrutador consegue discordar do ranking da IA e registrar o motivo da intervenção humana?", Set.of(CLIENTE, STAKEHOLDER, DESENVOLVEDOR), STAGE_DESENVOLVIMENTO, desenvolvimentoStages));
-        qs.add(question("Há rastreabilidade entre critérios de ranking, artefatos gerados com apoio de IA e a decisão final aprovada pela equipe?", Set.of(DESENVOLVEDOR, GERENTEPROJETO, ANALISTAQUALIDADE), STAGE_REQUISITOS, reqDev));
+        qs.add(question("Há rastreabilidade entre critérios de ranking, artefatos gerados com apoio de IA e a decisão final aprovada pela equipe?", Set.of(DESENVOLVEDOR, GERENTEPROJETO, ANALISTAQUALIDADE), STAGE_REQUISITOS, requisitosStages));
         qs.add(question("A justificativa resumida exibida ao recrutador informa fatores de decisão sem expor atributos sensíveis do candidato?", Set.of(CLIENTE, STAKEHOLDER), STAGE_PROJETO, projetoStages));
-        classify(qs, QuestionClassificationEnum.ROTATIVA);
+        classifyCustomCurrentStage(qs);
         return qs;
     }
 
     private List<TemplateQuestionDTO> buildIterativeSprint3Questions(List<StageSummaryResponseDTO> desenvolvimentoStages,
                                                                       List<StageSummaryResponseDTO> testesStages,
                                                                       List<StageSummaryResponseDTO> initiacaoStages) {
+        List<StageSummaryResponseDTO> devTest = concat(desenvolvimentoStages, testesStages);
         List<TemplateQuestionDTO> qs = new ArrayList<>();
         qs.add(question("Código gerado com apoio de IA é identificado para revisão humana antes de merge, entrega ou publicação?", Set.of(DESENVOLVEDOR, GERENTEPROJETO, ANALISTAQUALIDADE), STAGE_DESENVOLVIMENTO, desenvolvimentoStages));
         qs.add(question("Decisões técnicas de trade-off estão documentadas com justificativa ética e impacto de negócio?", Set.of(GERENTEPROJETO, DESENVOLVEDOR, ANALISTAQUALIDADE), STAGE_DESENVOLVIMENTO, desenvolvimentoStages));
-        qs.add(question("Os dados utilizados no desenvolvimento respeitam as políticas de privacidade e consentimento?", Set.of(GERENTEPROJETO, DESENVOLVEDOR), STAGE_DESENVOLVIMENTO, desenvolvimentoStages));
-        classify(qs, QuestionClassificationEnum.ROTATIVA);
+        qs.add(question("Os dados utilizados no desenvolvimento respeitam as políticas de privacidade e consentimento?", Set.of(GERENTEPROJETO, DESENVOLVEDOR, ANALISTAQUALIDADE, STAKEHOLDER, CLIENTE), STAGE_DESENVOLVIMENTO, devTest));
+        classifyCustomCurrentStage(qs);
         return qs;
     }
 
     private List<TemplateQuestionDTO> buildIterativeSprint4Questions(List<StageSummaryResponseDTO> testesStages,
                                                                       List<StageSummaryResponseDTO> desenvolvimentoStages,
                                                                       List<StageSummaryResponseDTO> initiacaoStages) {
-        List<StageSummaryResponseDTO> inicTest = concat(initiacaoStages, testesStages);
         List<TemplateQuestionDTO> qs = new ArrayList<>();
         qs.add(question("Código, documentação ou cenários produzidos com IA foram submetidos aos mesmos testes e critérios de aceite aplicados ao restante do software?", Set.of(GERENTEPROJETO, DESENVOLVEDOR), STAGE_TESTES, testesStages));
         qs.add(question("Foram realizados testes específicos para detectar vieses nos resultados do software?", Set.of(ANALISTAQUALIDADE, DESENVOLVEDOR), STAGE_TESTES, testesStages));
         qs.add(question("Os resultados dos testes éticos são compartilhados com os stakeholders para validação?", Set.of(GERENTEPROJETO, ANALISTAQUALIDADE, STAKEHOLDER), STAGE_TESTES, testesStages));
         qs.add(question("Falhas, alucinações ou sugestões inseguras geradas por IA foram registradas para prevenção em ciclos futuros?", Set.of(GERENTEPROJETO, DESENVOLVEDOR, ANALISTAQUALIDADE), STAGE_TESTES, testesStages));
-        qs.add(question("O projeto possui condição mínima de encerramento ético, ainda que com melhorias futuras mapeadas?", Set.of(GERENTEPROJETO, CLIENTE, ANALISTAQUALIDADE, STAKEHOLDER), STAGE_INICIACAO, inicTest));
-        classify(qs, QuestionClassificationEnum.ROTATIVA);
+        qs.add(question("O projeto possui condição mínima de encerramento ético, ainda que com melhorias futuras mapeadas?", Set.of(GERENTEPROJETO, CLIENTE, ANALISTAQUALIDADE, STAKEHOLDER), STAGE_INICIACAO, initiacaoStages));
+        classifyCustomCurrentStage(qs);
         return qs;
     }
 
     private void classify(List<TemplateQuestionDTO> questions, QuestionClassificationEnum classification) {
-        questions.forEach(q -> q.setClassification(classification));
+        questions.forEach(q -> {
+            q.setType(QuestionTypeEnum.BASE);
+            q.setClassification(classification);
+        });
     }
 
     private List<StageSummaryResponseDTO> pick(List<StageSummaryResponseDTO> all, String... names) {
@@ -377,62 +387,69 @@ public class BaseQuestionnaireTemplateInitializer {
     }
 
     private List<TemplateQuestionDTO> buildCascataIniciacaoQuestions(List<StageSummaryResponseDTO> stgs) {
+        List<TemplateQuestionDTO> governance = new ArrayList<>();
+        governance.add(q("Foi determinado quem toma as decisoes em nome da sua empresa?", Set.of(CLIENTE, RESPONSAVELNEGOCIO), STAGE_INICIACAO, stgs));
+        governance.add(q("Foi determinado quem aprova a flexibilidade orcamentaria para o gerenciamento do projeto?", Set.of(CLIENTE, RESPONSAVELNEGOCIO), STAGE_INICIACAO, stgs));
+        governance.add(q("Foi definido quem e a autoridade que trata de anormalidades no escopo do trabalho?", Set.of(CLIENTE, GERENTEPROJETO), STAGE_INICIACAO, stgs));
+        governance.add(q("Os riscos eticos do projeto foram documentados e comunicados a todos os envolvidos?", Set.of(GERENTEPROJETO, ANALISTAQUALIDADE, RESPONSAVELNEGOCIO), STAGE_INICIACAO, stgs));
+        governance.add(q("Existe um canal definido para reportar preocupacoes eticas de forma anonima e segura?", Set.of(GERENTEPROJETO, LIDEREQUIPE, SUPORTE), STAGE_INICIACAO, stgs));
+        governance.add(q("Os valores eticos do projeto estao explicitamente documentados e acessiveis a todos?", Set.of(GERENTEPROJETO, LIDEREQUIPE, CLIENTE), STAGE_INICIACAO, stgs));
+        governance.add(q("O projeto declarou se utiliza desenvolvimento assistido por IA e em quais atividades esse apoio sera empregado?", Set.of(GERENTEPROJETO, RESPONSAVELNEGOCIO, CLIENTE), STAGE_INICIACAO, stgs));
+        governance.add(q("Foram definidas diretrizes sobre quais dados, credenciais ou informacoes internas nao podem ser enviados para ferramentas externas de IA?", Set.of(GERENTEPROJETO, LIDEREQUIPE, ARQUITETOSOFTWARE, DESENVOLVEDOR), STAGE_INICIACAO, stgs));
+        governance.add(q("Foi definido quem realiza a revisao humana e a aprovacao final de artefatos produzidos com apoio de IA antes do uso no projeto?", Set.of(GERENTEPROJETO, LIDEREQUIPE, ANALISTAQUALIDADE), STAGE_INICIACAO, stgs));
+        classify(governance, QuestionClassificationEnum.WHOLE_PROJECT);
+
+        List<TemplateQuestionDTO> recurring = new ArrayList<>();
+        recurring.add(q("Voce entendeu os objetivos do software?", Set.of(CLIENTE, STAKEHOLDER), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce esta ciente das politicas eticas que a equipe de desenvolvimento seguira durante todo o projeto?", Set.of(CLIENTE, STAKEHOLDER), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce esta ciente das possiveis implicacoes eticas do software na seguranca e privacidade dos usuarios?", Set.of(CLIENTE, STAKEHOLDER), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce esta disposto a fornecer feedback para a equipe de desenvolvimento durante todo o processo?", Set.of(CLIENTE), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce tem alguma preocupacao com relacao ao desenvolvimento etico do software?", Set.of(CLIENTE, STAKEHOLDER), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce esta ciente de quaisquer requisitos legais ou regulatorios relacionados ao desenvolvimento do software?", Set.of(CLIENTE, RESPONSAVELNEGOCIO), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce esta disposto a trabalhar em colaboracao com a equipe de desenvolvimento para garantir o desenvolvimento etico do software?", Set.of(CLIENTE), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce definiu politicas eticas claras que devem ser seguidas durante o desenvolvimento do software?", Set.of(GERENTEPROJETO), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce identificou possiveis conflitos eticos que possam surgir durante o desenvolvimento do software?", Set.of(GERENTEPROJETO), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce forneceu orientacoes claras para a equipe de desenvolvimento sobre como lidar com possiveis conflitos eticos?", Set.of(GERENTEPROJETO), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce esta disposto a apoiar a equipe de desenvolvimento na resolucao de possiveis conflitos eticos?", Set.of(GERENTEPROJETO), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce esta disposto a fornecer recursos adicionais para garantir que o software seja desenvolvido de maneira etica?", Set.of(GERENTEPROJETO, RESPONSAVELNEGOCIO), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce esta comprometido em garantir que o software seja desenvolvido de maneira etica?", Set.of(GERENTEPROJETO), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce identificou possiveis implicacoes eticas do software na seguranca e privacidade dos usuarios?", Set.of(GERENTEPROJETO), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce esta disposto a trabalhar com a equipe de desenvolvimento para garantir que o software seja seguro e proteja a privacidade dos usuarios?", Set.of(GERENTEPROJETO), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce definiu politicas eticas claras que devem ser seguidas durante o desenvolvimento do software?", Set.of(LIDEREQUIPE), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce compartilhou essas politicas eticas com sua equipe de desenvolvimento?", Set.of(LIDEREQUIPE), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce esta garantindo que a equipe esteja ciente dos possiveis conflitos eticos que possam surgir durante o desenvolvimento do software?", Set.of(LIDEREQUIPE), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce esta ciente sobre a necessidade de incentivar sua equipe a levantar questoes eticas e a discutir possiveis solucoes para conflitos eticos?", Set.of(LIDEREQUIPE), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce esta disposto a apoiar a equipe de desenvolvimento na resolucao de possiveis conflitos eticos?", Set.of(LIDEREQUIPE), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce esta ciente sobre a necessidade de incentivar sua equipe a levantar questoes eticas e a discutir possiveis solucoes para conflitos eticos?", Set.of(ARQUITETOSOFTWARE), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce entendeu as politicas eticas estabelecidas pelo administrador?", Set.of(ARQUITETOSOFTWARE), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce esta disposto a apoiar a equipe de desenvolvimento na resolucao de possiveis conflitos eticos relacionados ao design do software?", Set.of(ARQUITETOSOFTWARE, DESIGNER), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce compartilhou as politicas eticas com sua equipe de desenvolvimento?", Set.of(ARQUITETOSOFTWARE), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce esta comprometido em seguir as politicas eticas estabelecidas e em desenvolver o software de maneira etica?", Set.of(ARQUITETOSOFTWARE), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce esta disposto a reportar possiveis problemas eticos identificados durante o desenvolvimento do software?", Set.of(ARQUITETOSOFTWARE), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce esta trabalhando com a equipe de desenvolvimento para garantir que as questoes de usabilidade e acessibilidade sejam consideradas durante o design do software?", Set.of(ARQUITETOSOFTWARE, DESIGNER), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce entendeu as politicas eticas estabelecidas pelo administrador?", Set.of(DESENVOLVEDOR), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce entendeu os objetivos do software?", Set.of(DESENVOLVEDOR), STAGE_INICIACAO, stgs));
+        recurring.add(q("Orientacoes claras sobre como lidar com possiveis conflitos eticos foram fornecidas?", Set.of(DESENVOLVEDOR), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce tem as habilidades tecnicas e o conhecimento adequado para implementar o software de maneira etica?", Set.of(DESENVOLVEDOR), STAGE_INICIACAO, stgs));
+        recurring.add(q("O codigo fonte do software esta livre de quaisquer tipos de vies ou discriminacao?", Set.of(DESENVOLVEDOR), STAGE_INICIACAO, stgs));
+        recurring.add(q("As possiveis implicacoes eticas do software na seguranca e privacidade dos usuarios foram consideradas?", Set.of(DESENVOLVEDOR), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce esta comprometido em seguir as politicas eticas estabelecidas e em desenvolver o software de maneira etica?", Set.of(DESENVOLVEDOR), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce esta disposto a reportar possiveis problemas eticos identificados durante o desenvolvimento do software?", Set.of(DESENVOLVEDOR), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce entendeu as politicas eticas estabelecidas pelo administrador?", Set.of(ANALISTAQUALIDADE), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce entendeu os objetivos eticos do software?", Set.of(ANALISTAQUALIDADE), STAGE_INICIACAO, stgs));
+        recurring.add(q("Foram fornecidas orientacoes claras sobre como lidar com possiveis conflitos eticos durante o processo de desenvolvimento?", Set.of(ANALISTAQUALIDADE), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce tem as habilidades tecnicas e o conhecimento adequado para avaliar se o software esta sendo desenvolvido de maneira etica?", Set.of(ANALISTAQUALIDADE), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce esta ciente das possiveis implicacoes eticas do software na seguranca e privacidade dos usuarios?", Set.of(ANALISTAQUALIDADE), STAGE_INICIACAO, stgs));
+        recurring.add(q("O plano de qualidade inclui criterios eticos para avaliar o software?", Set.of(ANALISTAQUALIDADE), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce esta disposto a reportar possiveis problemas eticos identificados durante o desenvolvimento do software?", Set.of(ANALISTAQUALIDADE), STAGE_INICIACAO, stgs));
+        recurring.add(q("Voce esta comprometido em garantir que o software seja desenvolvido de maneira etica?", Set.of(ANALISTAQUALIDADE), STAGE_INICIACAO, stgs));
+        recurring.add(q("Existem criterios para aprovacao de iniciacao de produto, que devem ser particularmente exigentes para areas nas quais a organizacao ou desenvolvedor nao e especialista?", Set.of(ANALISTAQUALIDADE), STAGE_INICIACAO, stgs));
+        recurring.add(q("Foi determinado quem aprova a flexibilidade orcamentaria para o gerenciamento projeto?", Set.of(ANALISTAQUALIDADE), STAGE_INICIACAO, stgs));
+        classify(recurring, QuestionClassificationEnum.RECURRING);
+
         List<TemplateQuestionDTO> qs = new ArrayList<>();
-        qs.add(q("Voce entendeu os objetivos do software?", Set.of(CLIENTE, STAKEHOLDER), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce esta ciente das politicas eticas que a equipe de desenvolvimento seguira durante todo o projeto?", Set.of(CLIENTE, STAKEHOLDER), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce esta ciente das possiveis implicacoes eticas do software na seguranca e privacidade dos usuarios?", Set.of(CLIENTE, STAKEHOLDER), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce esta disposto a fornecer feedback para a equipe de desenvolvimento durante todo o processo?", Set.of(CLIENTE), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce tem alguma preocupacao com relacao ao desenvolvimento etico do software?", Set.of(CLIENTE, STAKEHOLDER), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce esta ciente de quaisquer requisitos legais ou regulatorios relacionados ao desenvolvimento do software?", Set.of(CLIENTE, RESPONSAVELNEGOCIO), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce esta disposto a trabalhar em colaboracao com a equipe de desenvolvimento para garantir o desenvolvimento etico do software?", Set.of(CLIENTE), STAGE_INICIACAO, stgs));
-        qs.add(q("Foi determinado quem toma as decisoes em nome da sua empresa?", Set.of(CLIENTE, RESPONSAVELNEGOCIO), STAGE_INICIACAO, stgs));
-        qs.add(q("Foi determinado quem aprova a flexibilidade orcamentaria para o gerenciamento do projeto?", Set.of(CLIENTE, RESPONSAVELNEGOCIO), STAGE_INICIACAO, stgs));
-        qs.add(q("Foi definido quem e a autoridade que trata de anormalidades no escopo do trabalho?", Set.of(CLIENTE, GERENTEPROJETO), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce definiu politicas eticas claras que devem ser seguidas durante o desenvolvimento do software?", Set.of(GERENTEPROJETO), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce identificou possiveis conflitos eticos que possam surgir durante o desenvolvimento do software?", Set.of(GERENTEPROJETO), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce forneceu orientacoes claras para a equipe de desenvolvimento sobre como lidar com possiveis conflitos eticos?", Set.of(GERENTEPROJETO), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce esta disposto a apoiar a equipe de desenvolvimento na resolucao de possiveis conflitos eticos?", Set.of(GERENTEPROJETO), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce esta disposto a fornecer recursos adicionais para garantir que o software seja desenvolvido de maneira etica?", Set.of(GERENTEPROJETO, RESPONSAVELNEGOCIO), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce esta comprometido em garantir que o software seja desenvolvido de maneira etica?", Set.of(GERENTEPROJETO), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce identificou possiveis implicacoes eticas do software na seguranca e privacidade dos usuarios?", Set.of(GERENTEPROJETO), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce esta disposto a trabalhar com a equipe de desenvolvimento para garantir que o software seja seguro e proteja a privacidade dos usuarios?", Set.of(GERENTEPROJETO), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce definiu politicas eticas claras que devem ser seguidas durante o desenvolvimento do software?", Set.of(LIDEREQUIPE), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce compartilhou essas politicas eticas com sua equipe de desenvolvimento?", Set.of(LIDEREQUIPE), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce esta garantindo que a equipe esteja ciente dos possiveis conflitos eticos que possam surgir durante o desenvolvimento do software?", Set.of(LIDEREQUIPE), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce esta ciente sobre a necessidade de incentivar sua equipe a levantar questoes eticas e a discutir possiveis solucoes para conflitos eticos?", Set.of(LIDEREQUIPE), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce esta disposto a apoiar a equipe de desenvolvimento na resolucao de possiveis conflitos eticos?", Set.of(LIDEREQUIPE), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce esta ciente sobre a necessidade de incentivar sua equipe a levantar questoes eticas e a discutir possiveis solucoes para conflitos eticos?", Set.of(ARQUITETOSOFTWARE), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce entendeu as politicas eticas estabelecidas pelo administrador?", Set.of(ARQUITETOSOFTWARE), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce esta disposto a apoiar a equipe de desenvolvimento na resolucao de possiveis conflitos eticos relacionados ao design do software?", Set.of(ARQUITETOSOFTWARE, DESIGNER), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce compartilhou as politicas eticas com sua equipe de desenvolvimento?", Set.of(ARQUITETOSOFTWARE), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce esta comprometido em seguir as politicas eticas estabelecidas e em desenvolver o software de maneira etica?", Set.of(ARQUITETOSOFTWARE), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce esta disposto a reportar possiveis problemas eticos identificados durante o desenvolvimento do software?", Set.of(ARQUITETOSOFTWARE), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce esta trabalhando com a equipe de desenvolvimento para garantir que as questoes de usabilidade e acessibilidade sejam consideradas durante o design do software?", Set.of(ARQUITETOSOFTWARE, DESIGNER), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce entendeu as politicas eticas estabelecidas pelo administrador?", Set.of(DESENVOLVEDOR), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce entendeu os objetivos do software?", Set.of(DESENVOLVEDOR), STAGE_INICIACAO, stgs));
-        qs.add(q("Orientacoes claras sobre como lidar com possiveis conflitos eticos foram fornecidas?", Set.of(DESENVOLVEDOR), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce tem as habilidades tecnicas e o conhecimento adequado para implementar o software de maneira etica?", Set.of(DESENVOLVEDOR), STAGE_INICIACAO, stgs));
-        qs.add(q("O codigo fonte do software esta livre de quaisquer tipos de vies ou discriminacao?", Set.of(DESENVOLVEDOR), STAGE_INICIACAO, stgs));
-        qs.add(q("As possiveis implicacoes eticas do software na seguranca e privacidade dos usuarios foram consideradas?", Set.of(DESENVOLVEDOR), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce esta comprometido em seguir as politicas eticas estabelecidas e em desenvolver o software de maneira etica?", Set.of(DESENVOLVEDOR), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce esta disposto a reportar possiveis problemas eticos identificados durante o desenvolvimento do software?", Set.of(DESENVOLVEDOR), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce entendeu as politicas eticas estabelecidas pelo administrador?", Set.of(ANALISTAQUALIDADE), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce entendeu os objetivos eticos do software?", Set.of(ANALISTAQUALIDADE), STAGE_INICIACAO, stgs));
-        qs.add(q("Foram fornecidas orientacoes claras sobre como lidar com possiveis conflitos eticos durante o processo de desenvolvimento?", Set.of(ANALISTAQUALIDADE), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce tem as habilidades tecnicas e o conhecimento adequado para avaliar se o software esta sendo desenvolvido de maneira etica?", Set.of(ANALISTAQUALIDADE), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce esta ciente das possiveis implicacoes eticas do software na seguranca e privacidade dos usuarios?", Set.of(ANALISTAQUALIDADE), STAGE_INICIACAO, stgs));
-        qs.add(q("O plano de qualidade inclui criterios eticos para avaliar o software?", Set.of(ANALISTAQUALIDADE), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce esta disposto a reportar possiveis problemas eticos identificados durante o desenvolvimento do software?", Set.of(ANALISTAQUALIDADE), STAGE_INICIACAO, stgs));
-        qs.add(q("Voce esta comprometido em garantir que o software seja desenvolvido de maneira etica?", Set.of(ANALISTAQUALIDADE), STAGE_INICIACAO, stgs));
-        qs.add(q("Existem criterios para aprovacao de iniciacao de produto, que devem ser particularmente exigentes para areas nas quais a organizacao ou desenvolvedor nao e especialista?", Set.of(ANALISTAQUALIDADE), STAGE_INICIACAO, stgs));
-        qs.add(q("Foi determinado quem aprova a flexibilidade orcamentaria para o gerenciamento projeto?", Set.of(ANALISTAQUALIDADE), STAGE_INICIACAO, stgs));
-        qs.add(q("Os riscos eticos do projeto foram documentados e comunicados a todos os envolvidos?", Set.of(GERENTEPROJETO, ANALISTAQUALIDADE, RESPONSAVELNEGOCIO), STAGE_INICIACAO, stgs));
-        qs.add(q("Existe um canal definido para reportar preocupacoes eticas de forma anonima e segura?", Set.of(GERENTEPROJETO, LIDEREQUIPE, SUPORTE), STAGE_INICIACAO, stgs));
-        qs.add(q("Os valores eticos do projeto estao explicitamente documentados e acessiveis a todos?", Set.of(GERENTEPROJETO, LIDEREQUIPE, CLIENTE), STAGE_INICIACAO, stgs));
-        qs.add(q("O projeto declarou se utiliza desenvolvimento assistido por IA e em quais atividades esse apoio sera empregado?", Set.of(GERENTEPROJETO, RESPONSAVELNEGOCIO, CLIENTE), STAGE_INICIACAO, stgs));
-        qs.add(q("Foram definidas diretrizes sobre quais dados, credenciais ou informacoes internas nao podem ser enviados para ferramentas externas de IA?", Set.of(GERENTEPROJETO, LIDEREQUIPE, ARQUITETOSOFTWARE, DESENVOLVEDOR), STAGE_INICIACAO, stgs));
-        qs.add(q("Foi definido quem realiza a revisao humana e a aprovacao final de artefatos produzidos com apoio de IA antes do uso no projeto?", Set.of(GERENTEPROJETO, LIDEREQUIPE, ANALISTAQUALIDADE), STAGE_INICIACAO, stgs));
-        classify(qs, QuestionClassificationEnum.ROTATIVA);
+        qs.addAll(governance);
+        qs.addAll(recurring);
         return qs;
     }
 
@@ -505,7 +522,7 @@ public class BaseQuestionnaireTemplateInitializer {
         qs.add(q("Requisitos, historias ou criterios de aceite sugeridos por IA sao identificados e revisados por um responsavel humano antes da aprovacao?", Set.of(ANALISTAREQUISITOS, GERENTEPROJETO, CLIENTE), STAGE_REQUISITOS, stgs));
         qs.add(q("As sugestoes de IA usadas na etapa de requisitos foram avaliadas quanto a vieses, ambiguidades e impactos eticos antes de entrar no escopo?", Set.of(ANALISTAREQUISITOS, ANALISTAQUALIDADE, STAKEHOLDER), STAGE_REQUISITOS, stgs));
         qs.add(q("Ha rastreabilidade entre o artefato de requisitos produzido com apoio de IA e a decisao final aprovada pela equipe?", Set.of(ANALISTAREQUISITOS, GERENTEPROJETO, LIDEREQUIPE), STAGE_REQUISITOS, stgs));
-        classify(qs, QuestionClassificationEnum.ROTATIVA);
+        classify(qs, QuestionClassificationEnum.RECURRING);
         return qs;
     }
 
@@ -573,7 +590,7 @@ public class BaseQuestionnaireTemplateInitializer {
         qs.add(q("Existe rastreabilidade entre decisoes de projeto e requisitos eticos documentados?", Set.of(ANALISTAQUALIDADE, ANALISTAREQUISITOS), STAGE_PROJETO, stgs));
         qs.add(q("Decisoes arquiteturais ou de design sugeridas por IA foram justificadas e revisadas antes da adocao no projeto?", Set.of(ARQUITETOSOFTWARE, DESIGNER, GERENTEPROJETO), STAGE_PROJETO, stgs));
         qs.add(q("O uso de IA em arquitetura ou design respeita restricoes de seguranca, licenciamento e confidencialidade definidas para o projeto?", Set.of(ARQUITETOSOFTWARE, GERENTEPROJETO, RESPONSAVELNEGOCIO), STAGE_PROJETO, stgs));
-        classify(qs, QuestionClassificationEnum.ROTATIVA);
+        classify(qs, QuestionClassificationEnum.RECURRING);
         return qs;
     }
 
@@ -634,7 +651,7 @@ public class BaseQuestionnaireTemplateInitializer {
         qs.add(q("Codigo gerado com apoio de IA e identificado para revisao humana antes de merge, entrega ou publicacao?", Set.of(DESENVOLVEDOR, LIDEREQUIPE, ANALISTAQUALIDADE), STAGE_DESENVOLVIMENTO, stgs));
         qs.add(q("Sugestoes de IA para codigo foram verificadas quanto a licenciamento, seguranca e aderencia aos padroes tecnicos do projeto?", Set.of(DESENVOLVEDOR, ANALISTAQUALIDADE, ARQUITETOSOFTWARE), STAGE_DESENVOLVIMENTO, stgs));
         qs.add(q("Credenciais, dados pessoais ou informacoes internas foram excluidos de prompts enviados a ferramentas de IA durante o desenvolvimento?", Set.of(DESENVOLVEDOR, GERENTEPROJETO, ARQUITETOSOFTWARE), STAGE_DESENVOLVIMENTO, stgs));
-        classify(qs, QuestionClassificationEnum.ROTATIVA);
+        classify(qs, QuestionClassificationEnum.RECURRING);
         return qs;
     }
 
@@ -696,23 +713,23 @@ public class BaseQuestionnaireTemplateInitializer {
         qs.add(q("Artefatos de teste gerados com apoio de IA foram revisados e validados antes do uso na verificacao do software?", Set.of(ANALISTAQUALIDADE, DESENVOLVEDOR), STAGE_TESTES, stgs));
         qs.add(q("Codigo, documentacao ou cenarios produzidos com IA foram submetidos aos mesmos testes e criterios de aceite aplicados ao restante do software?", Set.of(ANALISTAQUALIDADE, DESENVOLVEDOR, GERENTEPROJETO), STAGE_TESTES, stgs));
         qs.add(q("Falhas, alucinacoes ou sugestoes inseguras geradas por IA foram registradas para prevencao em ciclos futuros?", Set.of(ANALISTAQUALIDADE, LIDEREQUIPE, SUPORTE), STAGE_TESTES, stgs));
-        classify(qs, QuestionClassificationEnum.ROTATIVA);
+        classify(qs, QuestionClassificationEnum.RECURRING);
         return qs;
     }
 
     private TemplateQuestionnaireDTO cascataQuestionnaire(String stageName, int weight, List<TemplateQuestionDTO> questions) {
         TemplateQuestionnaireDTO q = new TemplateQuestionnaireDTO();
         q.setName(stageName);
-        q.setWeight(weight);
+        q.setWeight(BigDecimal.valueOf(weight));
         q.setStageName(stageName);
         q.setQuestions(questions);
         return q;
     }
 
-    private TemplateQuestionnaireDTO iterativeQuestionnaire(String name, int weight, String iterationRefName, List<TemplateQuestionDTO> questions) {
+    private TemplateQuestionnaireDTO iterativeQuestionnaire(String name, double weight, String iterationRefName, List<TemplateQuestionDTO> questions) {
         TemplateQuestionnaireDTO q = new TemplateQuestionnaireDTO();
         q.setName(name);
-        q.setWeight(weight);
+        q.setWeight(BigDecimal.valueOf(weight));
         q.setIterationRefName(iterationRefName);
         q.setQuestions(questions);
         return q;
@@ -738,7 +755,6 @@ public class BaseQuestionnaireTemplateInitializer {
         q.setValue(value);
         q.setStageName(stageName);
         q.setStages(stages);
-        q.setType(QuestionTypeEnum.BASE);
         q.setRoles(roleIds.stream().map(this::role).collect(java.util.stream.Collectors.toSet()));
         return q;
     }
