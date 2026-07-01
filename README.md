@@ -4,7 +4,6 @@
  
 Trabalho de Conclusão de Curso — Engenharia de Software  
 Autor: Yves Silva  
-Repositório: [github.com/yvesls/ethicalsoft-compliance](https://github.com/yvesls/ethicalsoft-compliance)
  
 ---
  
