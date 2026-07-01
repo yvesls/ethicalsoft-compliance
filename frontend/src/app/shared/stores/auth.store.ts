@@ -59,7 +59,7 @@ export class AuthStore extends BaseStore {
 		return this.requestService.makePost(this.getUrl('accept-terms'), { data: { email } })
 	}
 
-	extendSession(refreshToken: AuthRefreshTokenInterface): Observable<{ newExpirationTime: number }> {
+	extendSession(refreshToken: AuthRefreshTokenInterface): Observable<{ newExpirationTime: number; accessToken: string }> {
 		return this.requestService.makePost(this.getUrl('extend-session'), { data: refreshToken })
 	}
 }

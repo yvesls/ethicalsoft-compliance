@@ -11,4 +11,5 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ExtendSessionResponseDTO {
     private Long newExpirationTime;
+    private String accessToken;
 }
