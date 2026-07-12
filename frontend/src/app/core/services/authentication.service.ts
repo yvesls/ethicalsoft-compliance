@@ -120,7 +120,11 @@ export class AuthenticationService {
 			},
 			error: (error: unknown) => {
 				LoggerService.error('AuthenticationService: Error during login', error)
-				this.notificationService.showError(error)
+				const status = (error as { status?: number })?.status
+				const msg = status === 401
+					? this.translate.instant('auth.errors.invalid_credentials')
+					: undefined
+				msg ? this.notificationService.showError(msg) : this.notificationService.showError(error)
 			},
 		})
 	}
@@ -208,11 +212,21 @@ export class AuthenticationService {
 		LoggerService.info('AuthenticationService: Iniciando extensão de sessão.')
 
 		 this.authStore.extendSession({ refreshToken }).subscribe({
-        next: (response: { newExpirationTime: number }) => {
+        next: (response: { newExpirationTime: number; accessToken: string }) => {
             LoggerService.info('AuthenticationService: Sessão estendida.');
 
+            if (this._authToken && response.accessToken) {
+                this._authToken = { ...this._authToken, accessToken: response.accessToken };
+                const keepSession = localStorage.getItem(this.KEEP_SESSION_KEY) === 'true';
+                if (keepSession) {
+                    this.storageService.setAuthToken(response.accessToken);
+                } else {
+                    sessionStorage.setItem('auth_token_session', response.accessToken);
+                }
+            }
+
             if (this._user) {
-                this._user.exp = response.newExpirationTime / 1000;
+                this._user = this.decodeUser(response.accessToken);
             }
 
             this.startSessionMonitor();

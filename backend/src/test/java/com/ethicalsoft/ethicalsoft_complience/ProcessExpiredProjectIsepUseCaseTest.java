@@ -66,12 +66,12 @@ class ProcessExpiredProjectIsepUseCaseTest {
         q1 = new Questionnaire();
         q1.setId(10);
         q1.setName("Sprint 1");
-        q1.setWeight(1);
+        q1.setWeight(BigDecimal.ONE);
 
         q2 = new Questionnaire();
         q2.setId(11);
         q2.setName("Sprint 2");
-        q2.setWeight(2);
+        q2.setWeight(BigDecimal.valueOf(2));
 
         project = new Project();
         project.setId(100L);

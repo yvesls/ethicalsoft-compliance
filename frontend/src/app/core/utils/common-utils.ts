@@ -24,8 +24,6 @@ export function dateParserSend(_key: string, value: unknown): unknown {
 
 		if (ISO_DATE_TIME_REGEX.test(value)) {
 			return format(parseISO(value), "yyyy-MM-dd'T'HH:mm:ss")
-		} else {
-			LoggerService.warn(`dateParserSend: Invalid date format detected for value: ${value}`)
 		}
 	}
 

@@ -101,9 +101,12 @@ public class AuthCommandAdapter implements AuthCommandPort {
     @Override
     public ExtendSessionResponseDTO extendSession(ExtendSessionDTO extendSessionDTO) {
         log.info("[extend-session] Estendendo sessão do usuário");
+        String email = refreshTokenPort.validateRefreshToken(new RefreshTokenDTO(extendSessionDTO.getRefreshToken()));
+        var user = (User) authService.loadUserByUsername(email);
+        String newAccessToken = tokenService.generateToken(user);
         Long newExpirationTime = refreshTokenPort.extendRefreshTokenExpiry(extendSessionDTO.getRefreshToken());
         log.info("[extend-session] Sessão estendida. Nova hora de expiração: {}", newExpirationTime);
-        return new ExtendSessionResponseDTO(newExpirationTime);
+        return new ExtendSessionResponseDTO(newExpirationTime, newAccessToken);
     }
 
     private GoogleIdToken.Payload verifyGoogleToken(String idToken) {

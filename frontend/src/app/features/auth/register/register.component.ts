@@ -134,7 +134,11 @@ export class RegisterComponent extends BasePageComponent<RegisterRouteParams> im
 				this.routerService.navigateTo('login')
 			},
 			error: (error: unknown) => {
-				this.notificationService.showError(error)
+				const status = (error as { status?: number })?.status
+				const msg = status === 400
+					? this.translate.instant('auth.errors.email_already_registered')
+					: this.translate.instant('errors.unknown')
+				this.notificationService.showError(msg)
 			},
 		})
 	}

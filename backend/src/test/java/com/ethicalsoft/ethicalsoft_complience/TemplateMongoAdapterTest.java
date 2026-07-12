@@ -77,7 +77,7 @@ class TemplateMongoAdapterTest {
 
         Questionnaire questionnaire = new Questionnaire();
         questionnaire.setName("Questionario de Requisitos");
-        questionnaire.setWeight(7);
+        questionnaire.setWeight(BigDecimal.valueOf(7));
         questionnaire.setStage(stage);
         questionnaire.setApplicationStartDate(LocalDate.of(2025, Month.JANUARY, 11));
         questionnaire.setApplicationEndDate(LocalDate.of(2025, Month.JANUARY, 18));
@@ -112,7 +112,7 @@ class TemplateMongoAdapterTest {
         });
         assertThat(saved.getQuestionnaires()).singleElement().satisfies(savedQuestionnaire -> {
             assertThat(savedQuestionnaire.getName()).isEqualTo("Questionario de Requisitos");
-            assertThat(savedQuestionnaire.getWeight()).isEqualTo(7);
+            assertThat(savedQuestionnaire.getWeight()).isEqualByComparingTo(BigDecimal.valueOf(7));
             assertThat(savedQuestionnaire.getStageName()).isEqualTo("Requisitos");
             assertThat(savedQuestionnaire.getApplicationStartDate()).isEqualTo(LocalDate.of(2025, Month.JANUARY, 11));
             assertThat(savedQuestionnaire.getApplicationEndDate()).isEqualTo(LocalDate.of(2025, Month.JANUARY, 18));
@@ -139,7 +139,7 @@ class TemplateMongoAdapterTest {
 
         Questionnaire questionnaire = new Questionnaire();
         questionnaire.setName("Questionario Sprint 2");
-        questionnaire.setWeight(5);
+        questionnaire.setWeight(BigDecimal.valueOf(5));
         questionnaire.setIterationRef(iteration);
         questionnaire.setApplicationStartDate(LocalDate.of(2025, Month.FEBRUARY, 2));
         questionnaire.setApplicationEndDate(LocalDate.of(2025, Month.FEBRUARY, 10));
@@ -170,7 +170,7 @@ class TemplateMongoAdapterTest {
             assertThat(savedIteration.getApplicationEndDate()).isEqualTo(LocalDate.of(2025, Month.FEBRUARY, 14));
         });
         assertThat(saved.getQuestionnaires()).singleElement().satisfies(savedQuestionnaire -> {
-            assertThat(savedQuestionnaire.getWeight()).isEqualTo(5);
+            assertThat(savedQuestionnaire.getWeight()).isEqualByComparingTo(BigDecimal.valueOf(5));
             assertThat(savedQuestionnaire.getIterationRefName()).isEqualTo("Sprint 2");
         });
         assertThat(saved.getRepresentatives()).singleElement().satisfies(savedRepresentative -> {
