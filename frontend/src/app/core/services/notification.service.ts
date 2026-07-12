@@ -62,7 +62,7 @@ export class NotificationService {
 			const message = error.message?.trim()
 			const status = error.status ?? 0
 			const fallback = this.getHttpErrorMessage(status)
-			return `**${this.translate.instant('notification.error')} ${status}** - ${error.errorType ?? 'ERROR'}: ${message || fallback}`
+			return `${error.errorType ?? 'ERROR'}: ${message || fallback}`
 		}
 
 		LoggerService.error('NotificationService: Unknown error type received', error)

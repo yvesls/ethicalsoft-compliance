@@ -122,9 +122,9 @@
       "title": "Termos e Políticas"
     },
     "errors": {
-      "invalid_credentials": "E-mail ou senha incorretos.",
+      "invalid_credentials": "E-mail ou senha inválidos.",
       "passwords_do_not_match": "As senhas não coincidem.",
-      "email_already_registered": "E-mail já cadastrado.",
+      "email_already_registered": "Não foi possível concluir o cadastro. Já existe uma conta associada a este e-mail.",
       "weak_password": "A senha não atende aos critérios mínimos de segurança.",
       "invalid_code": "Código inválido. Reenvie o código ou informe outro e-mail.",
       "unauthenticated": "É necessário estar autenticado para realizar esta ação."

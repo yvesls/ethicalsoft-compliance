@@ -10,7 +10,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByEmail(String email);
 
-    @Query("select u from User u left join fetch u.representatives r left join fetch r.roles where u.email = :email")
+    @Query("select distinct u from User u left join fetch u.representatives r left join fetch r.roles where u.email = :email")
     Optional<User> findWithRepresentativesByEmail(String email);
 
     @Query("select distinct u from User u left join fetch u.projects where u.email = :email")

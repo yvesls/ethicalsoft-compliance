@@ -122,9 +122,9 @@
       "title": "Terms and Policies"
     },
     "errors": {
-      "invalid_credentials": "Invalid email or password.",
+      "invalid_credentials": "Invalid email or password. Please try again.",
       "passwords_do_not_match": "Passwords do not match.",
-      "email_already_registered": "Email already registered.",
+      "email_already_registered": "Unable to complete registration. An account with this email already exists.",
       "weak_password": "Password does not meet the minimum security criteria.",
       "invalid_code": "Invalid code. Resend the code or provide a different email.",
       "unauthenticated": "Authentication is required to perform this action."

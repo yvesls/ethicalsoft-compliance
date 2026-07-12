@@ -3,12 +3,17 @@ import { firstValueFrom } from 'rxjs'
 import { RequestService } from './request.service'
 import { RequestInputOptions } from '../interfaces/request-input-options.interface'
 import { NotificationResponse, NotificationStatus } from '../../shared/interfaces/notification/notification.interface'
+import { environment } from '../../enviroments/environments'
 
 const BASE_URL = 'api/notifications'
 
 @Injectable({ providedIn: 'root' })
 export class InternalNotificationService {
 	private readonly request = inject(RequestService)
+
+	constructor() {
+		this.request.apiUrl = environment.apiBaseUrl
+	}
 
 	list(): Promise<NotificationResponse[]> {
 		const options: RequestInputOptions = { useAuth: true }

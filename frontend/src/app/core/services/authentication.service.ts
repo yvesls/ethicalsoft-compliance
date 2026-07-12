@@ -120,7 +120,11 @@ export class AuthenticationService {
 			},
 			error: (error: unknown) => {
 				LoggerService.error('AuthenticationService: Error during login', error)
-				this.notificationService.showError(error)
+				const status = (error as { status?: number })?.status
+				const msg = status === 401
+					? this.translate.instant('auth.errors.invalid_credentials')
+					: undefined
+				msg ? this.notificationService.showError(msg) : this.notificationService.showError(error)
 			},
 		})
 	}
