@@ -54,17 +54,21 @@ export class QuestionModalComponent implements OnInit {
 	@Input() stageConfig?: QuestionStageConfig
 	@Input() allowedRoleIds?: number[]
 	@Input() textReadOnly = false
+	@Input() allowWholeProjectClassification = true
 	@Output() questionCreated = new EventEmitter<QuestionData>()
 	@Output() questionUpdated = new EventEmitter<QuestionData>()
 
 	readonly QuestionClassificationType = QuestionClassificationType
 
-	readonly classificationOptions: { value: QuestionClassificationType | null; labelKey: string }[] = [
+	private readonly allClassificationOptions: { value: QuestionClassificationType | null; labelKey: string }[] = [
 		{ value: null, labelKey: 'questionnaire.question_modal.classification_none' },
 		{ value: QuestionClassificationType.WholeProject, labelKey: 'questionnaire.question_modal.classification_whole_project' },
 		{ value: QuestionClassificationType.Recurring, labelKey: 'questionnaire.question_modal.classification_recurring' },
 		{ value: QuestionClassificationType.CurrentStage, labelKey: 'questionnaire.question_modal.classification_current_stage' },
 	]
+
+	classificationOptions: { value: QuestionClassificationType | null; labelKey: string }[] =
+		this.allClassificationOptions
 
 	private modalService = inject(ModalService)
 	private fb = inject(FormBuilder)
@@ -91,6 +95,7 @@ export class QuestionModalComponent implements OnInit {
 	ngOnInit(): void {
 		this.configureStageSelector()
 		this.loadRoleOptions()
+		this.configureClassificationOptions()
 
 		if (this.editData && this.mode === ActionType.EDIT) {
 			this.actionType = ActionType.EDIT
@@ -231,6 +236,15 @@ export class QuestionModalComponent implements OnInit {
 		}
 
 		return roleIds.map((id) => this.rolesLookup.get(Number(id))).filter(Boolean) as string[]
+	}
+
+	private configureClassificationOptions(): void {
+		const canSelectWholeProject =
+			this.allowWholeProjectClassification || this.editData?.classification === QuestionClassificationType.WholeProject
+
+		this.classificationOptions = canSelectWholeProject
+			? this.allClassificationOptions
+			: this.allClassificationOptions.filter((option) => option.value !== QuestionClassificationType.WholeProject)
 	}
 
 	private configureStageSelector(): void {

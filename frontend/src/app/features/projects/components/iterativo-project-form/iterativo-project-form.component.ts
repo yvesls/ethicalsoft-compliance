@@ -1295,7 +1295,7 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
   }
 
   private buildQuestionnairePayload(): QuestionnairePayload[] {
-    return this.questionnairesFormArray.controls
+    const questionnaires = this.questionnairesFormArray.controls
       .map((control, index) => {
         const questions = control.get('questions')?.value as QuestionData[] | undefined
         const iterationName = control.get('iteration')?.value || control.get('name')?.value
@@ -1314,6 +1314,42 @@ export class IterativoProjectFormComponent extends BasePageComponent<IterativoPr
         }
       })
       .filter((questionnaire) => Boolean(questionnaire.name))
+
+    return this.propagateRecurringQuestions(questionnaires)
+  }
+
+  private propagateRecurringQuestions(questionnaires: QuestionnairePayload[]): QuestionnairePayload[] {
+    const recurringByValue = new Map<string, QuestionPayload>()
+    for (const questionnaire of questionnaires) {
+      for (const question of questionnaire.questions ?? []) {
+        if (
+          question.classification === QuestionClassificationType.Recurring &&
+          !recurringByValue.has(question.value)
+        ) {
+          recurringByValue.set(question.value, question)
+        }
+      }
+    }
+
+    if (!recurringByValue.size) {
+      return questionnaires
+    }
+
+    return questionnaires.map((questionnaire) => {
+      const existingValues = new Set((questionnaire.questions ?? []).map((question) => question.value))
+      const missingRecurring = Array.from(recurringByValue.values()).filter(
+        (question) => !existingValues.has(question.value)
+      )
+
+      if (!missingRecurring.length) {
+        return questionnaire
+      }
+
+      return {
+        ...questionnaire,
+        questions: [...(questionnaire.questions ?? []), ...missingRecurring],
+      }
+    })
   }
 
   private buildRepresentativePayload(): RepresentativePayload[] {
