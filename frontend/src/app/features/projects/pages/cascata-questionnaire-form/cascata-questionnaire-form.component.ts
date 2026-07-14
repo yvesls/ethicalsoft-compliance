@@ -404,6 +404,7 @@ export class CascataQuestionnaireFormComponent
 		this.modalService.open(QuestionModalComponent, 'medium-card', {
 			mode: ActionType.CREATE,
 			allowedRoleIds: this.allowedRoleIds.length ? this.allowedRoleIds : undefined,
+			allowWholeProjectClassification: this.isFirstQuestionnaire(),
 		})
 
 		const modalInstance = this.modalService.getActiveInstance<QuestionModalComponent>()
@@ -427,6 +428,10 @@ export class CascataQuestionnaireFormComponent
 		return question.classification === QuestionClassificationType.WholeProject
 	}
 
+	private isFirstQuestionnaire(): boolean {
+		return this.questionnaireIndex === 0
+	}
+
 	openEditQuestionModal(question: QuestionData): void {
 		if (this.isViewMode()) {
 			return
@@ -436,6 +441,7 @@ export class CascataQuestionnaireFormComponent
 			editData: question,
 			allowedRoleIds: this.allowedRoleIds.length ? this.allowedRoleIds : undefined,
 			textReadOnly: this.isBaseQuestion(question),
+			allowWholeProjectClassification: this.isFirstQuestionnaire(),
 		})
 
 		const modalInstance = this.modalService.getActiveInstance<QuestionModalComponent>()

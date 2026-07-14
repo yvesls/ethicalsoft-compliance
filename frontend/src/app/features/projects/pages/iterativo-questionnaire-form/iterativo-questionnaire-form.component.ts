@@ -429,6 +429,7 @@ export class IterativoQuestionnaireFormComponent
 			mode: ActionType.CREATE,
 			stageConfig: this.stageSelectionConfig,
 			allowedRoleIds: this.allowedRoleIds.length ? this.allowedRoleIds : undefined,
+			allowWholeProjectClassification: this.isFirstQuestionnaire(),
 		})
 
 		const modalInstance = this.modalService.getActiveInstance<QuestionModalComponent>()
@@ -453,6 +454,10 @@ export class IterativoQuestionnaireFormComponent
 		return question.classification === QuestionClassificationType.WholeProject
 	}
 
+	private isFirstQuestionnaire(): boolean {
+		return this.questionnaireIndex === 0
+	}
+
 	openEditQuestionModal(question: QuestionData): void {
 		if (this.isViewMode()) {
 			return
@@ -463,6 +468,7 @@ export class IterativoQuestionnaireFormComponent
 			stageConfig: this.stageSelectionConfig,
 			allowedRoleIds: this.allowedRoleIds.length ? this.allowedRoleIds : undefined,
 			textReadOnly: this.isBaseQuestion(question),
+			allowWholeProjectClassification: this.isFirstQuestionnaire(),
 		})
 
 		const modalInstance = this.modalService.getActiveInstance<QuestionModalComponent>()

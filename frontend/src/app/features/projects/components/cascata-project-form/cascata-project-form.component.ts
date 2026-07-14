@@ -1550,7 +1550,7 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
 	}
 
 	private buildQuestionnairePayload(): QuestionnairePayload[] {
-		return this.questionnairesFormArray.controls
+		const questionnaires = this.questionnairesFormArray.controls
 			.map((control, index) => {
 				const questions = control.get('questions')?.value as QuestionData[] | undefined
 				const stageName = control.get('stageName')?.value || control.get('name')?.value
@@ -1567,6 +1567,55 @@ export class CascataProjectFormComponent extends BasePageComponent<CascataProjec
 			})
 			.filter((questionnaire) => Boolean(questionnaire.name))
 			.sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0))
+
+		return this.propagateRecurringQuestions(questionnaires)
+	}
+
+	private propagateRecurringQuestions(questionnaires: QuestionnairePayload[]): QuestionnairePayload[] {
+		const recurringByValue = new Map<string, QuestionPayload>()
+		for (const questionnaire of questionnaires) {
+			for (const question of questionnaire.questions ?? []) {
+				if (
+					question.classification === QuestionClassificationType.Recurring &&
+					!recurringByValue.has(question.value)
+				) {
+					recurringByValue.set(question.value, question)
+				}
+			}
+		}
+
+		if (!recurringByValue.size) {
+			return questionnaires
+		}
+
+		return questionnaires.map((questionnaire) => {
+			const existingValues = new Set((questionnaire.questions ?? []).map((question) => question.value))
+			const missingRecurring = Array.from(recurringByValue.values())
+				.filter((question) => !existingValues.has(question.value))
+				.map((question) => this.adaptRecurringQuestionToQuestionnaire(question, questionnaire))
+
+			if (!missingRecurring.length) {
+				return questionnaire
+			}
+
+			return {
+				...questionnaire,
+				questions: [...(questionnaire.questions ?? []), ...missingRecurring],
+			}
+		})
+	}
+
+	private adaptRecurringQuestionToQuestionnaire(
+		question: QuestionPayload,
+		questionnaire: QuestionnairePayload
+	): QuestionPayload {
+		const stageName = questionnaire.stageName ?? undefined
+		return {
+			...question,
+			stageNames: stageName ? [stageName] : question.stageNames,
+			stageName: stageName ?? question.stageName ?? null,
+			categoryStageName: stageName ?? question.categoryStageName ?? null,
+		}
 	}
 
 	private getStageWeightByName(stageName?: string | null): number {
