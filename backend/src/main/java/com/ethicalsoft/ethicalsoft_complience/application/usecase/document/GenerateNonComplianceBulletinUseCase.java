@@ -23,7 +23,6 @@ import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
 import com.ethicalsoft.ethicalsoft_complience.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,8 +38,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GenerateNonComplianceBulletinUseCase {
 
-    @Lazy
-    private final GenerateNonComplianceBulletinUseCase self;
     private final GetQuestionnaireDashboardUseCase getQuestionnaireDashboardUseCase;
     private final ProjectRepository projectRepository;
     private final QuestionnaireRepository questionnaireRepository;
@@ -87,7 +84,7 @@ public class GenerateNonComplianceBulletinUseCase {
 
     @Transactional(readOnly = true)
     public BulletinMetadata prepareMetadata(Long projectId, Integer questionnaireId) {
-        return self.prepareMetadata(projectId, questionnaireId, null);
+        return prepareMetadata(projectId, questionnaireId, null);
     }
 
     @Transactional(readOnly = true)

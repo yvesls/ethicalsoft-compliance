@@ -14,7 +14,6 @@ import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
 import com.ethicalsoft.ethicalsoft_complience.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,8 +31,6 @@ import java.util.Map;
 @Slf4j
 public class GenerateComplianceCertificateUseCase {
 
-    @Lazy
-    private final GenerateComplianceCertificateUseCase self;
     private final GetProjectIsepDashboardUseCase getProjectIsepDashboardUseCase;
     private final ProjectRepository projectRepository;
     private final PdfDocumentConfigRepository configRepository;
@@ -75,7 +72,7 @@ public class GenerateComplianceCertificateUseCase {
 
     @Transactional(readOnly = true)
     public CertificateMetadata prepareMetadata(Long projectId) {
-        return self.prepareMetadata(projectId, null);
+        return prepareMetadata(projectId, null);
     }
 
     @Transactional(readOnly = true)

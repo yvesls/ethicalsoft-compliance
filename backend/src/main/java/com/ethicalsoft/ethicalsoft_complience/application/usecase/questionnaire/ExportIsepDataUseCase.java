@@ -11,7 +11,6 @@ import com.ethicalsoft.ethicalsoft_complience.domain.isep.IsepMath;
 import com.ethicalsoft.ethicalsoft_complience.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,8 +23,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ExportIsepDataUseCase {
 
-    @Lazy
-    private final ExportIsepDataUseCase self;
     private final ProjectRepository projectRepository;
     private final QuestionnaireRepository questionnaireRepository;
     private final RepresentativeRepository representativeRepository;
@@ -134,7 +131,7 @@ public class ExportIsepDataUseCase {
         return results.stream()
                 .map(r -> {
                     try {
-                        return self.execute(projectId, r.getQuestionnaireId(), anonymize);
+                        return execute(projectId, r.getQuestionnaireId(), anonymize);
                     } catch (ResourceNotFoundException ex) {
                         log.warn("[isep-export] Questionário={} não encontrado durante exportação do projeto={}",
                                 r.getQuestionnaireId(), projectId);
