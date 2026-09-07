@@ -273,7 +273,7 @@ public class AiPromptBuilder {
         int limit = Math.min(s.getJustifications().size(), 50);
         for (int i = 0; i < limit; i++) {
             DashboardSnapshot.JustificationSnapshot j = s.getJustifications().get(i);
-            String resposta = j.getResponse() != null ? (j.getResponse() ? "SIM" : "NÃO") : "—";
+            String resposta = resolveResposta(j.getResponse());
             sb.append("| ").append(safe(j.getDomain()))
                     .append(" | ").append(truncate(safe(j.getQuestionText()), 60))
                     .append(" | ").append(resposta)
@@ -295,6 +295,13 @@ public class AiPromptBuilder {
 
     private String safe(Object value) {
         return value != null ? value.toString() : "N/D";
+    }
+
+    private String resolveResposta(Boolean response) {
+        if (response == null) {
+            return "—";
+        }
+        return response ? "SIM" : "NÃO";
     }
 
     private String truncate(String text, int maxLen) {

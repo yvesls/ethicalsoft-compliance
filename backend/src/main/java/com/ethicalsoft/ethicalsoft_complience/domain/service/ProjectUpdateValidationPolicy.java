@@ -77,7 +77,7 @@ public class ProjectUpdateValidationPolicy {
         }
 
         Set<Long> questionRoleIds = question.getRoles() != null
-                ? question.getRoles().stream().map(Role::getId).collect(Collectors.toSet())
+                ? question.getRoles().stream().map(role -> role.getId()).collect(Collectors.toSet())
                 : Set.of();
 
         if (responses != null) {
@@ -192,7 +192,7 @@ public class ProjectUpdateValidationPolicy {
         }
 
         Set<Long> questionRoleIds = question.getRoles() != null
-                ? question.getRoles().stream().map(Role::getId).collect(Collectors.toSet())
+                ? question.getRoles().stream().map(role -> role.getId()).collect(Collectors.toSet())
                 : Set.of();
 
         if (responses != null) {
@@ -215,8 +215,7 @@ public class ProjectUpdateValidationPolicy {
     }
 
     public List<String> validateDatesChange(Questionnaire questionnaire,
-                                            LocalDate newEndDate,
-                                            List<QuestionnaireResponse> responses) {
+                                            LocalDate newEndDate) {
         List<String> blocked = new ArrayList<>();
 
         if (questionnaire.getStatus() == TimelineStatusEnum.CONCLUIDO) {

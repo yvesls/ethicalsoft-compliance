@@ -22,7 +22,7 @@ public class RepresentativeAccessPolicy {
     private final CurrentUserPort currentUserPort;
 
     public Long resolveRepresentativeId(Long projectId) {
-        User authenticated = currentUserPort.getCurrentUser();
+        User authenticated = requireCurrentUser();
         if (UserRoleEnum.ADMIN.equals(authenticated.getRole()) || projectRepository.existsByIdAndOwnerId(projectId, authenticated.getId())) {
             return null;
         }
@@ -32,16 +32,21 @@ public class RepresentativeAccessPolicy {
     }
 
     public Long resolveRepresentativeIdForResponse(Long projectId) {
-        User authenticated = currentUserPort.getCurrentUser();
+        User authenticated = requireCurrentUser();
         return representativeRepository.findByUserIdAndProjectId(authenticated.getId(), projectId)
-                .map(Representative::getId)
+                .map(rep -> rep.getId())
                 .orElse(null);
     }
 
     public boolean isAdminOrOwner(Long projectId) {
-        User authenticated = currentUserPort.getCurrentUser();
+        User authenticated = requireCurrentUser();
         return UserRoleEnum.ADMIN.equals(authenticated.getRole())
                 || projectRepository.existsByIdAndOwnerId(projectId, authenticated.getId());
+    }
+
+    private User requireCurrentUser() {
+        return Objects.requireNonNull(currentUserPort.getCurrentUser(),
+                "Usuário autenticado não encontrado na sessão");
     }
 
     public void ensureRepresentativeBelongsToProject(Long representativeId, Project project) {

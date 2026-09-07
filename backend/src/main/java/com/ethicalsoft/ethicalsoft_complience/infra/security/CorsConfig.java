@@ -29,13 +29,6 @@ public class CorsConfig {
 		config.setAllowedHeaders( Arrays.asList(
 				"Authorization",
 				"Content-Type",
-				"X-Project-Id",
-				"Access-Control-Allow-Origin",
-				"Access-Control-Allow-Credentials"
-		) );
-		config.setAllowedHeaders( Arrays.asList(
-				"Authorization",
-				"Content-Type",
 				"X-Project-Id"
 		));
 		config.setAllowCredentials( true );

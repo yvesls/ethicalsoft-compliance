@@ -3,6 +3,7 @@ package com.ethicalsoft.ethicalsoft_complience.application.usecase.questionnaire
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.QuestionnaireResponse;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.repository.QuestionnaireResponseRepository;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Project;
+import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Questionnaire;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Representative;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.ProjectRepository;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.QuestionnaireRepository;
@@ -50,21 +51,25 @@ public class SubmitQuestionnaireResponseUseCase {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    try {
-                        boolean isepCalculated = processQuestionnaireIsepUseCase.processIfComplete(projectId, questionnaireId.intValue());
-                        if (isepCalculated) {
-                            processExpiredQuestionnairesIsepUseCase.notifyIsepCalculated(questionnaire, projectId, "Sistema (submissão automática)");
-                        }
-                    } catch (Exception ex) {
-                        log.warn("[usecase-submit-response] Cálculo ISEP pós-submissão falhou para questionário={}: {}",
-                                questionnaireId, ex.getMessage());
-                    }
+                    afterCommitProcessIsep(questionnaire, projectId, questionnaireId);
                 }
             });
 
         } catch (Exception ex) {
             log.error("[usecase-submit-response] Falha ao atualizar respostas", ex);
             throw ex;
+        }
+    }
+
+    private void afterCommitProcessIsep(Questionnaire questionnaire, Long projectId, Long questionnaireId) {
+        try {
+            boolean isepCalculated = processQuestionnaireIsepUseCase.processIfComplete(projectId, questionnaireId.intValue());
+            if (isepCalculated) {
+                processExpiredQuestionnairesIsepUseCase.notifyIsepCalculated(questionnaire, projectId, "Sistema (submissão automática)");
+            }
+        } catch (Exception ex) {
+            log.warn("[usecase-submit-response] Cálculo ISEP pós-submissão falhou para questionário={}: {}",
+                    questionnaireId, ex.getMessage());
         }
     }
 
@@ -79,11 +84,11 @@ public class SubmitQuestionnaireResponseUseCase {
     private void processResponses(Project project, Long questionnaireId, List<QuestionnaireResponse> responses) {
         Set<Representative> projectRepresentatives = Optional.ofNullable(project.getRepresentatives()).orElse(Set.of());
         Map<Long, Representative> representativesById = projectRepresentatives.stream()
-                .collect(Collectors.toMap(Representative::getId, rep -> rep));
+                .collect(Collectors.toMap(representative -> representative.getId(), rep -> rep));
 
         Map<Long, List<QuestionnaireResponse>> responsesByRepresentative = responses.stream()
                 .filter(response -> response.getRepresentativeId() != null)
-                .collect(Collectors.groupingBy(QuestionnaireResponse::getRepresentativeId));
+                .collect(Collectors.groupingBy(response -> response.getRepresentativeId()));
 
         for (Map.Entry<Long, List<QuestionnaireResponse>> entry : responsesByRepresentative.entrySet()) {
             Long representativeId = entry.getKey();

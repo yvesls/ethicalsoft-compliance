@@ -49,19 +49,19 @@ public class ExportIsepCsvUseCase {
         List<Representative> reps = representativeRepository.findByProjectId(projectId);
 
         Map<Long, Representative> repMap = reps.stream()
-                .collect(Collectors.toMap(Representative::getId, r -> r));
+                .collect(Collectors.toMap(rep -> rep.getId(), r -> r));
 
         List<String> stageNames = stages.stream()
-                .sorted(Comparator.comparing(Stage::getId))
-                .map(Stage::getName)
-                .collect(Collectors.toList());
+                .sorted(Comparator.comparing(stage -> stage.getId()))
+                .map(stage -> stage.getName())
+                .toList();
 
         StringBuilder csv = new StringBuilder();
         csv.append(buildHeader(stageNames));
 
         Map<Integer, Questionnaire> qMap = questionnaireRepository.findByProjectId(projectId)
                 .stream()
-                .collect(Collectors.toMap(Questionnaire::getId, q -> q));
+                .collect(Collectors.toMap(questionnaire -> questionnaire.getId(), q -> q));
 
         for (QuestionnaireResult result : results) {
             Questionnaire q = qMap.get(result.getQuestionnaireId());
@@ -72,9 +72,9 @@ public class ExportIsepCsvUseCase {
 
             Map<Long, Map<Integer, BigDecimal>> iemByRepByStage = result.getStageResults().stream()
                     .collect(Collectors.groupingBy(
-                            MemberStageComplianceResult::getRepresentativeId,
+                            m -> m.getRepresentativeId(),
                             Collectors.toMap(
-                                    MemberStageComplianceResult::getStageId,
+                                    m -> m.getStageId(),
                                     r -> r.getIem() != null ? r.getIem() : BigDecimal.ZERO
                             )
                     ));
@@ -107,7 +107,7 @@ public class ExportIsepCsvUseCase {
                 row.append(percentOrEmpty(result.getTechDebtScore()));
 
                 Map<Integer, BigDecimal> repIem = iemByRepByStage.getOrDefault(mcr.getRepresentativeId(), Map.of());
-                for (Stage stage : stages.stream().sorted(Comparator.comparing(Stage::getId)).toList()) {
+                for (Stage stage : stages.stream().sorted(Comparator.comparing(stage -> stage.getId())).toList()) {
                     row.append(DELIMITER);
                     BigDecimal iem = repIem.get(stage.getId());
                     row.append(iem != null ? IsepMath.toPercent(iem).toPlainString() : "");
@@ -137,20 +137,20 @@ public class ExportIsepCsvUseCase {
 
         List<Stage> stages = stageRepository.findByProjectId(projectId)
                 .stream()
-                .sorted(Comparator.comparing(Stage::getId))
+                .sorted(Comparator.comparing(stage -> stage.getId()))
                 .toList();
 
         List<Representative> reps = representativeRepository.findByProjectId(projectId);
         Map<Long, Representative> repMap = reps.stream()
-                .collect(Collectors.toMap(Representative::getId, r -> r));
+                .collect(Collectors.toMap(rep -> rep.getId(), r -> r));
 
-        List<String> stageNames = stages.stream().map(Stage::getName).toList();
+        List<String> stageNames = stages.stream().map(stage -> stage.getName()).toList();
 
         Map<Long, Map<Integer, BigDecimal>> iemByRepByStage = result.getStageResults().stream()
                 .collect(Collectors.groupingBy(
-                        MemberStageComplianceResult::getRepresentativeId,
+                        m -> m.getRepresentativeId(),
                         Collectors.toMap(
-                                MemberStageComplianceResult::getStageId,
+                                m -> m.getStageId(),
                                 r -> r.getIem() != null ? r.getIem() : BigDecimal.ZERO
                         )
                 ));

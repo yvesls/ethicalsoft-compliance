@@ -8,12 +8,11 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.User;
 import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
+import java.util.Objects;
 
 @Service
 @Slf4j
@@ -23,19 +22,20 @@ public class TokenService {
 	private String secret;
 
 	public String generateToken( User user ) {
+		Objects.requireNonNull( user, "user must not be null" );
 		try {
-			log.info("[token] Gerando token para usuário id={} email={}", user != null ? user.getId() : null, user != null ? user.getEmail() : null);
+			log.info("[token] Gerando token para usuário id={} email={}", user.getId(), user.getEmail());
 			var algorithm = Algorithm.HMAC256( secret );
 			Instant expiry = Instant.now().plus(30, ChronoUnit.MINUTES);
 			return JWT.create()
                     .withIssuer( "auth-api" )
-                    .withExpiresAt( Date.from(expiry))
+                    .withExpiresAt( expiry )
                     .withSubject( user.getUsername() )
                     .withClaim(
                             "roles",
                             user.getAuthorities()
                                     .stream()
-                                    .map( GrantedAuthority::getAuthority )
+                                    .map( authority -> authority.getAuthority() )
                                     .toList()
                     )
                     .withClaim( "email", user.getEmail() )
@@ -46,7 +46,7 @@ public class TokenService {
                     .sign( algorithm );
 
 		} catch ( JWTCreationException e ) {
-			log.error("[token] Erro ao gerar token para usuário {}", user != null ? user.getEmail() : null, e);
+			log.error("[token] Erro ao gerar token para usuário {}", user.getEmail(), e);
 			throw new BusinessException( "Error while generating token", e );
 		}
 	}

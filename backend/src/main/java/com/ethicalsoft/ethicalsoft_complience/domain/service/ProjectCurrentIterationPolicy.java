@@ -19,7 +19,7 @@ public class ProjectCurrentIterationPolicy {
 
         List<Iteration> sorted = iterations.stream()
                 .filter(it -> it.getApplicationStartDate() != null)
-                .sorted(Comparator.comparing(Iteration::getApplicationStartDate))
+                .sorted(Comparator.comparing(iteration -> iteration.getApplicationStartDate()))
                 .toList();
 
         for (int i = 0; i < sorted.size(); i++) {

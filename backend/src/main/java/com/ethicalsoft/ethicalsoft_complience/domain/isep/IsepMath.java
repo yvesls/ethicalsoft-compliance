@@ -20,11 +20,11 @@ public final class IsepMath {
 
         BigDecimal weightedSum = values.stream()
                 .map(v -> v.value().multiply(v.weight()))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .reduce(BigDecimal.ZERO, (accumulator, value) -> accumulator.add(value));
 
         BigDecimal totalWeight = values.stream()
-                .map(WeightedValue::weight)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .map(w -> w.weight())
+                .reduce(BigDecimal.ZERO, (accumulator, value) -> accumulator.add(value));
 
         if (totalWeight.compareTo(BigDecimal.ZERO) == 0) return BigDecimal.ZERO;
 
@@ -34,7 +34,7 @@ public final class IsepMath {
     public static BigDecimal simpleAverage(Collection<BigDecimal> values) {
         if (values == null || values.isEmpty()) return BigDecimal.ZERO;
 
-        BigDecimal sum = values.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal sum = values.stream().reduce(BigDecimal.ZERO, (accumulator, value) -> accumulator.add(value));
         return sum.divide(BigDecimal.valueOf(values.size()), SCALE, ROUNDING);
     }
 
@@ -44,7 +44,7 @@ public final class IsepMath {
         BigDecimal mean = simpleAverage(values);
         BigDecimal sumSquaredDiffs = values.stream()
                 .map(v -> v.subtract(mean).pow(2))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .reduce(BigDecimal.ZERO, (accumulator, value) -> accumulator.add(value));
 
         BigDecimal variance = sumSquaredDiffs.divide(BigDecimal.valueOf(values.size()), SCALE, ROUNDING);
         return variance.sqrt(new MathContext(SCALE, ROUNDING));

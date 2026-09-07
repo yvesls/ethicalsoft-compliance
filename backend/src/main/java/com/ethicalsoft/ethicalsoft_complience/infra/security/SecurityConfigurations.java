@@ -12,7 +12,6 @@ import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -33,7 +32,11 @@ public class SecurityConfigurations {
 	public SecurityFilterChain securityFilterChain( HttpSecurity httpSecurity ) throws Exception {
 		return httpSecurity.cors( cors ->
 						cors.configurationSource( corsConfigurationSource ) )
-				.csrf( AbstractHttpConfigurer::disable )
+				// CSRF desativado de forma intencional e segura: a API é stateless (SessionCreationPolicy.STATELESS)
+				// e autentica exclusivamente via header "Authorization: Bearer <JWT>" (ver SecurityFilter).
+				// Não há cookies/tokens de sessão enviados automaticamente pelo navegador, portanto a classe
+				// de ataques mitigada por CSRF não se aplica a este serviço.
+				.csrf( csrf -> csrf.disable() ) // NOSONAR: S4502 - sem estado de sessão nem cookies de autenticação
 				.sessionManagement( session ->
 						session.sessionCreationPolicy( SessionCreationPolicy.STATELESS ) )
 				.authorizeHttpRequests( auth ->

@@ -1,7 +1,6 @@
 package com.ethicalsoft.ethicalsoft_complience.adapters.out.notification;
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Project;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.User;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.ProjectRepository;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.UserRepository;
 import com.ethicalsoft.ethicalsoft_complience.application.port.auth.CurrentUserPort;
@@ -73,7 +72,7 @@ public class ProjectDeadlineReminderNotificationStrategy implements Notification
 
         recipients.forEach(to -> {
             List<String> recipientRoles = notificationRoleResolver.resolveRoles(to, projectId);
-            Long recipientUserId = userRepository.findByEmail(to).map(User::getId).orElse(null);
+            Long recipientUserId = userRepository.findByEmail(to).map(user -> user.getId()).orElse(null);
             channelSender.send(template, placeholders, builder -> builder
                     .senderUserId(currentUser != null ? currentUser.getId() : null)
                     .senderName(currentUser != null ? (currentUser.getFirstName() + " " + currentUser.getLastName()) : null)

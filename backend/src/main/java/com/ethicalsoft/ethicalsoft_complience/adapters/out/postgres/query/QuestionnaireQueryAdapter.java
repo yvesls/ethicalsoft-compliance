@@ -112,7 +112,7 @@ public class QuestionnaireQueryAdapter implements QuestionnaireQueryPort {
         return java.util.Optional.ofNullable(representative.getRoles())
                 .orElse(java.util.Collections.emptySet())
                 .stream()
-                .map(Role::getId)
+                .map(role -> role.getId())
                 .filter(java.util.Objects::nonNull)
                 .toList();
     }

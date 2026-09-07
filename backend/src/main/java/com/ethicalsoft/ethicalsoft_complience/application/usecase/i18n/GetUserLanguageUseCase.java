@@ -1,6 +1,5 @@
 package com.ethicalsoft.ethicalsoft_complience.application.usecase.i18n;
 
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.UserLanguagePreferenceDocument;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.repository.UserLanguagePreferenceRepository;
 import com.ethicalsoft.ethicalsoft_complience.domain.i18n.SupportedLanguage;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +13,7 @@ public class GetUserLanguageUseCase {
 
     public String execute(Long userId) {
         return repository.findByUserId(userId)
-                .map(UserLanguagePreferenceDocument::getLanguage)
+                .map(pref -> pref.getLanguage())
                 .map(SupportedLanguage::fromCodeOrDefault)
                 .orElse(SupportedLanguage.DEFAULT)
                 .code();

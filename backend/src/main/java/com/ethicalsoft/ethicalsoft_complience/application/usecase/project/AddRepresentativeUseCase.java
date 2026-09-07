@@ -15,7 +15,6 @@ import com.ethicalsoft.ethicalsoft_complience.domain.notification.NotificationTy
 import com.ethicalsoft.ethicalsoft_complience.domain.service.ProjectCurrentStagePolicy;
 import com.ethicalsoft.ethicalsoft_complience.domain.service.RoleMappingPolicy;
 import com.ethicalsoft.ethicalsoft_complience.domain.service.UserResolutionPolicy;
-import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

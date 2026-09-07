@@ -157,41 +157,41 @@ public class UpdateProjectUseCase {
         questionRepository.flush();
 
         Map<Integer, Stage> existingById = project.getStages() != null
-                ? project.getStages().stream().filter(s -> s.getId() != null).collect(Collectors.toMap(Stage::getId, Function.identity()))
+                ? project.getStages().stream().filter(s -> s.getId() != null).collect(Collectors.toMap(stage -> stage.getId(), Function.identity()))
                 : new HashMap<>();
 
         Set<Integer> requestIds = requestStages.stream()
-                .map(UpdateStageDTO::getId).filter(Objects::nonNull).collect(Collectors.toSet());
+                .map(dto -> dto.getId()).filter(Objects::nonNull).collect(Collectors.toSet());
 
         for (Stage existing : new ArrayList<>(existingById.values())) {
             if (!requestIds.contains(existing.getId())) {
                 List<Questionnaire> linkedQList = questionnaireRepository.findByStageId(existing.getId());
-                if (!linkedQList.isEmpty()) {
-                    List<String> linkedQNames = linkedQList.stream()
-                            .map(q -> "'" + q.getName() + "' (id=" + q.getId() + ")")
-                            .toList();
-                    blocked.add("Não é possível remover a etapa '" + existing.getName()
-                            + "' (id=" + existing.getId() + ") pois os seguintes questionários ainda estão vinculados: "
-                            + String.join(", ", linkedQNames)
-                            + ". Remova ou altere a etapa desses questionários antes de excluir esta etapa.");
-                    continue;
-                }
-
                 List<Object[]> linkedQuestionRows = questionRepository.findQuestionIdAndTextByStageIdNative(existing.getId());
-                if (!linkedQuestionRows.isEmpty()) {
-                    Set<String> questionnaireNames = linkedQuestionRows.stream()
-                            .map(row -> row[3] != null ? String.valueOf(row[3]) : "id=" + ((Number) row[2]).longValue())
-                            .collect(Collectors.toCollection(LinkedHashSet::new));
-                    blocked.add("Não é possível remover a etapa '" + existing.getName()
-                            + "' (id=" + existing.getId() + ") pois ainda existem "
-                            + linkedQuestionRows.size() + " perguntas vinculadas, distribuídas nos questionários: "
-                            + String.join(", ", questionnaireNames)
-                            + ". Remova ou desvincule a etapa dessas perguntas antes de excluir esta etapa.");
-                    continue;
-                }
 
-                stageRepository.deleteById(Long.valueOf(existing.getId()));
-                removed++;
+                if (linkedQList.isEmpty() && linkedQuestionRows.isEmpty()) {
+                    stageRepository.deleteById(Long.valueOf(existing.getId()));
+                    removed++;
+                } else {
+                    if (!linkedQList.isEmpty()) {
+                        List<String> linkedQNames = linkedQList.stream()
+                                .map(q -> "'" + q.getName() + "' (id=" + q.getId() + ")")
+                                .toList();
+                        blocked.add("Não é possível remover a etapa '" + existing.getName()
+                                + "' (id=" + existing.getId() + ") pois os seguintes questionários ainda estão vinculados: "
+                                + String.join(", ", linkedQNames)
+                                + ". Remova ou altere a etapa desses questionários antes de excluir esta etapa.");
+                    }
+                    if (!linkedQuestionRows.isEmpty()) {
+                        Set<String> questionnaireNames = linkedQuestionRows.stream()
+                                .map(row -> row[3] != null ? String.valueOf(row[3]) : "id=" + ((Number) row[2]).longValue())
+                                .collect(Collectors.toCollection(LinkedHashSet::new));
+                        blocked.add("Não é possível remover a etapa '" + existing.getName()
+                                + "' (id=" + existing.getId() + ") pois ainda existem "
+                                + linkedQuestionRows.size() + " perguntas vinculadas, distribuídas nos questionários: "
+                                + String.join(", ", questionnaireNames)
+                                + ". Remova ou desvincule a etapa dessas perguntas antes de excluir esta etapa.");
+                    }
+                }
             }
         }
 
@@ -251,11 +251,11 @@ public class UpdateProjectUseCase {
         int added = 0, removed = 0, updated = 0;
 
         Map<Integer, Iteration> existingById = project.getIterations() != null
-                ? project.getIterations().stream().filter(i -> i.getId() != null).collect(Collectors.toMap(Iteration::getId, Function.identity()))
+                ? project.getIterations().stream().filter(i -> i.getId() != null).collect(Collectors.toMap(iteration -> iteration.getId(), Function.identity()))
                 : new HashMap<>();
 
         Set<Integer> requestIds = requestIterations.stream()
-                .map(UpdateIterationDTO::getId).filter(Objects::nonNull).collect(Collectors.toSet());
+                .map(dto -> dto.getId()).filter(Objects::nonNull).collect(Collectors.toSet());
 
         for (Iteration existing : new ArrayList<>(existingById.values())) {
             if (!requestIds.contains(existing.getId())) {
@@ -327,11 +327,11 @@ public class UpdateProjectUseCase {
         int respUpdated = 0, respDeleted = 0;
 
         Map<Integer, Questionnaire> existingById = project.getQuestionnaires() != null
-                ? project.getQuestionnaires().stream().filter(q -> q.getId() != null).collect(Collectors.toMap(Questionnaire::getId, Function.identity()))
+                ? project.getQuestionnaires().stream().filter(q -> q.getId() != null).collect(Collectors.toMap(questionnaire -> questionnaire.getId(), Function.identity()))
                 : new HashMap<>();
 
         Set<Integer> requestIds = requestQuestionnaires.stream()
-                .map(UpdateQuestionnaireDTO::getId).filter(Objects::nonNull).collect(Collectors.toSet());
+                .map(dto -> dto.getId()).filter(Objects::nonNull).collect(Collectors.toSet());
 
         for (Questionnaire existing : new ArrayList<>(existingById.values())) {
             if (!requestIds.contains(existing.getId())) {
@@ -371,7 +371,7 @@ public class UpdateProjectUseCase {
                 qAdded++;
             } else {
                 Questionnaire existing = existingById.get(dto.getId());
-                if (existing == null) continue;
+                if (existing != null) {
 
                 boolean hasResult = qHasResult.getOrDefault(existing.getId(), false);
                 List<QuestionnaireResponse> qResponses = responsesByQ.getOrDefault(existing.getId(), List.of());
@@ -391,9 +391,9 @@ public class UpdateProjectUseCase {
                 boolean hasQuestionChanges = false;
                 if (dto.getQuestions() != null && existing.getQuestions() != null) {
                     Set<Integer> existingQuestionIds = existing.getQuestions().stream()
-                            .filter(q -> q.getId() != null).map(Question::getId).collect(Collectors.toSet());
+                            .filter(q -> q.getId() != null).map(question -> question.getId()).collect(Collectors.toSet());
                     Set<Integer> requestQuestionIds = dto.getQuestions().stream()
-                            .filter(q -> q.getId() != null).map(UpdateQuestionDTO::getId).collect(Collectors.toSet());
+                            .filter(q -> q.getId() != null).map(q -> q.getId()).collect(Collectors.toSet());
 
                     boolean hasNewQuestions = dto.getQuestions().stream().anyMatch(q -> q.getId() == null);
                     boolean hasRemovedQuestions = !requestQuestionIds.containsAll(existingQuestionIds);
@@ -405,7 +405,7 @@ public class UpdateProjectUseCase {
                                 if (eq == null) return false;
                                 boolean textChanged = q.getValue() != null && !q.getValue().equals(eq.getValue());
                                 boolean roleChanged = q.getRoleIds() != null && !q.getRoleIds().equals(
-                                        eq.getRoles().stream().map(Role::getId).collect(Collectors.toSet()));
+                                        eq.getRoles().stream().map(role -> role.getId()).collect(Collectors.toSet()));
                                 return textChanged || roleChanged;
                             });
 
@@ -414,9 +414,7 @@ public class UpdateProjectUseCase {
                     hasQuestionChanges = !dto.getQuestions().isEmpty();
                 }
 
-                if (!hasScalarChanges && !hasQuestionChanges) {
-                    continue;
-                }
+                if (hasScalarChanges || hasQuestionChanges) {
 
                 boolean qChanged = false;
                 boolean isStructuralChange;
@@ -446,7 +444,7 @@ public class UpdateProjectUseCase {
 
                     if (hasEndDateChange) {
                         List<String> dateBlocked = validationPolicy.validateDatesChange(
-                                existing, dto.getApplicationEndDate(), qResponses);
+                                existing, dto.getApplicationEndDate());
                         if (!dateBlocked.isEmpty()) {
                             blocked.addAll(dateBlocked);
                         } else {
@@ -473,7 +471,9 @@ public class UpdateProjectUseCase {
                         respUpdated += questResult[3];
                     }
                 }
+                }
             }
+        }
         }
 
         return new int[]{qAdded, qRemoved, qUpdated, questAdded, questRemoved, questUpdated, respUpdated, respDeleted};
@@ -485,11 +485,11 @@ public class UpdateProjectUseCase {
         int added = 0, removed = 0, updated = 0, respUpdated = 0;
 
         Map<Integer, Question> existingById = questionnaire.getQuestions() != null
-                ? questionnaire.getQuestions().stream().filter(q -> q.getId() != null).collect(Collectors.toMap(Question::getId, Function.identity()))
+                ? questionnaire.getQuestions().stream().filter(q -> q.getId() != null).collect(Collectors.toMap(question -> question.getId(), Function.identity()))
                 : new HashMap<>();
 
         Set<Integer> requestIds = requestQuestions.stream()
-                .map(UpdateQuestionDTO::getId).filter(Objects::nonNull).collect(Collectors.toSet());
+                .map(dto -> dto.getId()).filter(Objects::nonNull).collect(Collectors.toSet());
 
         Set<Representative> projectReps = project.getRepresentatives() != null
                 ? project.getRepresentatives().stream().filter(r -> r.getDeletionDate() == null).collect(Collectors.toSet())
@@ -519,62 +519,61 @@ public class UpdateProjectUseCase {
                 List<String> addBlocked = validationPolicy.validateQuestionAddition(questionnaire, responses);
                 if (!addBlocked.isEmpty()) {
                     blocked.addAll(addBlocked);
-                    continue;
+                } else {
+                    Question newQ = createQuestionFromDTO(questionnaire, dto, project);
+                    Set<Representative> reps = project.getRepresentatives() != null
+                            ? project.getRepresentatives().stream().filter(r -> r.getDeletionDate() == null).collect(Collectors.toSet())
+                            : Set.of();
+                    respUpdated += responseSyncService.addQuestionToResponses(questionnaire.getId(), newQ, reps);
+                    added++;
                 }
-                Question newQ = createQuestionFromDTO(questionnaire, dto, project);
-                Set<Representative> reps = project.getRepresentatives() != null
-                        ? project.getRepresentatives().stream().filter(r -> r.getDeletionDate() == null).collect(Collectors.toSet())
-                        : Set.of();
-                respUpdated += responseSyncService.addQuestionToResponses(questionnaire.getId(), newQ, reps);
-                added++;
             } else {
                 Question existing = existingById.get(dto.getId());
-                if (existing == null) continue;
-
-                boolean isTextChange = dto.getValue() != null && !dto.getValue().equals(existing.getValue());
-                boolean isRoleChange = false;
-                if (dto.getRoleIds() != null) {
-                    Set<Long> existingRoleIds = existing.getRoles().stream().map(Role::getId).collect(Collectors.toSet());
-                    isRoleChange = !existingRoleIds.equals(dto.getRoleIds());
-                }
-
-                List<String> editBlocked = validationPolicy.validateQuestionUpdate(
-                        existing, questionnaire, responses, isTextChange, isRoleChange, projectReps);
-                if (!editBlocked.isEmpty()) {
-                    blocked.addAll(editBlocked);
-                    continue;
-                }
-
-                boolean changed = false;
-
-                if (isTextChange) {
-                    existing.setValue(dto.getValue());
-                    responseSyncService.updateQuestionTextInResponses(questionnaire.getId(), existing.getId(), dto.getValue());
-                    changed = true;
-                }
-
-                if (dto.getRoleIds() != null) {
-                    Set<Long> existingRoleIds = existing.getRoles().stream().map(Role::getId).collect(Collectors.toSet());
-                    if (!existingRoleIds.equals(dto.getRoleIds())) {
-                        Set<Role> newRoles = new HashSet<>(roleRepository.findAllById(dto.getRoleIds()));
-                        existing.setRoles(newRoles);
-                        changed = true;
+                if (existing != null) {
+                    boolean isTextChange = dto.getValue() != null && !dto.getValue().equals(existing.getValue());
+                    boolean isRoleChange = false;
+                    if (dto.getRoleIds() != null) {
+                        Set<Long> existingRoleIds = existing.getRoles().stream().map(role -> role.getId()).collect(Collectors.toSet());
+                        isRoleChange = !existingRoleIds.equals(dto.getRoleIds());
                     }
-                }
 
-                if (dto.getStageNames() != null) {
-                    Set<Stage> projectStages = project.getStages() != null ? project.getStages() : Set.of();
-                    Set<Stage> newStages = dto.getStageNames().stream()
-                            .map(name -> projectStages.stream().filter(s -> s.getName().equalsIgnoreCase(name)).findFirst().orElse(null))
-                            .filter(Objects::nonNull)
-                            .collect(Collectors.toSet());
-                    existing.setStages(newStages);
-                    changed = true;
-                }
+                    List<String> editBlocked = validationPolicy.validateQuestionUpdate(
+                            existing, questionnaire, responses, isTextChange, isRoleChange, projectReps);
+                    if (!editBlocked.isEmpty()) {
+                        blocked.addAll(editBlocked);
+                    } else {
+                        boolean changed = false;
 
-                if (changed) {
-                    questionRepository.save(existing);
-                    updated++;
+                        if (isTextChange) {
+                            existing.setValue(dto.getValue());
+                            responseSyncService.updateQuestionTextInResponses(questionnaire.getId(), existing.getId(), dto.getValue());
+                            changed = true;
+                        }
+
+                        if (dto.getRoleIds() != null) {
+                            Set<Long> existingRoleIds = existing.getRoles().stream().map(role -> role.getId()).collect(Collectors.toSet());
+                            if (!existingRoleIds.equals(dto.getRoleIds())) {
+                                Set<Role> newRoles = new HashSet<>(roleRepository.findAllById(dto.getRoleIds()));
+                                existing.setRoles(newRoles);
+                                changed = true;
+                            }
+                        }
+
+                        if (dto.getStageNames() != null) {
+                            Set<Stage> projectStages = project.getStages() != null ? project.getStages() : Set.of();
+                            Set<Stage> newStages = dto.getStageNames().stream()
+                                    .map(name -> projectStages.stream().filter(s -> s.getName().equalsIgnoreCase(name)).findFirst().orElse(null))
+                                    .filter(Objects::nonNull)
+                                    .collect(Collectors.toSet());
+                            existing.setStages(newStages);
+                            changed = true;
+                        }
+
+                        if (changed) {
+                            questionRepository.save(existing);
+                            updated++;
+                        }
+                    }
                 }
             }
         }
@@ -590,11 +589,11 @@ public class UpdateProjectUseCase {
         int respCreated = 0, respDeleted = 0, notifSent = 0;
 
         Map<Long, Representative> existingById = project.getRepresentatives() != null
-                ? project.getRepresentatives().stream().filter(r -> r.getId() != null).collect(Collectors.toMap(Representative::getId, Function.identity()))
+                ? project.getRepresentatives().stream().filter(r -> r.getId() != null).collect(Collectors.toMap(representative -> representative.getId(), Function.identity()))
                 : new HashMap<>();
 
         Set<Long> requestIds = requestReps.stream()
-                .map(UpdateRepresentativeDTO::getId).filter(Objects::nonNull).collect(Collectors.toSet());
+                .map(dto -> dto.getId()).filter(Objects::nonNull).collect(Collectors.toSet());
 
         for (Representative existing : new ArrayList<>(existingById.values())) {
             if (!requestIds.contains(existing.getId())) {
@@ -632,7 +631,7 @@ public class UpdateProjectUseCase {
                 }
 
                 if (dto.getRoleIds() != null) {
-                    Set<Long> existingRoleIds = existing.getRoles().stream().map(Role::getId).collect(Collectors.toSet());
+                    Set<Long> existingRoleIds = existing.getRoles().stream().map(role -> role.getId()).collect(Collectors.toSet());
                     if (!existingRoleIds.equals(dto.getRoleIds())) {
                         Set<Role> newRoles = new HashSet<>(roleRepository.findAllById(dto.getRoleIds()));
                         existing.setRoles(newRoles);
@@ -770,7 +769,7 @@ public class UpdateProjectUseCase {
     private void createResponsesForNewQuestionnaire(Project project, Questionnaire questionnaire) {
         if (project.getRepresentatives() == null) return;
 
-        Questionnaire reloaded = questionnaireRepository.findAllByProjectIdWithQuestions(project.getId()).stream()
+        questionnaireRepository.findAllByProjectIdWithQuestions(project.getId()).stream()
                 .filter(q -> Objects.equals(q.getId(), questionnaire.getId()))
                 .findFirst().orElse(questionnaire);
 
@@ -791,7 +790,7 @@ public class UpdateProjectUseCase {
                             PARAM_PROJECT_ID, project.getId(),
                             "adminName", admin.getFirstName() + " " + Optional.ofNullable(admin.getLastName()).orElse(""),
                             "adminEmail", Optional.ofNullable(admin.getEmail()).orElse(""),
-                            "roles", rep.getRoles().stream().map(Role::getName).toList(),
+                            "roles", rep.getRoles().stream().map(role -> role.getName()).toList(),
                             "startDate", project.getStartDate(),
                             "deadline", project.getDeadline()
                     )
@@ -891,14 +890,14 @@ public class UpdateProjectUseCase {
 
     private Map<Integer, Boolean> buildQuestionnaireResultMap(Long projectId) {
         List<QuestionnaireResult> results = questionnaireResultRepository.findByProjectId(projectId);
-        return results.stream().collect(Collectors.toMap(QuestionnaireResult::getQuestionnaireId, r -> true, (a, b) -> a));
+        return results.stream().collect(Collectors.toMap(questionnaireResult -> questionnaireResult.getQuestionnaireId(), r -> true, (a, b) -> a));
     }
 
     private Map<Integer, List<QuestionnaireResponse>> buildResponsesByQuestionnaireMap(Long projectId) {
         List<QuestionnaireResponse> all = responseRepository.findByProjectId(projectId);
         return all.stream()
                 .filter(r -> r.getRepresentativeId() != null)
-                .collect(Collectors.groupingBy(QuestionnaireResponse::getQuestionnaireId));
+                .collect(Collectors.groupingBy(response -> response.getQuestionnaireId()));
     }
 
     private UpdateProjectResponseDTO buildResponse(Project project, int[] counters,

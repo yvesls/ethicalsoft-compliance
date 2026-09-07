@@ -97,7 +97,7 @@ public class GetIndividualDashboardUseCase {
         List<BigDecimal> historicalIcps = allProjectResults.stream()
                 .flatMap(r -> r.getMemberResults().stream())
                 .filter(m -> representativeId.equals(m.getRepresentativeId()))
-                .map(MemberComplianceResult::getIcp)
+                .map(result -> result.getIcp())
                 .collect(Collectors.toList());
 
         boolean currentAlreadyInHistory = resultOpt.isPresent()
@@ -128,9 +128,9 @@ public class GetIndividualDashboardUseCase {
                                     toPercent(r.getTechDebtScore())
                             );
                         }))
-                .sorted(Comparator.comparing(IsepHistoryItemDTO::calculatedAt,
+                .sorted(Comparator.comparing(item -> item.calculatedAt(),
                         Comparator.nullsLast(Comparator.naturalOrder())))
-                .collect(Collectors.toList());
+                .toList();
 
         return new IndividualDashboardDTO(
                 representativeId,

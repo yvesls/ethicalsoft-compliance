@@ -30,7 +30,7 @@ public class QuestionnaireSummaryBuilder {
 
         Map<Long, QuestionnaireResponse> responseByRep = responses.stream()
                 .filter(resp -> resp.getRepresentativeId() != null)
-                .collect(Collectors.toMap(QuestionnaireResponse::getRepresentativeId, r -> r, (a, b) -> a));
+                .collect(Collectors.toMap(response -> response.getRepresentativeId(), r -> r, (a, b) -> a));
 
         int totalRespondents = representativesById.size();
         AtomicInteger responded = new AtomicInteger();

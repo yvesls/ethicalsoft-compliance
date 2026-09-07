@@ -181,13 +181,13 @@ public class RescheduleQuestionnaireUseCase {
         if (stage.getQuestionnaires() == null || stage.getQuestionnaires().isEmpty()) return;
 
         LocalDate minStart = stage.getQuestionnaires().stream()
-                .map(Questionnaire::getApplicationStartDate)
+                .map(el -> el.getApplicationStartDate())
                 .filter(Objects::nonNull)
                 .min(Comparator.naturalOrder())
                 .orElse(null);
 
         LocalDate maxEnd = stage.getQuestionnaires().stream()
-                .map(Questionnaire::getApplicationEndDate)
+                .map(el -> el.getApplicationEndDate())
                 .filter(Objects::nonNull)
                 .max(Comparator.naturalOrder())
                 .orElse(null);
@@ -203,13 +203,13 @@ public class RescheduleQuestionnaireUseCase {
         if (iteration.getQuestionnaires() == null || iteration.getQuestionnaires().isEmpty()) return;
 
         LocalDate minStart = iteration.getQuestionnaires().stream()
-                .map(Questionnaire::getApplicationStartDate)
+                .map(el -> el.getApplicationStartDate())
                 .filter(Objects::nonNull)
                 .min(Comparator.naturalOrder())
                 .orElse(null);
 
         LocalDate maxEnd = iteration.getQuestionnaires().stream()
-                .map(Questionnaire::getApplicationEndDate)
+                .map(el -> el.getApplicationEndDate())
                 .filter(Objects::nonNull)
                 .max(Comparator.naturalOrder())
                 .orElse(null);

@@ -1,6 +1,5 @@
 package com.ethicalsoft.ethicalsoft_complience.application.usecase.questionnaire;
 
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.repository.QuestionnaireResponseRepository;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Questionnaire;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.QuestionnaireResult;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Representative;
@@ -32,7 +31,6 @@ public class GetQuestionnaireDashboardUseCase {
     private final QuestionnaireRepository questionnaireRepository;
     private final RepresentativeRepository representativeRepository;
     private final StageRepository stageRepository;
-    private final QuestionnaireResponseRepository responseRepository;
     private final IsepResultQueryPort isepResultQueryPort;
 
     @Transactional(readOnly = true)
@@ -52,12 +50,12 @@ public class GetQuestionnaireDashboardUseCase {
         Map<Long, Representative> repMap = representativeRepository
                 .findByProjectId(projectId)
                 .stream()
-                .collect(Collectors.toMap(Representative::getId, r -> r));
+                .collect(Collectors.toMap(representative -> representative.getId(), r -> r));
 
         Map<Integer, Stage> stageMap = stageRepository
                 .findByProjectId(projectId)
                 .stream()
-                .collect(Collectors.toMap(Stage::getId, s -> s));
+                .collect(Collectors.toMap(stage -> stage.getId(), s -> s));
 
         List<MemberComplianceDTO> memberResults = result.getMemberResults().stream()
                 .map(mcr -> {
@@ -97,7 +95,7 @@ public class GetQuestionnaireDashboardUseCase {
 
         Map<String, Long> bandDistribution = Arrays.stream(EthicalComplianceBand.values())
                 .collect(Collectors.toMap(
-                        Enum::name,
+                        band -> band.name(),
                         band -> memberResults.stream()
                                 .filter(m -> band.name().equals(m.band()))
                                 .count(),

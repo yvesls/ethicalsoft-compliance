@@ -26,7 +26,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -74,7 +74,7 @@ class WaterfallProjectStrategyTest {
 		savedStage.setName( "Requirements" );
 		savedStage.setProject( project );
 
-		when( stageCommandPort.saveAll( any( List.class ) ) ).thenReturn( List.of( savedStage ) );
+		when( stageCommandPort.saveAll( anyList() ) ).thenReturn( List.of( savedStage ) );
 
 		strategy.createStructure( project, request );
 

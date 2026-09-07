@@ -47,7 +47,7 @@ public class ProjectQuestionnaireAdapter implements ProjectQuestionnaireCommandP
             }
 
             Map<Long, Role> rolesById = roleRepository.findAll().stream()
-                    .collect(Collectors.toMap(Role::getId, Function.identity()));
+                    .collect(Collectors.toMap(role -> role.getId(), Function.identity()));
 
             for (QuestionnaireDTO qnDto : questionnaireDTOs) {
                 Questionnaire questionnaire = ModelMapperUtils.map(qnDto, Questionnaire.class);
@@ -151,11 +151,11 @@ public class ProjectQuestionnaireAdapter implements ProjectQuestionnaireCommandP
         answer.setStageIds(Optional.ofNullable(question.getStages())
                 .orElse(Collections.emptySet())
                 .stream()
-                .map(Stage::getId)
+                .map(stage -> stage.getId())
                 .filter(Objects::nonNull)
                 .toList());
         if (question.getRoles() != null) {
-            answer.setRoleIds(question.getRoles().stream().map(Role::getId).collect(Collectors.toList()));
+            answer.setRoleIds(question.getRoles().stream().map(role -> role.getId()).collect(Collectors.toList()));
         }
         return answer;
     }
@@ -184,7 +184,7 @@ public class ProjectQuestionnaireAdapter implements ProjectQuestionnaireCommandP
             Set<Long> repRoleIds = Optional.ofNullable(rep.getRoles())
                     .orElse(Collections.emptySet())
                     .stream()
-                    .map(Role::getId)
+                    .map(role -> role.getId())
                     .filter(Objects::nonNull)
                     .collect(Collectors.toSet());
 

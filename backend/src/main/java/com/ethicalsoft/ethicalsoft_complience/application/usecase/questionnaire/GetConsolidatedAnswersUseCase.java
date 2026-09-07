@@ -1,10 +1,9 @@
 package com.ethicalsoft.ethicalsoft_complience.application.usecase.questionnaire;
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.QuestionnaireResponse;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Questionnaire;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Representative;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Role;
 import com.ethicalsoft.ethicalsoft_complience.controller.dto.dashboard.ConsolidatedAnswerDTO;
+import com.ethicalsoft.ethicalsoft_complience.controller.dto.dashboard.ConsolidatedAnswersFilter;
 import com.ethicalsoft.ethicalsoft_complience.domain.repository.QuestionnaireRepositoryPort;
 import com.ethicalsoft.ethicalsoft_complience.domain.repository.QuestionnaireResponseRepositoryPort;
 import com.ethicalsoft.ethicalsoft_complience.domain.repository.RepresentativeRepositoryPort;
@@ -32,33 +31,25 @@ public class GetConsolidatedAnswersUseCase {
 
     public Page<ConsolidatedAnswerDTO> executeForQuestionnaire(Long projectId,
                                                                 Integer questionnaireId,
-                                                                Long representativeId,
-                                                                Long questionId,
-                                                                Long roleId,
-                                                                String roleName,
-                                                                Boolean responseFilter,
-                                                                String questionText,
+                                                                ConsolidatedAnswersFilter filter,
                                                                 Pageable pageable) {
         log.info("[consolidated-answers] questionário={} projeto={} filtros: rep={} q={} roleId={} role={} resp={} text={}",
-                questionnaireId, projectId, representativeId, questionId, roleId, roleName, responseFilter, questionText);
+                questionnaireId, projectId, filter.representativeId(), filter.questionId(), filter.roleId(),
+                filter.roleName(), filter.response(), filter.questionText());
 
         List<QuestionnaireResponse> responses = questionnaireResponseRepository
                 .findByProjectIdAndQuestionnaireIdExcludingTemplates(projectId, questionnaireId);
 
-        return buildPage(projectId, responses, representativeId, questionId, roleId, roleName, responseFilter, questionText, pageable);
+        return buildPage(projectId, responses, filter, pageable);
     }
 
     public Page<ConsolidatedAnswerDTO> executeForProject(Long projectId,
                                                           Integer questionnaireIdFilter,
-                                                          Long representativeId,
-                                                          Long questionId,
-                                                          Long roleId,
-                                                          String roleName,
-                                                          Boolean responseFilter,
-                                                          String questionText,
+                                                          ConsolidatedAnswersFilter filter,
                                                           Pageable pageable) {
         log.info("[consolidated-answers] projeto={} filtros: qnr={} rep={} q={} roleId={} role={} resp={} text={}",
-                projectId, questionnaireIdFilter, representativeId, questionId, roleId, roleName, responseFilter, questionText);
+                projectId, questionnaireIdFilter, filter.representativeId(), filter.questionId(), filter.roleId(),
+                filter.roleName(), filter.response(), filter.questionText());
 
         List<QuestionnaireResponse> responses;
         if (questionnaireIdFilter != null) {
@@ -67,24 +58,26 @@ public class GetConsolidatedAnswersUseCase {
             responses = questionnaireResponseRepository.findByProjectIdExcludingTemplates(projectId);
         }
 
-        return buildPage(projectId, responses, representativeId, questionId, roleId, roleName, responseFilter, questionText, pageable);
+        return buildPage(projectId, responses, filter, pageable);
     }
 
     private Page<ConsolidatedAnswerDTO> buildPage(Long projectId,
                                                    List<QuestionnaireResponse> responses,
-                                                   Long representativeIdFilter,
-                                                   Long questionIdFilter,
-                                                   Long roleIdFilter,
-                                                   String roleNameFilter,
-                                                   Boolean responseFilter,
-                                                   String questionTextFilter,
+                                                   ConsolidatedAnswersFilter filter,
                                                    Pageable pageable) {
 
+        Long representativeIdFilter = filter.representativeId();
+        Long questionIdFilter = filter.questionId();
+        Long roleIdFilter = filter.roleId();
+        String roleNameFilter = filter.roleName();
+        Boolean responseFilter = filter.response();
+        String questionTextFilter = filter.questionText();
+
         Map<Long, Representative> representativeMap = representativeRepository.findByProjectId(projectId).stream()
-                .collect(Collectors.toMap(Representative::getId, Function.identity()));
+                .collect(Collectors.toMap(rep -> rep.getId(), Function.identity()));
 
         Map<Integer, String> questionnaireNameMap = questionnaireRepository.findByProjectId(projectId).stream()
-                .collect(Collectors.toMap(Questionnaire::getId, q ->
+                .collect(Collectors.toMap(q -> q.getId(), q ->
                         q.getIteration() != null && !q.getIteration().isBlank()
                                 ? q.getIteration()
                                 : q.getName()));
@@ -97,7 +90,7 @@ public class GetConsolidatedAnswersUseCase {
                     .filter(rep -> rep.getRoles() != null &&
                             rep.getRoles().stream()
                                     .anyMatch(role -> finalRoleIdFilter.equals(role.getId())))
-                    .map(Representative::getId)
+                    .map(rep -> rep.getId())
                     .collect(Collectors.toSet());
             log.debug("[consolidated-answers] Representantes com roleId={}: {}", roleIdFilter, representativesWithRole);
         } else if (roleNameFilter != null && !roleNameFilter.isBlank()) {
@@ -106,81 +99,63 @@ public class GetConsolidatedAnswersUseCase {
                     .filter(rep -> rep.getRoles() != null &&
                             rep.getRoles().stream()
                                     .anyMatch(role -> role.getName().toLowerCase().contains(normalizedFilter)))
-                    .map(Representative::getId)
+                    .map(rep -> rep.getId())
                     .collect(Collectors.toSet());
             log.debug("[consolidated-answers] Representantes com role '{}': {}", roleNameFilter, representativesWithRole);
         }
         final Set<Long> finalRepresentativesWithRole = representativesWithRole;
 
-        List<ConsolidatedAnswerDTO> allRows = new ArrayList<>();
+        List<ConsolidatedAnswerDTO> allRows = responses.stream()
+                .filter(response -> response.getRepresentativeId() != null)
+                .filter(response -> representativeIdFilter == null
+                        || representativeIdFilter.equals(response.getRepresentativeId()))
+                .filter(response -> finalRepresentativesWithRole == null
+                        || finalRepresentativesWithRole.contains(response.getRepresentativeId()))
+                .flatMap(response -> {
+                    Representative rep = representativeMap.get(response.getRepresentativeId());
+                    String repName = rep != null && rep.getUser() != null
+                            ? rep.getUser().getFirstName() + " " + rep.getUser().getLastName()
+                            : "Representante #" + response.getRepresentativeId();
+                    List<String> roles = rep != null && rep.getRoles() != null
+                            ? rep.getRoles().stream().map(role -> role.getName()).sorted().toList()
+                            : Collections.emptyList();
+                    String questionnaireName = questionnaireNameMap.getOrDefault(
+                            response.getQuestionnaireId(), "#" + response.getQuestionnaireId());
 
-        for (QuestionnaireResponse response : responses) {
-            if (response.getRepresentativeId() == null) {
-                continue;
-            }
+                    List<QuestionnaireResponse.AnswerDocument> answers =
+                            Optional.ofNullable(response.getAnswers()).orElse(Collections.emptyList());
 
-            if (representativeIdFilter != null && !representativeIdFilter.equals(response.getRepresentativeId())) {
-                continue;
-            }
-
-            if (finalRepresentativesWithRole != null &&
-                    !finalRepresentativesWithRole.contains(response.getRepresentativeId())) {
-                continue;
-            }
-
-            Representative rep = representativeMap.get(response.getRepresentativeId());
-            String repName = rep != null && rep.getUser() != null
-                    ? rep.getUser().getFirstName() + " " + rep.getUser().getLastName()
-                    : "Representante #" + response.getRepresentativeId();
-            List<String> roles = rep != null && rep.getRoles() != null
-                    ? rep.getRoles().stream().map(Role::getName).sorted().toList()
-                    : Collections.emptyList();
-
-            List<QuestionnaireResponse.AnswerDocument> answers = Optional.ofNullable(response.getAnswers())
-                    .orElse(Collections.emptyList());
-
-            String questionnaireName = questionnaireNameMap.getOrDefault(response.getQuestionnaireId(), "#" + response.getQuestionnaireId());
-
-            for (QuestionnaireResponse.AnswerDocument ans : answers) {
-                if (ans.getResponse() == null) {
-                    continue;
-                }
-
-                if (questionIdFilter != null && !questionIdFilter.equals(ans.getQuestionId())) {
-                    continue;
-                }
-
-                if (responseFilter != null && !responseFilter.equals(ans.getResponse())) {
-                    continue;
-                }
-
-                if (questionTextFilter != null && !questionTextFilter.isBlank()) {
-                    String text = ans.getQuestionText() != null ? ans.getQuestionText() : "";
-                    if (!text.toLowerCase().contains(questionTextFilter.trim().toLowerCase())) {
-                        continue;
-                    }
-                }
-
-                allRows.add(new ConsolidatedAnswerDTO(
-                        response.getRepresentativeId(),
-                        repName,
-                        roles,
-                        response.getQuestionnaireId(),
-                        questionnaireName,
-                        response.getStatus(),
-                        response.getSubmissionDate(),
-                        ans.getQuestionId(),
-                        ans.getQuestionText(),
-                        ans.getStageIds(),
-                        ans.getResponse(),
-                        linkMapper.toDto(ans.getJustification()),
-                        linkMapper.toDto(ans.getEvidence()),
-                        Optional.ofNullable(ans.getAttachments())
-                                .map(list -> list.stream().map(linkMapper::toDto).toList())
-                                .orElse(Collections.emptyList())
-                ));
-            }
-        }
+                    return answers.stream()
+                            .filter(ans -> ans.getResponse() != null)
+                            .filter(ans -> questionIdFilter == null || questionIdFilter.equals(ans.getQuestionId()))
+                            .filter(ans -> responseFilter == null || responseFilter.equals(ans.getResponse()))
+                            .filter(ans -> {
+                                if (questionTextFilter == null || questionTextFilter.isBlank()) {
+                                    return true;
+                                }
+                                String text = ans.getQuestionText() != null ? ans.getQuestionText() : "";
+                                return text.toLowerCase().contains(questionTextFilter.trim().toLowerCase());
+                            })
+                            .map(ans -> new ConsolidatedAnswerDTO(
+                                    response.getRepresentativeId(),
+                                    repName,
+                                    roles,
+                                    response.getQuestionnaireId(),
+                                    questionnaireName,
+                                    response.getStatus(),
+                                    response.getSubmissionDate(),
+                                    ans.getQuestionId(),
+                                    ans.getQuestionText(),
+                                    ans.getStageIds(),
+                                    ans.getResponse(),
+                                    linkMapper.toDto(ans.getJustification()),
+                                    linkMapper.toDto(ans.getEvidence()),
+                                    Optional.ofNullable(ans.getAttachments())
+                                            .map(list -> list.stream().map(linkMapper::toDto).toList())
+                                            .orElse(Collections.emptyList())
+                            ));
+                })
+                .toList();
 
         int start = (int) pageable.getOffset();
         int end = Math.min(start + pageable.getPageSize(), allRows.size());

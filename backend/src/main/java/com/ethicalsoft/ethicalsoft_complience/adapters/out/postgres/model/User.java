@@ -84,7 +84,7 @@ public class User implements UserDetails {
 	}
 
 	public Long getRepresentativeId() {
-		return Optional.ofNullable(representatives).flatMap(reps -> reps.stream().findFirst().map(Representative::getId))
+		return Optional.ofNullable(representatives).flatMap(reps -> reps.stream().findFirst().map(rep -> rep.getId()))
 			.orElse(null);
 	}
 }

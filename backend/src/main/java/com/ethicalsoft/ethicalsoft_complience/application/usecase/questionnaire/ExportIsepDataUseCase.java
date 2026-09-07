@@ -11,6 +11,7 @@ import com.ethicalsoft.ethicalsoft_complience.domain.isep.IsepMath;
 import com.ethicalsoft.ethicalsoft_complience.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +24,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ExportIsepDataUseCase {
 
+    @Lazy
+    private final ExportIsepDataUseCase self;
     private final ProjectRepository projectRepository;
     private final QuestionnaireRepository questionnaireRepository;
     private final RepresentativeRepository representativeRepository;
@@ -45,17 +48,17 @@ public class ExportIsepDataUseCase {
 
         Map<Long, Representative> repMap = representativeRepository.findByProjectId(projectId)
                 .stream()
-                .collect(Collectors.toMap(Representative::getId, r -> r));
+                .collect(Collectors.toMap(rep -> rep.getId(), r -> r));
 
         Map<Integer, Stage> stageMap = stageRepository.findByProjectId(projectId)
                 .stream()
-                .collect(Collectors.toMap(Stage::getId, s -> s));
+                .collect(Collectors.toMap(stage -> stage.getId(), s -> s));
 
         Map<Long, Map<Integer, Double>> stageIemByRep = result.getStageResults().stream()
                 .collect(Collectors.groupingBy(
-                        MemberStageComplianceResult::getRepresentativeId,
+                        r -> r.getRepresentativeId(),
                         Collectors.toMap(
-                                MemberStageComplianceResult::getStageId,
+                                r -> r.getStageId(),
                                 mscr -> mscr.getIem() != null ? mscr.getIem().doubleValue() : 0.0
                         )
                 ));
@@ -80,7 +83,7 @@ public class ExportIsepDataUseCase {
                                         IsepMath.toPercent(java.math.BigDecimal.valueOf(e.getValue()))
                                 );
                             })
-                            .sorted(Comparator.comparing(IsepDataExportDTO.StageIemExportRow::stageId))
+                            .sorted(Comparator.comparing(row -> row.stageId()))
                             .toList();
 
                     return new IsepDataExportDTO.MemberExportRow(
@@ -91,7 +94,7 @@ public class ExportIsepDataUseCase {
                             stageRows
                     );
                 })
-                .sorted(Comparator.comparing(IsepDataExportDTO.MemberExportRow::icpPercent).reversed())
+                .sorted(Comparator.comparing((IsepDataExportDTO.MemberExportRow row) -> row.icpPercent()).reversed())
                 .toList();
 
         String iterationOrStageName = questionnaire.getIteration() != null
@@ -131,7 +134,7 @@ public class ExportIsepDataUseCase {
         return results.stream()
                 .map(r -> {
                     try {
-                        return execute(projectId, r.getQuestionnaireId(), anonymize);
+                        return self.execute(projectId, r.getQuestionnaireId(), anonymize);
                     } catch (ResourceNotFoundException ex) {
                         log.warn("[isep-export] Questionário={} não encontrado durante exportação do projeto={}",
                                 r.getQuestionnaireId(), projectId);

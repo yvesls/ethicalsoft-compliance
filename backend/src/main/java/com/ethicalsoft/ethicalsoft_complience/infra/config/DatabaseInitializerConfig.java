@@ -37,23 +37,28 @@ public class DatabaseInitializerConfig implements ApplicationListener<Applicatio
             String maintenanceUrl = buildMaintenanceUrl(datasourceUrl);
             log.info("[db-init] Verificando existência do banco '{}' via '{}'", dbName, maintenanceUrl);
 
-            try (Connection conn = DriverManager.getConnection(maintenanceUrl, username, password);
-                 Statement stmt = conn.createStatement()) {
-
-                ResultSet rs = stmt.executeQuery(
-                        "SELECT 1 FROM pg_database WHERE datname = '" + dbName + "'"
-                );
-
-                if (!rs.next()) {
-                    log.info("[db-init] Banco '{}' não encontrado. Criando...", dbName);
-                    stmt.execute("CREATE DATABASE \"" + dbName + "\"");
-                    log.info("[db-init] Banco '{}' criado com sucesso.", dbName);
-                } else {
-                    log.info("[db-init] Banco '{}' já existe.", dbName);
-                }
-            }
+            ensureDatabaseInMaintenanceUrl(maintenanceUrl, username, password, dbName);
         } catch (Exception e) {
             log.error("[db-init] Falha ao verificar/criar banco de dados: {}", e.getMessage(), e);
+        }
+    }
+
+    private void ensureDatabaseInMaintenanceUrl(String maintenanceUrl, String username, String password, String dbName)
+            throws Exception {
+        try (Connection conn = DriverManager.getConnection(maintenanceUrl, username, password);
+             Statement stmt = conn.createStatement()) {
+
+            ResultSet rs = stmt.executeQuery(
+                    "SELECT 1 FROM pg_database WHERE datname = '" + dbName + "'"
+            );
+
+            if (!rs.next()) {
+                log.info("[db-init] Banco '{}' não encontrado. Criando...", dbName);
+                stmt.execute("CREATE DATABASE \"" + dbName + "\"");
+                log.info("[db-init] Banco '{}' criado com sucesso.", dbName);
+            } else {
+                log.info("[db-init] Banco '{}' já existe.", dbName);
+            }
         }
     }
 

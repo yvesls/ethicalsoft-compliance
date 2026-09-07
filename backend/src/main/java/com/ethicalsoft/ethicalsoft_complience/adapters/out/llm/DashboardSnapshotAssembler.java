@@ -1,7 +1,6 @@
 package com.ethicalsoft.ethicalsoft_complience.adapters.out.llm;
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.llm.model.DashboardSnapshot;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.QuestionMetadataDocument;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.QuestionnaireResponse;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.repository.QuestionMetadataRepository;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.repository.QuestionnaireResponseRepository;
@@ -69,9 +68,8 @@ public class DashboardSnapshotAssembler {
         if (wordCloud != null && wordCloud.topWords() != null) {
             topTerms = wordCloud.topWords().stream()
                     .limit(20)
-                    .map(WordCloudDTO.WordEntry::word)
-                    .toList();
-        }
+                    .map(entry -> entry.word())
+                    .toList();        }
 
         List<DashboardSnapshot.JustificationSnapshot> justifications =
                 loadJustifications(projectId, dashboard.questionnaireId());
@@ -122,7 +120,7 @@ public class DashboardSnapshotAssembler {
         Set<Long> allQuestionIds = responses.stream()
                 .filter(r -> r.getAnswers() != null)
                 .flatMap(r -> r.getAnswers().stream())
-                .map(QuestionnaireResponse.AnswerDocument::getQuestionId)
+                .map(answer -> answer.getQuestionId())
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
@@ -132,7 +130,7 @@ public class DashboardSnapshotAssembler {
                     .stream()
                     .filter(m -> m.getDomain() != null)
                     .collect(Collectors.toMap(
-                            QuestionMetadataDocument::getQuestionId,
+                            meta -> meta.getQuestionId(),
                             m -> m.getDomain().name(),
                             (a, b) -> a
                     ));

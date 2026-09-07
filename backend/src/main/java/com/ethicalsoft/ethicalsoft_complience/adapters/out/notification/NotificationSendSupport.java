@@ -84,7 +84,7 @@ public class NotificationSendSupport {
         if (email == null) {
             return new RecipientData(null, null, null, List.of());
         }
-        Long userId = userRepository.findByEmail(email).map(User::getId).orElse(null);
+        Long userId = userRepository.findByEmail(email).map(user -> user.getId()).orElse(null);
         List<String> roles = notificationRoleResolver.resolveRoles(email, projectId);
         return new RecipientData(userId, nameFallback, email, roles);
     }

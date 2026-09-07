@@ -3,8 +3,6 @@ package com.ethicalsoft.ethicalsoft_complience.domain.service;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.QuestionnaireResponse;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Question;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Questionnaire;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Role;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Stage;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.LinkDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.QuestionnaireAnswerRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.common.util.ObjectUtils;
@@ -57,7 +55,7 @@ public class QuestionnaireAnswerPolicy {
         }
 
         Set<Long> existingIds = answers.stream()
-                .map(QuestionnaireResponse.AnswerDocument::getQuestionId)
+                .map(answer -> answer.getQuestionId())
                 .collect(Collectors.toSet());
 
         for (Question q : pgQuestions) {
@@ -69,13 +67,13 @@ public class QuestionnaireAnswerPolicy {
                 newAnswer.setStageIds(Optional.ofNullable(q.getStages())
                         .orElse(Collections.emptySet())
                         .stream()
-                        .map(Stage::getId)
+                        .map(stage -> stage.getId())
                         .filter(Objects::nonNull)
                         .toList());
                 newAnswer.setRoleIds(Optional.ofNullable(q.getRoles())
                         .orElse(Collections.emptySet())
                         .stream()
-                        .map(Role::getId)
+                        .map(role -> role.getId())
                         .filter(Objects::nonNull)
                         .toList());
                 answers.add(newAnswer);
@@ -113,7 +111,7 @@ public class QuestionnaireAnswerPolicy {
             if (dto.getResponse() && CollectionUtils.isEmpty(dto.getAttachments())) {
                 throw new BusinessException("Anexos são obrigatórios quando a resposta é 'Sim'.");
             }
-            if (Boolean.FALSE.equals(dto.getResponse()) && ObjectUtils.isNullOrEmpty(dto.getJustification())) {
+            if (!dto.getResponse() && ObjectUtils.isNullOrEmpty(dto.getJustification())) {
                 throw new BusinessException("Justificativa é obrigatória quando a resposta é 'Não'.");
             }
         }

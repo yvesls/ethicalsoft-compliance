@@ -43,7 +43,7 @@ public class IterativeProjectStrategy implements ProjectCreationStrategy {
 			stages.forEach( stage -> stage.setProject( project ) );
 			List<Stage> savedStages = stageCommandPort.saveAll( stages );
 
-			stageMap = savedStages.stream().collect( Collectors.toMap( Stage::getName, Function.identity() ) );
+			stageMap = savedStages.stream().collect( Collectors.toMap( stage -> stage.getName(), Function.identity() ) );
 		}
 
 		if ( ObjectUtils.isNullOrEmpty(request.getIterations()) ) {
@@ -55,7 +55,7 @@ public class IterativeProjectStrategy implements ProjectCreationStrategy {
 
 		List<Iteration> savedIterations = iterationCommandPort.saveAll( iterations );
 
-		Map<String, Iteration> iterationMap = savedIterations.stream().collect( Collectors.toMap( Iteration::getName, Function.identity() ) );
+		Map<String, Iteration> iterationMap = savedIterations.stream().collect( Collectors.toMap( iteration -> iteration.getName(), Function.identity() ) );
 
 		projectQuestionnaireCommandPort.createQuestionnaires( project, request.getQuestionnaires(), stageMap, iterationMap );
 	}

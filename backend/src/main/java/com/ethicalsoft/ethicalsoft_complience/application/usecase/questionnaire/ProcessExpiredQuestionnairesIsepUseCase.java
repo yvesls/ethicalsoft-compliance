@@ -73,12 +73,7 @@ public class ProcessExpiredQuestionnairesIsepUseCase {
                             questionnaire.getId(), projectId);
                     notifyIsepCalculated(questionnaire, projectId, "Sistema (Scheduler)");
                     notifyNextQuestionnaireStartingSoon(questionnaire, projectId);
-                    try {
-                        processExpiredProjectIsepUseCase.tryFinalizeProjectAfterQuestionnaire(projectId);
-                    } catch (Exception ex) {
-                        log.error("[isep-scheduler] Erro ao verificar finalização do projeto id={} após questionário id={}",
-                                projectId, questionnaire.getId(), ex);
-                    }
+                    finalizeProjectIfPossible(projectId, questionnaire.getId());
                 } else {
                     markAsDelayed(questionnaire);
                     markedDelayed++;
@@ -104,6 +99,15 @@ public class ProcessExpiredQuestionnairesIsepUseCase {
         questionnaireRepository.save(questionnaire);
     }
 
+    private void finalizeProjectIfPossible(Long projectId, Integer questionnaireId) {
+        try {
+            processExpiredProjectIsepUseCase.tryFinalizeProjectAfterQuestionnaire(projectId);
+        } catch (Exception ex) {
+            log.error("[isep-scheduler] Erro ao verificar finalização do projeto id={} após questionário id={}",
+                    projectId, questionnaireId, ex);
+        }
+    }
+
     private void notifyOverdue(Questionnaire questionnaire, Long projectId) {
         try {
             var project = questionnaire.getProject();
@@ -120,7 +124,7 @@ public class ProcessExpiredQuestionnairesIsepUseCase {
                     .findByProjectIdAndQuestionnaireIdExcludingTemplates(projectId, questionnaire.getId());
             long completedCount = responses.stream()
                     .filter(r -> QuestionnaireResponseStatus.COMPLETED.equals(r.getStatus()))
-                    .map(QuestionnaireResponse::getRepresentativeId)
+                    .map(response -> response.getRepresentativeId())
                     .distinct()
                     .count();
             long pendingCount = totalCount - completedCount;
@@ -160,7 +164,7 @@ public class ProcessExpiredQuestionnairesIsepUseCase {
                     .filter(q -> q.getApplicationStartDate() != null)
                     .filter(q -> q.getApplicationStartDate().isAfter(today) || q.getApplicationStartDate().isEqual(today))
                     .filter(q -> q.getStatus() == TimelineStatusEnum.PENDENTE)
-                    .min(java.util.Comparator.comparing(Questionnaire::getApplicationStartDate))
+                    .min(java.util.Comparator.comparing(questionnaire -> questionnaire.getApplicationStartDate()))
                     .orElse(null);
 
             if (next == null) {

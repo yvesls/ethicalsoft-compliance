@@ -1,8 +1,5 @@
 package com.ethicalsoft.ethicalsoft_complience.adapters.out.notification;
 
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Project;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Representative;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Role;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.UserRoleEnum;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.ProjectRepository;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.repository.UserRepository;
@@ -13,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -43,15 +39,15 @@ public class NotificationRoleResolver {
     private List<String> findRepresentativeRoles(Long projectId, Long userId) {
         if (projectId == null || userId == null) return List.of();
         return projectRepository.findById(projectId)
-                .map(Project::getRepresentatives)
+                .map(project -> project.getRepresentatives())
                 .orElse(Set.of())
                 .stream()
                 .filter(rep -> rep.getUser() != null && Objects.equals(rep.getUser().getId(), userId))
-                .map(Representative::getRoles)
+                .map(rep -> rep.getRoles())
                 .filter(Objects::nonNull)
                 .flatMap(Set::stream)
-                .map(Role::getName)
-                .collect(Collectors.toList());
+                .map(role -> role.getName())
+                .toList();
     }
 }
 

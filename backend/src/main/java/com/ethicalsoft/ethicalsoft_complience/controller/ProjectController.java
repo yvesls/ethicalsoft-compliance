@@ -5,7 +5,6 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.re
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.QuestionnaireReminderRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.UpdateProjectRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.*;
-import com.ethicalsoft.ethicalsoft_complience.application.usecase.ListProjectQuestionnairesUseCase;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.ListRolesUseCase;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.notification.SendNotificationUseCase;
 import com.ethicalsoft.ethicalsoft_complience.application.usecase.project.*;
@@ -32,7 +31,6 @@ public class ProjectController {
     private final CreateProjectUseCase createProjectUseCase;
     private final SearchProjectsUseCase searchProjectsUseCase;
     private final GetProjectByIdUseCase getProjectByIdUseCase;
-    private final ListProjectQuestionnairesUseCase listProjectQuestionnairesUseCase;
     private final SendNotificationUseCase sendNotificationUseCase;
     private final CloseProjectManuallyUseCase closeProjectManuallyUseCase;
     private final PublishDraftProjectUseCase publishDraftProjectUseCase;

@@ -83,7 +83,7 @@ public class WarmTranslationCacheUseCase {
                 translated,
                 skipped,
                 elapsed,
-                targets.stream().map(SupportedLanguage::code).toList()
+                targets.stream().map(language -> language.code()).toList()
         );
     }
 

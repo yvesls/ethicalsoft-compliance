@@ -1,6 +1,5 @@
 package com.ethicalsoft.ethicalsoft_complience.application.usecase.project;
 
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.QuestionnaireResponse;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.repository.QuestionnaireResponseRepository;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.*;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.ProjectEditSnapshotDTO;
@@ -60,12 +59,12 @@ public class GetProjectEditSnapshotUseCase {
 
         Set<Integer> questionnairesWithResult = questionnaireResultRepository.findByProjectId(projectId)
                 .stream()
-                .map(QuestionnaireResult::getQuestionnaireId)
+                .map(questionnaireResult -> questionnaireResult.getQuestionnaireId())
                 .collect(Collectors.toSet());
 
         var allResponses = responseRepository.findByProjectId(projectId);
         Set<Long> representativesWithResponses = allResponses.stream()
-                .map(QuestionnaireResponse::getRepresentativeId)
+                .map(response -> response.getRepresentativeId())
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
@@ -103,7 +102,7 @@ public class GetProjectEditSnapshotUseCase {
         if (project.getStages() == null) return List.of();
 
         return project.getStages().stream()
-                .sorted(Comparator.comparingInt(Stage::getSequence))
+                .sorted(Comparator.comparingInt(stage -> stage.getSequence()))
                 .map(stage -> {
                     boolean locked = project.getQuestionnaires() != null &&
                             project.getQuestionnaires().stream()
@@ -125,14 +124,14 @@ public class GetProjectEditSnapshotUseCase {
                             .lockReason(lockReason)
                             .build();
                 })
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private List<IterationSnapshot> buildIterationSnapshots(Project project, Set<Integer> questionnairesWithResult) {
         if (project.getIterations() == null) return List.of();
 
         return project.getIterations().stream()
-                .sorted(Comparator.comparing(Iteration::getApplicationStartDate, Comparator.nullsLast(Comparator.naturalOrder())))
+                .sorted(Comparator.comparing(iteration -> iteration.getApplicationStartDate(), Comparator.nullsLast(Comparator.naturalOrder())))
                 .map(iter -> {
                     boolean hasActiveQuestionnaire = project.getQuestionnaires() != null &&
                             project.getQuestionnaires().stream()
@@ -152,14 +151,14 @@ public class GetProjectEditSnapshotUseCase {
                             .lockReason(lockReason)
                             .build();
                 })
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private List<QuestionnaireSnapshot> buildQuestionnaireSnapshots(Project project, Set<Integer> questionnairesWithResult) {
         if (project.getQuestionnaires() == null) return List.of();
 
         return project.getQuestionnaires().stream()
-                .sorted(Comparator.comparing(Questionnaire::getId))
+                .sorted(Comparator.comparing(questionnaire -> questionnaire.getId()))
                 .map(q -> {
                     boolean hasResult = questionnairesWithResult.contains(q.getId());
                     String lockReason = hasResult ? "Questionário já possui resultado ISEP calculado." : null;
@@ -183,31 +182,31 @@ public class GetProjectEditSnapshotUseCase {
                             .questions(buildQuestionSnapshots(q))
                             .build();
                 })
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private List<QuestionSnapshot> buildQuestionSnapshots(Questionnaire q) {
         if (q.getQuestions() == null) return List.of();
 
         return q.getQuestions().stream()
-                .sorted(Comparator.comparing(Question::getId))
+                .sorted(Comparator.comparing(question -> question.getId()))
                 .map(question -> QuestionSnapshot.builder()
                         .id(question.getId())
                         .text(question.getValue())
                         .roleIds(question.getRoles() != null
-                                ? question.getRoles().stream().map(Role::getId).collect(Collectors.toSet())
+                                ? question.getRoles().stream().map(role -> role.getId()).collect(Collectors.toSet())
                                 : Set.of())
                         .roleNames(question.getRoles() != null
-                                ? question.getRoles().stream().map(Role::getName).sorted().collect(Collectors.toList())
+                                ? question.getRoles().stream().map(role -> role.getName()).sorted().toList()
                                 : List.of())
                         .stageIds(question.getStages() != null
-                                ? question.getStages().stream().map(Stage::getId).sorted().collect(Collectors.toList())
+                                ? question.getStages().stream().map(stage -> stage.getId()).sorted().toList()
                                 : List.of())
                         .stageNames(question.getStages() != null
-                                ? question.getStages().stream().map(Stage::getName).sorted().collect(Collectors.toList())
+                                ? question.getStages().stream().map(stage -> stage.getName()).sorted().toList()
                                 : List.of())
                         .build())
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private List<RepresentativeSnapshot> buildRepresentativeSnapshots(Project project, Set<Long> representativesWithResponses) {
@@ -215,7 +214,7 @@ public class GetProjectEditSnapshotUseCase {
 
         return project.getRepresentatives().stream()
                 .filter(rep -> rep.getDeletionDate() == null)
-                .sorted(Comparator.comparing(Representative::getId))
+                .sorted(Comparator.comparing(rep -> rep.getId()))
                 .map(rep -> {
                     boolean hasResponses = representativesWithResponses.contains(rep.getId());
                     String lockReason = hasResponses ? "Representante já possui respostas submetidas. Remoção não permitida." : null;
@@ -227,10 +226,10 @@ public class GetProjectEditSnapshotUseCase {
                             .lastName(rep.getUser() != null ? rep.getUser().getLastName() : null)
                             .email(rep.getUser() != null ? rep.getUser().getEmail() : null)
                             .roleIds(rep.getRoles() != null
-                                    ? rep.getRoles().stream().map(Role::getId).collect(Collectors.toSet())
+                                    ? rep.getRoles().stream().map(role -> role.getId()).collect(Collectors.toSet())
                                     : Set.of())
                             .roleNames(rep.getRoles() != null
-                                    ? rep.getRoles().stream().map(Role::getName).sorted().collect(Collectors.toList())
+                                    ? rep.getRoles().stream().map(role -> role.getName()).sorted().toList()
                                     : List.of())
                             .weight(rep.getWeight())
                             .hasResponses(hasResponses)
@@ -238,7 +237,7 @@ public class GetProjectEditSnapshotUseCase {
                             .lockReason(lockReason)
                             .build();
                 })
-                .collect(Collectors.toList());
+                .toList();
     }
 }
 

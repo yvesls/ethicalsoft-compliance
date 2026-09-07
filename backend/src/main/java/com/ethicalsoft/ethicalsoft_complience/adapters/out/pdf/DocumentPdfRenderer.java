@@ -26,18 +26,21 @@ public class DocumentPdfRenderer {
             String html = FreeMarkerTemplateUtils.processTemplateIntoString(template,
                     model == null ? Map.of() : model);
             String xhtml = sanitizeToXhtml(html);
-
-            try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-                PdfRendererBuilder builder = new PdfRendererBuilder();
-                builder.useFastMode();
-                builder.withHtmlContent(xhtml, null);
-                builder.toStream(out);
-                builder.run();
-                return out.toByteArray();
-            }
+            return renderPdf(xhtml);
         } catch (IOException | TemplateException | RuntimeException ex) {
             log.error("[pdf-renderer] Falha ao renderizar template {}", templatePath, ex);
             throw new BusinessException("Falha ao gerar o documento PDF: " + ex.getMessage());
+        }
+    }
+
+    private byte[] renderPdf(String xhtml) throws IOException {
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            PdfRendererBuilder builder = new PdfRendererBuilder();
+            builder.useFastMode();
+            builder.withHtmlContent(xhtml, null);
+            builder.toStream(out);
+            builder.run();
+            return out.toByteArray();
         }
     }
 

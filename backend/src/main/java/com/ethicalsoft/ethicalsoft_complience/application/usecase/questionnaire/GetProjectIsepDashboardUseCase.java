@@ -40,10 +40,10 @@ public class GetProjectIsepDashboardUseCase {
         List<QuestionnaireResult> completedResults = isepResultQueryPort.findByProjectId(projectId);
 
         Map<Integer, Questionnaire> questionnaireMap = allQuestionnaires.stream()
-                .collect(Collectors.toMap(Questionnaire::getId, q -> q));
+                .collect(Collectors.toMap(questionnaire -> questionnaire.getId(), q -> q));
 
         List<IsepHistoryItemDTO> history = completedResults.stream()
-                .sorted(Comparator.comparing(QuestionnaireResult::getCalculatedAt,
+                .sorted(Comparator.comparing(r -> r.getCalculatedAt(),
                         Comparator.nullsLast(Comparator.naturalOrder())))
                 .map(r -> {
                     Questionnaire q = questionnaireMap.get(r.getQuestionnaireId());
@@ -60,7 +60,7 @@ public class GetProjectIsepDashboardUseCase {
                             toPercent(r.getTechDebtScore())
                     );
                 })
-                .collect(Collectors.toList());
+                .toList();
 
         BigDecimal projectIsep = null;
         String projectBand = null;
@@ -84,23 +84,23 @@ public class GetProjectIsepDashboardUseCase {
                                 : BigDecimal.ONE;
                         return new IsepMath.WeightedValue(r.getIseq(), weight);
                     })
-                    .collect(Collectors.toList());
+                    .toList();
 
             projectIsep = IsepMath.weightedAverage(weightedValues);
             projectIsepPercent = IsepMath.toPercent(projectIsep);
             projectBand = EthicalComplianceBand.classify(projectIsepPercent).name();
 
             Collection<BigDecimal> iseqValues = completedResults.stream()
-                    .map(QuestionnaireResult::getIseq).toList();
+                    .map(r -> r.getIseq()).toList();
             teamAvgPercent = IsepMath.toPercent(IsepMath.simpleAverage(iseqValues));
             teamStdDevPercent = IsepMath.toPercent(IsepMath.standardDeviation(iseqValues));
 
-            ethicsPercent = averagePercentNonNull(completedResults.stream().map(QuestionnaireResult::getEthicsScore).toList());
-            processPercent = averagePercentNonNull(completedResults.stream().map(QuestionnaireResult::getProcessScore).toList());
-            fairnessPercent = averagePercentNonNull(completedResults.stream().map(QuestionnaireResult::getFairnessScore).toList());
-            esgPercent = averagePercentNonNull(completedResults.stream().map(QuestionnaireResult::getEsgScore).toList());
-            ethicsDebtPercent = averagePercentNonNull(completedResults.stream().map(QuestionnaireResult::getEthicsDebtScore).toList());
-            techDebtPercent = averagePercentNonNull(completedResults.stream().map(QuestionnaireResult::getTechDebtScore).toList());
+            ethicsPercent = averagePercentNonNull(completedResults.stream().map(r -> r.getEthicsScore()).toList());
+            processPercent = averagePercentNonNull(completedResults.stream().map(r -> r.getProcessScore()).toList());
+            fairnessPercent = averagePercentNonNull(completedResults.stream().map(r -> r.getFairnessScore()).toList());
+            esgPercent = averagePercentNonNull(completedResults.stream().map(r -> r.getEsgScore()).toList());
+            ethicsDebtPercent = averagePercentNonNull(completedResults.stream().map(r -> r.getEthicsDebtScore()).toList());
+            techDebtPercent = averagePercentNonNull(completedResults.stream().map(r -> r.getTechDebtScore()).toList());
 
             log.info("[dashboard-project] ISEP Consolidado projeto={} isep={}% faixa={}",
                     projectId, projectIsepPercent, projectBand);

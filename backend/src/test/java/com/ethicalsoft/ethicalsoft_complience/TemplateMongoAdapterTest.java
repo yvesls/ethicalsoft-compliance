@@ -51,7 +51,6 @@ class TemplateMongoAdapterTest {
     private User currentUser;
 
     @BeforeEach
-    @SuppressWarnings("null")
     void setUp() {
         currentUser = new User();
         currentUser.setId(99L);

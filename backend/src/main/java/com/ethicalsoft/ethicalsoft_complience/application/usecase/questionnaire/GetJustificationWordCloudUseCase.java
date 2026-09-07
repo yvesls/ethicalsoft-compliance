@@ -1,6 +1,5 @@
 package com.ethicalsoft.ethicalsoft_complience.application.usecase.questionnaire;
 
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.QuestionMetadataDocument;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.QuestionnaireResponse;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.repository.QuestionMetadataRepository;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.repository.QuestionnaireResponseRepository;
@@ -91,7 +90,7 @@ public class GetJustificationWordCloudUseCase {
         Set<Long> allQuestionIds = completedResponses.stream()
                 .filter(r -> r.getAnswers() != null)
                 .flatMap(r -> r.getAnswers().stream())
-                .map(QuestionnaireResponse.AnswerDocument::getQuestionId)
+                .map(answer -> answer.getQuestionId())
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
@@ -101,7 +100,7 @@ public class GetJustificationWordCloudUseCase {
                     .stream()
                     .filter(m -> m.getDomain() != null)
                     .collect(Collectors.toMap(
-                            QuestionMetadataDocument::getQuestionId,
+                            meta -> meta.getQuestionId(),
                             m -> m.getDomain().name(),
                             (a, b) -> a
                     ));
@@ -130,20 +129,22 @@ public class GetJustificationWordCloudUseCase {
 
         Map<String, List<String>> textsByDomain = new LinkedHashMap<>();
 
-        for (QuestionnaireResponse response : responses) {
-            if (response.getAnswers() == null) continue;
-            for (QuestionnaireResponse.AnswerDocument answer : response.getAnswers()) {
-                if (answer.getQuestionId() == null) continue;
-                String domain = questionDomainMap.get(answer.getQuestionId());
-                if (domain == null) continue;
-                String justText = answer.getJustification() != null
-                        ? answer.getJustification().getDescricao()
-                        : null;
-                if (justText != null && !justText.isBlank()) {
-                    textsByDomain.computeIfAbsent(domain, k -> new ArrayList<>()).add(justText);
-                }
-            }
-        }
+        responses.stream()
+                .map(e -> e.getAnswers())
+                .filter(Objects::nonNull)
+                .flatMap(List::stream)
+                .filter(answer -> answer.getQuestionId() != null)
+                .filter(answer -> questionDomainMap.containsKey(answer.getQuestionId()))
+                .forEach(answer -> {
+                    String justText = answer.getJustification() != null
+                            ? answer.getJustification().getDescricao()
+                            : null;
+                    if (justText != null && !justText.isBlank()) {
+                        textsByDomain.computeIfAbsent(
+                                        questionDomainMap.get(answer.getQuestionId()), k -> new ArrayList<>())
+                                .add(justText);
+                    }
+                });
 
         Map<String, Map<String, Long>> result = new LinkedHashMap<>();
         for (Map.Entry<String, List<String>> entry : textsByDomain.entrySet()) {
@@ -153,7 +154,7 @@ public class GetJustificationWordCloudUseCase {
                 Map<String, Long> top = freq.entrySet().stream()
                         .limit(20)
                         .collect(Collectors.toMap(
-                                Map.Entry::getKey, Map.Entry::getValue,
+e -> e.getKey(), e -> e.getValue(),
                                 (a, b) -> a, LinkedHashMap::new));
                 result.put(entry.getKey(), top);
             }
@@ -177,7 +178,7 @@ public class GetJustificationWordCloudUseCase {
                     .filter(e -> RISK_INDICATOR_TERMS.contains(e.getKey()))
                     .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
                     .collect(Collectors.toMap(
-                            Map.Entry::getKey, Map.Entry::getValue,
+e -> e.getKey(), e -> e.getValue(),
                             (a, b) -> a, LinkedHashMap::new));
 
             if (riskTermsFound.isEmpty()) continue;
@@ -207,7 +208,7 @@ public class GetJustificationWordCloudUseCase {
         return freq.entrySet().stream()
                 .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
                 .collect(Collectors.toMap(
-                        Map.Entry::getKey, Map.Entry::getValue,
+                        e -> e.getKey(), e -> e.getValue(),
                         (a, b) -> a, LinkedHashMap::new));
     }
 

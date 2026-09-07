@@ -60,13 +60,13 @@ public class GetRoleStageComplianceUseCase {
         List<Representative> representatives = representativeRepository.findByProjectId(projectId);
         Map<Long, Set<Role>> rolesByRepId = representatives.stream()
                 .collect(Collectors.toMap(
-                        Representative::getId,
+                        representative -> representative.getId(),
                         rep -> Optional.ofNullable(rep.getRoles()).orElse(Set.of())
                 ));
 
         Map<Integer, Stage> stageMap = stageRepository.findByProjectId(projectId)
                 .stream()
-                .collect(Collectors.toMap(Stage::getId, s -> s));
+                .collect(Collectors.toMap(stage -> stage.getId(), s -> s));
 
         Map<Long, String> roleNames = new LinkedHashMap<>();
         Map<Long, Map<Integer, List<BigDecimal>>> roleStageIemValues = new LinkedHashMap<>();
@@ -118,7 +118,7 @@ public class GetRoleStageComplianceUseCase {
 
                     return new RoleStageComplianceDTO(roleId, roleName, iemByStage);
                 })
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private Map<Integer, List<QuestionnaireResponse.AnswerDocument>> groupAnswersByStage(

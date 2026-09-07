@@ -42,7 +42,7 @@ public class IseqCalculationService {
                 questionnaire.getId(), project.getId(), project.getType());
 
         Map<Long, Representative> repById = representatives.stream()
-                .collect(Collectors.toMap(Representative::getId, r -> r, (a, b) -> a));
+                .collect(Collectors.toMap(rep -> rep.getId(), r -> r, (a, b) -> a));
 
         Map<Long, BigDecimal> memberIcp = new LinkedHashMap<>();
         Map<Long, Map<Integer, BigDecimal>> memberStageCompliance = new LinkedHashMap<>();
@@ -102,7 +102,7 @@ public class IseqCalculationService {
             return Set.of();
         }
         return representative.getRoles().stream()
-                .map(com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Role::getId)
+                .map(role -> role.getId())
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
     }
@@ -168,7 +168,7 @@ public class IseqCalculationService {
                 .toList();
 
         Set<Long> questionIds = allAnswers.stream()
-                .map(QuestionnaireResponse.AnswerDocument::getQuestionId)
+                .map(answer -> answer.getQuestionId())
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
@@ -178,7 +178,7 @@ public class IseqCalculationService {
 
         Map<Long, QuestionMetadataDocument> metadataMap = questionMetadataRepository
                 .findByQuestionIdIn(questionIds).stream()
-                .collect(Collectors.toMap(QuestionMetadataDocument::getQuestionId, m -> m, (a, b) -> a));
+                .collect(Collectors.toMap(meta -> meta.getQuestionId(), m -> m, (a, b) -> a));
 
         if (metadataMap.isEmpty()) {
             return DomainScores.EMPTY;

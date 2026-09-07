@@ -111,7 +111,7 @@ public class ProcessExpiredProjectIsepUseCase {
         Set<Integer> questionnaireIds = project.getQuestionnaires() == null
                 ? Set.of()
                 : project.getQuestionnaires().stream()
-                        .map(Questionnaire::getId)
+                        .map(questionnaire -> questionnaire.getId())
                         .collect(Collectors.toSet());
 
         if (questionnaireIds.isEmpty()) {
@@ -161,17 +161,17 @@ public class ProcessExpiredProjectIsepUseCase {
         EthicalComplianceBand band = EthicalComplianceBand.classify(isepPercent);
 
         Collection<BigDecimal> isepValues = questionnaireResults.stream()
-                .map(QuestionnaireResult::getIseq)
+                .map(r -> r.getIseq())
                 .toList();
         BigDecimal teamAvg = IsepMath.simpleAverage(isepValues);
         BigDecimal teamStdDev = IsepMath.standardDeviation(isepValues);
 
-        BigDecimal avgEthics = averageNonNull(questionnaireResults.stream().map(QuestionnaireResult::getEthicsScore).toList());
-        BigDecimal avgProcess = averageNonNull(questionnaireResults.stream().map(QuestionnaireResult::getProcessScore).toList());
-        BigDecimal avgFairness = averageNonNull(questionnaireResults.stream().map(QuestionnaireResult::getFairnessScore).toList());
-        BigDecimal avgEsg = averageNonNull(questionnaireResults.stream().map(QuestionnaireResult::getEsgScore).toList());
-        BigDecimal avgEthicsDebt = averageNonNull(questionnaireResults.stream().map(QuestionnaireResult::getEthicsDebtScore).toList());
-        BigDecimal avgTechDebt = averageNonNull(questionnaireResults.stream().map(QuestionnaireResult::getTechDebtScore).toList());
+        BigDecimal avgEthics = averageNonNull(questionnaireResults.stream().map(r -> r.getEthicsScore()).toList());
+        BigDecimal avgProcess = averageNonNull(questionnaireResults.stream().map(r -> r.getProcessScore()).toList());
+        BigDecimal avgFairness = averageNonNull(questionnaireResults.stream().map(r -> r.getFairnessScore()).toList());
+        BigDecimal avgEsg = averageNonNull(questionnaireResults.stream().map(r -> r.getEsgScore()).toList());
+        BigDecimal avgEthicsDebt = averageNonNull(questionnaireResults.stream().map(r -> r.getEthicsDebtScore()).toList());
+        BigDecimal avgTechDebt = averageNonNull(questionnaireResults.stream().map(r -> r.getTechDebtScore()).toList());
 
         log.info("[project-isep-scheduler] ISEP Consolidado do Projeto id={}: {}% (Faixa {})",
                 project.getId(), isepPercent, band.name());

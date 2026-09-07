@@ -2,7 +2,6 @@ package com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.query;
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.QuestionnaireResponse;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Questionnaire;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Role;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.request.QuestionnaireAnswersRequestDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.QuestionnaireAnswerResponseDTO;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.dto.response.QuestionnaireAnswersResponseDTO;
@@ -98,7 +97,7 @@ public class QuestionnaireResponseAdapter implements QuestionnaireResponsePort {
             answerPolicy.syncAnswers(response, questionnaire);
 
             Map<Long, QuestionnaireResponse.AnswerDocument> answerMap = response.getAnswers().stream()
-                    .collect(Collectors.toMap(QuestionnaireResponse.AnswerDocument::getQuestionId, ans -> ans));
+                    .collect(Collectors.toMap(answer -> answer.getQuestionId(), ans -> ans));
 
             request.getAnswers().forEach(dto -> answerPolicy.applyAnswer(dto, answerMap, draft));
 
@@ -203,7 +202,7 @@ public class QuestionnaireResponseAdapter implements QuestionnaireResponsePort {
                 .map(rep -> Optional.ofNullable(rep.getRoles())
                         .orElse(Collections.emptySet())
                         .stream()
-                        .map(Role::getId)
+                        .map(role -> role.getId())
                         .filter(Objects::nonNull)
                         .collect(Collectors.toSet()))
                 .orElse(Collections.emptySet());

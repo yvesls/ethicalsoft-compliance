@@ -97,7 +97,7 @@ public class ProcessQuestionnaireIsepUseCase {
 
         List<QuestionnaireResponse> completed = responses.stream()
                 .filter(r -> QuestionnaireResponseStatus.COMPLETED.equals(r.getStatus()))
-                .collect(Collectors.toList());
+                .toList();
 
         if (completed.isEmpty()) {
             log.warn("[isep-orchestrator] Nenhuma resposta COMPLETED para questionário={}", questionnaire.getId());
@@ -120,14 +120,14 @@ public class ProcessQuestionnaireIsepUseCase {
         Set<Long> representativeIds = project.getRepresentatives() == null
                 ? Set.of()
                 : project.getRepresentatives().stream()
-                        .map(Representative::getId)
+                        .map(representative -> representative.getId())
                         .collect(Collectors.toSet());
 
         if (representativeIds.isEmpty()) return false;
 
         Set<Long> completedRepresentatives = responses.stream()
                 .filter(r -> QuestionnaireResponseStatus.COMPLETED.equals(r.getStatus()))
-                .map(QuestionnaireResponse::getRepresentativeId)
+                .map(response -> response.getRepresentativeId())
                 .collect(Collectors.toSet());
 
         boolean allCompleted = completedRepresentatives.containsAll(representativeIds);
@@ -149,7 +149,7 @@ public class ProcessQuestionnaireIsepUseCase {
                             : BigDecimal.ONE;
                     return new IsepMath.WeightedValue(r.getIseq(), weight);
                 })
-                .collect(Collectors.toList());
+                .toList();
 
         BigDecimal projectIsep = IsepMath.weightedAverage(weighted);
         log.info("[isep-orchestrator] ISEP do Projeto id={} = {}% faixa={}",

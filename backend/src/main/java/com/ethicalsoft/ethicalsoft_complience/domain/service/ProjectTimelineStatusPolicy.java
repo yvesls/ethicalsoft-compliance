@@ -130,8 +130,8 @@ public class ProjectTimelineStatusPolicy {
         }
         return stages.stream()
                 .filter(stage -> isWithinRange(stage.getApplicationStartDate(), stage.getApplicationEndDate(), today))
-                .sorted(Comparator.comparing(Stage::getSequence))
-                .map(Stage::getName)
+                .sorted(Comparator.comparing(stage -> stage.getSequence()))
+                .map(stage -> stage.getName())
                 .findFirst()
                 .orElse(null);
     }
@@ -141,7 +141,7 @@ public class ProjectTimelineStatusPolicy {
             return null;
         }
         var ordered = iterations.stream()
-                .sorted(Comparator.comparing(Iteration::getApplicationStartDate, Comparator.nullsLast(Comparator.naturalOrder())))
+                .sorted(Comparator.comparing(iteration -> iteration.getApplicationStartDate(), Comparator.nullsLast(Comparator.naturalOrder())))
                 .toList();
 
         for (int i = 0; i < ordered.size(); i++) {

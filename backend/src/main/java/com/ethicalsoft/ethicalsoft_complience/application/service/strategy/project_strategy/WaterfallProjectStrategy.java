@@ -43,7 +43,7 @@ public class WaterfallProjectStrategy implements ProjectCreationStrategy {
 
 		List<Stage> savedStages = stageCommandPort.saveAll( stages );
 
-		Map<String, Stage> stageMap = savedStages.stream().collect( Collectors.toMap( Stage::getName, Function.identity() ) );
+		Map<String, Stage> stageMap = savedStages.stream().collect( Collectors.toMap( stage -> stage.getName(), Function.identity() ) );
 
 		Map<String, Iteration> emptyIterationMap = Collections.emptyMap();
 

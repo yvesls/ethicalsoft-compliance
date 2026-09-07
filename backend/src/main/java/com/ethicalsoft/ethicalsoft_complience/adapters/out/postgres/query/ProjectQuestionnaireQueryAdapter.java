@@ -47,7 +47,7 @@ public class ProjectQuestionnaireQueryAdapter implements ProjectQuestionnaireQue
             Set<Representative> projectRepresentatives = Optional.ofNullable(project.getRepresentatives()).orElse(Set.of())
                     .stream().filter(r -> r.getDeletionDate() == null).collect(Collectors.toSet());
             Map<Long, Representative> representativesById = projectRepresentatives.stream()
-                    .collect(Collectors.toMap(Representative::getId, rep -> rep));
+                    .collect(Collectors.toMap(representative -> representative.getId(), rep -> rep));
 
             QuestionnaireSummaryResponseDTO summary = questionnaireSummaryBuilder.build(questionnaire, representativesById);
             return ProjectQuestionnaireSummaryDTO.builder()
@@ -81,7 +81,7 @@ public class ProjectQuestionnaireQueryAdapter implements ProjectQuestionnaireQue
             Set<Representative> projectRepresentatives = Optional.ofNullable(project.getRepresentatives()).orElse(Set.of())
                     .stream().filter(r -> r.getDeletionDate() == null).collect(Collectors.toSet());
             Map<Long, Representative> representativesById = projectRepresentatives.stream()
-                    .collect(Collectors.toMap(Representative::getId, rep -> rep));
+                    .collect(Collectors.toMap(representative -> representative.getId(), rep -> rep));
 
             Specification<Questionnaire> spec = Specification.where((root, query, cb) -> cb.equal(root.get("project").get("id"), projectId));
 

@@ -129,7 +129,7 @@ public class ProjectQueryAdapter implements ProjectQueryPort {
         Set<Representative> reps = Optional.ofNullable(project.getRepresentatives()).orElse(Set.of())
                 .stream().filter(r -> r.getDeletionDate() == null).collect(Collectors.toSet());
         Map<Long, Representative> representativesById = reps.stream()
-                .collect(Collectors.toMap(Representative::getId, rep -> rep));
+                .collect(Collectors.toMap(representative -> representative.getId(), rep -> rep));
 
         Specification<Questionnaire> spec = Specification.where((root, query, cb) -> cb.equal(root.get("project").get("id"), projectId));
         if (filter != null) {

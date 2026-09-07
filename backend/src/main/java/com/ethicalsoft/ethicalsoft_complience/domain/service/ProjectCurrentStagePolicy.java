@@ -1,7 +1,6 @@
 package com.ethicalsoft.ethicalsoft_complience.domain.service;
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Project;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Questionnaire;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Stage;
 import com.ethicalsoft.ethicalsoft_complience.common.util.ObjectUtils;
 import org.springframework.stereotype.Service;
@@ -22,8 +21,8 @@ public class ProjectCurrentStagePolicy {
         return stages.stream()
                 .filter(s -> s.getApplicationStartDate() != null && s.getApplicationEndDate() != null &&
                         !now.isBefore(s.getApplicationStartDate()) && !now.isAfter(s.getApplicationEndDate()))
-                .sorted(Comparator.comparing(Stage::getSequence))
-                .map(Stage::getName)
+                .sorted(Comparator.comparing(stage -> stage.getSequence()))
+                .map(stage -> stage.getName())
                 .findFirst()
                 .orElse(findClosestStageName(stages, now));
     }
@@ -31,13 +30,13 @@ public class ProjectCurrentStagePolicy {
     private String findClosestStageName(Set<Stage> stages, LocalDate now) {
         return stages.stream()
                 .filter(s -> s.getApplicationStartDate() != null && !now.isBefore(s.getApplicationStartDate()))
-                .sorted(Comparator.comparing(Stage::getSequence, Comparator.reverseOrder()))
-                .map(Stage::getName)
+                .sorted(Comparator.comparing(stage -> stage.getSequence(), Comparator.reverseOrder()))
+                .map(stage -> stage.getName())
                 .findFirst()
                 .orElseGet(() -> stages.stream()
                         .filter(s -> s.getApplicationStartDate() != null)
-                        .sorted(Comparator.comparing(Stage::getApplicationStartDate))
-                        .map(Stage::getName)
+                        .sorted(Comparator.comparing(stage -> stage.getApplicationStartDate()))
+                        .map(stage -> stage.getName())
                         .findFirst()
                         .orElse(null));
     }
@@ -47,7 +46,7 @@ public class ProjectCurrentStagePolicy {
             return project.getStartDate();
         }
         return project.getQuestionnaires().stream()
-                .map(Questionnaire::getApplicationStartDate)
+                .map(questionnaire -> questionnaire.getApplicationStartDate())
                 .filter(Objects::nonNull)
                 .filter(date -> !date.isBefore(LocalDate.now()))
                 .sorted()

@@ -31,7 +31,7 @@ public class RepresentativeQuestionnaireResponseMongoAdapter implements Represen
         Set<Long> representativeRoleIds = Optional.ofNullable(representative.getRoles())
                 .orElse(Collections.emptySet())
                 .stream()
-                .map(Role::getId)
+                .map(role -> role.getId())
                 .filter(Objects::nonNull)
                 .collect(java.util.stream.Collectors.toSet());
 
@@ -94,12 +94,12 @@ public class RepresentativeQuestionnaireResponseMongoAdapter implements Represen
             answer.setStageIds(Optional.ofNullable(question.getStages())
                     .orElse(Collections.emptySet())
                     .stream()
-                    .map(Stage::getId)
+                    .map(stage -> stage.getId())
                     .filter(Objects::nonNull)
                     .toList());
 
             if (question.getRoles() != null) {
-                answer.setRoleIds(question.getRoles().stream().map(Role::getId).filter(Objects::nonNull).toList());
+                answer.setRoleIds(question.getRoles().stream().map(role -> role.getId()).filter(Objects::nonNull).toList());
             }
             result.add(answer);
         }
@@ -126,7 +126,7 @@ public class RepresentativeQuestionnaireResponseMongoAdapter implements Represen
         return Optional.ofNullable(question.getRoles())
                 .orElse(Collections.emptySet())
                 .stream()
-                .map(Role::getId)
+                .map(role -> role.getId())
                 .filter(Objects::nonNull)
                 .anyMatch(representativeRoleIds::contains);
     }

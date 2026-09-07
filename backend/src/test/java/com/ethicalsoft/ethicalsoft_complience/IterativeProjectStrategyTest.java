@@ -26,7 +26,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -79,12 +78,12 @@ class IterativeProjectStrategyTest {
         Stage savedStage = new Stage();
         savedStage.setId( 1 );
         savedStage.setName( "CategoryStage" );
-        when( stageCommandPort.saveAll( any( List.class ) ) ).thenReturn( List.of( savedStage ) );
+        when( stageCommandPort.saveAll( anyList() ) ).thenReturn( List.of( savedStage ) );
 
         Iteration savedIter = new Iteration();
         savedIter.setId( 1 );
         savedIter.setName( "Sprint 1" );
-        when( iterationCommandPort.saveAll( any( List.class ) ) ).thenReturn( List.of( savedIter ) );
+        when( iterationCommandPort.saveAll( anyList() ) ).thenReturn( List.of( savedIter ) );
 
         strategy.createStructure( project, request );
 

@@ -1,7 +1,6 @@
 package com.ethicalsoft.ethicalsoft_complience.application.usecase.document;
 
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.PdfDocumentConfigDocument;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.QuestionMetadataDocument;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.model.QuestionnaireResponse;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.repository.PdfDocumentConfigRepository;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.mongo.repository.QuestionMetadataRepository;
@@ -10,7 +9,6 @@ import com.ethicalsoft.ethicalsoft_complience.adapters.out.pdf.DocumentPdfRender
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Project;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Questionnaire;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Representative;
-import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.Role;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.AiUsageScopeEnum;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.ProjectStatusEnum;
 import com.ethicalsoft.ethicalsoft_complience.adapters.out.postgres.model.enums.QuestionnaireResponseStatus;
@@ -25,6 +23,7 @@ import com.ethicalsoft.ethicalsoft_complience.exception.BusinessException;
 import com.ethicalsoft.ethicalsoft_complience.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +39,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GenerateNonComplianceBulletinUseCase {
 
+    @Lazy
+    private final GenerateNonComplianceBulletinUseCase self;
     private final GetQuestionnaireDashboardUseCase getQuestionnaireDashboardUseCase;
     private final ProjectRepository projectRepository;
     private final QuestionnaireRepository questionnaireRepository;
@@ -86,7 +87,7 @@ public class GenerateNonComplianceBulletinUseCase {
 
     @Transactional(readOnly = true)
     public BulletinMetadata prepareMetadata(Long projectId, Integer questionnaireId) {
-        return prepareMetadata(projectId, questionnaireId, null);
+        return self.prepareMetadata(projectId, questionnaireId, null);
     }
 
     @Transactional(readOnly = true)
@@ -177,7 +178,7 @@ public class GenerateNonComplianceBulletinUseCase {
 
         Map<Long, String> roleByRepresentative = representativeRepository.findByProjectId(project.getId())
                 .stream()
-                .collect(Collectors.toMap(Representative::getId, this::joinRoleNames, (a, b) -> a));
+                .collect(Collectors.toMap(representative -> representative.getId(), this::joinRoleNames, (a, b) -> a));
 
         List<Map<String, Object>> nonCompliantMembers = dashboard.memberResults().stream()
                 .filter(m -> !EthicalComplianceBand.meetsMinimum(m.band()))
@@ -246,7 +247,7 @@ public class GenerateNonComplianceBulletinUseCase {
         if (aiUsageDeclared) {
             String scopesLabel = aiScopes.stream()
                     .filter(scope -> scope != AiUsageScopeEnum.NAO_UTILIZA)
-                    .map(AiUsageScopeEnum::getLabel)
+                    .map(scope -> scope.getLabel())
                     .collect(Collectors.joining(", "));
             model.put("aiUsageScopesLabel", scopesLabel);
         }
@@ -279,7 +280,7 @@ public class GenerateNonComplianceBulletinUseCase {
             return "N/D";
         }
         return representative.getRoles().stream()
-                .map(Role::getName)
+                .map(role -> role.getName())
                 .filter(Objects::nonNull)
                 .collect(Collectors.joining(", "));
     }
@@ -296,7 +297,7 @@ public class GenerateNonComplianceBulletinUseCase {
         Set<Long> questionIds = responses.stream()
                 .filter(r -> r.getAnswers() != null)
                 .flatMap(r -> r.getAnswers().stream())
-                .map(QuestionnaireResponse.AnswerDocument::getQuestionId)
+                .map(answer -> answer.getQuestionId())
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
@@ -304,7 +305,7 @@ public class GenerateNonComplianceBulletinUseCase {
                 ? Collections.emptyMap()
                 : questionMetadataRepository.findByQuestionIdIn(questionIds).stream()
                         .filter(m -> m.getDomain() != null)
-                        .collect(Collectors.toMap(QuestionMetadataDocument::getQuestionId,
+                        .collect(Collectors.toMap(meta -> meta.getQuestionId(),
                                 m -> m.getDomain().name(), (a, b) -> a));
 
         Map<Long, long[]> counts = new LinkedHashMap<>();
@@ -314,7 +315,7 @@ public class GenerateNonComplianceBulletinUseCase {
         BigDecimal threshold = EthicalComplianceBand.MINIMUM_ACCEPTABLE.getMinInclusive();
         List<QuestionRow> rows = buildNonCompliantRows(counts, domainByQuestion, textByQuestion, threshold);
 
-        rows.sort(Comparator.comparing(QuestionRow::compliance));
+        rows.sort(Comparator.comparing(row -> row.compliance()));
         return rows.stream().map(this::toQuestionRowMap).toList();
     }
 

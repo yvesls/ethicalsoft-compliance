@@ -47,37 +47,31 @@ public class ProjectUpdateResponseSyncService {
         log.info("[response-sync] Adicionando pergunta id={} às respostas do questionário id={}", question.getId(), questionnaireId);
 
         Set<Long> questionRoleIds = question.getRoles().stream()
-                .map(Role::getId)
+                .map(role -> role.getId())
                 .collect(Collectors.toSet());
 
-        List<QuestionnaireResponse> responses = responseRepository.findByQuestionnaireId(questionnaireId);
-        int updated = 0;
+        List<Integer> addStageIds = question.getStages() != null
+                ? question.getStages().stream().map(stage -> stage.getId()).toList()
+                : List.of();
 
-        for (QuestionnaireResponse resp : responses) {
-            if (resp.getStatus() == QuestionnaireResponseStatus.COMPLETED) continue;
+        List<QuestionnaireResponse> targetResponses = responseRepository.findByQuestionnaireId(questionnaireId).stream()
+                .filter(resp -> resp.getStatus() != QuestionnaireResponseStatus.COMPLETED)
+                .filter(resp -> {
+                    Representative rep = representatives.stream()
+                            .filter(r -> Objects.equals(r.getId(), resp.getRepresentativeId()))
+                            .findFirst().orElse(null);
+                    return rep != null && rep.getRoles().stream()
+                            .anyMatch(r -> questionRoleIds.contains(r.getId()));
+                })
+                .filter(resp -> resp.getAnswers() == null || resp.getAnswers().stream()
+                        .noneMatch(a -> Objects.equals(a.getQuestionId(), Long.valueOf(question.getId()))))
+                .toList();
 
-            Representative rep = representatives.stream()
-                    .filter(r -> Objects.equals(r.getId(), resp.getRepresentativeId()))
-                    .findFirst().orElse(null);
-
-            if (rep == null) continue;
-
-            boolean repHasRole = rep.getRoles().stream()
-                    .anyMatch(r -> questionRoleIds.contains(r.getId()));
-
-            if (!repHasRole) continue;
-
-            boolean alreadyHas = resp.getAnswers() != null && resp.getAnswers().stream()
-                    .anyMatch(a -> Objects.equals(a.getQuestionId(), Long.valueOf(question.getId())));
-
-            if (alreadyHas) continue;
-
+        for (QuestionnaireResponse resp : targetResponses) {
             AnswerDocument newAnswer = new AnswerDocument();
             newAnswer.setQuestionId(Long.valueOf(question.getId()));
             newAnswer.setQuestionText(question.getValue());
-            newAnswer.setStageIds(question.getStages() != null
-                    ? question.getStages().stream().map(Stage::getId).toList()
-                    : List.of());
+            newAnswer.setStageIds(addStageIds);
             newAnswer.setRoleIds(new ArrayList<>(questionRoleIds));
             newAnswer.setResponse(null);
 
@@ -86,9 +80,9 @@ public class ProjectUpdateResponseSyncService {
             }
             resp.getAnswers().add(newAnswer);
             responseRepository.save(resp);
-            updated++;
         }
 
+        int updated = targetResponses.size();
         log.info("[response-sync] Pergunta id={} adicionada a {} respostas", question.getId(), updated);
         return updated;
     }
@@ -96,13 +90,13 @@ public class ProjectUpdateResponseSyncService {
     public int removeQuestionFromResponses(Integer questionnaireId, Integer questionId) {
         log.info("[response-sync] Removendo pergunta id={} das respostas do questionário id={}", questionId, questionnaireId);
 
-        List<QuestionnaireResponse> responses = responseRepository.findByQuestionnaireId(questionnaireId);
+        List<QuestionnaireResponse> responses = responseRepository.findByQuestionnaireId(questionnaireId).stream()
+                .filter(resp -> resp.getStatus() != QuestionnaireResponseStatus.COMPLETED)
+                .filter(resp -> resp.getAnswers() != null)
+                .toList();
+
         int updated = 0;
-
         for (QuestionnaireResponse resp : responses) {
-            if (resp.getStatus() == QuestionnaireResponseStatus.COMPLETED) continue;
-            if (resp.getAnswers() == null) continue;
-
             boolean removed = resp.getAnswers().removeIf(
                     a -> Objects.equals(a.getQuestionId(), Long.valueOf(questionId)));
 
@@ -118,8 +112,6 @@ public class ProjectUpdateResponseSyncService {
 
     public void updateQuestionTextInResponses(Integer questionnaireId, Integer questionId, String newText) {
         List<QuestionnaireResponse> responses = responseRepository.findByQuestionnaireId(questionnaireId);
-        int updated = 0;
-
         for (QuestionnaireResponse resp : responses) {
             if (resp.getAnswers() == null) continue;
             boolean changed = false;
@@ -131,7 +123,6 @@ public class ProjectUpdateResponseSyncService {
             }
             if (changed) {
                 responseRepository.save(resp);
-                updated++;
             }
         }
 

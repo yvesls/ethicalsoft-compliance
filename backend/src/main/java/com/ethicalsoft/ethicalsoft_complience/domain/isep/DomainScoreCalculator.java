@@ -38,11 +38,14 @@ public final class DomainScoreCalculator {
         List<AnswerDocument> criticalEthics = new ArrayList<>();
         List<AnswerDocument> criticalTech = new ArrayList<>();
 
-        for (AnswerDocument answer : allAnswers) {
-            if (answer.getQuestionId() == null) continue;
+        for (AnswerDocument answer : allAnswers.stream()
+                .filter(answer -> answer.getQuestionId() != null)
+                .filter(answer -> {
+                    QuestionMetadataDocument meta = metadataByQId.get(answer.getQuestionId());
+                    return meta != null && meta.getDomain() != null;
+                })
+                .toList()) {
             QuestionMetadataDocument meta = metadataByQId.get(answer.getQuestionId());
-            if (meta == null || meta.getDomain() == null) continue;
-
             byDomain.computeIfAbsent(meta.getDomain(), k -> new ArrayList<>()).add(answer);
 
             if (meta.isCritical()) {
